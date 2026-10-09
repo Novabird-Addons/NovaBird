@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>NovaBird-Search</title>
+  <link rel="stylesheet" href="analysis.css">
+</head>
+<body>
+  <header>
+    <div class="title"><h1 id="title"></h1><span id="count"></span></div>
+    <div class="actions">
+      <button id="reset" type="button" hidden></button>
+      <button id="open" type="button" class="primary"></button>
+    </div>
+  </header>
+  <section id="chart-wrap"><div id="chart-title" class="muted small"></div><div id="chart"></div><div id="chart-axis"></div></section>
+  <main>
+    <aside id="facets"></aside>
+    <section id="list"></section>
+    <div id="split" role="separator" aria-orientation="vertical"></div>
+    <section id="pane"></section>
+  </main>
+  <p id="msg" hidden></p>
+  <script src="analysis.js"></script>
+</body>
+</html>

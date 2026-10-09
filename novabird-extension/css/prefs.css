@@ -1,0 +1,34 @@
+/* about:preferences */
+#pref-category-box { display: none !important; }
+#prefBox, #preferencesContainer, #preferencesContainer .paneDeckContainer { background: var(--tbsr-bg) !important; color: var(--tbsr-text); }
+#prefBox { display: flex; }
+#preferencesContainer { align-items: stretch !important; overflow-y: auto; padding: 0 40px 60px; }
+.paneDeckContainer { width: 100%; max-width: 780px; margin: 0 auto; }
+.sticky-container { background: transparent !important; }
+
+.subcategory h1 { font-size: 26px !important; font-weight: 600; margin: 24px 0 10px !important; }
+
+/* groups become cards */
+#paneDeck fieldset {
+  margin: 0 0 20px !important; padding: 0 !important;
+  background: var(--tbsr-panel); border: 1px solid var(--tbsr-line) !important; border-radius: var(--tbsr-radius);
+  overflow: hidden;
+}
+#paneDeck fieldset > legend {
+  float: left; width: 100%; box-sizing: border-box;
+  padding: 14px 18px 8px !important; margin: 0 !important;
+  font-size: 15px !important; font-weight: 600; border: 0 !important;
+}
+#paneDeck fieldset > :not(legend) { clear: both; }
+#paneDeck fieldset > :not(legend) { margin-inline: 18px; }
+#paneDeck fieldset { padding-bottom: 14px !important; }
+
+/* buttons */
+button:not(.close-icon) {
+  border: 1px solid var(--tbsr-line); border-radius: 8px;
+  background-color: var(--tbsr-panel); color: var(--tbsr-text);
+}
+button:not([disabled]):hover { background-color: var(--tbsr-hover); }
+
+/* room above sections when the tree scrolls to them */
+#paneDeck [data-category] { scroll-margin-top: 56px; }

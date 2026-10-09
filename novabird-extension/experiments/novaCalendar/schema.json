@@ -1,0 +1,88 @@
+[
+  {
+    "namespace": "novaCalendar",
+    "functions": [
+      {
+        "name": "start",
+        "type": "function",
+        "async": true,
+        "description": "Registriert die Fenster-Listener (Hauptfenster und Termin-Dialoge).",
+        "parameters": []
+      },
+      {
+        "name": "setOrder",
+        "type": "function",
+        "async": true,
+        "description": "Legt fest, ob die Terminliste oben (events-top) oder unten (tasks-top) im rechten Bereich steht.",
+        "parameters": [
+          {
+            "name": "order",
+            "type": "string",
+            "enum": [
+              "events-top",
+              "tasks-top"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "setPaneLayout",
+        "type": "function",
+        "async": true,
+        "description": "Rechter Bereich: nova = Termine/Aufgaben-Leiste dieser Erweiterung, default = Betterbird-Standard.",
+        "parameters": [
+          { "name": "layout", "type": "string", "enum": ["nova", "default"] }
+        ]
+      },
+      {
+        "name": "setAgendaDays",
+        "type": "function",
+        "async": true,
+        "description": "Anzahl der Tage (inkl. heute), die die Terminliste im rechten Bereich zeigt (1-28).",
+        "parameters": [
+          { "name": "days", "type": "integer" }
+        ]
+      },
+      {
+        "name": "setColors",
+        "type": "function",
+        "async": true,
+        "description": "Eigene Farben für die Termin-Dialoge (null = Theme-Farben). Gilt für Dialoge, die danach geöffnet werden.",
+        "parameters": [
+          {
+            "name": "colors",
+            "type": "object",
+            "optional": true,
+            "additionalProperties": true
+          }
+        ]
+      },
+      {
+        "name": "setAttachPane",
+        "type": "function",
+        "async": true,
+        "description": "Anhänge-Bereich unter dem Tagesplan ein-/ausschalten.",
+        "parameters": [
+          {
+            "name": "enabled",
+            "type": "boolean"
+          }
+        ]
+      },
+      {
+        "name": "resetAttachHeight",
+        "type": "function",
+        "async": true,
+        "description": "Höhe des Anhänge-Bereichs auf den Standard zurücksetzen.",
+        "parameters": []
+      },
+      {
+        "name": "getStatus",
+        "type": "function",
+        "async": true,
+        "description": "Diagnose: Zustand der Bereiche im Hauptfenster als Text.",
+        "parameters": []
+      }
+    ]
+  }
+]

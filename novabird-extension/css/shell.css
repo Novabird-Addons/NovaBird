@@ -1,0 +1,111 @@
+/* Shared by about:preferences, about:accountsettings and the account sub pages.
+   Change the colours here (or override --tbsr-* from your theme). */
+:root {
+  --tbsr-bg: #f4f5f8;
+  --tbsr-panel: #ffffff;
+  --tbsr-side: #eceef4;
+  --tbsr-text: #1d1f2b;
+  --tbsr-muted: #6b7084;
+  --tbsr-line: #dfe2ec;
+  --tbsr-accent: #0a84ff;
+  --tbsr-accent-bg: #e4f0ff;
+  --tbsr-accent-text: #0a5bc4;
+  --tbsr-hover: rgba(10, 20, 60, .06);
+  --tbsr-switch-off: #b9bdcc;
+  --tbsr-radius: 12px;
+  --tbsr-font: system-ui, "Segoe UI", Ubuntu, "Noto Sans", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --tbsr-bg: #17181f; --tbsr-panel: #20222c; --tbsr-side: #1b1c25;
+    --tbsr-text: #e8e9f0; --tbsr-muted: #9a9fb4; --tbsr-line: #2f3240;
+    --tbsr-accent: #4da3ff; --tbsr-accent-bg: #1f3350; --tbsr-accent-text: #8cc2ff;
+    --tbsr-hover: rgba(255, 255, 255, .07); --tbsr-switch-off: #4a4e60;
+  }
+}
+
+/* One font everywhere, so switching pages does not jump. */
+html, body, input, select, button, textarea, label, legend, menulist, checkbox, description {
+  font-family: var(--tbsr-font) !important;
+  font-size: 14px;
+}
+
+/* ---- navigation ---- */
+#tbsr-nav, #tbsr-nav * { font-family: var(--tbsr-font) !important; font-size: 14px !important; line-height: 1.35; }
+#tbsr-nav h6 { font-size: 11px !important; }
+#tbsr-nav {
+  display: flex; flex-direction: column; gap: 2px;
+  box-sizing: border-box; width: 280px; min-width: 280px; height: 100%;
+  padding: 16px 10px 16px 12px; overflow-y: auto; scrollbar-width: thin; scrollbar-gutter: stable;
+  background: var(--tbsr-side); color: var(--tbsr-text);
+  border-inline-end: 1px solid var(--tbsr-line);
+}
+#tbsr-nav .tbsr-search { position: relative; margin-bottom: 8px; }
+#tbsr-nav .tbsr-search input {
+  box-sizing: border-box; width: 100% !important; max-width: none !important; height: auto !important; margin: 0; padding: 10px 12px 10px 36px !important;
+  border: 1px solid var(--tbsr-line); border-radius: 10px;
+  background: var(--tbsr-panel); color: var(--tbsr-text);
+}
+#tbsr-nav .tbsr-search input:focus { outline: 2px solid var(--tbsr-accent); border-color: transparent; }
+#tbsr-nav .tbsr-search img {
+  position: absolute; left: 11px; top: 11px; width: 16px; height: 16px; opacity: .6; pointer-events: none;
+  -moz-context-properties: fill, stroke; fill: var(--tbsr-muted); stroke: var(--tbsr-muted);
+}
+#tbsr-nav h6 {
+  margin: 14px 10px 4px; font-size: 11px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--tbsr-muted);
+}
+#tbsr-nav hr { width: 100%; margin: 10px 0 6px; border: 0; border-top: 1px solid var(--tbsr-line); }
+#tbsr-nav a {
+  display: flex; align-items: center; gap: 11px; padding: 8px 10px; border-radius: 9px;
+  color: var(--tbsr-text); text-decoration: none; cursor: pointer; user-select: none;
+}
+#tbsr-nav a:hover { background: var(--tbsr-hover); }
+#tbsr-nav a[aria-current="page"] { background: var(--tbsr-accent-bg); color: var(--tbsr-accent-text); font-weight: 600; }
+#tbsr-nav a .ic {
+  width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
+  background: var(--tbsr-panel); box-shadow: 0 1px 2px rgba(20, 25, 50, .08);
+}
+#tbsr-nav a[aria-current="page"] .ic { background: var(--tbsr-accent); }
+#tbsr-nav a .ic img {
+  width: 16px; height: 16px; -moz-context-properties: fill, stroke;
+  fill: var(--tbsr-text); stroke: var(--tbsr-text);
+}
+#tbsr-nav a[aria-current="page"] .ic img { fill: #fff; stroke: #fff; }
+#tbsr-nav .tbsr-spacer { flex: 1; }
+
+/* ---- shared form look ---- */
+input:not([type=checkbox]):not([type=radio]):not([type=range]), select, textarea, menulist {
+  border: 1px solid var(--tbsr-line) !important; border-radius: 8px !important;
+  background-color: var(--tbsr-panel) !important; color: var(--tbsr-text) !important;
+}
+
+/* ---- checkboxes as switches (XUL checkbox + html input) ---- */
+checkbox .checkbox-check, input[type=checkbox] {
+  appearance: none; -moz-appearance: none; list-style-image: none !important;
+  box-sizing: border-box; width: 34px !important; min-width: 34px; height: 20px !important; margin: 0 10px 0 0;
+  border: 0 !important; border-radius: 99px !important; padding: 0;
+  background: radial-gradient(circle closest-side, #fff 96%, transparent 100%) no-repeat 2px center / 16px 16px, var(--tbsr-switch-off) !important;
+  transition: background-color .15s, background-position .15s;
+}
+checkbox[checked]:not([checked="false"]) .checkbox-check, input[type=checkbox]:checked {
+  background: radial-gradient(circle closest-side, #fff 96%, transparent 100%) no-repeat calc(100% - 2px) center / 16px 16px, var(--tbsr-accent) !important;
+}
+checkbox[disabled]:not([disabled="false"]), input[type=checkbox]:disabled { opacity: .5; }
+checkbox:focus-visible .checkbox-check, input[type=checkbox]:focus-visible { outline: 2px solid var(--tbsr-accent); outline-offset: 2px; }
+
+/* ---- section tree under the active category ---- */
+#tbsr-nav .tbsr-tree { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .2s ease; }
+#tbsr-nav .tbsr-tree.open { grid-template-rows: 1fr; }
+#tbsr-nav .tbsr-tree > div {
+  overflow: hidden; min-height: 0; display: flex; flex-direction: column; gap: 1px;
+  margin-inline-start: 24px; padding-inline-start: 8px; border-inline-start: 1px solid var(--tbsr-line);
+}
+#tbsr-nav .tbsr-tree a { padding: 5px 8px; gap: 9px; border-radius: 7px; color: var(--tbsr-muted); }
+#tbsr-nav .tbsr-tree a, #tbsr-nav .tbsr-tree a * { font-size: 13px !important; }
+#tbsr-nav .tbsr-tree a:hover { color: var(--tbsr-text); }
+#tbsr-nav .tbsr-tree a[aria-current] { background: var(--tbsr-hover); color: var(--tbsr-accent-text); font-weight: 600; }
+#tbsr-nav .tbsr-tree a img {
+  width: 14px; height: 14px; flex: none; -moz-context-properties: fill, stroke; fill: currentColor; stroke: currentColor;
+}
+#tbsr-nav .tbsr-tree a span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -1,0 +1,1288 @@
+/* Springlight – Mailspring-Stil – theme.css (ehemals userChrome.css) (Version 1.1) */
+
+:root {
+  --ms-accent: #419bf9;
+  --ms-accent-dark: #1f6fc5;
+  --ms-accent-soft: #e4effd;
+  --ms-accent-soft-focus: #d3e5fc;
+  --ms-sidebar: #f6f7f8;
+  --ms-spaces: #eef0f2;
+  --ms-sidebar-text: #4a5058;
+  --ms-text: #2c3138;
+  --ms-muted: #6b737c;
+  --ms-border: #e4e6e9;
+  --ms-row-line: #f0f1f3;
+  --ms-hover: #eceef1;
+  --ms-toolbar: #ffffff;
+  --ms-list-bg: #ffffff;
+  --ms-radius: 6px;
+  --ms-row-h: 28px;
+  --ms-select-bar: 0px;
+  --ms-count-bg: #e3e6ea;
+  --ms-count-fg: #4a5058;
+  --ms-row-pad: 10px 14px;
+  --ms-font: "Segoe UI Variable Text", "Segoe UI", "Noto Sans", Cantarell, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ---------- Schrift ---------------------------------------------------- */
+:root, body, #messengerWindow, #threadTree, #folderTree {
+  font-family: var(--ms-font) !important;
+}
+
+/* ---------- Spaces-Leiste ---------------------------------------------- */
+#spacesToolbar {
+  background-color: var(--ms-spaces) !important;
+  border-inline-end: 1px solid var(--ms-border) !important;
+}
+.spaces-toolbar-button { border-radius: 8px !important; }
+.spaces-toolbar-button:hover { background-color: var(--ms-hover) !important; }
+.spaces-toolbar-button.current { background-color: var(--ms-accent-soft-focus) !important; }
+
+#mailButton img        { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23d7e8fd%22%20x%3D%222.5%22%20y%3D%224.5%22%20width%3D%2215%22%20height%3D%2211%22%20rx%3D%221.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22m3%205.5%207%205.5%207-5.5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#addressBookButton img { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20fill%3D%22%23d7e8fd%22%20cx%3D%2210%22%20cy%3D%227.5%22%20r%3D%223%22%2F%3E%3Cpath%20fill%3D%22%23d7e8fd%22%20d%3D%22M4%2016.5c.6-2.9%203-4.5%206-4.5s5.4%201.6%206%204.5z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#calendarButton img    { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23d7e8fd%22%20x%3D%223%22%20y%3D%224%22%20width%3D%2214%22%20height%3D%2213%22%20rx%3D%221.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22M3%208h14%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M7%202.5v3M13%202.5v3%22%2F%3E%3C%2Fsvg%3E") !important; }
+#tasksButton img       { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23d7e8fd%22%20x%3D%223%22%20y%3D%223%22%20width%3D%2214%22%20height%3D%2214%22%20rx%3D%222%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22m6.5%2010%202.5%202.5%204.5-5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#chatButton img        { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23d7e8fd%22%20d%3D%22M3%205a1.5%201.5%200%200%201%201.5-1.5h11A1.5%201.5%200%200%201%2017%205v7a1.5%201.5%200%200%201-1.5%201.5H8.5L5%2016.5v-3h-.5A1.5%201.5%200%200%201%203%2012z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#settingsButton img    { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%206H11M15%206h1.5M3.5%2014H5M9%2014h7.5%22%2F%3E%3Ccircle%20fill%3D%22%23d7e8fd%22%20cx%3D%2213%22%20cy%3D%226%22%20r%3D%222%22%2F%3E%3Ccircle%20fill%3D%22%23d7e8fd%22%20cx%3D%227%22%20cy%3D%2214%22%20r%3D%222%22%2F%3E%3C%2Fsvg%3E") !important; }
+
+/* ---------- Obere Werkzeugleiste --------------------------------------- */
+#unifiedToolbarContainer, unified-toolbar {
+  background-color: var(--ms-toolbar) !important;
+  border-bottom: 1px solid var(--ms-border) !important;
+}
+#unifiedToolbar .unified-toolbar-button,
+#unifiedToolbar button { border-radius: var(--ms-radius) !important; }
+li[item-id="write-message"] .button-icon {
+  content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23d7e8fd%22%20d%3D%22M9.5%203.5H5A1.5%201.5%200%200%200%203.5%205v10A1.5%201.5%200%200%200%205%2016.5h10a1.5%201.5%200%200%200%201.5-1.5v-4.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22M14.6%202.9a1.4%201.4%200%200%201%202%202L10%2011.5l-2.5.5.5-2.5z%22%2F%3E%3C%2Fsvg%3E") !important; background-image: none !important;
+}
+li[item-id="get-messages"] .button-icon {
+  content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M16.5%2010a6.5%206.5%200%201%201-1.9-4.6%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22M16.5%203v3.5H13%22%2F%3E%3C%2Fsvg%3E") !important; background-image: none !important;
+}
+
+/* ---------- Ordnerbereich ---------------------------------------------- */
+#folderPane, #folderTree, #folderPaneHeaderBar {
+  background-color: var(--ms-sidebar) !important;
+}
+#folderPaneHeaderBar { border-bottom: none !important; }
+
+#folderTree li > .container {
+  margin-inline: 6px !important;
+  border-radius: var(--ms-radius) !important;
+  min-height: var(--ms-row-h) !important;
+  color: var(--ms-sidebar-text) !important;
+}
+#folderTree li > .container:hover { background-color: var(--ms-hover) !important; }
+#folderTree li.selected > .container {
+  background-color: var(--ms-accent-soft) !important;
+  color: var(--ms-accent-dark) !important;
+  box-shadow: inset var(--ms-select-bar) 0 0 var(--ms-accent) !important;
+}
+#folderTree:focus-within li.selected > .container {
+  background-color: var(--ms-accent-soft-focus) !important;
+  font-weight: 600 !important;
+}
+
+/* Kontennamen als Abschnittsüberschrift */
+#folderTree li[data-server-type] > .container {
+  font-size: 0.82em !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.03em !important;
+  color: var(--ms-muted) !important;
+  margin-top: 8px !important;
+}
+
+/* Ungelesen-Zähler als Pille */
+#folderTree .unread-count {
+  background-color: var(--ms-count-bg) !important;
+  color: var(--ms-count-fg) !important;
+  border-radius: 10px !important;
+  padding: 0 7px !important;
+  font-weight: 600 !important;
+  font-size: 0.85em !important;
+}
+
+/* Ordner-Icons */
+#folderTree li > .container > .icon {
+  content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23d7e8fd%22%20d%3D%22M2.5%206A1.5%201.5%200%200%201%204%204.5h3.6l1.6%202H16a1.5%201.5%200%200%201%201.5%201.5v7a1.5%201.5%200%200%201-1.5%201.5H4A1.5%201.5%200%200%201%202.5%2015z%22%2F%3E%3C%2Fsvg%3E") !important;
+  width: 16px !important; height: 16px !important;
+}
+#folderTree li[data-folder-type="inbox"]     > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3%2011.5%205.2%204.6a1.5%201.5%200%200%201%201.4-1.1h6.8a1.5%201.5%200%200%201%201.4%201.1L17%2011.5%22%2F%3E%3Cpath%20fill%3D%22%23d7e8fd%22%20d%3D%22M3%2011.5V15a1.5%201.5%200%200%200%201.5%201.5h11A1.5%201.5%200%200%200%2017%2015v-3.5h-4l-1%202H8l-1-2H3z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="sent"]      > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23d7e8fd%22%20d%3D%22M17.5%202.5%2012%2017.5l-3-6.5-6.5-3z%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M17.5%202.5%209%2011%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="drafts"]    > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23d7e8fd%22%20d%3D%22M11%203.5H5.5A1.5%201.5%200%200%200%204%205v10a1.5%201.5%200%200%200%201.5%201.5h9A1.5%201.5%200%200%200%2016%2015V9%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22M14.6%202.9a1.4%201.4%200%200%201%202%202L10.5%2011l-2.5.5.5-2.5z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="trash"]     > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23d7e8fd%22%20d%3D%22m5%205.5.8%2010.1A1.5%201.5%200%200%200%207.3%2017h5.4a1.5%201.5%200%200%200%201.5-1.4L15%205.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%205.5h13%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8%205.5V4a1%201%200%200%201%201-1h2a1%201%200%200%201%201%201v1.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8.5%208.5v5M11.5%208.5v5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="junk"]      > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23d7e8fd%22%20d%3D%22M10%202.5%204%204.8v4.7c0%203.6%202.6%206.4%206%208%203.4-1.6%206-4.4%206-8V4.8z%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22m8%208%204%204M12%208l-4%204%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="archive"]   > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23d7e8fd%22%20d%3D%22M4%207.5V15a1.5%201.5%200%200%200%201.5%201.5h9A1.5%201.5%200%200%200%2016%2015V7.5%22%2F%3E%3Crect%20fill%3D%22none%22%20x%3D%222.5%22%20y%3D%223.5%22%20width%3D%2215%22%20height%3D%224%22%20rx%3D%221%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22M8%2011h4%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="outbox"]    > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23d7e8fd%22%20d%3D%22M3%2011.5V15a1.5%201.5%200%200%200%201.5%201.5h11A1.5%201.5%200%200%200%2017%2015v-3.5h-4l-1%202H8l-1-2H3z%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22M10%202.5v7M7%205.5l3-3%203%203%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="templates"] > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23d7e8fd%22%20x%3D%226%22%20y%3D%222.5%22%20width%3D%2210.5%22%20height%3D%2212%22%20rx%3D%221.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%206v9.5A1.5%201.5%200%200%200%205%2017h8%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22M9%206.5h4.5M9%209.5h4.5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="virtual"]   > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23d7e8fd%22%20d%3D%22M2.5%206A1.5%201.5%200%200%201%204%204.5h3.6l1.6%202H16a1.5%201.5%200%200%201%201.5%201.5v7a1.5%201.5%200%200%201-1.5%201.5H4A1.5%201.5%200%200%201%202.5%2015z%22%2F%3E%3Ccircle%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20cx%3D%229.5%22%20cy%3D%2211%22%20r%3D%222%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22m11%2012.5%201.5%201.5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-server-type]             > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20fill%3D%22%23d7e8fd%22%20cx%3D%2210%22%20cy%3D%2210%22%20r%3D%223%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M13%2010v1.2a2.3%202.3%200%200%200%204.5%200V10a7.5%207.5%200%201%200-3%206%22%2F%3E%3C%2Fsvg%3E") !important; }
+
+/* ---------- Nachrichtenliste ------------------------------------------- */
+#threadPane, #threadTree, #threadPaneHeaderBar {
+  background-color: var(--ms-list-bg) !important;
+}
+#threadPaneHeaderBar { border-bottom: 1px solid var(--ms-border) !important; }
+
+#threadTree tbody tr { border-bottom: 1px solid var(--ms-row-line) !important; }
+#threadTree tbody tr:hover { background-color: var(--ms-hover) !important; }
+#threadTree tbody tr.selected {
+  background-color: var(--ms-accent-soft) !important;
+  color: var(--ms-text) !important;
+}
+#threadTree:focus-within tbody tr.selected {
+  background-color: var(--ms-accent) !important;
+  color: #0b2a4d !important;
+}
+#threadTree tbody tr.unread .subject,
+#threadTree tbody tr.unread .sender,
+#threadTree tbody tr.unread .correspondentcol-column { font-weight: 600 !important; }
+
+/* Kartenansicht */
+/* Nur den seitlichen Abstand setzen: Betterbird rechnet die Zeilenhöhe fest aus (Karten-Innenabstand ca. 7 px gesamt),
+   größerer senkrechter Abstand schneidet sonst die Absenderzeile ab. */
+tr[is="thread-card"] .card-container { padding-inline: 14px !important; }
+tr[is="thread-card"].unread .card-container { box-shadow: inset 3px 0 0 var(--ms-accent) !important; }
+tr[is="thread-card"] .date { color: color-mix(in srgb, var(--ms-text) 72%, #ffffff) !important; }
+/* Auswahl: die Karte selbst bleibt durchsichtig, die Zeile liefert den Grund. Heller Grund + dunkle Schrift in jedem
+   Zustand (mit und ohne Fokus), damit Schrift und Hintergrund nie zu nah beieinander liegen. */
+#threadTree tr[is="thread-card"].selected .card-container { background-color: transparent !important; box-shadow: inset 3px 0 0 var(--ms-accent) !important; }
+#threadTree tr[is="thread-card"].selected { background-color: var(--ms-accent-soft) !important; color: var(--ms-text) !important; }
+#threadTree:focus-within tr[is="thread-card"].selected { background-color: var(--ms-accent-soft-focus) !important; color: var(--ms-text) !important; }
+#threadTree tr[is="thread-card"].selected :is(.sender, .subject, .thread-card-subject-container, .correspondent) { color: var(--ms-text) !important; }
+#threadTree tr[is="thread-card"].selected .date,
+#threadTree:focus-within tr[is="thread-card"].selected .date { color: var(--ms-sidebar-text) !important; }
+
+/* ---------- Trennlinien ------------------------------------------------ */
+#folderPaneSplitter, #messagePaneSplitter, splitter {
+  --splitter-color: var(--ms-border) !important;
+  border-color: var(--ms-border) !important;
+}
+
+/* ---------- Nachrichtenkopf -------------------------------------------- */
+#messageHeader {
+  background-color: var(--ms-list-bg) !important;
+  border-bottom: 1px solid var(--ms-border) !important;
+}
+#header-view-toolbar toolbarbutton,
+#header-view-toolbar .toolbarbutton-1 { border-radius: var(--ms-radius) !important; }
+#hdrReplyButton, #hdrReplyToSenderButton { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22M8%205%203.5%209.5%208%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%209.5H11a5%205%200%200%201%205%205v1%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrReplyAllButton { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22M10%205%205.5%209.5%2010%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22M6%205%201.5%209.5%206%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M5.5%209.5H12a5%205%200%200%201%205%205v1%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrForwardButton  { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22m12%205%204.5%204.5L12%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M16.5%209.5H9a5%205%200%200%200-5%205v1%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrArchiveButton  { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23d7e8fd%22%20d%3D%22M4%207.5V15a1.5%201.5%200%200%200%201.5%201.5h9A1.5%201.5%200%200%200%2016%2015V7.5%22%2F%3E%3Crect%20fill%3D%22none%22%20x%3D%222.5%22%20y%3D%223.5%22%20width%3D%2215%22%20height%3D%224%22%20rx%3D%221%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22M8%2011h4%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrJunkButton     { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23d7e8fd%22%20d%3D%22M10%202.5%204%204.8v4.7c0%203.6%202.6%206.4%206%208%203.4-1.6%206-4.4%206-8V4.8z%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23419bf9%22%20d%3D%22m8%208%204%204M12%208l-4%204%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrTrashButton    { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%235f7189%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23d7e8fd%22%20d%3D%22m5%205.5.8%2010.1A1.5%201.5%200%200%200%207.3%2017h5.4a1.5%201.5%200%200%200%201.5-1.4L15%205.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%205.5h13%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8%205.5V4a1%201%200%200%201%201-1h2a1%201%200%200%201%201%201v1.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8.5%208.5v5M11.5%208.5v5%22%2F%3E%3C%2Fsvg%3E") !important; }
+
+/* ---------- Menüs ------------------------------------------------------ */
+menupopup, panel { --panel-border-radius: 8px !important; }
+
+
+/* ---------- Tab-Leiste: eigener ruhiger Grauton statt Schleier/Schatten ---------- */
+:root:root:root:root {
+  --tabs-toolbar-background-color: #eceef1;
+  --tabs-toolbar-box-shadow: inset 0 1px 0 var(--ms-border);
+  --chrome-content-separator-color: var(--ms-border);
+}
+
+/* ===== NovaBird-Erweiterungen (aus dem früheren Polar übertragen, Farben umgerechnet) ===== */
+/* Kontextmenüs und Menüs: Theme-Farben statt Systemgrau (nur wo Menüs nicht nativ gezeichnet werden, z. B. Windows) */
+:root:root:root:root menupopup:not([type="arrow"]) {
+  --panel-background-color: #FDFDFE;
+  --panel-text-color: #363C46;
+  --panel-border-color: #E0E3E7;
+  --panel-border-radius: 10px;
+  --panel-padding: 5px;
+  --menuitem-border-radius: 6px;
+  --menuitem-padding: 0.4em 0.8em;
+  --panel-separator-color: #EEF0F2;
+  --panel-box-shadow: 0 6px 22px rgba(30, 50, 90, 0.18);
+  --panel-box-shadow-margin: 12px;
+}
+:root:root:root:root menupopup > :is(menuitem, menu)[_moz-menuactive]:not([disabled]) {
+  background-color: #D9E8F8;
+  color: #12283D;
+}
+:root:root:root:root menupopup > :is(menuitem, menu)[disabled] {
+  color: #989DA5;
+}
+
+/* Kalender: ruhiges Raster, Heute als Akzent, Termine als weiche Pillen */
+:root:root:root:root {
+  --viewColor: #363C46;
+  --viewBackground: #FBFCFE;
+  --viewBorderColor: #F2F3F5;
+  --viewWeekendBackground: #F3F7FB;
+  --viewTodayBackground: #EBF3FC;
+  --viewTodayWeekendBackground: #E7F1FA;
+  --viewTodayOffBackground: #E7F1FA;
+  --viewTodayLabelBackground: #419bf9;
+  --viewTodayLabelColor: #0b2a4d;
+  --viewHighlightBorderColor: rgba(65, 155, 249, 0.45);
+  --viewDayBoxSelectedBackground: #E4F0FB;
+  --viewDayBoxOffSelectedBackground: #E1EDF9;
+  --viewDayBoxOtherSelectedBackground: #E1EDF9;
+  --viewHeaderSelectedBackground: #D9E8F8;
+  --viewMonthOtherBackground: #FAFAFB;
+  --viewMonthDayOtherBackground: #FAFAFB;
+  --viewMonthWeekLabelBackground: #F2F3F5;
+  --viewMonthDayBoxLabelColor: #525A66;
+  --viewMonthDayBoxSelectedColor: #363C46;
+  --viewCalendarHeaderBackground: #FAFAFB;
+  --viewOffTimeBackground: #F3F7FB;
+  --viewTimeBoxColor: #878C95;
+  --viewDayLabelSelectedBackground: #419bf9;
+  --viewDragboxBackground: #419bf9;
+  --viewDropshadowBackground: #419bf9;
+  --calendar-view-toggle-background: #F2F3F5;
+  --calendar-view-toggle-selected-background: #FFFFFF;
+  --calendar-view-toggle-hover-background: #D9E8F8;
+  --button-border-radius: 8px;
+}
+.calendar-color-box {
+  border-radius: 6px;
+  background-color: color-mix(in srgb, var(--item-backcolor) 88%, white);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--item-backcolor) 75%, black);
+}
+calendar-month-day-box calendar-month-day-box-item[allday="true"].calendar-color-box {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--item-backcolor) 75%, black);
+}
+.calendar-month-day-box-list-item {
+  margin: 1px 4px;
+}
+.calendar-month-day-box-date-label[relation="today"] {
+  box-shadow: 0 1px 4px rgba(65, 155, 249, 0.35);
+}
+.calendar-month-day-box-week-label {
+  font-weight: 600;
+}
+.day-column-heading {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.multiday-grid:not(.multiday-grid-rotated) .timeIndicator {
+  border-block-start-color: #E5484D;
+  opacity: 0.9;
+}
+.multiday-timebar-now-indicator {
+  border-color: #E5484D;
+}
+calendar-day-label {
+  background-color: var(--viewCalendarHeaderBackground);
+  color: #6C737E;
+}
+.calendar-day-label-name {
+  font-weight: 600;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Heute-Markierung lesbar (--selected-item-color ist im Theme ein helles Blau und taugt nur als Fläche) */
+.day-column-today .day-column-heading,
+.day-column-selected .day-column-heading,
+calendar-day-label[relation="today"] {
+  color: #419bf9;
+}
+:root:root:root:root calendar-minimonth {
+  --mmDaySelectedColor: #1550a0;
+  --mmDaySelectedBackground: rgba(65, 155, 249, 0.22);
+  --mmDaySelectedBorderColor: rgba(65, 155, 249, 0.5);
+  --mmDaySelectedTodayBackground: rgba(65, 155, 249, 0.18);
+  --mmDaySelectedTodayBorderColor: rgba(65, 155, 249, 0.5);
+  --mmDayTodayColor: #1550a0;
+  --mmDayTodayBackground: rgba(65, 155, 249, 0.12);
+}
+
+/* Menüs: zusätzlich direkt am Inhaltsbereich, falls die Variablen nicht greifen */
+menupopup:not([type="arrow"])::part(content) {
+  background: #FDFDFE !important;
+  color: #363C46 !important;
+  border: 1px solid #E0E3E7 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 6px 22px rgba(30, 50, 90, 0.18) !important;
+}
+
+/* Mini-Kalender: Heute kräftig blau, angewählter Tag sanft gelb */
+:root:root:root:root calendar-minimonth {
+  --mmDayTodayBackground: #419bf9;
+  --mmDayTodayColor: #0b2a4d;
+  --mmDayTodayBorderColor: #419bf9;
+  --mmDaySelectedBackground: #FFF0B3;
+  --mmDaySelectedColor: #4A3800;
+  --mmDaySelectedBorderColor: #E3B93C;
+  --mmDaySelectedTodayBackground: #419bf9;
+  --mmDaySelectedTodayBorderColor: #E3B93C;
+}
+.minimonth-day[today="true"],
+.minimonth-day[selected="true"][today="true"] {
+  color: #0b2a4d;
+  font-weight: 700;
+}
+.minimonth-day[selected="true"]:not([today="true"]) {
+  font-weight: 600;
+}
+
+/* Wochen-/Monatsansicht: angewählter Tag ebenfalls sanft gelb, Heute bleibt blau */
+:root:root:root:root {
+  --viewDayBoxSelectedBackground: #FFF6D6;
+  --viewDayBoxOffSelectedBackground: #FFF1C4;
+  --viewDayBoxOtherSelectedBackground: #FFF1C4;
+  --viewHighlightBorderColor: rgba(227, 185, 60, 0.75);
+}
+.day-column-selected .day-column-heading {
+  color: #8A6400;
+}
+.day-column-today .day-column-heading {
+  color: #419bf9;
+}
+
+/* ===== Kalender 2.0: moderner Look ===== */
+
+/* Termine: Pastellfläche in der Kalenderfarbe, dunkler Text, kräftiger Streifen links */
+.calendar-color-box {
+  border-radius: 8px;
+  background-color: color-mix(in srgb, var(--item-backcolor) 20%, #FFFFFF);
+  color: color-mix(in srgb, var(--item-backcolor) 35%, #111E2C);
+  box-shadow: inset 4px 0 0 var(--item-backcolor), 0 1px 2px rgba(30, 50, 90, 0.10);
+  transition: box-shadow 0.12s ease, transform 0.12s ease;
+}
+calendar-month-day-box calendar-month-day-box-item[allday="true"].calendar-color-box {
+  box-shadow: inset 4px 0 0 var(--item-backcolor), 0 1px 2px rgba(30, 50, 90, 0.10);
+}
+calendar-event-box:hover .calendar-color-box,
+calendar-month-day-box-item:hover.calendar-color-box {
+  box-shadow: inset 4px 0 0 var(--item-backcolor), 0 4px 12px rgba(30, 50, 90, 0.18);
+}
+.calendar-item-flex {
+  padding: 5px 8px 5px 10px;
+}
+.item-time-label {
+  font-weight: 600;
+  opacity: 0.8;
+}
+.event-name-label {
+  font-weight: 600;
+}
+.multiday-event-listitem {
+  padding: 1px 2px;
+}
+
+/* Ansichtsumschalter (Tag/Woche/Monat) als runde Pille */
+.calview-toggle {
+  border-radius: 999px;
+  padding: 2px;
+  box-shadow: none;
+}
+button.calview-toggle-item {
+  border-radius: 999px;
+  font-weight: 500;
+}
+button.calview-toggle-item[role="tab"][aria-selected="true"] {
+  background-color: #FFFFFF;
+  color: #1550a0;
+  font-weight: 600;
+  border-color: transparent;
+  box-shadow: 0 1px 4px rgba(30, 50, 90, 0.20);
+}
+button.calview-toggle-item[role="tab"][aria-selected="false"]:hover {
+  background-color: rgba(65, 155, 249, 0.10);
+}
+
+/* Navigation (zurück / heute / vor) */
+.calendar-nav-buttons-container .button,
+.calendar-nav-buttons-container button {
+  border-radius: 999px;
+}
+
+/* Raster: nur horizontale Haarlinien, keine harten Spaltenlinien */
+.multiday-hour-box {
+  border-color: #F7F8F9;
+}
+calendar-event-column {
+  border-inline-start-color: #F7F8F9;
+}
+.day-column-heading {
+  border-color: transparent;
+  padding-block: 6px 5px;
+}
+calendar-header-container {
+  border-inline-start-color: #F7F8F9;
+  border-block-end: 1px solid #EEF0F2;
+}
+
+/* Monatsansicht: luftig, Tageszellen mit sanftem Hover */
+.monthtable {
+  border-radius: 10px;
+}
+.monthtable :is(td, th) > * {
+  border-inline-start-color: #F7F8F9;
+  border-block-start-color: #F7F8F9;
+}
+calendar-month-day-box {
+  transition: background-color 0.12s ease;
+}
+calendar-month-day-box:hover {
+  background-color: #F2F8FD;
+}
+.calendar-month-day-box-date-label {
+  font-weight: 500;
+  padding: 3px 6px;
+}
+.calendar-month-day-box-date-label[relation="today"] {
+  padding-inline: 8px;
+  margin: 2px;
+}
+.calendar-month-day-box-list-item {
+  margin: 2px 5px;
+}
+
+/* Termin-Dialog (Neuer Termin / Termin bearbeiten): Systemgrau durch Theme-Fläche ersetzen */
+:root:root #calendar-item-panel-iframe,
+:root:root #calendar-event-dialog,
+:root:root #calendar-task-dialog,
+:root:root #calendar-event-dialog-inner,
+:root:root #calendar-task-dialog-inner,
+:root:root #calendar-event-summary-dialog {
+  background: #F8F9FA !important;
+  color: #363C46;
+}
+
+/* Termine kräftiger absetzen (helle Kalenderfarben gingen sonst im Hintergrund unter) */
+.calendar-color-box {
+  background-color: color-mix(in srgb, var(--item-backcolor) 42%, #FFFFFF);
+  color: color-mix(in srgb, var(--item-backcolor) 25%, #111E2C);
+  box-shadow:
+    inset 4px 0 0 color-mix(in srgb, var(--item-backcolor) 65%, #000000),
+    0 0 0 1px color-mix(in srgb, var(--item-backcolor) 55%, #FFFFFF),
+    0 1px 3px rgba(30, 50, 90, 0.14);
+}
+calendar-month-day-box calendar-month-day-box-item[allday="true"].calendar-color-box {
+  box-shadow:
+    inset 4px 0 0 color-mix(in srgb, var(--item-backcolor) 65%, #000000),
+    0 0 0 1px color-mix(in srgb, var(--item-backcolor) 55%, #FFFFFF),
+    0 1px 3px rgba(30, 50, 90, 0.14);
+}
+calendar-event-box:hover .calendar-color-box,
+calendar-month-day-box-item:hover.calendar-color-box {
+  box-shadow:
+    inset 4px 0 0 color-mix(in srgb, var(--item-backcolor) 65%, #000000),
+    0 0 0 1px color-mix(in srgb, var(--item-backcolor) 55%, #FFFFFF),
+    0 4px 12px rgba(30, 50, 90, 0.22);
+}
+
+/* Wochenende außerhalb der Arbeitszeit: bläulich statt Grau */
+:root:root:root:root {
+  --viewMonthDayOffLabelBackground: #F4F6F8;
+  --viewOffTimeBackground: #F0F5F9;
+}
+
+/* Grundpalette der Oberfläche: Buttons, Auswahllisten, Felder und Kopfzeilen bläulich statt neutralgrau */
+:root:root:root:root {
+  --layout-background-0: #FBFCFE;
+  --layout-background-1: #F8F9FA;
+  --layout-background-2: #F4F6F8;
+  --layout-background-3: #EFF1F4;
+  --layout-background-4: #E5E8EC;
+  --layout-color-1: #363C46;
+  --layout-color-2: #5E6671;
+  --layout-border-0: #E8EAED;
+  --layout-border-1: #D9DDE2;
+  --button-background-color: #F4F6F8;
+  --button-hover-background-color: #D9E8F8;
+  --button-active-background-color: #C9DEF3;
+  --button-border-color: #E0E3E7;
+  --button-border-radius: 8px;
+  --button-text-color: #363C46;
+}
+
+/* Termin-Dialog: der Iframe-Inhalt ist selbst das Wurzelelement, daher eigene Selektoren */
+html#calendar-event-dialog-inner:root,
+html#calendar-task-dialog-inner:root {
+  background: #F8F9FA !important;
+  color: #363C46;
+}
+
+/* Termin-Dialog: Reiter (Beschreibung / Anhänge / Teilnehmer) in Theme-Farben */
+html#calendar-event-dialog-inner:root {
+  --panel-background-color-dimmed: #DDEAF6;
+}
+html#calendar-event-dialog-inner tab:hover {
+  background-color: rgba(65, 155, 249, 0.10);
+}
+html#calendar-event-dialog-inner tab:hover:active {
+  background-color: rgba(65, 155, 249, 0.18);
+}
+html#calendar-event-dialog-inner tab[selected] {
+  border-block-end-color: #419bf9;
+}
+
+/* ===== Kontakte / Adressbuch ===== */
+:root:root:root:root[lwtheme] {
+  --recipient-avatar-color: #1d63c4;
+  --tree-card-background: #FBFCFE;
+  --tree-card-border: transparent;
+  --tree-card-border-hover: #C2D9F0;
+  --tree-card-background-current: #EBF3FC;
+  --tree-card-background-selected: #D9E8F8;
+  --tree-card-background-selected-current: #D9E8F8;
+  --tree-card-border-selected: #ACCCEB;
+  --tree-card-border-focus: #419bf9;
+  --tree-card-background-selected-unfocused: #E4EEF7;
+  --tree-card-background-current-unfocused: #EFF5FA;
+  --ab-contact-photo-size: 96px;
+  --ab-detail-section-padding: 18px;
+}
+
+/* Avatare: weiches Blau statt Grau, ohne Ring */
+:root:root:root:root .recipient-avatar {
+  background-color: #DEECF9;
+  color: #1d63c4;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+/* Liste: Karten ohne Rahmen, runde Ecken, genug Luft */
+tr[is="ab-card-row"] td > .card-container {
+  border-radius: 12px;
+  padding-block: 4px;
+}
+tr[is="ab-card-row"] .name {
+  font-weight: 600;
+}
+
+/* Suchfeld und Seitenleiste */
+#searchInput {
+  border-radius: 999px;
+}
+#books .listRow-container {
+  border-radius: 8px;
+}
+
+/* Detailansicht: Kopf großzügig, Aktionen als Pillen, Abschnitte als weiche Karten */
+.contact-photo {
+  background-color: #DEECF9;
+  stroke: #1d63c4;
+  box-shadow: 0 2px 8px rgba(30, 50, 90, 0.12);
+}
+.contact-heading-name {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.contact-heading-email,
+.contact-heading-nickname {
+  color: #6C737E;
+}
+#detailsBody {
+  gap: 14px;
+}
+#detailsBody section {
+  background-color: #FBFCFE;
+  border: 1px solid #F2F3F5;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(30, 50, 90, 0.06);
+}
+#detailsBody h2 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6C737E;
+}
+#detailsActions.button-block,
+#detailsActions {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  padding-inline: 0;
+}
+#detailsActions button {
+  border-radius: 999px;
+  padding-inline: 14px;
+}
+#detailsActions button.icon-button {
+  padding-inline-start: 32px;
+}
+/* „… hinzufügen“ und (+) im Bearbeiten-Modus: gut lesbar statt blassem Hellblau */
+.addr-book-edit-fieldset-button.add-property-button {
+  color: #1d63c4;
+}
+.entry-type {
+  color: #878C95;
+  opacity: 1;
+}
+.entry-value a {
+  color: #1d63c4;
+}
+
+/* Termin-Dialog: gewählter Reiter */
+html#calendar-event-dialog-inner tab[selected],
+html#calendar-event-dialog-inner tab[visuallyselected] {
+  background-color: #DDEAF6 !important;
+}
+
+
+/* Kontakt-Avatare sind eigene Elemente mit Schattendokument: Farben als Variablen am Element setzen */
+contact-avatar {
+  --color-surface-deep: #DEECF9;
+  --color-text-base: #1d63c4;
+}
+
+/* Symbole anderer Add-ons in der linken Leiste (Notizen, Ordner …): einfarbig in der Farbe der Leiste statt Grau/Bunt */
+:root:root:root:root .spaces-addon-button > img {
+  content: none !important;
+  inline-size: var(--spaces-icon-size);
+  block-size: var(--spaces-icon-size);
+  background-color: currentColor;
+  -webkit-mask: var(--webextension-toolbar-image) center / contain no-repeat;
+  mask: var(--webextension-toolbar-image) center / contain no-repeat;
+}
+
+/* ===== Dunkelmodus (Betriebssystem) ===== */
+@media (prefers-color-scheme: dark) {
+/* Springlight – Mailspring-Stil – theme.css (ehemals userChrome.css) (Version 1.1) */
+
+:root {
+  --ms-accent: #6caffa;
+  --ms-accent-dark: #6faffc;
+  --ms-accent-soft: #191e24;
+  --ms-accent-soft-focus: #293c53;
+  --ms-sidebar: #15171a;
+  --ms-spaces: #1a1c1f;
+  --ms-sidebar-text: #babec4;
+  --ms-text: #d7dbe1;
+  --ms-muted: #a0a5ab;
+  --ms-border: #212326;
+  --ms-row-line: #191b1e;
+  --ms-hover: #1b1d20;
+  --ms-toolbar: #101214;
+  --ms-list-bg: #101214;
+  --ms-radius: 6px;
+  --ms-row-h: 28px;
+  --ms-select-bar: 0px;
+  --ms-count-bg: #212326;
+  --ms-count-fg: #babec4;
+  --ms-row-pad: 10px 14px;
+  --ms-font: "Segoe UI Variable Text", "Segoe UI", "Noto Sans", Cantarell, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ---------- Schrift ---------------------------------------------------- */
+:root, body, #messengerWindow, #threadTree, #folderTree {
+  font-family: var(--ms-font) !important;
+}
+
+/* ---------- Spaces-Leiste ---------------------------------------------- */
+#spacesToolbar {
+  background-color: var(--ms-spaces) !important;
+  border-inline-end: 1px solid var(--ms-border) !important;
+}
+.spaces-toolbar-button { border-radius: 8px !important; }
+.spaces-toolbar-button:hover { background-color: var(--ms-hover) !important; }
+.spaces-toolbar-button.current { background-color: var(--ms-accent-soft-focus) !important; }
+
+#mailButton img        { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23273b52%22%20x%3D%222.5%22%20y%3D%224.5%22%20width%3D%2215%22%20height%3D%2211%22%20rx%3D%221.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22m3%205.5%207%205.5%207-5.5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#addressBookButton img { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20fill%3D%22%23273b52%22%20cx%3D%2210%22%20cy%3D%227.5%22%20r%3D%223%22%2F%3E%3Cpath%20fill%3D%22%23273b52%22%20d%3D%22M4%2016.5c.6-2.9%203-4.5%206-4.5s5.4%201.6%206%204.5z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#calendarButton img    { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23273b52%22%20x%3D%223%22%20y%3D%224%22%20width%3D%2214%22%20height%3D%2213%22%20rx%3D%221.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22M3%208h14%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M7%202.5v3M13%202.5v3%22%2F%3E%3C%2Fsvg%3E") !important; }
+#tasksButton img       { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23273b52%22%20x%3D%223%22%20y%3D%223%22%20width%3D%2214%22%20height%3D%2214%22%20rx%3D%222%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22m6.5%2010%202.5%202.5%204.5-5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#chatButton img        { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23273b52%22%20d%3D%22M3%205a1.5%201.5%200%200%201%201.5-1.5h11A1.5%201.5%200%200%201%2017%205v7a1.5%201.5%200%200%201-1.5%201.5H8.5L5%2016.5v-3h-.5A1.5%201.5%200%200%201%203%2012z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#settingsButton img    { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%206H11M15%206h1.5M3.5%2014H5M9%2014h7.5%22%2F%3E%3Ccircle%20fill%3D%22%23273b52%22%20cx%3D%2213%22%20cy%3D%226%22%20r%3D%222%22%2F%3E%3Ccircle%20fill%3D%22%23273b52%22%20cx%3D%227%22%20cy%3D%2214%22%20r%3D%222%22%2F%3E%3C%2Fsvg%3E") !important; }
+
+/* ---------- Obere Werkzeugleiste --------------------------------------- */
+#unifiedToolbarContainer, unified-toolbar {
+  background-color: var(--ms-toolbar) !important;
+  border-bottom: 1px solid var(--ms-border) !important;
+}
+#unifiedToolbar .unified-toolbar-button,
+#unifiedToolbar button { border-radius: var(--ms-radius) !important; }
+li[item-id="write-message"] .button-icon {
+  content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23273b52%22%20d%3D%22M9.5%203.5H5A1.5%201.5%200%200%200%203.5%205v10A1.5%201.5%200%200%200%205%2016.5h10a1.5%201.5%200%200%200%201.5-1.5v-4.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22M14.6%202.9a1.4%201.4%200%200%201%202%202L10%2011.5l-2.5.5.5-2.5z%22%2F%3E%3C%2Fsvg%3E") !important; background-image: none !important;
+}
+li[item-id="get-messages"] .button-icon {
+  content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M16.5%2010a6.5%206.5%200%201%201-1.9-4.6%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22M16.5%203v3.5H13%22%2F%3E%3C%2Fsvg%3E") !important; background-image: none !important;
+}
+
+/* ---------- Ordnerbereich ---------------------------------------------- */
+#folderPane, #folderTree, #folderPaneHeaderBar {
+  background-color: var(--ms-sidebar) !important;
+}
+#folderPaneHeaderBar { border-bottom: none !important; }
+
+#folderTree li > .container {
+  margin-inline: 6px !important;
+  border-radius: var(--ms-radius) !important;
+  min-height: var(--ms-row-h) !important;
+  color: var(--ms-sidebar-text) !important;
+}
+#folderTree li > .container:hover { background-color: var(--ms-hover) !important; }
+#folderTree li.selected > .container {
+  background-color: var(--ms-accent-soft) !important;
+  color: var(--ms-accent-dark) !important;
+  box-shadow: inset var(--ms-select-bar) 0 0 var(--ms-accent) !important;
+}
+#folderTree:focus-within li.selected > .container {
+  background-color: var(--ms-accent-soft-focus) !important;
+  font-weight: 600 !important;
+}
+
+/* Kontennamen als Abschnittsüberschrift */
+#folderTree li[data-server-type] > .container {
+  font-size: 0.82em !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.03em !important;
+  color: var(--ms-muted) !important;
+  margin-top: 8px !important;
+}
+
+/* Ungelesen-Zähler als Pille */
+#folderTree .unread-count {
+  background-color: var(--ms-count-bg) !important;
+  color: var(--ms-count-fg) !important;
+  border-radius: 10px !important;
+  padding: 0 7px !important;
+  font-weight: 600 !important;
+  font-size: 0.85em !important;
+}
+
+/* Ordner-Icons */
+#folderTree li > .container > .icon {
+  content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23273b52%22%20d%3D%22M2.5%206A1.5%201.5%200%200%201%204%204.5h3.6l1.6%202H16a1.5%201.5%200%200%201%201.5%201.5v7a1.5%201.5%200%200%201-1.5%201.5H4A1.5%201.5%200%200%201%202.5%2015z%22%2F%3E%3C%2Fsvg%3E") !important;
+  width: 16px !important; height: 16px !important;
+}
+#folderTree li[data-folder-type="inbox"]     > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3%2011.5%205.2%204.6a1.5%201.5%200%200%201%201.4-1.1h6.8a1.5%201.5%200%200%201%201.4%201.1L17%2011.5%22%2F%3E%3Cpath%20fill%3D%22%23273b52%22%20d%3D%22M3%2011.5V15a1.5%201.5%200%200%200%201.5%201.5h11A1.5%201.5%200%200%200%2017%2015v-3.5h-4l-1%202H8l-1-2H3z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="sent"]      > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23273b52%22%20d%3D%22M17.5%202.5%2012%2017.5l-3-6.5-6.5-3z%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M17.5%202.5%209%2011%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="drafts"]    > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23273b52%22%20d%3D%22M11%203.5H5.5A1.5%201.5%200%200%200%204%205v10a1.5%201.5%200%200%200%201.5%201.5h9A1.5%201.5%200%200%200%2016%2015V9%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22M14.6%202.9a1.4%201.4%200%200%201%202%202L10.5%2011l-2.5.5.5-2.5z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="trash"]     > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23273b52%22%20d%3D%22m5%205.5.8%2010.1A1.5%201.5%200%200%200%207.3%2017h5.4a1.5%201.5%200%200%200%201.5-1.4L15%205.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%205.5h13%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8%205.5V4a1%201%200%200%201%201-1h2a1%201%200%200%201%201%201v1.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8.5%208.5v5M11.5%208.5v5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="junk"]      > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23273b52%22%20d%3D%22M10%202.5%204%204.8v4.7c0%203.6%202.6%206.4%206%208%203.4-1.6%206-4.4%206-8V4.8z%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22m8%208%204%204M12%208l-4%204%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="archive"]   > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23273b52%22%20d%3D%22M4%207.5V15a1.5%201.5%200%200%200%201.5%201.5h9A1.5%201.5%200%200%200%2016%2015V7.5%22%2F%3E%3Crect%20fill%3D%22none%22%20x%3D%222.5%22%20y%3D%223.5%22%20width%3D%2215%22%20height%3D%224%22%20rx%3D%221%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22M8%2011h4%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="outbox"]    > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23273b52%22%20d%3D%22M3%2011.5V15a1.5%201.5%200%200%200%201.5%201.5h11A1.5%201.5%200%200%200%2017%2015v-3.5h-4l-1%202H8l-1-2H3z%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22M10%202.5v7M7%205.5l3-3%203%203%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="templates"] > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23273b52%22%20x%3D%226%22%20y%3D%222.5%22%20width%3D%2210.5%22%20height%3D%2212%22%20rx%3D%221.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%206v9.5A1.5%201.5%200%200%200%205%2017h8%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22M9%206.5h4.5M9%209.5h4.5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="virtual"]   > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23273b52%22%20d%3D%22M2.5%206A1.5%201.5%200%200%201%204%204.5h3.6l1.6%202H16a1.5%201.5%200%200%201%201.5%201.5v7a1.5%201.5%200%200%201-1.5%201.5H4A1.5%201.5%200%200%201%202.5%2015z%22%2F%3E%3Ccircle%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20cx%3D%229.5%22%20cy%3D%2211%22%20r%3D%222%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22m11%2012.5%201.5%201.5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-server-type]             > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20fill%3D%22%23273b52%22%20cx%3D%2210%22%20cy%3D%2210%22%20r%3D%223%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M13%2010v1.2a2.3%202.3%200%200%200%204.5%200V10a7.5%207.5%200%201%200-3%206%22%2F%3E%3C%2Fsvg%3E") !important; }
+
+/* ---------- Nachrichtenliste ------------------------------------------- */
+#threadPane, #threadTree, #threadPaneHeaderBar {
+  background-color: var(--ms-list-bg) !important;
+}
+#threadPaneHeaderBar { border-bottom: 1px solid var(--ms-border) !important; }
+
+#threadTree tbody tr { border-bottom: 1px solid var(--ms-row-line) !important; }
+#threadTree tbody tr:hover { background-color: var(--ms-hover) !important; }
+#threadTree tbody tr.selected {
+  background-color: var(--ms-accent-soft) !important;
+  color: var(--ms-text) !important;
+}
+#threadTree:focus-within tbody tr.selected {
+  background-color: var(--ms-accent) !important;
+  color: #cde3fe !important;
+}
+#threadTree tbody tr.unread .subject,
+#threadTree tbody tr.unread .sender,
+#threadTree tbody tr.unread .correspondentcol-column { font-weight: 600 !important; }
+
+/* Kartenansicht */
+/* Nur den seitlichen Abstand setzen: Betterbird rechnet die Zeilenhöhe fest aus (Karten-Innenabstand ca. 7 px gesamt),
+   größerer senkrechter Abstand schneidet sonst die Absenderzeile ab. */
+tr[is="thread-card"] .card-container { padding-inline: 14px !important; }
+tr[is="thread-card"].unread .card-container { box-shadow: inset 3px 0 0 var(--ms-accent) !important; }
+tr[is="thread-card"] .date { color: color-mix(in srgb, var(--ms-text) 72%, #1a1c1f) !important; }
+/* Auswahl: die Karte selbst bleibt durchsichtig, die Zeile liefert den Grund. Heller Grund + dunkle Schrift in jedem
+   Zustand (mit und ohne Fokus), damit Schrift und Hintergrund nie zu nah beieinander liegen. */
+#threadTree tr[is="thread-card"].selected .card-container { background-color: transparent !important; box-shadow: inset 3px 0 0 var(--ms-accent) !important; }
+#threadTree tr[is="thread-card"].selected { background-color: var(--ms-accent-soft) !important; color: var(--ms-text) !important; }
+#threadTree:focus-within tr[is="thread-card"].selected { background-color: var(--ms-accent-soft-focus) !important; color: var(--ms-text) !important; }
+#threadTree tr[is="thread-card"].selected :is(.sender, .subject, .thread-card-subject-container, .correspondent) { color: var(--ms-text) !important; }
+#threadTree tr[is="thread-card"].selected .date,
+#threadTree:focus-within tr[is="thread-card"].selected .date { color: var(--ms-sidebar-text) !important; }
+
+/* ---------- Trennlinien ------------------------------------------------ */
+#folderPaneSplitter, #messagePaneSplitter, splitter {
+  --splitter-color: var(--ms-border) !important;
+  border-color: var(--ms-border) !important;
+}
+
+/* ---------- Nachrichtenkopf -------------------------------------------- */
+#messageHeader {
+  background-color: var(--ms-list-bg) !important;
+  border-bottom: 1px solid var(--ms-border) !important;
+}
+#header-view-toolbar toolbarbutton,
+#header-view-toolbar .toolbarbutton-1 { border-radius: var(--ms-radius) !important; }
+#hdrReplyButton, #hdrReplyToSenderButton { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22M8%205%203.5%209.5%208%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%209.5H11a5%205%200%200%201%205%205v1%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrReplyAllButton { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22M10%205%205.5%209.5%2010%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22M6%205%201.5%209.5%206%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M5.5%209.5H12a5%205%200%200%201%205%205v1%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrForwardButton  { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22m12%205%204.5%204.5L12%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M16.5%209.5H9a5%205%200%200%200-5%205v1%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrArchiveButton  { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23273b52%22%20d%3D%22M4%207.5V15a1.5%201.5%200%200%200%201.5%201.5h9A1.5%201.5%200%200%200%2016%2015V7.5%22%2F%3E%3Crect%20fill%3D%22none%22%20x%3D%222.5%22%20y%3D%223.5%22%20width%3D%2215%22%20height%3D%224%22%20rx%3D%221%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22M8%2011h4%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrJunkButton     { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23273b52%22%20d%3D%22M10%202.5%204%204.8v4.7c0%203.6%202.6%206.4%206%208%203.4-1.6%206-4.4%206-8V4.8z%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%236caffa%22%20d%3D%22m8%208%204%204M12%208l-4%204%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrTrashButton    { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%239ca7b7%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23273b52%22%20d%3D%22m5%205.5.8%2010.1A1.5%201.5%200%200%200%207.3%2017h5.4a1.5%201.5%200%200%200%201.5-1.4L15%205.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%205.5h13%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8%205.5V4a1%201%200%200%201%201-1h2a1%201%200%200%201%201%201v1.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8.5%208.5v5M11.5%208.5v5%22%2F%3E%3C%2Fsvg%3E") !important; }
+
+/* ---------- Menüs ------------------------------------------------------ */
+menupopup, panel { --panel-border-radius: 8px !important; }
+
+
+/* ---------- Tab-Leiste: eigener ruhiger Grauton statt Schleier/Schatten ---------- */
+:root:root:root:root {
+  --tabs-toolbar-background-color: #1b1d20;
+  --tabs-toolbar-box-shadow: inset 0 1px 0 var(--ms-border);
+  --chrome-content-separator-color: var(--ms-border);
+}
+
+/* ===== NovaBird-Erweiterungen (aus dem früheren Polar übertragen, Farben umgerechnet) ===== */
+/* Kontextmenüs und Menüs: Theme-Farben statt Systemgrau (nur wo Menüs nicht nativ gezeichnet werden, z. B. Windows) */
+:root:root:root:root menupopup:not([type="arrow"]) {
+  --panel-background-color: #111316;
+  --panel-text-color: #cbd0d8;
+  --panel-border-color: #232528;
+  --panel-border-radius: 10px;
+  --panel-padding: 5px;
+  --menuitem-border-radius: 6px;
+  --menuitem-padding: 0.4em 0.8em;
+  --panel-separator-color: #1a1c1f;
+  --panel-box-shadow: 0 6px 22px rgba(30, 50, 90, 0.18);
+  --panel-box-shadow-margin: 12px;
+}
+:root:root:root:root menupopup > :is(menuitem, menu)[_moz-menuactive]:not([disabled]) {
+  background-color: #253b51;
+  color: #d4e4f5;
+}
+:root:root:root:root menupopup > :is(menuitem, menu)[disabled] {
+  color: #84878c;
+}
+
+/* Kalender: ruhiges Raster, Heute als Akzent, Termine als weiche Pillen */
+:root:root:root:root {
+  --viewColor: #cbd0d8;
+  --viewBackground: #121416;
+  --viewBorderColor: #181a1c;
+  --viewWeekendBackground: #16171a;
+  --viewTodayBackground: #171b1e;
+  --viewTodayWeekendBackground: #181d20;
+  --viewTodayOffBackground: #181d20;
+  --viewTodayLabelBackground: #6caffa;
+  --viewTodayLabelColor: #cde3fe;
+  --viewHighlightBorderColor: rgba(65, 155, 249, 0.45);
+  --viewDayBoxSelectedBackground: #1e2c40;
+  --viewDayBoxOffSelectedBackground: #1e2c40;
+  --viewDayBoxOtherSelectedBackground: #1e2c40;
+  --viewHeaderSelectedBackground: #253b51;
+  --viewMonthOtherBackground: #131518;
+  --viewMonthDayOtherBackground: #131518;
+  --viewMonthWeekLabelBackground: #181a1c;
+  --viewMonthDayBoxLabelColor: #b1b7bf;
+  --viewMonthDayBoxSelectedColor: #cbd0d8;
+  --viewCalendarHeaderBackground: #131518;
+  --viewOffTimeBackground: #16171a;
+  --viewTimeBoxColor: #8f9298;
+  --viewDayLabelSelectedBackground: #6caffa;
+  --viewDragboxBackground: #6caffa;
+  --viewDropshadowBackground: #6caffa;
+  --calendar-view-toggle-background: #181a1c;
+  --calendar-view-toggle-selected-background: #101214;
+  --calendar-view-toggle-hover-background: #253b51;
+  --button-border-radius: 8px;
+}
+.calendar-color-box {
+  border-radius: 6px;
+  background-color: color-mix(in srgb, var(--item-backcolor) 88%, white);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--item-backcolor) 75%, black);
+}
+calendar-month-day-box calendar-month-day-box-item[allday="true"].calendar-color-box {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--item-backcolor) 75%, black);
+}
+.calendar-month-day-box-list-item {
+  margin: 1px 4px;
+}
+.calendar-month-day-box-date-label[relation="today"] {
+  box-shadow: 0 1px 4px rgba(65, 155, 249, 0.35);
+}
+.calendar-month-day-box-week-label {
+  font-weight: 600;
+}
+.day-column-heading {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.multiday-grid:not(.multiday-grid-rotated) .timeIndicator {
+  border-block-start-color: #E5484D;
+  opacity: 0.9;
+}
+.multiday-timebar-now-indicator {
+  border-color: #E5484D;
+}
+calendar-day-label {
+  background-color: var(--viewCalendarHeaderBackground);
+  color: #a0a4ab;
+}
+.calendar-day-label-name {
+  font-weight: 600;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Heute-Markierung lesbar (--selected-item-color ist im Theme ein helles Blau und taugt nur als Fläche) */
+.day-column-today .day-column-heading,
+.day-column-selected .day-column-heading,
+calendar-day-label[relation="today"] {
+  color: #6caffa;
+}
+:root:root:root:root calendar-minimonth {
+  --mmDaySelectedColor: #8ebafb;
+  --mmDaySelectedBackground: rgba(65, 155, 249, 0.22);
+  --mmDaySelectedBorderColor: rgba(65, 155, 249, 0.5);
+  --mmDaySelectedTodayBackground: rgba(65, 155, 249, 0.18);
+  --mmDaySelectedTodayBorderColor: rgba(65, 155, 249, 0.5);
+  --mmDayTodayColor: #8ebafb;
+  --mmDayTodayBackground: rgba(65, 155, 249, 0.12);
+}
+
+/* Menüs: zusätzlich direkt am Inhaltsbereich, falls die Variablen nicht greifen */
+menupopup:not([type="arrow"])::part(content) {
+  background: #111316 !important;
+  color: #cbd0d8 !important;
+  border: 1px solid #232528 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 6px 22px rgba(30, 50, 90, 0.18) !important;
+}
+
+/* Mini-Kalender: Heute kräftig blau, angewählter Tag sanft gelb */
+:root:root:root:root calendar-minimonth {
+  --mmDayTodayBackground: #6caffa;
+  --mmDayTodayColor: #cde3fe;
+  --mmDayTodayBorderColor: #6caffa;
+  --mmDaySelectedBackground: #1f3a5c;
+  --mmDaySelectedColor: #cdbc94;
+  --mmDaySelectedBorderColor: #5aaefc;
+  --mmDaySelectedTodayBackground: #6caffa;
+  --mmDaySelectedTodayBorderColor: #5aaefc;
+}
+.minimonth-day[today="true"],
+.minimonth-day[selected="true"][today="true"] {
+  color: #cde3fe;
+  font-weight: 700;
+}
+.minimonth-day[selected="true"]:not([today="true"]) {
+  font-weight: 600;
+}
+
+/* Wochen-/Monatsansicht: angewählter Tag ebenfalls sanft gelb, Heute bleibt blau */
+:root:root:root:root {
+  --viewDayBoxSelectedBackground: #1e2c40;
+  --viewDayBoxOffSelectedBackground: #1e2c40;
+  --viewDayBoxOtherSelectedBackground: #1e2c40;
+  --viewHighlightBorderColor: rgba(90, 174, 252, 0.7);
+}
+.day-column-selected .day-column-heading {
+  color: #dab97c;
+}
+.day-column-today .day-column-heading {
+  color: #6caffa;
+}
+
+/* ===== Kalender 2.0: moderner Look ===== */
+
+/* Termine: Pastellfläche in der Kalenderfarbe, dunkler Text, kräftiger Streifen links */
+.calendar-color-box {
+  border-radius: 8px;
+  background-color: color-mix(in srgb, var(--item-backcolor) 20%, #1a1c1f);
+  color: color-mix(in srgb, var(--item-backcolor) 35%, #dfe9f5);
+  box-shadow: inset 4px 0 0 var(--item-backcolor), 0 1px 2px rgba(30, 50, 90, 0.10);
+  transition: box-shadow 0.12s ease, transform 0.12s ease;
+}
+calendar-month-day-box calendar-month-day-box-item[allday="true"].calendar-color-box {
+  box-shadow: inset 4px 0 0 var(--item-backcolor), 0 1px 2px rgba(30, 50, 90, 0.10);
+}
+calendar-event-box:hover .calendar-color-box,
+calendar-month-day-box-item:hover.calendar-color-box {
+  box-shadow: inset 4px 0 0 var(--item-backcolor), 0 4px 12px rgba(30, 50, 90, 0.18);
+}
+.calendar-item-flex {
+  padding: 5px 8px 5px 10px;
+}
+.item-time-label {
+  font-weight: 600;
+  opacity: 0.8;
+}
+.event-name-label {
+  font-weight: 600;
+}
+.multiday-event-listitem {
+  padding: 1px 2px;
+}
+
+/* Ansichtsumschalter (Tag/Woche/Monat) als runde Pille */
+.calview-toggle {
+  border-radius: 999px;
+  padding: 2px;
+  box-shadow: none;
+}
+button.calview-toggle-item {
+  border-radius: 999px;
+  font-weight: 500;
+}
+button.calview-toggle-item[role="tab"][aria-selected="true"] {
+  background-color: #101214;
+  color: #8ebafb;
+  font-weight: 600;
+  border-color: transparent;
+  box-shadow: 0 1px 4px rgba(30, 50, 90, 0.20);
+}
+button.calview-toggle-item[role="tab"][aria-selected="false"]:hover {
+  background-color: rgba(65, 155, 249, 0.10);
+}
+
+/* Navigation (zurück / heute / vor) */
+.calendar-nav-buttons-container .button,
+.calendar-nav-buttons-container button {
+  border-radius: 999px;
+}
+
+/* Raster: nur horizontale Haarlinien, keine harten Spaltenlinien */
+.multiday-hour-box {
+  border-color: #151619;
+}
+calendar-event-column {
+  border-inline-start-color: #151619;
+}
+.day-column-heading {
+  border-color: transparent;
+  padding-block: 6px 5px;
+}
+calendar-header-container {
+  border-inline-start-color: #151619;
+  border-block-end: 1px solid #1a1c1f;
+}
+
+/* Monatsansicht: luftig, Tageszellen mit sanftem Hover */
+.monthtable {
+  border-radius: 10px;
+}
+.monthtable :is(td, th) > * {
+  border-inline-start-color: #151619;
+  border-block-start-color: #151619;
+}
+calendar-month-day-box {
+  transition: background-color 0.12s ease;
+}
+calendar-month-day-box:hover {
+  background-color: #15171a;
+}
+.calendar-month-day-box-date-label {
+  font-weight: 500;
+  padding: 3px 6px;
+}
+.calendar-month-day-box-date-label[relation="today"] {
+  padding-inline: 8px;
+  margin: 2px;
+}
+.calendar-month-day-box-list-item {
+  margin: 2px 5px;
+}
+
+/* Termin-Dialog (Neuer Termin / Termin bearbeiten): Systemgrau durch Theme-Fläche ersetzen */
+:root:root #calendar-item-panel-iframe,
+:root:root #calendar-event-dialog,
+:root:root #calendar-task-dialog,
+:root:root #calendar-event-dialog-inner,
+:root:root #calendar-task-dialog-inner,
+:root:root #calendar-event-summary-dialog {
+  background: #141618 !important;
+  color: #cbd0d8;
+}
+
+/* Termine kräftiger absetzen (helle Kalenderfarben gingen sonst im Hintergrund unter) */
+.calendar-color-box {
+  background-color: color-mix(in srgb, var(--item-backcolor) 42%, #1a1c1f);
+  color: color-mix(in srgb, var(--item-backcolor) 25%, #dfe9f5);
+  box-shadow:
+    inset 4px 0 0 color-mix(in srgb, var(--item-backcolor) 65%, #000000),
+    0 0 0 1px color-mix(in srgb, var(--item-backcolor) 55%, #1a1c1f),
+    0 1px 3px rgba(30, 50, 90, 0.14);
+}
+calendar-month-day-box calendar-month-day-box-item[allday="true"].calendar-color-box {
+  box-shadow:
+    inset 4px 0 0 color-mix(in srgb, var(--item-backcolor) 65%, #000000),
+    0 0 0 1px color-mix(in srgb, var(--item-backcolor) 55%, #1a1c1f),
+    0 1px 3px rgba(30, 50, 90, 0.14);
+}
+calendar-event-box:hover .calendar-color-box,
+calendar-month-day-box-item:hover.calendar-color-box {
+  box-shadow:
+    inset 4px 0 0 color-mix(in srgb, var(--item-backcolor) 65%, #000000),
+    0 0 0 1px color-mix(in srgb, var(--item-backcolor) 55%, #1a1c1f),
+    0 4px 12px rgba(30, 50, 90, 0.22);
+}
+
+/* Wochenende außerhalb der Arbeitszeit: bläulich statt Grau */
+:root:root:root:root {
+  --viewMonthDayOffLabelBackground: #16181b;
+  --viewOffTimeBackground: #17191c;
+}
+
+/* Grundpalette der Oberfläche: Buttons, Auswahllisten, Felder und Kopfzeilen bläulich statt neutralgrau */
+:root:root:root:root {
+  --layout-background-0: #121416;
+  --layout-background-1: #141618;
+  --layout-background-2: #16181b;
+  --layout-background-3: #191b1e;
+  --layout-background-4: #202225;
+  --layout-color-1: #cbd0d8;
+  --layout-color-2: #a9aeb5;
+  --layout-border-0: #1e2023;
+  --layout-border-1: #282a2d;
+  --button-background-color: #16181b;
+  --button-hover-background-color: #253b51;
+  --button-active-background-color: #2a4157;
+  --button-border-color: #232528;
+  --button-border-radius: 8px;
+  --button-text-color: #cbd0d8;
+}
+
+/* Termin-Dialog: der Iframe-Inhalt ist selbst das Wurzelelement, daher eigene Selektoren */
+html#calendar-event-dialog-inner:root,
+html#calendar-task-dialog-inner:root {
+  background: #141618 !important;
+  color: #cbd0d8;
+}
+
+/* Termin-Dialog: Reiter (Beschreibung / Anhänge / Teilnehmer) in Theme-Farben */
+html#calendar-event-dialog-inner:root {
+  --panel-background-color-dimmed: #1c2227;
+}
+html#calendar-event-dialog-inner tab:hover {
+  background-color: rgba(65, 155, 249, 0.10);
+}
+html#calendar-event-dialog-inner tab:hover:active {
+  background-color: rgba(65, 155, 249, 0.18);
+}
+html#calendar-event-dialog-inner tab[selected] {
+  border-block-end-color: #6caffa;
+}
+
+/* ===== Kontakte / Adressbuch ===== */
+:root:root:root:root[lwtheme] {
+  --recipient-avatar-color: #7eb1fc;
+  --tree-card-background: #121416;
+  --tree-card-border: transparent;
+  --tree-card-border-hover: #2c4359;
+  --tree-card-background-current: #171b1e;
+  --tree-card-background-selected: #253b51;
+  --tree-card-background-selected-current: #253b51;
+  --tree-card-border-selected: #334a61;
+  --tree-card-border-focus: #6caffa;
+  --tree-card-background-selected-unfocused: #1b1f23;
+  --tree-card-background-current-unfocused: #17191c;
+  --ab-contact-photo-size: 96px;
+  --ab-detail-section-padding: 18px;
+}
+
+/* Avatare: weiches Blau statt Grau, ohne Ring */
+:root:root:root:root .recipient-avatar {
+  background-color: #1b2126;
+  color: #7eb1fc;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+/* Liste: Karten ohne Rahmen, runde Ecken, genug Luft */
+tr[is="ab-card-row"] td > .card-container {
+  border-radius: 12px;
+  padding-block: 4px;
+}
+tr[is="ab-card-row"] .name {
+  font-weight: 600;
+}
+
+/* Suchfeld und Seitenleiste */
+#searchInput {
+  border-radius: 999px;
+}
+#books .listRow-container {
+  border-radius: 8px;
+}
+
+/* Detailansicht: Kopf großzügig, Aktionen als Pillen, Abschnitte als weiche Karten */
+.contact-photo {
+  background-color: #1b2126;
+  stroke: #7eb1fc;
+  box-shadow: 0 2px 8px rgba(30, 50, 90, 0.12);
+}
+.contact-heading-name {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.contact-heading-email,
+.contact-heading-nickname {
+  color: #a0a4ab;
+}
+#detailsBody {
+  gap: 14px;
+}
+#detailsBody section {
+  background-color: #121416;
+  border: 1px solid #181a1c;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(30, 50, 90, 0.06);
+}
+#detailsBody h2 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #a0a4ab;
+}
+#detailsActions.button-block,
+#detailsActions {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  padding-inline: 0;
+}
+#detailsActions button {
+  border-radius: 999px;
+  padding-inline: 14px;
+}
+#detailsActions button.icon-button {
+  padding-inline-start: 32px;
+}
+/* „… hinzufügen“ und (+) im Bearbeiten-Modus: gut lesbar statt blassem Hellblau */
+.addr-book-edit-fieldset-button.add-property-button {
+  color: #7eb1fc;
+}
+.entry-type {
+  color: #8f9298;
+  opacity: 1;
+}
+.entry-value a {
+  color: #7eb1fc;
+}
+
+/* Termin-Dialog: gewählter Reiter */
+html#calendar-event-dialog-inner tab[selected],
+html#calendar-event-dialog-inner tab[visuallyselected] {
+  background-color: #1c2227 !important;
+}
+
+
+/* Kontakt-Avatare sind eigene Elemente mit Schattendokument: Farben als Variablen am Element setzen */
+contact-avatar {
+  --color-surface-deep: #1b2126;
+  --color-text-base: #7eb1fc;
+}
+
+/* Symbole anderer Add-ons in der linken Leiste (Notizen, Ordner …): einfarbig in der Farbe der Leiste statt Grau/Bunt */
+:root:root:root:root .spaces-addon-button > img {
+  content: none !important;
+  inline-size: var(--spaces-icon-size);
+  block-size: var(--spaces-icon-size);
+  background-color: currentColor;
+  -webkit-mask: var(--webextension-toolbar-image) center / contain no-repeat;
+  mask: var(--webextension-toolbar-image) center / contain no-repeat;
+}
+
+/* Palette Dunkel (NovaBird-Springlight): feste Werte für die Haupt-Variablen */
+:root:root {
+  --ms-accent: #5aaefc; --ms-accent-dark: #6fb6ff; --ms-accent-soft: #243a57; --ms-accent-soft-focus: #1f3a5c;
+  --ms-sidebar: #1e2024; --ms-spaces: #1b1d21; --ms-sidebar-text: #cfd3d9; --ms-text: #e8eaed; --ms-muted: #9aa1ab;
+  --ms-border: #2d3036; --ms-row-line: #24262b; --ms-hover: #2a2d33; --ms-toolbar: #23262b; --ms-list-bg: #1a1c1f;
+  --ms-count-bg: #33373e; --ms-count-fg: #d6dae0;
+}
+}

@@ -1,0 +1,90 @@
+{
+  "manifest_version": 2,
+  "default_locale": "en",
+  "name": "__MSG_name__",
+  "version": "1.9.2",
+  "description": "__MSG_description__",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "novabird-extension@novabird",
+      "strict_min_version": "128.0"
+    }
+  },
+  "icons": {
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png"
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "experiment_apis": {
+    "novaCalendar": {
+      "schema": "experiments/novaCalendar/schema.json",
+      "parent": {
+        "scopes": [
+          "addon_parent"
+        ],
+        "paths": [
+          [
+            "novaCalendar"
+          ]
+        ],
+        "script": "experiments/novaCalendar/implementation.js"
+      }
+    },
+    "settingsRedesign": {
+      "schema": "experiments/settingsRedesign/schema.json",
+      "parent": {
+        "scopes": [
+          "addon_parent"
+        ],
+        "paths": [
+          [
+            "settingsRedesign"
+          ]
+        ],
+        "script": "experiments/settingsRedesign/implementation.js"
+      }
+    },
+    "novaContact": {
+      "schema": "experiments/novaContact/schema.json",
+      "parent": {
+        "scopes": [
+          "addon_parent"
+        ],
+        "paths": [
+          [
+            "novaContact"
+          ]
+        ],
+        "script": "experiments/novaContact/implementation.js"
+      }
+    },
+    "attachPreview": {
+      "schema": "experiments/attachPreview/schema.json",
+      "parent": {
+        "scopes": [
+          "addon_parent"
+        ],
+        "paths": [
+          [
+            "attachPreview"
+          ]
+        ],
+        "script": "experiments/attachPreview/implementation.js"
+      }
+    }
+  },
+  "permissions": [
+    "storage",
+    "accountsRead",
+    "messagesRead",
+    "addressBooks",
+    "theme"
+  ],
+  "options_ui": {
+    "page": "options/options.html"
+  }
+}

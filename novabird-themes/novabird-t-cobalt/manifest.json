@@ -1,0 +1,95 @@
+{
+  "manifest_version": 2,
+  "default_locale": "en",
+  "name": "__MSG_name__",
+  "description": "__MSG_description__",
+  "version": "1.0.2",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "novabird-t-cobalt@novabird",
+      "strict_min_version": "115.0"
+    }
+  },
+  "icons": {
+    "64": "icon.svg"
+  },
+  "theme": {
+    "colors": {
+      "frame": "#e4e9f2",
+      "frame_inactive": "#e4e9f2",
+      "tab_background_text": "#18212f",
+      "tab_selected": "#f5f7fb",
+      "tab_text": "#18212f",
+      "tab_line": "#2559b8",
+      "tab_loading": "#2559b8",
+      "toolbar": "#f5f7fb",
+      "toolbar_text": "#18212f",
+      "toolbar_top_separator": "#d0d7e5",
+      "toolbar_bottom_separator": "#d0d7e5",
+      "toolbar_vertical_separator": "#d0d7e5",
+      "toolbar_field": "#ffffff",
+      "toolbar_field_text": "#18212f",
+      "toolbar_field_border": "#d0d7e5",
+      "toolbar_field_focus": "#ffffff",
+      "toolbar_field_border_focus": "#2559b8",
+      "toolbar_field_highlight": "#2559b8",
+      "toolbar_field_highlight_text": "#ffffff",
+      "button_background_hover": "#e1e8f4",
+      "button_background_active": "#cdd9ec",
+      "icons": "#33466a",
+      "icons_attention": "#2559b8",
+      "sidebar": "#eceff6",
+      "sidebar_text": "#18212f",
+      "sidebar_border": "#d0d7e5",
+      "sidebar_highlight": "#2559b8",
+      "sidebar_highlight_text": "#ffffff",
+      "popup": "#ffffff",
+      "popup_text": "#18212f",
+      "popup_border": "#d0d7e5",
+      "popup_highlight": "#2559b8",
+      "popup_highlight_text": "#ffffff",
+      "spaces_toolbar": "#dde3ee"
+    }
+  },
+  "theme_experiment": {
+    "stylesheet": "theme.css"
+  },
+  "dark_theme": {
+    "colors": {
+      "frame": "#0f1623",
+      "frame_inactive": "#121b2b",
+      "tab_background_text": "#98a5bd",
+      "tab_selected": "#19233a",
+      "tab_text": "#e6ebf5",
+      "tab_line": "#74a7f6",
+      "tab_loading": "#74a7f6",
+      "toolbar": "#19233a",
+      "toolbar_text": "#e6ebf5",
+      "toolbar_top_separator": "#26324a",
+      "toolbar_bottom_separator": "#26324a",
+      "toolbar_vertical_separator": "#26324a",
+      "toolbar_field": "#101827",
+      "toolbar_field_text": "#e6ebf5",
+      "toolbar_field_border": "#26324a",
+      "toolbar_field_focus": "#101827",
+      "toolbar_field_border_focus": "#74a7f6",
+      "toolbar_field_highlight": "#74a7f6",
+      "toolbar_field_highlight_text": "#0a1428",
+      "button_background_hover": "#202c45",
+      "button_background_active": "#2a3a5c",
+      "icons": "#a9b8d6",
+      "icons_attention": "#74a7f6",
+      "sidebar": "#141d2e",
+      "sidebar_text": "#e6ebf5",
+      "sidebar_border": "#26324a",
+      "sidebar_highlight": "#1e3560",
+      "sidebar_highlight_text": "#e6ebf5",
+      "popup": "#19233a",
+      "popup_text": "#e6ebf5",
+      "popup_border": "#26324a",
+      "popup_highlight": "#1e3560",
+      "popup_highlight_text": "#e6ebf5",
+      "spaces_toolbar": "#121b2b"
+    }
+  }
+}

@@ -1,0 +1,866 @@
+{
+ "_hinweis": "Golden-Tests für die Sprachpakete en/fr/es. 'Heute' = Montag 05.10.2026 12:00 (Europe/Berlin). dateTo ist exklusiv. Ergebnis von Hand geprüft; neue Fälle: Frage eintragen, Test laufen lassen, Ergebnis prüfen und übernehmen.",
+ "now": "2026-10-05T12:00:00",
+ "en": [
+  {
+   "q": "invoices from Jonas in the last 6 months",
+   "expect": {
+    "terms": [
+     [
+      "invoic"
+     ]
+    ],
+    "from": [
+     {
+      "name": "Jonas"
+     }
+    ],
+    "dateFrom": "2026-04-05"
+   }
+  },
+  {
+   "q": "emails I sent to Petra last week",
+   "expect": {
+    "from": [
+     {
+      "me": true
+     }
+    ],
+    "to": [
+     {
+      "name": "Petra"
+     }
+    ],
+    "dateFrom": "2026-09-28",
+    "dateTo": "2026-10-05"
+   }
+  },
+  {
+   "q": "show me pdf attachments from yesterday",
+   "expect": {
+    "dateFrom": "2026-10-04",
+    "dateTo": "2026-10-05",
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "pdf"
+    ]
+   }
+  },
+  {
+   "q": "unread mail with attachment since March",
+   "expect": {
+    "dateFrom": "2026-03-01",
+    "hasAttachment": true,
+    "unread": true
+   }
+  },
+  {
+   "q": "meeting notes between May and July",
+   "expect": {
+    "terms": [
+     [
+      "meet"
+     ],
+     [
+      "notes"
+     ]
+    ],
+    "dateFrom": "2026-05-01",
+    "dateTo": "2026-08-01"
+   }
+  },
+  {
+   "q": "what did Jonas send me",
+   "expect": {
+    "from": [
+     {
+      "name": "Jonas"
+     }
+    ]
+   }
+  },
+  {
+   "q": "mails without attachments in the inbox",
+   "expect": {
+    "hasAttachment": false,
+    "folder": {
+     "type": "inbox"
+    }
+   }
+  },
+  {
+   "q": "budget report 2025 flagged",
+   "expect": {
+    "terms": [
+     [
+      "budget"
+     ],
+     [
+      "report"
+     ]
+    ],
+    "dateFrom": "2025-01-01",
+    "dateTo": "2026-01-01",
+    "flagged": true
+   }
+  },
+  {
+   "q": "from:jonas to:me subject:budget",
+   "expect": {
+    "subjectTerms": [
+     "budget"
+    ],
+    "from": [
+     {
+      "name": "jonas"
+     }
+    ],
+    "to": [
+     {
+      "me": true
+     }
+    ]
+   }
+  },
+  {
+   "q": "three weeks ago",
+   "expect": {
+    "dateFrom": "2026-09-07",
+    "dateTo": "2026-09-21"
+   }
+  },
+  {
+   "q": "excel files from Jonas this month",
+   "expect": {
+    "from": [
+     {
+      "name": "Jonas"
+     }
+    ],
+    "dateFrom": "2026-10-01",
+    "dateTo": "2026-11-01",
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "excel"
+    ]
+   }
+  },
+  {
+   "q": "messages in folder Projects",
+   "expect": {
+    "folder": {
+     "name": "Projects"
+    }
+   }
+  },
+  {
+   "q": "week 14",
+   "expect": {
+    "dateFrom": "2026-03-30",
+    "dateTo": "2026-04-06"
+   }
+  },
+  {
+   "q": "in October 2025",
+   "expect": {
+    "dateFrom": "2025-10-01",
+    "dateTo": "2025-11-01"
+   }
+  },
+  {
+   "q": "contracts from last year",
+   "expect": {
+    "terms": [
+     [
+      "contract"
+     ]
+    ],
+    "dateFrom": "2025-01-01",
+    "dateTo": "2026-01-01"
+   }
+  },
+  {
+   "q": "anything from jonas@example.com today",
+   "expect": {
+    "from": [
+     {
+      "email": "jonas@example.com"
+     }
+    ],
+    "dateFrom": "2026-10-05",
+    "dateTo": "2026-10-06"
+   }
+  },
+  {
+   "q": "photos from August",
+   "expect": {
+    "dateFrom": "2026-08-01",
+    "dateTo": "2026-09-01",
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "image"
+    ]
+   }
+  },
+  {
+   "q": "before March 15",
+   "expect": {
+    "dateTo": "2026-03-16"
+   }
+  },
+  {
+   "q": "since 15 March 2026",
+   "expect": {
+    "dateFrom": "2026-03-15"
+   }
+  },
+  {
+   "q": "mails to me with a word document",
+   "expect": {
+    "to": [
+     {
+      "me": true
+     }
+    ],
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "word"
+    ]
+   }
+  },
+  {
+   "q": "invoices or receipts",
+   "expect": {
+    "terms": [
+     [
+      "invoic",
+      "receipt"
+     ]
+    ]
+   }
+  },
+  {
+   "q": "starred mails from the last 2 weeks",
+   "expect": {
+    "dateFrom": "2026-09-21",
+    "flagged": true
+   }
+  },
+  {
+   "q": "drafts",
+   "expect": {
+    "folder": {
+     "type": "drafts"
+    }
+   }
+  },
+  {
+   "q": "project plan in the trash",
+   "expect": {
+    "terms": [
+     [
+      "project"
+     ],
+     [
+      "plan"
+     ]
+    ],
+    "folder": {
+     "type": "trash"
+    }
+   }
+  },
+  {
+   "q": "with tag urgent",
+   "expect": {
+    "tags": [
+     "urgent"
+    ]
+   }
+  },
+  {
+   "q": "until the end of June",
+   "expect": {
+    "dateTo": "2026-07-01"
+   }
+  }
+ ],
+ "fr": [
+  {
+   "q": "factures de Jonas des 6 derniers mois",
+   "expect": {
+    "terms": [
+     [
+      "factur"
+     ]
+    ],
+    "from": [
+     {
+      "name": "Jonas"
+     }
+    ],
+    "dateFrom": "2026-04-05"
+   }
+  },
+  {
+   "q": "les mails que j'ai envoyés à Petra la semaine dernière",
+   "expect": {
+    "from": [
+     {
+      "me": true
+     }
+    ],
+    "to": [
+     {
+      "name": "Petra"
+     }
+    ],
+    "dateFrom": "2026-09-28",
+    "dateTo": "2026-10-05"
+   }
+  },
+  {
+   "q": "pièces jointes pdf d'hier",
+   "expect": {
+    "dateFrom": "2026-10-04",
+    "dateTo": "2026-10-05",
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "pdf"
+    ]
+   }
+  },
+  {
+   "q": "mails non lus avec pièce jointe depuis mars",
+   "expect": {
+    "dateFrom": "2026-03-01",
+    "hasAttachment": true,
+    "unread": true
+   }
+  },
+  {
+   "q": "notes de réunion entre mai et juillet",
+   "expect": {
+    "terms": [
+     [
+      "notes"
+     ],
+     [
+      "réunion"
+     ]
+    ],
+    "dateFrom": "2026-05-01",
+    "dateTo": "2026-08-01"
+   }
+  },
+  {
+   "q": "ce que Jonas m'a envoyé",
+   "expect": {
+    "from": [
+     {
+      "name": "Jonas"
+     }
+    ]
+   }
+  },
+  {
+   "q": "mails sans pièce jointe dans la boîte de réception",
+   "expect": {
+    "hasAttachment": false,
+    "folder": {
+     "type": "inbox"
+    }
+   }
+  },
+  {
+   "q": "rapport budget 2025 marqués",
+   "expect": {
+    "terms": [
+     [
+      "rapport"
+     ],
+     [
+      "budget"
+     ]
+    ],
+    "dateFrom": "2025-01-01",
+    "dateTo": "2026-01-01",
+    "flagged": true
+   }
+  },
+  {
+   "q": "de:jonas à:moi objet:budget",
+   "expect": {
+    "subjectTerms": [
+     "budget"
+    ],
+    "from": [
+     {
+      "name": "jonas"
+     }
+    ],
+    "to": [
+     {
+      "me": true
+     }
+    ]
+   }
+  },
+  {
+   "q": "il y a trois semaines",
+   "expect": {
+    "dateFrom": "2026-09-07",
+    "dateTo": "2026-09-21"
+   }
+  },
+  {
+   "q": "fichiers excel de Jonas ce mois",
+   "expect": {
+    "from": [
+     {
+      "name": "Jonas"
+     }
+    ],
+    "dateFrom": "2026-10-01",
+    "dateTo": "2026-11-01",
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "excel"
+    ]
+   }
+  },
+  {
+   "q": "semaine 14",
+   "expect": {
+    "dateFrom": "2026-03-30",
+    "dateTo": "2026-04-06"
+   }
+  },
+  {
+   "q": "en octobre 2025",
+   "expect": {
+    "dateFrom": "2025-10-01",
+    "dateTo": "2025-11-01"
+   }
+  },
+  {
+   "q": "le 15/03/2026",
+   "expect": {
+    "dateFrom": "2026-03-15",
+    "dateTo": "2026-03-16"
+   }
+  },
+  {
+   "q": "depuis 2 semaines",
+   "expect": {
+    "dateFrom": "2026-09-21"
+   }
+  },
+  {
+   "q": "contrats de l'année dernière",
+   "expect": {
+    "terms": [
+     [
+      "contrat"
+     ]
+    ],
+    "dateFrom": "2025-01-01",
+    "dateTo": "2026-01-01"
+   }
+  },
+  {
+   "q": "tout de jonas@example.com aujourd'hui",
+   "expect": {
+    "from": [
+     {
+      "email": "jonas@example.com"
+     }
+    ],
+    "dateFrom": "2026-10-05",
+    "dateTo": "2026-10-06"
+   }
+  },
+  {
+   "q": "photos d'août",
+   "expect": {
+    "dateFrom": "2026-08-01",
+    "dateTo": "2026-09-01",
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "image"
+    ]
+   }
+  },
+  {
+   "q": "avant le 15 mars",
+   "expect": {
+    "dateTo": "2026-03-16"
+   }
+  },
+  {
+   "q": "depuis le 15 mars 2026",
+   "expect": {
+    "dateFrom": "2026-03-15"
+   }
+  },
+  {
+   "q": "mails pour moi avec un document word",
+   "expect": {
+    "to": [
+     {
+      "me": true
+     }
+    ],
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "word"
+    ]
+   }
+  },
+  {
+   "q": "factures ou reçus",
+   "expect": {
+    "terms": [
+     [
+      "factur",
+      "reçu"
+     ]
+    ]
+   }
+  },
+  {
+   "q": "mails marqués des 2 dernières semaines",
+   "expect": {
+    "dateFrom": "2026-09-21",
+    "flagged": true
+   }
+  },
+  {
+   "q": "brouillons",
+   "expect": {
+    "folder": {
+     "type": "drafts"
+    }
+   }
+  },
+  {
+   "q": "plan de projet dans la corbeille",
+   "expect": {
+    "terms": [
+     [
+      "plan"
+     ],
+     [
+      "projet"
+     ]
+    ],
+    "folder": {
+     "type": "trash"
+    }
+   }
+  },
+  {
+   "q": "avec l'étiquette urgent",
+   "expect": {
+    "tags": [
+     "urgent"
+    ]
+   }
+  },
+  {
+   "q": "jusqu'à fin juin",
+   "expect": {
+    "dateTo": "2026-07-01"
+   }
+  }
+ ],
+ "es": [
+  {
+   "q": "facturas de Jonas en los últimos 6 meses",
+   "expect": {
+    "terms": [
+     [
+      "factura"
+     ]
+    ],
+    "from": [
+     {
+      "name": "Jonas"
+     }
+    ],
+    "dateFrom": "2026-04-05"
+   }
+  },
+  {
+   "q": "correos que envié a Petra la semana pasada",
+   "expect": {
+    "from": [
+     {
+      "me": true
+     }
+    ],
+    "to": [
+     {
+      "name": "Petra"
+     }
+    ],
+    "dateFrom": "2026-09-28",
+    "dateTo": "2026-10-05"
+   }
+  },
+  {
+   "q": "adjuntos pdf de ayer",
+   "expect": {
+    "dateFrom": "2026-10-04",
+    "dateTo": "2026-10-05",
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "pdf"
+    ]
+   }
+  },
+  {
+   "q": "correos no leídos con adjunto desde marzo",
+   "expect": {
+    "dateFrom": "2026-03-01",
+    "hasAttachment": true,
+    "unread": true
+   }
+  },
+  {
+   "q": "notas de reunión entre mayo y julio",
+   "expect": {
+    "terms": [
+     [
+      "nota"
+     ],
+     [
+      "reunión"
+     ]
+    ],
+    "dateFrom": "2026-05-01",
+    "dateTo": "2026-08-01"
+   }
+  },
+  {
+   "q": "lo que Jonas me envió",
+   "expect": {
+    "from": [
+     {
+      "name": "Jonas"
+     }
+    ]
+   }
+  },
+  {
+   "q": "correos sin adjuntos en la bandeja de entrada",
+   "expect": {
+    "hasAttachment": false,
+    "folder": {
+     "type": "inbox"
+    }
+   }
+  },
+  {
+   "q": "informe presupuesto 2025 marcados",
+   "expect": {
+    "terms": [
+     [
+      "informe"
+     ],
+     [
+      "presupuest"
+     ]
+    ],
+    "dateFrom": "2025-01-01",
+    "dateTo": "2026-01-01",
+    "flagged": true
+   }
+  },
+  {
+   "q": "de:jonas para:mí asunto:presupuesto",
+   "expect": {
+    "subjectTerms": [
+     "presupuest"
+    ],
+    "from": [
+     {
+      "name": "jonas"
+     }
+    ],
+    "to": [
+     {
+      "me": true
+     }
+    ]
+   }
+  },
+  {
+   "q": "hace tres semanas",
+   "expect": {
+    "dateFrom": "2026-09-07",
+    "dateTo": "2026-09-21"
+   }
+  },
+  {
+   "q": "archivos excel de Jonas este mes",
+   "expect": {
+    "from": [
+     {
+      "name": "Jonas"
+     }
+    ],
+    "dateFrom": "2026-10-01",
+    "dateTo": "2026-11-01",
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "excel"
+    ]
+   }
+  },
+  {
+   "q": "semana 14",
+   "expect": {
+    "dateFrom": "2026-03-30",
+    "dateTo": "2026-04-06"
+   }
+  },
+  {
+   "q": "en octubre de 2025",
+   "expect": {
+    "dateFrom": "2025-10-01",
+    "dateTo": "2025-11-01"
+   }
+  },
+  {
+   "q": "el 15/03/2026",
+   "expect": {
+    "dateFrom": "2026-03-15",
+    "dateTo": "2026-03-16"
+   }
+  },
+  {
+   "q": "desde hace 2 semanas",
+   "expect": {
+    "dateFrom": "2026-09-21"
+   }
+  },
+  {
+   "q": "contratos del año pasado",
+   "expect": {
+    "terms": [
+     [
+      "contrato"
+     ]
+    ],
+    "dateFrom": "2025-01-01",
+    "dateTo": "2026-01-01"
+   }
+  },
+  {
+   "q": "todo de jonas@example.com hoy",
+   "expect": {
+    "from": [
+     {
+      "email": "jonas@example.com"
+     }
+    ],
+    "dateFrom": "2026-10-05",
+    "dateTo": "2026-10-06"
+   }
+  },
+  {
+   "q": "fotos de agosto",
+   "expect": {
+    "dateFrom": "2026-08-01",
+    "dateTo": "2026-09-01",
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "image"
+    ]
+   }
+  },
+  {
+   "q": "antes del 15 de marzo",
+   "expect": {
+    "dateTo": "2026-03-16"
+   }
+  },
+  {
+   "q": "desde el 15 de marzo de 2026",
+   "expect": {
+    "dateFrom": "2026-03-15"
+   }
+  },
+  {
+   "q": "correos para mí con un documento word",
+   "expect": {
+    "to": [
+     {
+      "me": true
+     }
+    ],
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "word"
+    ]
+   }
+  },
+  {
+   "q": "facturas o recibos",
+   "expect": {
+    "terms": [
+     [
+      "factura",
+      "recibo"
+     ]
+    ]
+   }
+  },
+  {
+   "q": "correos marcados de las últimas 2 semanas",
+   "expect": {
+    "dateFrom": "2026-09-21",
+    "flagged": true
+   }
+  },
+  {
+   "q": "borradores",
+   "expect": {
+    "folder": {
+     "type": "drafts"
+    }
+   }
+  },
+  {
+   "q": "plan de proyecto en la papelera",
+   "expect": {
+    "terms": [
+     [
+      "plan"
+     ],
+     [
+      "proyect"
+     ]
+    ],
+    "folder": {
+     "type": "trash"
+    }
+   }
+  },
+  {
+   "q": "con la etiqueta urgente",
+   "expect": {
+    "tags": [
+     "urgente"
+    ]
+   }
+  },
+  {
+   "q": "hasta finales de junio",
+   "expect": {
+    "dateTo": "2026-07-01"
+   }
+  }
+ ]
+}

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title data-i18n="optTitle"></title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font: menu; font-size: 13px; padding: 16px; max-width: 700px; }
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid color-mix(in srgb, CanvasText 25%, transparent); margin-bottom: 14px; }
+    .tabs button { font: inherit; padding: 6px 16px; border: 1px solid transparent; border-bottom: 0; border-radius: 6px 6px 0 0; background: transparent; color: inherit; cursor: pointer; }
+    .tabs button[aria-selected="true"] { border-color: color-mix(in srgb, CanvasText 25%, transparent); background: Canvas; font-weight: 600; position: relative; top: 1px; }
+    .panel[hidden] { display: none; }
+    .row { display: flex; align-items: center; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
+    .row select { max-width: 100%; min-width: 0; }
+    .row > label:first-child { flex: 0 0 280px; }
+    input[type="number"] { width: 5em; }
+    .hint { color: GrayText; font-size: 12px; margin: 2px 0 8px 0; }
+    #saved { color: AccentColor; visibility: hidden; margin-top: 12px; }
+    .styles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 6px 0 16px; }
+    .style { display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 2px solid color-mix(in srgb, CanvasText 18%, transparent); border-radius: 10px; cursor: pointer; }
+    .style:has(input:checked) { border-color: AccentColor; background: color-mix(in srgb, AccentColor 8%, transparent); }
+    .style img { width: 100%; height: auto; border-radius: 6px; display: block; }
+    .style .name { font-weight: 600; display: flex; gap: 6px; align-items: center; }
+    .style .desc { color: GrayText; font-size: 12px; }
+    h3 { font-size: 13px; margin: 18px 0 4px; }
+    .opt { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; margin: 4px 0 6px; }
+    .opt .txt { flex: 1 1 280px; min-width: 0; }
+    figure { margin: 6px 0 0; flex: none; text-align: center; }
+    figure svg { width: 190px; height: auto; display: block; border-radius: 8px; background: color-mix(in srgb, currentColor 5%, transparent); border: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
+    .two figure svg { width: 118px; }
+    .cap { display: block; font-size: 11px; opacity: .75; margin-top: 4px; }
+    .fr { fill: none; stroke: currentColor; stroke-opacity: .4; stroke-width: 1; }
+    .bar { fill: currentColor; fill-opacity: .3; } .bar2 { fill: currentColor; fill-opacity: .16; }
+    .band { fill: currentColor; fill-opacity: .1; stroke: currentColor; stroke-opacity: .3; }
+    .acc { fill: #2F6BD8; } .accl { fill: #2F6BD8; fill-opacity: .22; stroke: #2F6BD8; stroke-opacity: .6; }
+    .dash { stroke: currentColor; stroke-opacity: .5; stroke-dasharray: 3 2; stroke-width: 1; fill: none; }
+  </style>
+</head>
+<body>
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" id="tab-settings" aria-selected="true" aria-controls="panel-settings" data-i18n="optTabSettings"></button>
+    <button type="button" role="tab" id="tab-look" aria-selected="false" aria-controls="panel-look" data-i18n="optTabLook"></button>
+  </div>
+
+  <div class="panel" id="panel-settings" role="tabpanel" aria-labelledby="tab-settings">
+    <div class="row"><label for="engine" data-i18n="optEngine"></label>
+      <select id="engine"><option value="auto" data-i18n="optEngineAuto"></option><option value="db" data-i18n="optEngineDb"></option><option value="gloda" data-i18n="optEngineGloda"></option><option value="query" data-i18n="optEngineQuery"></option></select></div>
+    <p class="hint" data-i18n="optEngineHint"></p>
+    <div class="row"><label for="limit" data-i18n="optLimit"></label>
+      <select id="limit"><option value="200">200</option><option value="1000">1000</option><option value="3000">3000</option><option value="5000">5000</option></select></div>
+    <p class="hint" data-i18n="hintLimit"></p>
+    <div class="row"><label for="fallback" data-i18n="optFallback"></label>
+      <select id="fallback"><option value="subject" data-i18n="optFallbackSubject"></option><option value="smart" data-i18n="optFallbackSmart"></option><option value="off" data-i18n="optFallbackOff"></option></select></div>
+    <p class="hint" data-i18n="optFallbackHint"></p>
+    <div class="row"><label for="fallbackDays" data-i18n="optFallbackDays"></label><input type="number" id="fallbackDays" min="1" max="365" step="1"></div>
+    <div class="row"><label><input type="checkbox" id="fallbackPeople"> <span data-i18n="optFallbackPeople"></span></label></div>
+    <div class="row"><label><input type="checkbox" id="hideHeader"> <span data-i18n="optHideHeader"></span></label></div>
+    <p class="hint" data-i18n="optHideHeaderHint"></p>
+    <div class="row"><label><input type="checkbox" id="autoOriginal"> <span data-i18n="optAutoOriginal"></span></label></div>
+    <p class="hint" data-i18n="optAutoOriginalHint"></p>
+    <div class="row"><label><input type="checkbox" id="alwaysRender"> <span data-i18n="optAlwaysRender"></span></label></div>
+    <p class="hint" data-i18n="optAlwaysRenderHint"></p>
+    <div class="row"><label><input type="checkbox" id="debugTiming"> <span data-i18n="optDebugTiming"></span></label></div>
+    <p class="hint" data-i18n="optDebugTimingHint"></p>
+  </div>
+
+  <div class="panel" id="panel-look" role="tabpanel" aria-labelledby="tab-look" hidden>
+    <h3 data-i18n="optStyle"></h3>
+    <div class="styles" role="radiogroup">
+      <label class="style"><img src="img/style-soft.svg" alt=""><span class="name"><input type="radio" name="style" value="soft"> <span data-i18n="optStyleSoft"></span></span><span class="desc" data-i18n="optStyleSoftDesc"></span></label>
+      <label class="style"><img src="img/style-clear.svg" alt=""><span class="name"><input type="radio" name="style" value="clear"> <span data-i18n="optStyleClear"></span></span><span class="desc" data-i18n="optStyleClearDesc"></span></label>
+      <label class="style"><img src="img/style-thread.svg" alt=""><span class="name"><input type="radio" name="style" value="thread"> <span data-i18n="optStyleThread"></span></span><span class="desc" data-i18n="optStyleThreadDesc"></span></label>
+    </div>
+    <div class="opt"><div class="txt">
+    <div class="row"><label for="order" data-i18n="optOrder"></label>
+      <select id="order"><option value="newest" data-i18n="optOrderNewest"></option><option value="oldest" data-i18n="optOrderOldest"></option></select></div>
+    <p class="hint" data-i18n="hintOrder"></p>
+    <div class="row"><label><input type="checkbox" id="pin"> <span data-i18n="optPin"></span></label></div>
+    <div class="row"><label for="maxHeight" data-i18n="optMaxHeight"></label><input type="number" id="maxHeight" min="30" max="90" step="5"></div>
+    <p class="hint" data-i18n="hintPin"></p>
+    </div><figure class=""><svg viewBox="0 0 190 92" aria-hidden="true"><rect class="accl" x="8" y="8" width="150" height="30" rx="5"/><circle class="acc" cx="18" cy="18" r="4"/><rect class="bar" x="28" y="15" width="70" height="4" rx="2"/><rect class="bar2" x="16" y="25" width="130" height="3" rx="1.5"/><rect class="bar2" x="16" y="31" width="110" height="3" rx="1.5"/><rect class="band" x="8" y="46" width="150" height="14" rx="4"/><rect class="bar" x="16" y="51" width="60" height="3" rx="1.5"/><rect class="band" x="8" y="64" width="150" height="14" rx="4"/><rect class="bar" x="16" y="69" width="50" height="3" rx="1.5"/><rect class="fr" x="170" y="8" width="6" height="70" rx="3"/><rect class="bar" x="170" y="34" width="6" height="22" rx="3"/><path class="dash" d="M8 42H158"/></svg><span class="cap" data-i18n="capPin"></span></figure></div>
+    <div class="opt"><div class="txt">
+    <div class="row"><label for="expand" data-i18n="optExpand"></label>
+      <select id="expand"><option value="latest" data-i18n="optExpandLatest"></option><option value="latestPrev" data-i18n="optExpandLatestPrev"></option><option value="all" data-i18n="optExpandAll"></option></select></div>
+    <p class="hint" data-i18n="hintExpand"></p>
+    </div><figure class=""><svg viewBox="0 0 190 92" aria-hidden="true"><rect class="accl" x="8" y="6" width="150" height="24" rx="5"/><rect class="bar2" x="16" y="13" width="120" height="3" rx="1.5"/><rect class="bar2" x="16" y="20" width="100" height="3" rx="1.5"/><rect class="accl" x="8" y="34" width="150" height="20" rx="5"/><rect class="bar2" x="16" y="41" width="110" height="3" rx="1.5"/><rect class="band" x="8" y="58" width="150" height="9" rx="4"/><rect class="band" x="8" y="70" width="150" height="9" rx="4"/><circle class="acc" cx="168" cy="74" r="4"/><rect class="fr" x="8" y="82" width="150" height="0"/></svg><span class="cap" data-i18n="capExpand"></span></figure></div>
+    <div class="opt"><div class="txt">
+    <div class="row"><label for="attachments" data-i18n="optAttachments"></label>
+      <select id="attachments"><option value="top" data-i18n="optAttTop"></option><option value="bottom" data-i18n="optAttBottom"></option></select></div>
+    <p class="hint" data-i18n="hintAttachments"></p>
+    </div><div class="two" style="display:flex;gap:8px"><figure class=""><svg viewBox="0 0 120 92" aria-hidden="true"><rect class="band" x="8" y="8" width="104" height="76" rx="5"/><rect class="accl" x="14" y="16" width="30" height="10" rx="3"/><rect class="accl" x="48" y="16" width="30" height="10" rx="3"/><rect class="bar2" x="14" y="36" width="90" height="3" rx="1.5"/><rect class="bar2" x="14" y="44" width="80" height="3" rx="1.5"/><rect class="bar2" x="14" y="52" width="88" height="3" rx="1.5"/><rect class="bar2" x="14" y="60" width="60" height="3" rx="1.5"/></svg><span class="cap" data-i18n="capAttTop"></span></figure><figure class=""><svg viewBox="0 0 120 92" aria-hidden="true"><rect class="band" x="8" y="8" width="104" height="76" rx="5"/><rect class="bar2" x="14" y="16" width="90" height="3" rx="1.5"/><rect class="bar2" x="14" y="24" width="80" height="3" rx="1.5"/><rect class="bar2" x="14" y="32" width="88" height="3" rx="1.5"/><rect class="bar2" x="14" y="40" width="60" height="3" rx="1.5"/><rect class="accl" x="14" y="62" width="30" height="10" rx="3"/><rect class="accl" x="48" y="62" width="30" height="10" rx="3"/></svg><span class="cap" data-i18n="capAttBottom"></span></figure></div></div>
+    <div class="opt"><div class="txt">
+    <div class="row"><label><input type="checkbox" id="collapseQuotes"> <span data-i18n="optCollapseQuotes"></span></label></div>
+    <p class="hint" data-i18n="hintQuotes"></p>
+    </div><figure class=""><svg viewBox="0 0 190 92" aria-hidden="true"><rect class="band" x="8" y="8" width="150" height="76" rx="5"/><rect class="bar2" x="16" y="16" width="120" height="3" rx="1.5"/><rect class="bar2" x="16" y="24" width="100" height="3" rx="1.5"/><rect class="fr" x="16" y="34" width="26" height="12" rx="6"/><circle class="acc" cx="24" cy="40" r="1.5"/><circle class="acc" cx="29" cy="40" r="1.5"/><circle class="acc" cx="34" cy="40" r="1.5"/><rect class="bar2" x="16" y="54" width="110" height="3" rx="1.5"/><rect class="bar2" x="16" y="62" width="80" height="3" rx="1.5"/></svg><span class="cap" data-i18n="capQuote"></span></figure></div>
+    <div class="row"><label><input type="checkbox" id="stickyHeader"> <span data-i18n="optStickyHeader"></span></label></div>
+    <p class="hint" data-i18n="hintSticky"></p>
+    <div class="row"><label for="rowLines" data-i18n="optRowLines"></label><input type="number" id="rowLines" min="1" max="6" step="1"></div>
+    <p class="hint" data-i18n="hintRowLines"></p>
+    <div class="opt"><div class="txt">
+    <div class="row"><label><input type="checkbox" id="autoOpen"> <span data-i18n="optAutoOpen"></span></label></div>
+    <p class="hint" data-i18n="optAutoOpenHint"></p>
+    <div class="row"><label for="autoOpenTrigger" data-i18n="optAutoOpenTrigger"></label>
+      <select id="autoOpenTrigger"><option value="scroll" data-i18n="optAutoOpenTrScroll"></option><option value="hover" data-i18n="optAutoOpenTrHover"></option></select></div>
+    <div class="row"><label for="autoOpenDelay" data-i18n="optAutoOpenDelay"></label><input type="number" id="autoOpenDelay" min="50" max="200" step="10"></div>
+    </div><figure class=""><svg viewBox="0 0 190 92" aria-hidden="true"><rect class="band" x="8" y="8" width="150" height="12" rx="4"/><rect class="accl" x="8" y="24" width="150" height="26" rx="4"/><rect class="bar2" x="16" y="31" width="110" height="3" rx="1.5"/><rect class="bar2" x="16" y="38" width="90" height="3" rx="1.5"/><rect class="band" x="8" y="54" width="150" height="12" rx="4"/><rect class="band" x="8" y="70" width="150" height="12" rx="4"/><path d="M120 34l0 16 4-4 3 7 3-1.5-3-7 6 0z" fill="#fff" stroke="currentColor" stroke-width="1"/></svg><span class="cap" data-i18n="capAutoOpen"></span></figure></div>
+    <div class="row"><label for="openMs" data-i18n="optOpenMs"></label><input type="number" id="openMs" min="0" max="1000" step="50"></div>
+    <p class="hint" data-i18n="hintOpenMs"></p>
+    <div class="row"><label for="fadeMs" data-i18n="optFadeMs"></label><input type="number" id="fadeMs" min="0" max="250" step="10"></div>
+    <p class="hint" data-i18n="hintFadeMs"></p>
+  </div>
+
+  <div id="saved" data-i18n="optSaved"></div>
+  <script src="../settings.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

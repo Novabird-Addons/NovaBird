@@ -1,0 +1,9 @@
+# Nur Quelle gehört nach Git (Pakete, Abhängigkeiten, Testdaten und Labor liegen außerhalb von NovaBird/Source)
+node_modules/
+*.xpi
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+bb.log
+bb.pid
+.DS_Store

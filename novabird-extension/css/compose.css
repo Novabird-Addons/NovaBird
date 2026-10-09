@@ -1,0 +1,154 @@
+/* Compose window (messengercompose.xhtml). Tokens/fonts come from shell.css. */
+:root { --tbsr-compose-row: 46px; }
+body, #compose-toolbox, #composeContentBox { font-family: var(--tbsr-font); color: var(--tbsr-text); }
+#composeContentBox { background: var(--tbsr-bg) !important; }
+
+/* ---- menu bar stays, just calmer ---- */
+#compose-toolbar-menubar2 { background: var(--tbsr-side) !important; border-bottom: 1px solid var(--tbsr-line) !important; color: var(--tbsr-text); }
+
+/* ---- command bar ---- */
+#composeToolbar2 {
+  background: var(--tbsr-bg) !important; border: 0 !important; border-bottom: 1px solid var(--tbsr-line) !important;
+  padding: 6px 12px !important; gap: 2px; color: var(--tbsr-text);
+}
+#composeToolbar2 toolbarbutton, #composeToolbar2 .toolbarbutton-menubutton-button, #composeToolbar2 .toolbarbutton-menubutton-dropmarker {
+  border-radius: 9px !important; color: var(--tbsr-text) !important; font-size: 13px;
+}
+#composeToolbar2 toolbarbutton:not([disabled="true"]):hover { background: var(--tbsr-hover) !important; }
+/* split buttons (Speichern, Rechtschr., Anhängen): highlight only the hovered half, no stacked shades */
+#composeToolbar2 toolbarbutton:has(> .toolbarbutton-menubutton-button), #composeToolbar2 toolbarbutton:has(> .toolbarbutton-menubutton-button):hover { background-color: transparent !important; box-shadow: none !important; }
+#composeToolbar2 .toolbarbutton-menubutton-button, #composeToolbar2 .toolbarbutton-menubutton-dropmarker { background-color: transparent !important; box-shadow: none !important; }
+#composeToolbar2 toolbarbutton:not([disabled="true"]) > .toolbarbutton-menubutton-button:hover,
+#composeToolbar2 toolbarbutton:not([disabled="true"]) > .toolbarbutton-menubutton-dropmarker:hover,
+#composeToolbar2 toolbarbutton[open] > .toolbarbutton-menubutton-dropmarker { background-color: var(--tbsr-hover) !important; }
+#composeToolbar2 toolbarseparator { margin-inline: 6px; opacity: .6; }
+#composeToolbar2 .toolbarbutton-menubutton-dropmarker { border: 0 !important; margin-inline-start: -2px; }
+#composeToolbar2 .toolbarbutton-menubutton-button { border: 0 !important; }
+
+/* Send = the primary action; same soft look as "Neue Nachricht" in the main window */
+#button-send {
+  background: var(--tbsr-accent-bg) !important; color: var(--tbsr-text) !important; font-weight: 600;
+  border: 1px solid color-mix(in srgb, var(--tbsr-accent) 40%, var(--tbsr-accent-bg)) !important;
+  padding: 3px 14px !important; margin-inline-end: 8px !important;
+}
+#button-send .toolbarbutton-text { color: var(--tbsr-text) !important; }
+#button-send .toolbarbutton-icon { display: none !important; }
+#button-send:not([disabled="true"]):hover { background: color-mix(in srgb, var(--tbsr-accent) 28%, var(--tbsr-accent-bg)) !important; }
+#button-send[disabled="true"] { opacity: 1 !important; background: color-mix(in srgb, var(--tbsr-accent-bg) 55%, var(--tbsr-panel)) !important; }
+
+/* Theme icons come as data: URLs, which the compose window does not load (empty, lopsided buttons): use the built-in ones */
+#button-contacts { list-style-image: url("chrome://messenger/skin/icons/new/compact/address-book.svg") !important; }
+#button-attach { list-style-image: url("chrome://messenger/skin/icons/new/compact/attachment.svg") !important; }
+
+/* Buttons of extensions (e.g. LanguageTool): soft pills so they read as a group */
+#composeToolbar2 toolbarbutton[id$="-composeAction-toolbarbutton"], #composeToolbar2 toolbarbutton.webextension-compose-action {
+  background: var(--tbsr-bg) !important; border: 1px solid var(--tbsr-line) !important; margin-inline-start: 4px !important;
+}
+
+/* ---- header: rows with hairlines instead of boxed inputs ---- */
+/* label column: narrow while only From/To/Subject are shown, wider once Cc/Bcc/Reply-To rows (long labels) appear */
+#MsgHeadersToolbar { --tbsr-label-w: 72px; }
+#MsgHeadersToolbar:has(:is(#addressRowCc, #addressRowBcc, #addressRowReply, #addressRowNewsgroups, #addressRowFollowup):not(.hidden)) { --tbsr-label-w: 124px; }
+:root:root:root #MsgHeadersToolbar { background: var(--tbsr-panel) !important; border: 0 !important; padding: 0 !important; }
+#MsgHeadersToolbar .aw-firstColBox { display: none !important; }
+#MsgHeadersToolbar label, #identityLabel, #subjectLabel, .address-label-container label {
+  color: var(--tbsr-muted) !important; font-size: 13px !important;
+}
+#top-gradient-box, .address-row, #subject-box {
+  border-top: 1px solid var(--tbsr-line); min-height: var(--tbsr-compose-row); align-items: center !important;
+  padding-inline: 20px !important; margin: 0 !important; background: transparent !important;
+}
+#top-gradient-box { border-top: 0; }
+#identityLabel-box, #MsgHeadersToolbar .address-label-container, #subjectLabel-box {
+  min-width: var(--tbsr-label-w) !important; width: var(--tbsr-label-w) !important; max-width: var(--tbsr-label-w) !important; flex: none !important;
+  justify-content: flex-start !important; margin: 0 !important; padding: 0 !important;
+}
+/* the boxes carry pack="end"; an auto end margin pushes the text back to the start */
+#identityLabel-box label, #MsgHeadersToolbar .address-label-container label, #subjectLabel-box label {
+  text-align: start !important; margin-block: 0 !important; margin-inline: 0 auto !important;
+}
+
+/* fields: no box */
+#msgIdentity, #msgIdentity .menulist-label { border: 0 !important; background: transparent !important; box-shadow: none !important; }
+.input-container, #msgSubjectContainer, #toAddrContainer, .address-container {
+  border: 0 !important; background: transparent !important; box-shadow: none !important; outline: 0 !important;
+}
+.input-container:focus-within { box-shadow: none !important; outline: 0 !important; }
+#MsgHeadersToolbar input, #MsgHeadersToolbar input:focus, #msgSubject {
+  border: 0 !important; outline: 0 !important; background: transparent !important; box-shadow: none !important; font: inherit; color: var(--tbsr-text) !important;
+}
+#msgSubject { font-size: 16px !important; font-weight: 600 !important; }
+
+/* recipient pills */
+mail-address-pill, .address-pill {
+  border-radius: 99px !important; background: var(--tbsr-chip, var(--tbsr-hover)) !important; color: var(--tbsr-text) !important;
+  border: 0 !important; font-size: 13px;
+}
+mail-address-pill[selected], .address-pill[selected] { background: var(--tbsr-accent) !important; color: #fff !important; }
+
+/* Cc / Bcc / more: quiet text toggles */
+#extraAddressRowsArea { margin-inline-start: auto; border: 0 !important; gap: 2px; align-items: center; }
+#extraAddressRowsArea button, .recipient-button {
+  color: var(--tbsr-muted) !important; background: transparent !important; border: 0 !important; border-radius: 7px !important;
+  padding: 3px 9px !important; font-size: 13px;
+}
+#extraAddressRowsArea button:hover, .recipient-button:hover { background: var(--tbsr-hover) !important; color: var(--tbsr-text) !important; }
+
+/* ---- formatting row: stays above the text ---- */
+#FormatToolbox, #FormatToolbar {
+  background: var(--tbsr-bg) !important; border: 0 !important; border-top: 1px solid var(--tbsr-line) !important; color: var(--tbsr-text);
+}
+#FormatToolbar { padding: 4px 10px !important; }
+#FormatToolbar toolbarbutton { border-radius: 7px !important; color: var(--tbsr-text) !important; }
+#FormatToolbar toolbarbutton:hover { background: var(--tbsr-hover) !important; }
+#FormatToolbar toolbarbutton[checked="true"] { background: var(--tbsr-accent-bg) !important; color: var(--tbsr-accent-text) !important; }
+#FormatToolbar menulist {
+  border: 1px solid var(--tbsr-line) !important; border-radius: 8px !important; background: var(--tbsr-panel) !important;
+  color: var(--tbsr-text) !important; margin-inline-end: 4px;
+}
+#headersSplitter { display: none !important; }
+
+/* ---- status bar ---- */
+#status-bar { background: var(--tbsr-side) !important; border-top: 1px solid var(--tbsr-line) !important; color: var(--tbsr-muted); }
+
+/* remove the vertical separator in front of the toggles */
+#extraAddressRowsArea, #extraAddressRowsArea.addressingWidget-separator { border: 0 !important; border-inline-start: 0 !important; padding: 0 !important; }
+#extraAddressRowsArea::before, #extraAddressRowsArea::after { display: none !important; }
+
+/* pills: calmer, no black indicator dot */
+mail-address-pill { padding: 2px 4px !important; margin: 2px 3px !important; }
+mail-address-pill .pill-indicator { display: none !important; }
+mail-address-pill .pill-label { padding: 2px 8px !important; }
+
+/* ---- attachments: tiles right below the header ---- */
+#attachmentSplitter { display: none !important; }
+#attachmentArea { background: var(--tbsr-bg) !important; border: 0 !important; border-top: 1px solid var(--tbsr-line) !important; color: var(--tbsr-text); }
+#attachmentArea > summary { padding: 8px 20px !important; font-size: 13px; color: var(--tbsr-muted); }
+#attachmentBucket {
+  display: flex !important; flex-wrap: wrap; gap: 8px; background: transparent !important; border: 0 !important;
+  padding: 2px 20px 12px !important; max-height: 160px; overflow-y: auto; margin: 0 !important;
+}
+#attachmentBucket richlistitem {
+  background: var(--tbsr-panel) !important; border: 1px solid var(--tbsr-line) !important; border-radius: 10px !important;
+  padding: 5px 10px !important; margin: 0 !important; color: var(--tbsr-text) !important; min-width: 0; width: auto !important;
+}
+#attachmentBucket richlistitem[selected] { background: var(--tbsr-accent-bg) !important; border-color: var(--tbsr-accent) !important; color: var(--tbsr-accent-text) !important; }
+#attachmentBucket richlistitem * { color: inherit !important; }
+
+/* grid areas: attachments directly under the header, above the formatting row */
+#composeContentBox {
+  grid-template-areas:
+    "contacts contacts-splitter headers"
+    "contacts contacts-splitter attachment-area"
+    "contacts contacts-splitter format-toolbar"
+    "contacts contacts-splitter headers-splitter"
+    "contacts contacts-splitter message"
+    "contacts contacts-splitter attachment-splitter" !important;
+  grid-template-rows: auto auto auto 0 minmax(0, 1fr) 0 !important;
+}
+
+/* narrow windows: icons only (Send keeps its text) */
+#composeToolbar2 toolbarbutton { padding-inline: 8px !important; }
+@media (max-width: 1100px) {
+  #composeToolbar2 toolbarbutton:not(#button-send) .toolbarbutton-text { display: none !important; }
+}

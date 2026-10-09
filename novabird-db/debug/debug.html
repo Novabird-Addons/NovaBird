@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8">
+<style>
+  body { width: 560px; margin: 0; padding: 10px; font: 13px sans-serif; }
+  input { width: 100%; box-sizing: border-box; padding: 6px 8px; font-size: 14px; }
+  #chips { margin: 8px 0 4px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip { background: #dde7f5; border-radius: 10px; padding: 2px 8px; }
+  .chip button { border: 0; background: none; cursor: pointer; padding: 0 0 0 4px; }
+  #status { color: #666; font-size: 12px; margin: 4px 0; }
+  progress { width: 100%; }
+  #list { max-height: 420px; overflow-y: auto; }
+  .row { padding: 5px 4px; border-bottom: 1px solid #ddd; cursor: pointer; }
+  .row:hover { background: #eef3fb; }
+  .row .s { font-weight: bold; }
+  .row .m { color: #555; font-size: 12px; }
+  details { margin-top: 8px; color: #666; font-size: 12px; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #222; color: #ddd; }
+    .chip { background: #34496b; } .row:hover { background: #2d3748; }
+    .row { border-color: #444; } .row .m, #status { color: #aaa; }
+  }
+</style></head>
+<body>
+<input id="q" type="search" placeholder="Suchen … z. B. Speisepläne von Jonas aus den letzten 6 Monaten" autofocus>
+<div style="margin:4px 0"><label>Sortierung: <select id="sort"><option value="date">Datum (neueste zuerst)</option><option value="relevance">Relevanz</option></select></label></div>
+<div id="chips"></div>
+<progress id="prog" max="100" hidden></progress>
+<div id="status"></div>
+<div id="suggest" hidden>Meinten Sie: <a href="#" id="suggestLink"></a>?</div>
+<div id="list"></div>
+<div style="margin-top:8px"><a href="#" id="opts">Einstellungen und Wartung …</a></div>
+<details><summary>Technik</summary>
+  <button id="run">DB testen</button> <button id="index">Testordner indizieren</button>
+  <pre id="out"></pre></details>
+<script src="debug.js"></script>
+</body></html>

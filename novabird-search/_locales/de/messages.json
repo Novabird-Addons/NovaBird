@@ -1,0 +1,427 @@
+{
+  "extName": {
+    "message": "NovaBird-Search",
+    "description": "Name des Add-ons"
+  },
+  "extDescription": {
+    "message": "Eine Suchleiste statt zwei: Bereich und Optionen im Feld, Treffer live in der Nachrichtenliste, neueste zuerst.",
+    "description": "Beschreibung"
+  },
+  "placeholder": {
+    "message": "Nachrichten suchen",
+    "description": "Platzhalter im Suchfeld"
+  },
+  "scopeAll": {
+    "message": "Alle Ordner",
+    "description": "Bereich: alle Ordner"
+  },
+  "scopeFolder": {
+    "message": "Aktueller Ordner",
+    "description": "Bereich: aktueller Ordner"
+  },
+  "options": {
+    "message": "Suchoptionen",
+    "description": "Tooltip des Optionsknopfs"
+  },
+  "optFrom": {
+    "message": "Von",
+    "description": "Option: Absender durchsuchen"
+  },
+  "optTo": {
+    "message": "An",
+    "description": "Option: Empfänger durchsuchen"
+  },
+  "optSubject": {
+    "message": "Inhalt: Betreff",
+    "description": "Option: Betreff durchsuchen"
+  },
+  "optBody": {
+    "message": "Inhalt: Nachricht",
+    "description": "Option: Nachrichtentext durchsuchen"
+  },
+  "optAttachment": {
+    "message": "Mit Anhang",
+    "description": "Schalter: nur Nachrichten mit Anhang"
+  },
+  "optUnread": {
+    "message": "Nur ungelesen",
+    "description": "Schalter: nur ungelesene Nachrichten"
+  },
+  "optTrash": {
+    "message": "Papierkorb",
+    "description": "Schalter: Papierkorb durchsuchen"
+  },
+  "optSpam": {
+    "message": "Spam",
+    "description": "Schalter: Spam durchsuchen"
+  },
+  "includeLabel": {
+    "message": "Einbeziehen",
+    "description": "Beschriftung der Zeile mit Papierkorb und Spam"
+  },
+  "busy": {
+    "message": "Nachrichtentext wird durchsucht …",
+    "description": "Tooltip des Lade-Symbols im Suchfeld"
+  },
+  "clear": {
+    "message": "Suche löschen",
+    "description": "Tooltip des X im Suchfeld"
+  },
+  "optHeadingResults": {
+    "message": "Ergebnisse",
+    "description": "Überschrift der Optionsseite"
+  },
+  "optGroup": {
+    "message": "Treffer nach Konversation gruppieren",
+    "description": "Option"
+  },
+  "optGroupHint": {
+    "message": "Aus: flache Liste, neueste Nachricht zuerst. An: Konversationen, sortiert nach der neuesten Antwort.",
+    "description": "Hinweis zur Option"
+  },
+  "optHeadingFulltext": {
+    "message": "Volltextsuche",
+    "description": "Überschrift"
+  },
+  "optLimit": {
+    "message": "Höchstzahl der Treffer",
+    "description": "Beschriftung"
+  },
+  "optLimitHint": {
+    "message": "Gilt für die Suche im Nachrichtentext: es werden die neuesten Treffer gezeigt. „Unbegrenzt“ kann bei sehr großen Postfächern langsam werden (mit Gloda höchstens 20.000). Manuell: 100 bis 1.000.000. Treffer aus Von, An und Betreff kommen dazu.",
+    "description": "Hinweis zur Option"
+  },
+  "optSaved": {
+    "message": "Gespeichert",
+    "description": "Bestätigung"
+  },
+  "openSettings": {
+    "message": "Einstellungen …",
+    "description": "Eintrag im Optionsmenü, öffnet die Einstellungen"
+  },
+  "optEnter": {
+    "message": "Enter im Suchfeld",
+    "description": "Beschriftung"
+  },
+  "optEnterOff": {
+    "message": "Nichts (Suche bleibt im Fenster)",
+    "description": "Auswahl"
+  },
+  "optEnterSnapshot": {
+    "message": "Filtern: Treffer in neuem Tab, dort weiter eingrenzen",
+    "description": "Text"
+  },
+  "optEnterHint": {
+    "message": "Filtern: Momentaufnahme der Treffer in neuem Tab; dort grenzt die Suchleiste die Treffer weiter ein. Auswerten: eigene Analyseseite mit anklickbaren Filtern (Absender, Ordner, Zeitraum, Anhang). Nachfragen: kleine Rückfrage bei jedem Enter, mit „Merken“.",
+    "description": "Text"
+  },
+  "rangeAll": {
+    "message": "Alle",
+    "description": "Zeitfenster unter dem Suchfeld"
+  },
+  "range3": {
+    "message": "3 Tage",
+    "description": "Zeitfenster unter dem Suchfeld"
+  },
+  "range7": {
+    "message": "7 Tage",
+    "description": "Zeitfenster unter dem Suchfeld"
+  },
+  "range30": {
+    "message": "30 Tage",
+    "description": "Zeitfenster unter dem Suchfeld"
+  },
+  "rangeToday": {
+    "message": "Heute",
+    "description": "Zeitfenster unter dem Suchfeld"
+  },
+  "optHeadingShared": {
+    "message": "Gemeinsame Ordner",
+    "description": "Überschrift"
+  },
+  "optShared": {
+    "message": "Gemeinsame Ordner anlegen",
+    "description": "Option"
+  },
+  "optSharedHint": {
+    "message": "Legt drei virtuelle Ordner an, oben im Ordnermodus „Vereinigte Ordner“ (und unter „Lokale Ordner“): Gemeinsamer Eingang (alle Posteingänge), Alle ungelesenen und Wiedervorlage. Zur Wiedervorlage legst du eine Nachricht per Rechtsklick; sie bekommt das Schlagwort „Wiedervorlage“. Die Ordner sind nur Ansichten auf diesem Rechner: Auf dem Server wird nichts verschoben. Lesen, Markieren und Löschen wirken auf die echten Nachrichten und damit auch auf deine anderen Geräte.",
+    "description": "Hinweis"
+  },
+  "sharedInbox": {
+    "message": "Gemeinsamer Eingang",
+    "description": "Ordnername"
+  },
+  "sharedUnread": {
+    "message": "Alle ungelesenen",
+    "description": "Ordnername"
+  },
+  "sharedFollowup": {
+    "message": "Wiedervorlage",
+    "description": "Ordnername"
+  },
+  "menuFollowupAdd": {
+    "message": "Zur Wiedervorlage legen",
+    "description": "Kontextmenü"
+  },
+  "menuFollowupRemove": {
+    "message": "Aus der Wiedervorlage nehmen",
+    "description": "Kontextmenü"
+  },
+  "optSharedMonths": {
+    "message": "Gemeinsamer Eingang: Monate",
+    "description": "Beschriftung"
+  },
+  "optSharedMonthsHint": {
+    "message": "Der Gemeinsame Eingang zeigt nur Nachrichten der letzten N Monate (Standard 3, 0 = alle). Das hält die Ansicht schnell. „Alle ungelesenen“ und „Wiedervorlage“ zeigen weiter alles.",
+    "description": "Hinweis"
+  },
+  "optHeadingDb": {
+    "message": "NovaBird-DB (eigener Suchindex)"
+  },
+  "optDbMode": {
+    "message": "NovaBird-DB verwenden:"
+  },
+  "optDbAuto": {
+    "message": "Automatisch (wenn vorhanden und bereit)"
+  },
+  "optDbOff": {
+    "message": "Nie (nur Gloda)"
+  },
+  "optDbHint": {
+    "message": "Ist das Add-on „NovaBird-DB“ installiert und sein Index fertig, ersetzt es für die Volltextsuche über alle Ordner den Gloda-Index. Fehlt es oder ist es nicht bereit, sucht NovaBird-Search wie bisher mit Gloda."
+  },
+  "optDbStateChecking": {
+    "message": "Status wird geprüft …"
+  },
+  "optDbStateMissing": {
+    "message": "NovaBird-DB nicht gefunden – es wird Gloda genutzt."
+  },
+  "optDbStateIndexing": {
+    "message": "NovaBird-DB gefunden, Index wird noch aufgebaut ($1 Mails) – bis dahin wird Gloda genutzt."
+  },
+  "optDbStateEmpty": {
+    "message": "NovaBird-DB gefunden, aber der Index ist leer – es wird Gloda genutzt."
+  },
+  "optDbStateNotReady": {
+    "message": "NovaBird-DB gefunden, der Erstaufbau des Index ist aber noch nicht abgeschlossen – bis dahin wird Gloda genutzt."
+  },
+  "optDbStateReady": {
+    "message": "NovaBird-DB aktiv ($1 Mails im Index, Version $2)."
+  },
+  "optDbStateOff": {
+    "message": "NovaBird-DB wird nicht verwendet (Einstellung „Nie“)."
+  },
+  "optSort": {
+    "message": "Sortierung der Treffer (NovaBird-DB):"
+  },
+  "optSortDate": {
+    "message": "Datum (neueste zuerst)"
+  },
+  "optSortRelevance": {
+    "message": "Relevanz – EXPERIMENTELL (mit Bonus für neuere Mails)"
+  },
+  "optSortHint": {
+    "message": "Experimentell: Die Relevanz-Sortierung ist noch nicht ausgereift. Gilt nur, wenn NovaBird-DB genutzt wird. Gloda-Treffer und die schnelle Kopfzeilen-Suche bleiben nach Datum sortiert."
+  },
+  "suggest": {
+    "message": "Meinten Sie: {text}?"
+  },
+  "resultsTitle": {
+    "message": "Suchergebnisse"
+  },
+  "noteDbOff": {
+    "message": "NovaBird-DB ist OFFLINE – Gloda-Suche"
+  },
+  "noteDbMissing": {
+    "message": "NovaBird-DB ist OFFLINE – Gloda-Suche"
+  },
+  "noteDbBuilding": {
+    "message": "NovaBird-DB baut den Index auf – Gloda-Suche"
+  },
+  "noteDbTip": {
+    "message": "Die Suche läuft über Betterbirds eingebauten Index (Gloda) und nicht über NovaBird-DB: weniger genau, keine Umlaut-Gleichheit, kein Tippfehler-Vorschlag."
+  },
+  "historyTitle": {
+    "message": "Zuletzt gesucht"
+  },
+  "historyClear": {
+    "message": "Verlauf löschen"
+  },
+  "historyRemove": {
+    "message": "Eintrag entfernen"
+  },
+  "optEnterAnalysis": {
+    "message": "Auswerten: Analyseseite mit Filtern öffnen",
+    "description": "Text"
+  },
+  "optEnterAsk": {
+    "message": "Nachfragen (Filtern oder Auswerten)",
+    "description": "Text"
+  },
+  "askTitle": {
+    "message": "Wie weiter mit den Treffern?",
+    "description": "Text"
+  },
+  "askFilter": {
+    "message": "Filtern",
+    "description": "Text"
+  },
+  "askAnalyze": {
+    "message": "Auswerten",
+    "description": "Text"
+  },
+  "askRemember": {
+    "message": "Merken und nicht mehr fragen (änderbar in den Einstellungen)",
+    "description": "Text"
+  },
+  "refinePlaceholder": {
+    "message": "In den Treffern suchen",
+    "description": "Text"
+  },
+  "anaTitle": {
+    "message": "Analyse",
+    "description": "Text"
+  },
+  "anaCount": {
+    "message": "{n} Treffer in {f} Ordnern",
+    "description": "Text"
+  },
+  "anaOpenList": {
+    "message": "Als Liste öffnen",
+    "description": "Text"
+  },
+  "anaPerMonth": {
+    "message": "Treffer pro Monat",
+    "description": "Text"
+  },
+  "anaFrom": {
+    "message": "Von",
+    "description": "Text"
+  },
+  "anaFolder": {
+    "message": "Ordner",
+    "description": "Text"
+  },
+  "anaAttachment": {
+    "message": "Anhang",
+    "description": "Text"
+  },
+  "anaWithAtt": {
+    "message": "Mit Anhang",
+    "description": "Text"
+  },
+  "anaReset": {
+    "message": "Filter zurücksetzen",
+    "description": "Text"
+  },
+  "anaNone": {
+    "message": "Keine Treffer.",
+    "description": "Text"
+  },
+  "anaShown": {
+    "message": "{n} von {m} angezeigt",
+    "description": "Text"
+  },
+  "anaMore": {
+    "message": "Mehr anzeigen",
+    "description": "Text"
+  },
+  "anaLoading": {
+    "message": "Lade …",
+    "description": "Text"
+  },
+  "anaGone": {
+    "message": "Die Analyse ist nicht mehr verfügbar. Bitte die Suche erneut starten.",
+    "description": "Text"
+  },
+  "optLimitUnlimited": {
+    "message": "Unbegrenzt"
+  },
+  "optLimitCustom": {
+    "message": "Manuell …"
+  },
+  "anaTo": {
+    "message": "An",
+    "description": "Text"
+  },
+  "anaMe": {
+    "message": "Mich",
+    "description": "Text"
+  },
+  "anaMyAddresses": {
+    "message": "Meine Adressen",
+    "description": "Text"
+  },
+  "anaRecipLoading": {
+    "message": "Empfänger werden gelesen … {p} %",
+    "description": "Text"
+  },
+  "anaOpenTab": {
+    "message": "Im Tab öffnen",
+    "description": "Text"
+  },
+  "anaPickMsg": {
+    "message": "Nachricht auswählen",
+    "description": "Text"
+  },
+  "anaMsgError": {
+    "message": "Die Nachricht konnte nicht angezeigt werden.",
+    "description": "Text"
+  },
+  "anaCc": {
+    "message": "Cc",
+    "description": "Text"
+  },
+  "anaNoText": {
+    "message": "(Kein Text)",
+    "description": "Text"
+  },
+  "noteShort": {
+    "message": "Mindestens 3 Zeichen – Enter sucht trotzdem",
+    "description": "Text"
+  },
+  "noteShortTip": {
+    "message": "Kürzere Suchbegriffe lösen keine Live-Suche aus (sie würden fast den ganzen Index treffen). Mit Enter wird trotzdem gesucht.",
+    "description": "Text"
+  },
+  "noteDbBroken": {
+    "message": "NovaBird-DB-Index defekt – Gloda-Suche",
+    "description": "Text"
+  },
+  "noteDbTipBroken": {
+    "message": "Der Suchindex von NovaBird-DB ist unbrauchbar. Neuaufbau in NovaBird-DB-Einstellungen („Index neu aufbauen“). Bis dahin sucht NovaBird-Search über Gloda (langsamer, weniger genau).",
+    "description": "Text"
+  },
+  "noteDbOutdated": {
+    "message": "NovaBird-DB veraltet – Gloda-Suche",
+    "description": "Text"
+  },
+  "noteDbTipOutdated": {
+    "message": "Diese NovaBird-Search-Version braucht NovaBird-DB 1.0 oder neuer. Bitte NovaBird-DB aktualisieren. Bis dahin sucht NovaBird-Search über Gloda.",
+    "description": "Text"
+  },
+  "optLimitWarn": {
+    "message": "Mehr als 10.000 Treffer werden nicht empfohlen: Betterbird kann beim Aufbau der Liste (und der Analyse) einige Sekunden bis länger nicht reagieren. Das gilt für jede Suche mit hoher Höchstzahl.",
+    "description": "Text"
+  },
+  "optEsrHeading": {
+    "message": "Betterbird-Version",
+    "description": "Text"
+  },
+  "optEsrText": {
+    "message": "NovaBird-Search und NovaBird-DB nutzen Experiment-APIs. Die laufen nur in Betterbird und in Thunderbird ESR (Extended Support Release), nicht in der normalen Thunderbird-Release. Wir empfehlen die ESR-Versionen.",
+    "description": "Text"
+  },
+  "markAllRead": {
+    "message": "Alle als gelesen markieren"
+  },
+  "capEnter": {
+    "message": "Enter → Treffer-Tab oder Analyse"
+  },
+  "capShared": {
+    "message": "Drei Sammelordner oben"
+  },
+  "capGroup": {
+    "message": "Flach oder als Konversationen"
+  }
+}

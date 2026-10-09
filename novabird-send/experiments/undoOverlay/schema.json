@@ -1,0 +1,163 @@
+[
+  {
+    "namespace": "undoOverlay",
+    "functions": [
+      {
+        "name": "hideComposeWindow",
+        "type": "function",
+        "async": true,
+        "description": "Macht ein Verfassen-Fenster unsichtbar, ohne es zu schließen.",
+        "parameters": [{ "name": "windowId", "type": "integer" }]
+      },
+      {
+        "name": "showComposeWindow",
+        "type": "function",
+        "async": true,
+        "description": "Macht ein verstecktes Verfassen-Fenster wieder sichtbar und fokussiert es.",
+        "parameters": [{ "name": "windowId", "type": "integer" }]
+      },
+      {
+        "name": "showOverlay",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          {
+            "name": "data",
+            "type": "object",
+            "properties": {
+              "subject": { "type": "string" },
+              "seconds": { "type": "integer" },
+              "queued": { "type": "integer" }
+            }
+          }
+        ]
+      },
+      {
+        "name": "setSending",
+        "type": "function",
+        "async": true,
+        "description": "Schaltet das Overlay in den Zustand 'Wird gesendet' (Buttons deaktiviert).",
+        "parameters": []
+      },
+      {
+        "name": "updateQueued",
+        "type": "function",
+        "async": true,
+        "parameters": [{ "name": "queued", "type": "integer" }]
+      },
+      {
+        "name": "hideOverlay",
+        "type": "function",
+        "async": true,
+        "parameters": []
+      },
+      {
+        "name": "setPendingCount",
+        "type": "function",
+        "async": true,
+        "description": "Teilt dem Experiment mit, wie viele Mails noch zurückgehalten werden (für Beenden-Abfang).",
+        "parameters": [{ "name": "count", "type": "integer" }]
+      },
+      {
+        "name": "getThemeColors",
+        "type": "function",
+        "async": true,
+        "description": "Liefert { bg, fg, border, accent } des aktiven Themes (Ordnerbereich und Akzent) als CSS-Farben, oder null.",
+        "parameters": []
+      },
+      {
+        "name": "setStrings",
+        "type": "function",
+        "async": true,
+        "description": "Setzt die (übersetzten) Texte des Overlays. In 'queued' steht {n} für die Anzahl.",
+        "parameters": [
+          {
+            "name": "strings",
+            "type": "object",
+            "properties": {
+              "waiting": { "type": "string" },
+              "sending": { "type": "string" },
+              "queued": { "type": "string" },
+              "undo": { "type": "string" },
+              "sendNow": { "type": "string" },
+              "ok": { "type": "string" }
+            }
+          }
+        ]
+      },
+      {
+        "name": "setStyle",
+        "type": "function",
+        "async": true,
+        "description": "Setzt Größe, Position und Zeitbalken-Stil des Overlays.",
+        "parameters": [
+          {
+            "name": "style",
+            "type": "object",
+            "properties": {
+              "size": { "type": "string" },
+              "horizontal": { "type": "string" },
+              "bottom": { "type": "integer" },
+              "barHeight": { "type": "integer" },
+              "barStyle": { "type": "string" },
+              "palette": {
+                "type": "object",
+                "optional": true,
+                "properties": {
+                  "bg": { "type": "string" },
+                  "fg": { "type": "string" },
+                  "muted": { "type": "string" },
+                  "border": { "type": "string" },
+                  "accent": { "type": "string" },
+                  "track": { "type": "string" },
+                  "undo": { "type": "string" },
+                  "onAccent": { "type": "string" },
+                  "onUndo": { "type": "string" }
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "showNotice",
+        "type": "function",
+        "async": true,
+        "description": "Zeigt im Hauptfenster einen Hinweis mit OK-Button, der bis zur Bestätigung stehen bleibt.",
+        "parameters": [
+          {
+            "name": "data",
+            "type": "object",
+            "properties": {
+              "subject": { "type": "string" },
+              "text": { "type": "string" }
+            }
+          }
+        ]
+      },
+      {
+        "name": "getSendInfo",
+        "type": "function",
+        "async": true,
+        "description": "Liefert { deliverMode, offline } für ein Verfassen-Fenster. deliverMode ist der Modus des laufenden Sendevorgangs (nsIMsgCompDeliverMode, 0 = jetzt senden, 1 = später senden) oder null, wenn unbekannt.",
+        "parameters": [{ "name": "windowId", "type": "integer" }]
+      },
+      {
+        "name": "proceedShutdown",
+        "type": "function",
+        "async": true,
+        "description": "Setzt ein zuvor abgefangenes Beenden/Schließen fort.",
+        "parameters": [{ "name": "kind", "type": "string", "enum": ["quit", "close"] }]
+      }
+    ],
+    "events": [
+      { "name": "onUndo", "type": "function", "parameters": [] },
+      { "name": "onSendNow", "type": "function", "parameters": [] },
+      {
+        "name": "onShutdownRequested",
+        "type": "function",
+        "parameters": [{ "name": "kind", "type": "string" }]
+      }
+    ]
+  }
+]

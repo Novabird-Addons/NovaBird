@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title data-i18n="extName"></title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font: menu; font-size: 13px; padding: 16px; max-width: 640px; }
+    h2 { font-size: 14px; margin: 18px 0 8px; }
+    h2:first-of-type { margin-top: 0; }
+    .row { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; }
+    .hint { color: GrayText; font-size: 12px; margin: 2px 0 10px 24px; }
+    input[type="number"] { width: 6em; }
+    #saved { color: AccentColor; visibility: hidden; margin-top: 16px; }
+    .opt { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
+    .opt .txt { flex: 1 1 280px; min-width: 0; }
+    figure { margin: 6px 0 8px; flex: none; text-align: center; }
+    figure svg { width: 190px; height: auto; display: block; border-radius: 8px; background: color-mix(in srgb, currentColor 5%, transparent); border: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
+    .cap { display: block; font-size: 11px; opacity: .75; margin-top: 4px; }
+    .fr { fill: none; stroke: currentColor; stroke-opacity: .4; stroke-width: 1; }
+    .bar { fill: currentColor; fill-opacity: .3; } .bar2 { fill: currentColor; fill-opacity: .16; }
+    .band { fill: currentColor; fill-opacity: .1; stroke: currentColor; stroke-opacity: .3; }
+    .acc { fill: #2F6BD8; } .accl { fill: #2F6BD8; fill-opacity: .22; stroke: #2F6BD8; stroke-opacity: .6; }
+    .dash { stroke: currentColor; stroke-opacity: .5; stroke-dasharray: 3 2; stroke-width: 1; fill: none; }
+    #version { color: GrayText; margin-top: 24px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h2 data-i18n="optHeadingResults"></h2>
+  <div class="opt"><div class="txt">
+  <div class="row"><label for="enterMode" data-i18n="optEnter"></label>
+    <select id="enterMode">
+      <option value="off" data-i18n="optEnterOff"></option>
+      <option value="snapshot" data-i18n="optEnterSnapshot"></option>
+      <option value="analysis" data-i18n="optEnterAnalysis"></option>
+      <option value="ask" data-i18n="optEnterAsk"></option>
+    </select>
+  </div>
+  <p class="hint" data-i18n="optEnterHint"></p>
+  </div><figure><svg viewBox="0 0 190 92" aria-hidden="true"><rect class="fr" x="8" y="8" width="174" height="16" rx="8"/><rect class="bar" x="18" y="14" width="46" height="4" rx="2"/><circle class="acc" cx="170" cy="16" r="4"/><path class="dash" d="M95 26V40M95 40L38 50M95 40V50M95 40L152 50"/><rect class="band" x="10" y="50" width="56" height="34" rx="5"/><rect class="bar2" x="16" y="58" width="44" height="3" rx="1.5"/><rect class="bar2" x="16" y="66" width="34" height="3" rx="1.5"/><rect class="accl" x="67" y="50" width="56" height="34" rx="5"/><rect class="acc" x="75" y="68" width="8" height="12"/><rect class="acc" x="86" y="60" width="8" height="20"/><rect class="acc" x="97" y="72" width="8" height="8"/><rect class="band" x="124" y="50" width="56" height="34" rx="5"/><text x="152" y="73" text-anchor="middle" font-size="16" fill="currentColor" opacity=".6">?</text></svg><span class="cap" data-i18n="capEnter"></span></figure></div>
+  <div class="opt"><div class="txt">
+  <div class="row"><input type="checkbox" id="group"><label for="group" data-i18n="optGroup"></label></div>
+  <p class="hint" data-i18n="optGroupHint"></p>
+  </div><figure><svg viewBox="0 0 190 92" aria-hidden="true"><rect class="band" x="8" y="8" width="84" height="76" rx="5"/><rect class="bar2" x="14" y="16" width="70" height="3" rx="1.5"/><rect class="bar2" x="14" y="26" width="70" height="3" rx="1.5"/><rect class="bar2" x="14" y="36" width="70" height="3" rx="1.5"/><rect class="bar2" x="14" y="46" width="70" height="3" rx="1.5"/><rect class="bar2" x="14" y="56" width="70" height="3" rx="1.5"/><rect class="band" x="98" y="8" width="84" height="76" rx="5"/><rect class="accl" x="104" y="14" width="72" height="14" rx="4"/><rect class="bar2" x="112" y="34" width="62" height="3" rx="1.5"/><rect class="bar2" x="112" y="42" width="62" height="3" rx="1.5"/><rect class="accl" x="104" y="52" width="72" height="14" rx="4"/><rect class="bar2" x="112" y="72" width="50" height="3" rx="1.5"/></svg><span class="cap" data-i18n="capGroup"></span></figure></div>
+
+  <h2 data-i18n="optHeadingShared"></h2>
+  <div class="opt"><div class="txt">
+  <div class="row"><input type="checkbox" id="sharedFolders"><label for="sharedFolders" data-i18n="optShared"></label></div>
+  <p class="hint" data-i18n="optSharedHint"></p>
+  </div><figure><svg viewBox="0 0 190 92" aria-hidden="true"><rect class="band" x="8" y="8" width="174" height="76" rx="5"/><rect class="accl" x="16" y="14" width="158" height="14" rx="4"/><rect class="bar" x="30" y="19" width="70" height="4" rx="2"/><rect class="accl" x="16" y="31" width="158" height="14" rx="4"/><rect class="bar" x="30" y="36" width="56" height="4" rx="2"/><rect class="accl" x="16" y="48" width="158" height="14" rx="4"/><rect class="bar" x="30" y="53" width="50" height="4" rx="2"/><rect class="bar2" x="30" y="70" width="60" height="4" rx="2"/></svg><span class="cap" data-i18n="capShared"></span></figure></div>
+  <div class="row"><label for="sharedInboxMonths" data-i18n="optSharedMonths"></label><input type="number" id="sharedInboxMonths" min="0" max="60" step="1"></div>
+  <p class="hint" data-i18n="optSharedMonthsHint"></p>
+
+  <h2 data-i18n="optHeadingFulltext"></h2>
+  <div class="row"><label for="glodaLimitSel" data-i18n="optLimit"></label>
+    <select id="glodaLimitSel">
+      <option value="500">500</option>
+      <option value="1000">1000</option>
+      <option value="5000">5000</option>
+      <option value="10000">10K</option>
+      <option value="15000">15K</option>
+      <option value="20000">20K</option>
+      <option value="0" data-i18n="optLimitUnlimited"></option>
+      <option value="custom" data-i18n="optLimitCustom"></option>
+    </select>
+    <input type="number" id="glodaLimit" min="100" max="1000000" step="100" hidden>
+  </div>
+  <p class="hint" data-i18n="optLimitHint"></p>
+  <p class="hint" id="limitWarn" data-i18n="optLimitWarn"></p>
+
+  <h2 data-i18n="optEsrHeading"></h2>
+  <p class="hint" data-i18n="optEsrText"></p>
+
+  <h2 data-i18n="optHeadingDb"></h2>
+  <div class="row"><label for="novabirdDb" data-i18n="optDbMode"></label>
+    <select id="novabirdDb">
+      <option value="auto" data-i18n="optDbAuto"></option>
+      <option value="off" data-i18n="optDbOff"></option>
+    </select>
+  </div>
+  <p class="hint" data-i18n="optDbHint"></p>
+  <div class="row"><label for="sortMode" data-i18n="optSort"></label>
+    <select id="sortMode">
+      <option value="date" data-i18n="optSortDate"></option>
+      <option value="relevance" data-i18n="optSortRelevance"></option>
+    </select>
+  </div>
+  <p class="hint" data-i18n="optSortHint"></p>
+  <p class="hint" id="dbState" data-i18n="optDbStateChecking"></p>
+
+  <div id="saved" data-i18n="optSaved"></div>
+  <div id="version"></div>
+  <script src="../settings.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

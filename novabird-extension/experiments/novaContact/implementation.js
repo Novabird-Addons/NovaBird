@@ -1,0 +1,435 @@
+/* Nova-Contact im Kontakte-Tab (about:addressbook) – Teil der NovaBird-Extension, privilegiert.
+ *  - Knopf „Nova-Contact“ unter der Adressbuchliste (öffnet pilot/ui/ui.html: Sammeln, Zusammenführen, Aufräumen)
+ *  - Leiste über der Kontaktliste: Tags (Filter), Bearbeiten (Tags, Firma, Position für mehrere Kontakte), Rückgängig (letzte 3)
+ *  - ein/aus per setEnabled; Protokoll (nur im Arbeitsspeicher) per setLog/getLog.
+ * In einer IIFE gekapselt, weil alle Experimente dieses Add-ons einen globalen Scope teilen.
+ */
+"use strict";
+this.novaContact = (() => {
+
+const { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/ExtensionCommon.sys.mjs");
+const { ExtensionSupport } = ChromeUtils.importESModule("resource:///modules/ExtensionSupport.sys.mjs");
+const { MailServices } = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
+const { AddrBookCard } = ChromeUtils.importESModule("resource:///modules/AddrBookCard.sys.mjs");
+const { VCardProperties, VCardPropertyEntry } = ChromeUtils.importESModule("resource:///modules/VCardUtils.sys.mjs");
+
+const LISTENER = "novabird-extension-contacts";
+const MAIN_URL = "chrome://messenger/content/messenger.xhtml";
+const NS = "http://www.w3.org/1999/xhtml";
+const UNDO_MAX = 3;
+const SNAP_MAX = 300;
+
+function T(de, en, fr, es) {
+  const lang = (Services.locale.appLocaleAsBCP47 || "en").slice(0, 2).toLowerCase();
+  return ({ de, en, fr, es })[lang] ?? en;
+}
+
+const CSS = `
+#kp-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 4px 6px; flex: none; }
+#kp-bar .kp-grow { flex: 1; }
+#kp-bar button { font-size: 0.92em; padding: 4px 6px; min-width: 0; white-space: nowrap; flex: 0 0 auto; overflow: visible; text-overflow: clip; }
+.books-pane-bottom { flex-wrap: wrap; }
+#kp-open { flex: 1 1 100%; justify-content: flex-start; white-space: nowrap; }
+#kp-bar button[disabled] { opacity: .45; }
+#kp-pop { position: fixed; z-index: 1000; min-width: 220px; max-width: 340px; max-height: 60vh; overflow: auto; padding: 4px;
+  background: var(--layout-background-0, Canvas); color: var(--layout-color-1, CanvasText);
+  border: 1px solid var(--layout-border-1, ThreeDShadow); border-radius: 8px; box-shadow: 0 4px 18px rgba(0,0,0,.25); }
+#kp-pop[hidden] { display: none; }
+#kp-pop button { display: flex; width: 100%; justify-content: space-between; gap: 12px; text-align: start; margin: 0; }
+#kp-pop .kp-sub { opacity: .65; font-size: .9em; padding: 2px 8px; }
+#kp-pop button.kp-on { font-weight: 600; }
+#kp-dlg-back { position: fixed; inset: 0; z-index: 1100; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; }
+#kp-dlg-back[hidden] { display: none; }
+#kp-dlg { width: min(440px, 92vw); padding: 16px 18px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px;
+  background: var(--layout-background-0, Canvas); color: var(--layout-color-1, CanvasText); border: 1px solid var(--layout-border-1, ThreeDShadow); box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+#kp-dlg h2 { margin: 0 0 4px; font-size: 1.15em; }
+#kp-dlg label { display: flex; flex-direction: column; gap: 3px; font-size: .92em; }
+#kp-dlg .kp-clear { flex-direction: row; align-items: center; gap: 6px; opacity: .8; }
+#kp-dlg input[type=text] { padding: 5px 8px; }
+#kp-dlg .kp-note { opacity: .7; font-size: .88em; }
+#kp-dlg .kp-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+`;
+
+const undoStack = [];
+const snaps = new Map(); // UID -> { dirUID, vcard }
+let suppress = 0;
+let pilotUrl = null;
+let started = false;
+let logOn = false;
+const logEntries = [];
+function plog(text) {
+  if (!logOn) return;
+  logEntries.push({ ts: Date.now(), text });
+  if (logEntries.length > 300) logEntries.shift();
+}
+const prepared = new WeakSet();
+
+function openPilot() {
+  if (!pilotUrl) return;
+  plog("Nova-Contact geöffnet");
+  const win = Services.wm.getMostRecentWindow("mail:3pane");
+  const tm = win?.document.getElementById("tabmail");
+  if (!tm) return;
+  const open = tm.tabInfo.find(i => i.browser?.currentURI?.spec === pilotUrl);
+  if (open) tm.switchToTab(open);
+  else tm.openTab("contentTab", { url: pilotUrl });
+}
+
+const el = (doc, tag, props, ...kids) => {
+  const e = doc.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (k in e && k !== "list") e[k] = v;
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) e.append(kid);
+  return e;
+};
+
+/* ---------- Kontakt-Hilfen ---------- */
+function dirOf(card) {
+  try { return MailServices.ab.getDirectoryFromUID(card.directoryUID); } catch { return null; }
+}
+function nameOf(card) {
+  return card.displayName || card.primaryEmail || card.vCardProperties?.getFirstValue("fn") || "?";
+}
+function tagsOf(card) {
+  const v = card.vCardProperties?.getFirstValue("categories");
+  const arr = Array.isArray(v) ? v : v ? [v] : [];
+  return arr.map(s => String(s).trim()).filter(Boolean);
+}
+function setTags(card, tags) {
+  const vp = card.vCardProperties;
+  for (const e of vp.getAllEntries("categories")) vp.removeEntry(e);
+  if (tags.length) vp.addEntry(new VCardPropertyEntry("categories", {}, "text", tags));
+}
+function setFirst(card, name, mapValue) {
+  const vp = card.vCardProperties;
+  const old = vp.getFirstEntry(name);
+  const next = mapValue(old ? old.value : undefined);
+  if (old) vp.removeEntry(old);
+  if (next !== null) vp.addEntry(new VCardPropertyEntry(name, old ? old.params : {}, "text", next));
+}
+function cardFromVCard(vcard, uid, dirUID) {
+  const c = new AddrBookCard();
+  c.setProperty("_vCard", vcard);
+  c.UID = uid;
+  c.directoryUID = dirUID;
+  return c;
+}
+function snapshot(card) {
+  try {
+    if (card.isMailList) return;
+    snaps.set(card.UID, { dirUID: card.directoryUID, vcard: card.vCardProperties.toVCard() });
+    if (snaps.size > SNAP_MAX) snaps.delete(snaps.keys().next().value);
+  } catch (e) { /* Karte ohne vCard */ }
+}
+function allTags() {
+  const counts = new Map();
+  for (const dir of MailServices.ab.directories) {
+    if (dir.isRemote) continue;
+    for (const card of dir.childCards) {
+      if (card.isMailList) continue;
+      for (const t of tagsOf(card)) counts.set(t, (counts.get(t) || 0) + 1);
+    }
+  }
+  return [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+}
+
+/* ---------- Rückgängig ---------- */
+function pushUndo(kind, label, item) {
+  const now = Date.now();
+  const top = undoStack[0];
+  if (top && top.kind === kind && now - top.ts < 800 && !item.single) {
+    top.items.push(item); top.ts = now; top.label = top.items.length + " " + T("Kontakte", "contacts", "contacts", "contactos") + ": " + top.what;
+  } else {
+    undoStack.unshift({ kind, ts: now, what: label, label, items: [item] });
+    if (undoStack.length > UNDO_MAX) undoStack.length = UNDO_MAX;
+  }
+  refreshAll();
+}
+function pushBulk(label, items) {
+  undoStack.unshift({ kind: "bulk", ts: Date.now(), what: label, label, items });
+  if (undoStack.length > UNDO_MAX) undoStack.length = UNDO_MAX;
+  refreshAll();
+}
+function undoEntry(index) {
+  const entry = undoStack[index];
+  if (!entry) return;
+  suppress++;
+  try {
+    for (const it of entry.items) {
+      const dir = MailServices.ab.getDirectoryFromUID(it.dirUID);
+      if (!dir) continue;
+      const card = cardFromVCard(it.vcard, it.uid, it.dirUID);
+      if (it.deleted) dir.addCard(card);
+      else dir.modifyCard(card);
+      snapshot(card);
+    }
+  } catch (e) {
+    console.error("Nova-Contact Rückgängig:", e);
+  } finally {
+    // Benachrichtigungen kommen asynchron – Sperre erst danach lösen
+    Services.tm.dispatchToMainThread(() => { suppress--; });
+  }
+  plog("Rückgängig: " + entry.label + " (" + entry.items.length + ")");
+  undoStack.splice(index, 1);
+  refreshAll();
+}
+
+const observer = {
+  observe(subject, topic, data) {
+    if (suppress) return;
+    try {
+      const card = subject.QueryInterface(Ci.nsIAbCard);
+      if (card.isMailList) return;
+      const old = snaps.get(card.UID);
+      if (topic === "addrbook-contact-updated") {
+        const now = card.vCardProperties.toVCard();
+        if (old && old.vcard !== now) {
+          pushUndo("edit", T("Geändert: ", "Changed: ", "Modifié : ", "Cambiado: ") + nameOf(card), { dirUID: data, uid: card.UID, vcard: old.vcard, single: true });
+        }
+        snapshot(card);
+      } else if (topic === "addrbook-contact-deleted") {
+        const vcard = old ? old.vcard : card.vCardProperties.toVCard();
+        pushUndo("delete", T("Gelöscht: ", "Deleted: ", "Supprimé : ", "Eliminado: ") + nameOf(card), { dirUID: data, uid: card.UID, vcard, deleted: true });
+        snaps.delete(card.UID);
+      }
+    } catch (e) { console.error("Nova-Contact:", e); }
+  },
+};
+
+/* ---------- Oberfläche je Kontakte-Tab ---------- */
+const views = new Set(); // { cw, doc, refresh }
+function refreshAll() {
+  for (const v of views) { try { v.refresh(); } catch (e) { views.delete(v); } }
+}
+
+function build(cw) {
+  const doc = cw.document;
+  if (doc.getElementById("kp-bar")) return;
+  const cards = cw.cardsPane;
+  const style = el(doc, "style", { id: "kp-style" }); style.textContent = CSS;
+  doc.documentElement.append(style);
+
+  const pop = el(doc, "div", { id: "kp-pop", hidden: true });
+  const closePop = () => { pop.hidden = true; };
+  const openPop = (anchor, content) => {
+    pop.replaceChildren(...content);
+    pop.hidden = false;
+    const r = anchor.getBoundingClientRect();
+    pop.style.left = Math.max(4, Math.min(r.left, doc.documentElement.clientWidth - 240)) + "px";
+    pop.style.top = r.bottom + 4 + "px";
+  };
+  doc.addEventListener("mousedown", e => { if (!pop.hidden && !pop.contains(e.target) && !e.target.closest?.("#kp-bar")) closePop(); }, true);
+  doc.addEventListener("keydown", e => { if (e.key === "Escape") { closePop(); closeDialog(); } }, true);
+
+  /* Tags-Auswahl */
+  const btnTags = el(doc, "button", { class: "button button-flat", type: "button", onclick: () => {
+    const tags = allTags();
+    const cur = (cards.searchInput.value || "").trim().toLowerCase();
+    const items = [];
+    if (cur) items.push(el(doc, "button", { class: "button button-flat", type: "button", onclick: () => { applyFilter(""); } }, T("Filter aufheben", "Clear filter", "Supprimer le filtre", "Quitar filtro")));
+    if (!tags.length) items.push(el(doc, "div", { class: "kp-sub" }, T("Noch keine Tags vergeben.", "No tags yet.", "Aucun tag.", "Aún no hay etiquetas.")));
+    for (const [t, n] of tags) {
+      items.push(el(doc, "button", { class: "button button-flat" + (cur === t.toLowerCase() ? " kp-on" : ""), type: "button", onclick: () => applyFilter(t) }, el(doc, "span", {}, t), el(doc, "span", { class: "kp-sub" }, String(n))));
+    }
+    openPop(btnTags, items);
+  } }, "🏷 ", T("Tags", "Tags", "Tags", "Etiquetas"), " ▾");
+  function applyFilter(t) {
+    closePop();
+    const si = cards.searchInput;
+    si.blur();
+    if (t) si.overrideSearchTerm(t); else si.reset();
+  }
+
+  /* Auswahl bearbeiten */
+  const btnEdit = el(doc, "button", { class: "button button-flat", type: "button", onclick: () => openDialog() });
+  /* Rückgängig */
+  const btnUndo = el(doc, "button", { class: "button button-flat", type: "button", onclick: () => {
+    if (!undoStack.length) return;
+    openPop(btnUndo, [
+      el(doc, "div", { class: "kp-sub" }, T("Änderung rückgängig machen:", "Undo change:", "Annuler la modification :", "Deshacer cambio:")),
+      ...undoStack.map((u, i) => el(doc, "button", { class: "button button-flat", type: "button", onclick: () => { closePop(); undoEntry(i); } },
+        el(doc, "span", {}, u.label), el(doc, "span", { class: "kp-sub" }, new Date(u.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })))),
+    ]);
+  } });
+  const bar = el(doc, "div", { id: "kp-bar" }, btnTags, btnEdit, el(doc, "span", { class: "kp-grow" }), btnUndo);
+  doc.getElementById("cardsPaneHeader").after(bar);
+  doc.body.append(pop);
+
+  /* Knopf unter der Adressbuchliste */
+  const bottom = doc.querySelector(".books-pane-bottom");
+  if (bottom && !doc.getElementById("kp-open")) {
+    const open = el(doc, "button", { id: "kp-open", class: "button button-flat icon-button", type: "button", title: T("Kontakte sammeln und zusammenführen", "Collect and merge contacts", "Collecter et fusionner les contacts", "Recoger y fusionar contactos"),
+      onclick: () => openPilot() }, "✦ Nova-Contact");
+    bottom.prepend(open);
+  }
+
+  /* Dialog */
+  const back = el(doc, "div", { id: "kp-dlg-back", hidden: true });
+  doc.body.append(back);
+  function closeDialog() { back.hidden = true; back.replaceChildren(); }
+  function selection() {
+    const list = cards.selectedCards.filter(c => c && !c.isMailList);
+    return list.filter(c => { const d = dirOf(c); return d && !d.readOnly; });
+  }
+  function openDialog() {
+    const sel = selection();
+    if (!sel.length) return;
+    closePop();
+    const inTags = el(doc, "input", { type: "text", placeholder: "Kunde, Privat", list: "kp-taglist" });
+    const dl = el(doc, "datalist", { id: "kp-taglist" }, allTags().map(([t]) => el(doc, "option", { value: t })));
+    const outTags = el(doc, "input", { type: "text", list: "kp-taglist" });
+    const org = el(doc, "input", { type: "text" });
+    const orgClr = el(doc, "input", { type: "checkbox" });
+    const title = el(doc, "input", { type: "text" });
+    const titleClr = el(doc, "input", { type: "checkbox" });
+    const note = el(doc, "div", { class: "kp-note" }, T("Leere Felder bleiben unverändert. Mehrere Tags mit Komma trennen.", "Empty fields stay unchanged. Separate several tags with commas.", "Les champs vides restent inchangés. Séparez les tags par des virgules.", "Los campos vacíos no se modifican. Separe las etiquetas con comas."));
+    const split = s => s.split(",").map(x => x.trim()).filter(Boolean);
+    const apply = el(doc, "button", { class: "button button-primary", type: "button", onclick: () => {
+      const add = split(inTags.value), rem = split(outTags.value).map(x => x.toLowerCase());
+      const o = org.value.trim(), ti = title.value.trim();
+      const items = [];
+      suppress++;
+      try {
+        for (const card of sel) {
+          const before = card.vCardProperties.toVCard();
+          let tags = tagsOf(card);
+          const t0 = tags.join("\n");
+          tags = tags.filter(t => !rem.includes(t.toLowerCase()));
+          for (const a of add) if (!tags.some(t => t.toLowerCase() === a.toLowerCase())) tags.push(a);
+          if (tags.join("\n") !== t0) setTags(card, tags);
+          if (o || orgClr.checked) setFirst(card, "org", old => orgClr.checked ? null : [o, ...(Array.isArray(old) ? old.slice(1) : [])]);
+          if (ti || titleClr.checked) setFirst(card, "title", () => titleClr.checked ? null : ti);
+          if (card.vCardProperties.toVCard() !== before) {
+            dirOf(card).modifyCard(card);
+            items.push({ dirUID: card.directoryUID, uid: card.UID, vcard: before });
+            snapshot(card);
+          }
+        }
+      } catch (e) {
+        console.error("Nova-Contact Mehrfachbearbeitung:", e);
+      } finally {
+        Services.tm.dispatchToMainThread(() => { suppress--; });
+      }
+      plog("Mehrfachbearbeitung: " + items.length + " Kontakte geändert");
+      if (items.length) pushBulk(items.length + " " + T("Kontakte bearbeitet", "contacts edited", "contacts modifiés", "contactos editados"), items);
+      closeDialog();
+    } }, T("Übernehmen", "Apply", "Appliquer", "Aplicar"));
+    back.replaceChildren(el(doc, "div", { id: "kp-dlg" },
+      el(doc, "h2", {}, sel.length === 1
+        ? T("Kontakt bearbeiten: ", "Edit contact: ", "Modifier le contact : ", "Editar contacto: ") + nameOf(sel[0])
+        : sel.length + " " + T("Kontakte bearbeiten", "contacts: edit", "contacts : modifier", "contactos: editar")),
+      el(doc, "label", {}, T("Tags hinzufügen", "Add tags", "Ajouter des tags", "Añadir etiquetas"), inTags),
+      el(doc, "label", {}, T("Tags entfernen", "Remove tags", "Retirer des tags", "Quitar etiquetas"), outTags),
+      el(doc, "label", {}, T("Firma setzen", "Set company", "Définir la société", "Establecer empresa"), org),
+      el(doc, "label", { class: "kp-clear" }, orgClr, T("Firma leeren", "Clear company", "Vider la société", "Vaciar empresa")),
+      el(doc, "label", {}, T("Position setzen", "Set job title", "Définir la fonction", "Establecer cargo"), title),
+      el(doc, "label", { class: "kp-clear" }, titleClr, T("Position leeren", "Clear job title", "Vider la fonction", "Vaciar cargo")),
+      note, dl,
+      el(doc, "div", { class: "kp-btns" },
+        el(doc, "button", { class: "button", type: "button", onclick: closeDialog }, T("Abbrechen", "Cancel", "Annuler", "Cancelar")), apply)));
+    back.hidden = false;
+    inTags.focus();
+  }
+
+  const refresh = () => {
+    const n = selection().length;
+    btnEdit.disabled = n === 0;
+    btnEdit.replaceChildren("✎ ", T("Bearbeiten", "Edit", "Modifier", "Editar") + (n > 1 ? " (" + n + ")" : ""));
+    btnEdit.title = T("Tags, Firma und Position für alle gewählten Kontakte ändern", "Change tags, company and job title for all selected contacts", "Modifier tags, société et fonction des contacts sélectionnés", "Cambiar etiquetas, empresa y cargo de los contactos seleccionados");
+    btnUndo.disabled = !undoStack.length;
+    btnUndo.replaceChildren("↶ ", T("Rückgängig", "Undo", "Annuler", "Deshacer"), undoStack.length ? " (" + undoStack.length + ")" : "");
+  };
+  const view = { cw, doc, refresh, bar, style, pop, back };
+  views.add(view);
+  cards.cardsList.addEventListener("select", () => {
+    for (const c of cards.selectedCards.slice(0, 60)) if (c) snapshot(c);
+    refresh();
+  });
+  refresh();
+}
+
+function unbuild(view) {
+  view.bar.remove(); view.style.remove(); view.pop.remove(); view.back.remove();
+  view.doc.getElementById("kp-open")?.remove();
+  views.delete(view);
+}
+
+function scan(win) {
+  const tm = win.document.getElementById("tabmail");
+  if (!tm) return;
+  for (const info of tm.tabInfo) {
+    const b = info.browser;
+    if (!b || b.currentURI?.spec !== "about:addressbook") continue;
+    let tries = 0;
+    const attempt = () => {
+      const cw = b.contentWindow;
+      try {
+        if (cw && cw.document.readyState === "complete" && cw.cardsPane?.cardsList && cw.document.getElementById("cardsPaneHeader")) {
+          build(cw);
+          return;
+        }
+      } catch (e) { /* noch nicht bereit */ }
+      if (++tries < 40) win.setTimeout(attempt, 250);
+    };
+    attempt();
+  }
+}
+
+function hookWindow(win) {
+  const tm = win.document.getElementById("tabmail");
+  if (!tm || prepared.has(win)) return;
+  prepared.add(win);
+  const onTab = () => win.setTimeout(() => scan(win), 300);
+  tm.tabContainer.addEventListener("TabOpen", onTab);
+  tm.tabContainer.addEventListener("TabSelect", onTab);
+  win._kpUnhook = () => { tm.tabContainer.removeEventListener("TabOpen", onTab); tm.tabContainer.removeEventListener("TabSelect", onTab); };
+  scan(win);
+}
+
+const API = class extends ExtensionCommon.ExtensionAPI {
+  onShutdown(isAppShutdown) {
+    if (!isAppShutdown) stopAll();
+  }
+
+  getAPI() {
+    pilotUrl = this.extension.getURL("pilot/ui/ui.html");
+    return {
+      novaContact: {
+        async setEnabled(on) { if (on) startAll(); else stopAll(); },
+        async setLog(on) { logOn = !!on; if (logOn) plog("Protokoll eingeschaltet"); },
+        async getLog() { return logEntries.slice(); },
+        async clearLog() { logEntries.length = 0; },
+        async log(text) { plog(String(text)); },
+      },
+    };
+  }
+};
+
+function startAll() {
+  if (started) return;
+  started = true;
+  Services.obs.addObserver(observer, "addrbook-contact-updated");
+  Services.obs.addObserver(observer, "addrbook-contact-deleted");
+  ExtensionSupport.registerWindowListener(LISTENER, {
+    chromeURLs: [MAIN_URL],
+    onLoadWindow(win) { try { hookWindow(win); } catch (e) { console.error("Nova-Contact:", e); } },
+  });
+}
+
+function stopAll() {
+  if (!started) return;
+  started = false;
+  ExtensionSupport.unregisterWindowListener(LISTENER);
+  Services.obs.removeObserver(observer, "addrbook-contact-updated");
+  Services.obs.removeObserver(observer, "addrbook-contact-deleted");
+  for (const v of [...views]) unbuild(v);
+  for (const win of Services.wm.getEnumerator("mail:3pane")) { win._kpUnhook?.(); prepared.delete(win); }
+}
+
+return API;
+})();

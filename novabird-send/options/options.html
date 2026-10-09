@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title data-i18n="optTitle"></title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font: menu; font-size: 13px; padding: 16px; max-width: 580px; }
+    h2 { font-size: 14px; margin: 20px 0 8px; }
+    h2:first-of-type { margin-top: 0; }
+    .row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+    .row > label:first-child { flex: 0 0 210px; }
+    input[type="number"] { width: 5em; }
+    input[type="color"] { width: 3.2em; height: 1.9em; padding: 0; }
+    input.hex { width: 6.5em; font-family: monospace; }
+    .row.dim { opacity: 0.55; }
+    .hint { color: GrayText; font-size: 12px; margin: 4px 0 0; }
+    .actions { display: flex; align-items: center; gap: 10px; margin-top: 20px; }
+    #saved { color: AccentColor; visibility: hidden; }
+
+    /* Live-Vorschau: gleiche Maße und Farben wie das Overlay im Hauptfenster */
+    #stage { display: flex; padding: 14px; border: 1px solid ThreeDLightShadow; border-radius: 8px; background: Canvas; overflow: hidden; }
+    #stage[data-h="center"] { justify-content: center; }
+    #stage[data-h="right"] { justify-content: flex-end; }
+    #mock {
+      --sp-bg: #e6ecf5; --sp-fg: #1e2838; --sp-muted: #6a7280; --sp-border: #d2dae6; --sp-accent: #2f6bd8;
+      --sp-track: #c5d5f0; --sp-undo: #c9403d; --sp-on-accent: #fff; --sp-on-undo: #fff; --sp-track-h: 14px;
+      min-width: 340px; max-width: 100%;
+      background: var(--sp-bg); color: var(--sp-fg); border: 1px solid var(--sp-border);
+      border-radius: 10px; box-shadow: 0 6px 24px rgba(20, 40, 80, 0.18); overflow: hidden; font-size: 13px;
+    }
+    #mock .row { margin: 0; gap: 12px; padding: 12px 14px 12px 16px; }
+    #mock .text { flex: 1; min-width: 0; }
+    #mock .status { color: var(--sp-muted); font-size: 12px; }
+    #mock .subject { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #mock button { font: inherit; border-radius: 6px; padding: 5px 12px; border: 1px solid var(--sp-border); background: transparent; color: var(--sp-fg); }
+    #mock button.undo { background: var(--sp-undo); border-color: var(--sp-undo); color: var(--sp-on-undo); font-weight: 600; }
+    #mock .track { height: var(--sp-track-h); background: var(--sp-track); }
+    #mock .bar { height: 100%; width: 62%; background: var(--sp-accent); }
+    #mock.soft .track { background: linear-gradient(to bottom, transparent, var(--sp-track) 70%); }
+    #mock.soft .bar {
+      mask-image: linear-gradient(to right, #000 calc(100% - 70px), transparent), linear-gradient(to bottom, transparent, #000 70%);
+      mask-composite: intersect;
+    }
+  </style>
+</head>
+<body>
+  <h2 data-i18n="optHeadingPreview"></h2>
+  <div id="stage" data-h="center">
+    <div id="mock" class="soft" role="img">
+      <div class="row">
+        <div class="text">
+          <div class="status" data-i18n="overlayStatusWaiting"></div>
+          <div class="subject" data-i18n="previewSubject"></div>
+        </div>
+        <button class="undo" type="button" tabindex="-1" data-i18n="overlayUndo"></button>
+        <button type="button" tabindex="-1" data-i18n="overlaySendNow"></button>
+      </div>
+      <div class="track"><div class="bar"></div></div>
+    </div>
+  </div>
+
+  <h2 data-i18n="optHeadingSend"></h2>
+  <div class="row">
+    <label for="delay" data-i18n="optDelay"></label>
+    <input id="delay" type="number" min="3" max="60" step="1">
+    <span data-i18n="optSeconds"></span>
+  </div>
+  <p class="hint" data-i18n="optDelayHint"></p>
+  <div class="row">
+    <label for="showNotices" data-i18n="optShowNotices"></label>
+    <input id="showNotices" type="checkbox">
+    <label for="showNotices" data-i18n="optShowNoticesText"></label>
+  </div>
+
+  <h2 data-i18n="optHeadingOverlay"></h2>
+  <div class="row">
+    <label for="size" data-i18n="optSize"></label>
+    <select id="size">
+      <option value="small" data-i18n="optSizeSmall"></option>
+      <option value="normal" data-i18n="optSizeNormal"></option>
+      <option value="large" data-i18n="optSizeLarge"></option>
+      <option value="xlarge" data-i18n="optSizeXLarge"></option>
+    </select>
+  </div>
+  <div class="row">
+    <label for="horizontal" data-i18n="optPosition"></label>
+    <select id="horizontal">
+      <option value="left" data-i18n="optLeft"></option>
+      <option value="center" data-i18n="optCenter"></option>
+      <option value="right" data-i18n="optRight"></option>
+    </select>
+  </div>
+  <div class="row">
+    <label for="bottom" data-i18n="optBottom"></label>
+    <input id="bottom" type="number" min="0" max="40" step="1">
+    <span data-i18n="optBottomUnit"></span>
+  </div>
+
+  <h2 data-i18n="optHeadingBar"></h2>
+  <div class="row">
+    <label for="barHeight" data-i18n="optBarHeight"></label>
+    <input id="barHeight" type="number" min="4" max="20" step="1">
+    <span data-i18n="optPixels"></span>
+  </div>
+  <div class="row">
+    <label for="barStyle" data-i18n="optBarStyle"></label>
+    <select id="barStyle">
+      <option value="soft" data-i18n="optBarSoft"></option>
+      <option value="classic" data-i18n="optBarClassic"></option>
+    </select>
+  </div>
+
+  <h2 data-i18n="optHeadingColors"></h2>
+  <div class="row">
+    <label for="colorMode" data-i18n="optColorMode"></label>
+    <select id="colorMode">
+      <option value="theme" data-i18n="optColorTheme"></option>
+      <option value="custom" data-i18n="optColorCustom"></option>
+    </select>
+  </div>
+  <div class="row color-row"><label for="colorBg" data-i18n="optColorBg"></label><input id="colorBg" type="color"><input id="colorBgHex" class="hex" type="text" maxlength="7" spellcheck="false"></div>
+  <div class="row color-row"><label for="colorFg" data-i18n="optColorFg"></label><input id="colorFg" type="color"><input id="colorFgHex" class="hex" type="text" maxlength="7" spellcheck="false"></div>
+  <div class="row color-row"><label for="colorAccent" data-i18n="optColorAccent"></label><input id="colorAccent" type="color"><input id="colorAccentHex" class="hex" type="text" maxlength="7" spellcheck="false"></div>
+  <div class="row color-row" id="rowUndoColor"><label for="colorUndo" data-i18n="optColorUndo"></label><input id="colorUndo" type="color"><input id="colorUndoHex" class="hex" type="text" maxlength="7" spellcheck="false"></div>
+  <div class="row">
+    <label for="undoTone" data-i18n="optUndoTone"></label>
+    <select id="undoTone">
+      <option value="red" data-i18n="optUndoRed"></option>
+      <option value="accent" data-i18n="optUndoAccent"></option>
+    </select>
+  </div>
+  <p class="hint" data-i18n="optColorHint"></p>
+
+  <div class="actions">
+    <button id="preview" type="button" data-i18n="optPreview"></button>
+    <button id="reset" type="button" data-i18n="optReset"></button>
+    <span id="saved" role="status" data-i18n="optSaved"></span>
+  </div>
+
+  <p class="hint" id="version"></p>
+
+  <script src="../settings.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

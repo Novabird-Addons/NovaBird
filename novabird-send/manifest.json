@@ -1,0 +1,49 @@
+{
+  "manifest_version": 2,
+  "name": "__MSG_extName__",
+  "version": "1.0.2",
+  "description": "__MSG_extDescription__",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "novabird-send@novabird",
+      "strict_min_version": "128.0"
+    }
+  },
+  "background": {
+    "scripts": [
+      "settings.js",
+      "background.js"
+    ]
+  },
+  "permissions": [
+    "compose",
+    "compose.send",
+    "compose.save",
+    "storage",
+    "tabs"
+  ],
+  "options_ui": {
+    "page": "options/options.html"
+  },
+  "experiment_apis": {
+    "undoOverlay": {
+      "schema": "experiments/undoOverlay/schema.json",
+      "parent": {
+        "scopes": [
+          "addon_parent"
+        ],
+        "paths": [
+          [
+            "undoOverlay"
+          ]
+        ],
+        "script": "experiments/undoOverlay/implementation.js"
+      }
+    }
+  },
+  "default_locale": "en",
+  "icons": {
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png"
+  }
+}

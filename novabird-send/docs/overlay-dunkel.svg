@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 190" font-family="system-ui,Segoe UI,Roboto,sans-serif">
+<rect width="720" height="190" rx="10" fill="#131417"/>
+<rect x="60" y="22" width="600" height="146" rx="12" fill="#1D1E22" stroke="#34363D"/>
+<defs><linearGradient id="g" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#5B9DFF"/><stop offset="1" stop-color="#5B9DFF" stop-opacity="0"/></linearGradient></defs>
+<text x="40" y="0"></text>
+<text x="84" y="56" font-size="13" fill="#9AA0AE">Wird gleich gesendet</text>
+<text x="84" y="82" font-size="18" font-weight="600" fill="#E8EAF0">Angebot Projekt Nordlicht</text>
+
+<rect x="424" y="68" width="106" height="34" rx="8" fill="#F27B7B"/><text x="477" y="90" font-size="14" font-weight="600" text-anchor="middle" fill="#0E1116">Rückgängig</text>
+<rect x="540" y="68" width="108" height="34" rx="8" fill="#5B9DFF"/><text x="594" y="90" font-size="14" font-weight="600" text-anchor="middle" fill="#0E1116">Jetzt senden</text>
+<rect x="61" y="140" width="598" height="10" fill="#34363D"/><rect x="61" y="140" width="380" height="10" fill="#5B9DFF"/>
+<rect x="61" y="150" width="598" height="1" fill="none"/>
+</svg>

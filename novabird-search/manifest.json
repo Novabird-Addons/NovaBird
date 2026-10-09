@@ -1,0 +1,53 @@
+{
+  "manifest_version": 2,
+  "name": "__MSG_extName__",
+  "version": "1.2.4",
+  "description": "__MSG_extDescription__",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "novabird-search@novabird",
+      "strict_min_version": "128.0"
+    }
+  },
+  "background": {
+    "scripts": [
+      "settings.js",
+      "parser.js",
+      "background.js"
+    ]
+  },
+  "permissions": [
+    "accountsRead",
+    "messagesRead",
+    "storage",
+    "tabs",
+    "menus",
+    "messagesUpdate",
+    "messagesTags",
+    "messagesTagsList"
+  ],
+  "experiment_apis": {
+    "searchBar": {
+      "schema": "experiments/searchBar/schema.json",
+      "parent": {
+        "scopes": [
+          "addon_parent"
+        ],
+        "paths": [
+          [
+            "searchBar"
+          ]
+        ],
+        "script": "experiments/searchBar/implementation.js"
+      }
+    }
+  },
+  "default_locale": "en",
+  "options_ui": {
+    "page": "options/options.html"
+  },
+  "icons": {
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png"
+  }
+}

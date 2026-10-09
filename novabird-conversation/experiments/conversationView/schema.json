@@ -1,0 +1,137 @@
+[
+  {
+    "namespace": "conversationView",
+    "functions": [
+      {
+        "name": "setHeaderHidden",
+        "type": "function",
+        "async": true,
+        "description": "Blendet den Standard-Nachrichtenkopf (und die Anhangsleiste) im Lesebereich des Tabs aus oder wieder ein.",
+        "parameters": [
+          {
+            "name": "tabId",
+            "type": "integer"
+          },
+          {
+            "name": "hidden",
+            "type": "boolean"
+          }
+        ]
+      },
+      {
+        "name": "getAllowedSenders",
+        "type": "function",
+        "async": true,
+        "description": "Welche der Absenderadressen darf Bilder laden (Betterbirds Berechtigung „image“ je Absender, wie im Original).",
+        "parameters": [
+          {
+            "name": "emails",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      {
+        "name": "allowSender",
+        "type": "function",
+        "async": true,
+        "description": "Erlaubt externe Bilder dauerhaft für diese Absenderadresse (Betterbirds Berechtigung „image“).",
+        "parameters": [
+          {
+            "name": "email",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "name": "fetchImage",
+        "type": "function",
+        "async": true,
+        "description": "Lädt ein externes Bild (http/https) ohne Cookies und Referrer und liefert es als data:-URL (höchstens 5 MB, 10 s); sonst null.",
+        "parameters": [
+          {
+            "name": "url",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "name": "getThemeColors",
+        "type": "function",
+        "async": true,
+        "description": "Liest Farben des aktuellen Themes (Ordnerbereich) als CSS-Farben, aus dem Hauptfenster des angegebenen Tabs.",
+        "parameters": [
+          {
+            "name": "tabId",
+            "type": "integer",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "name": "getReferences",
+        "type": "function",
+        "async": true,
+        "description": "Liefert je Nachrichten-ID die References/In-Reply-To-IDs aus der lokalen Ordnerdatenbank (ohne Netzwerkzugriff).",
+        "parameters": [
+          {
+            "name": "messageIds",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        ]
+      },
+      {
+        "name": "getOfflineState",
+        "type": "function",
+        "async": true,
+        "description": "Meldet je Nachrichten-ID, ob der Text lokal vorliegt (lokale Ordner, POP3 oder IMAP/News mit Offline-Speicherung).",
+        "parameters": [
+          {
+            "name": "messageIds",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        ]
+      },
+      {
+        "name": "getMessageId",
+        "type": "function",
+        "async": true,
+        "description": "Ordnet Message-ID + Ordner (accountId, Pfad) über die lokale Ordnerdatenbank der aktuellen WebExtension-Nachrichten-ID zu (viel schneller als messages.query).",
+        "parameters": [
+          {
+            "name": "headerMessageId",
+            "type": "string"
+          },
+          {
+            "name": "accountId",
+            "type": "string"
+          },
+          {
+            "name": "path",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "name": "getGlodaConversation",
+        "type": "function",
+        "async": true,
+        "description": "Liest die Konversation einer Nachricht aus dem Gloda-Index (wie das Original). Liefert null, wenn Gloda aus ist oder nicht antwortet, [] wenn Gloda die Nachricht nicht kennt, sonst [{id, snippet}].",
+        "parameters": [
+          {
+            "name": "messageId",
+            "type": "integer"
+          }
+        ]
+      }
+    ]
+  }
+]

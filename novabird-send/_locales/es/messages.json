@@ -1,0 +1,185 @@
+{
+  "extName": {
+    "message": "NovaBird-Send"
+  },
+  "extDescription": {
+    "message": "Envío retrasado con superposición para deshacer y una cola."
+  },
+  "noSubject": {
+    "message": "(Sin asunto)"
+  },
+  "overlayStatusWaiting": {
+    "message": "Enviando en breve"
+  },
+  "overlayStatusSending": {
+    "message": "Enviando …"
+  },
+  "overlayUndo": {
+    "message": "Deshacer"
+  },
+  "overlaySendNow": {
+    "message": "Enviar ahora"
+  },
+  "noticeOk": {
+    "message": "Aceptar"
+  },
+  "noticeOffline": {
+    "message": "Sin conexión – el mensaje no se envió. Se ha vuelto a abrir la ventana de redacción."
+  },
+  "noticeFailedNoDetail": {
+    "message": "Error al enviar. Se ha vuelto a abrir la ventana de redacción."
+  },
+  "previewSubject": {
+    "message": "Vista previa – así se ve la superposición"
+  },
+  "optTitle": {
+    "message": "NovaBird-Send"
+  },
+  "optHeadingSend": {
+    "message": "Envío"
+  },
+  "optDelay": {
+    "message": "Retraso antes del envío"
+  },
+  "optSeconds": {
+    "message": "segundos"
+  },
+  "optShowNotices": {
+    "message": "Aviso de error"
+  },
+  "optShowNoticesText": {
+    "message": "Mostrar un aviso con un botón Aceptar cuando un mensaje no se pudo enviar"
+  },
+  "optHeadingOverlay": {
+    "message": "Superposición"
+  },
+  "optSize": {
+    "message": "Tamaño"
+  },
+  "optSizeSmall": {
+    "message": "Pequeño"
+  },
+  "optSizeNormal": {
+    "message": "Normal"
+  },
+  "optSizeLarge": {
+    "message": "Grande"
+  },
+  "optSizeXLarge": {
+    "message": "Muy grande"
+  },
+  "optPosition": {
+    "message": "Posición horizontal"
+  },
+  "optLeft": {
+    "message": "Izquierda"
+  },
+  "optCenter": {
+    "message": "Centro"
+  },
+  "optRight": {
+    "message": "Derecha"
+  },
+  "optBottom": {
+    "message": "Distancia al borde inferior"
+  },
+  "optBottomUnit": {
+    "message": "% de la altura de la ventana"
+  },
+  "optHeadingBar": {
+    "message": "Barra de cuenta atrás"
+  },
+  "optBarHeight": {
+    "message": "Grosor"
+  },
+  "optPixels": {
+    "message": "píxeles"
+  },
+  "optBarStyle": {
+    "message": "Estilo"
+  },
+  "optBarSoft": {
+    "message": "Suave: los bordes se difuminan, la barra se desvanece al avanzar (predeterminado)"
+  },
+  "optBarClassic": {
+    "message": "Clásico: color sólido con bordes marcados"
+  },
+  "optPreview": {
+    "message": "Mostrar en la ventana principal"
+  },
+  "optReset": {
+    "message": "Restablecer valores predeterminados"
+  },
+  "optSaved": {
+    "message": "Guardado"
+  },
+  "overlayQueued": {
+    "message": "$COUNT$ más en cola",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "noticeFailed": {
+    "message": "Error al enviar: $DETAIL$. Se ha vuelto a abrir la ventana de redacción.",
+    "placeholders": {
+      "detail": {
+        "content": "$1",
+        "example": "Server unreachable"
+      }
+    }
+  },
+  "optHeadingPreview": {
+    "message": "Vista previa"
+  },
+  "optHeadingColors": {
+    "message": "Colores"
+  },
+  "optColorMode": {
+    "message": "Origen de los colores"
+  },
+  "optColorTheme": {
+    "message": "Usar los colores del tema (panel de carpetas)"
+  },
+  "optColorCustom": {
+    "message": "Colores personalizados"
+  },
+  "optColorBg": {
+    "message": "Fondo"
+  },
+  "optColorFg": {
+    "message": "Texto"
+  },
+  "optColorAccent": {
+    "message": "Acento (barra, Aceptar)"
+  },
+  "optColorUndo": {
+    "message": "Color del botón Deshacer"
+  },
+  "optUndoTone": {
+    "message": "Botón Deshacer"
+  },
+  "optUndoRed": {
+    "message": "Rojo suave (predeterminado)"
+  },
+  "optUndoAccent": {
+    "message": "Color de acento"
+  },
+  "optColorHint": {
+    "message": "Cambiar un color pasa automáticamente a «Colores personalizados». Si el contraste es demasiado bajo, el texto cambia automáticamente a claro u oscuro."
+  },
+  "optVersion": {
+    "message": "Versión $VERSION$",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "1.0"
+      }
+    }
+  },
+  "optDelayHint": {
+    "message": "Tras «Enviar», el mensaje se retiene este tiempo (3–60 segundos). Durante ese tiempo «Deshacer» lo recupera y la ventana de redacción reaparece como antes. Cerrar durante la espera guarda el mensaje como borrador."
+  }
+}

@@ -1,0 +1,339 @@
+{
+  "extName": {
+    "message": "NovaBird-Conversation"
+  },
+  "extDescription": {
+    "message": "Muestra todos los mensajes de una conversación en el panel de lectura: el más reciente fijado arriba, los anteriores debajo."
+  },
+  "messagesCount": {
+    "message": "$N$ mensajes",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "toNames": {
+    "message": "para $NAMES$",
+    "placeholders": {
+      "names": {
+        "content": "$1"
+      }
+    }
+  },
+  "newBadge": {
+    "message": "nuevo"
+  },
+  "reply": {
+    "message": "Responder"
+  },
+  "replyAll": {
+    "message": "Responder a todos"
+  },
+  "more": {
+    "message": "Más"
+  },
+  "forward": {
+    "message": "Reenviar"
+  },
+  "forwardAsAttachment": {
+    "message": "Reenviar como adjunto"
+  },
+  "editAsNew": {
+    "message": "Editar como mensaje nuevo"
+  },
+  "expandAll": {
+    "message": "Expandir todo"
+  },
+  "collapseAll": {
+    "message": "Contraer todo"
+  },
+  "showFull": {
+    "message": "Mostrar todo"
+  },
+  "showLess": {
+    "message": "Menos"
+  },
+  "quoteToggle": {
+    "message": "Mostrar texto citado"
+  },
+  "remoteBlocked": {
+    "message": "Para proteger su privacidad, se ha bloqueado el contenido remoto de este mensaje."
+  },
+  "noText": {
+    "message": "(Sin texto)"
+  },
+  "loading": {
+    "message": "Cargando …"
+  },
+  "history": {
+    "message": "Mensajes anteriores"
+  },
+  "optTitle": {
+    "message": "NovaBird-Conversation"
+  },
+  "optOrder": {
+    "message": "Orden"
+  },
+  "optOrderNewest": {
+    "message": "Más reciente primero"
+  },
+  "optOrderOldest": {
+    "message": "Más antiguo primero"
+  },
+  "optPin": {
+    "message": "Fijar el mensaje más reciente al desplazarse (solo con «Más reciente primero»)"
+  },
+  "optMaxHeight": {
+    "message": "Altura máxima del mensaje fijado (% de la ventana)"
+  },
+  "optExpand": {
+    "message": "Expandir automáticamente"
+  },
+  "optExpandLatest": {
+    "message": "El más reciente y los no leídos"
+  },
+  "optExpandLatestPrev": {
+    "message": "El más reciente, el anterior y los no leídos"
+  },
+  "optExpandAll": {
+    "message": "Todos los mensajes"
+  },
+  "optAttachments": {
+    "message": "Adjuntos"
+  },
+  "optAttTop": {
+    "message": "Encima del texto"
+  },
+  "optAttBottom": {
+    "message": "Debajo del texto"
+  },
+  "optCollapseQuotes": {
+    "message": "Contraer el texto citado"
+  },
+  "optAlwaysRender": {
+    "message": "Mostrar también los mensajes sueltos en esta vista"
+  },
+  "optAlwaysRenderHint": {
+    "message": "Desactivado: los mensajes sin respuestas conservan la vista estándar."
+  },
+  "optSaved": {
+    "message": "Guardado"
+  },
+  "optHideHeader": {
+    "message": "Ocultar el encabezado estándar y la barra de adjuntos de Betterbird"
+  },
+  "optHideHeaderHint": {
+    "message": "Solo mientras se muestra esta vista. Los mensajes sueltos conservan el encabezado estándar."
+  },
+  "loadFailed": {
+    "message": "No se pudo cargar este mensaje."
+  },
+  "notDownloaded": {
+    "message": "Aún no descargado: se carga al abrirlo"
+  },
+  "optFallback": {
+    "message": "Cuando un mensaje no tiene cadena de respuestas"
+  },
+  "optFallbackSubject": {
+    "message": "Agrupar por asunto idéntico (habitual)"
+  },
+  "optFallbackSmart": {
+    "message": "Agrupar por asunto con reglas adicionales"
+  },
+  "optFallbackOff": {
+    "message": "No agrupar (solo cadenas de respuestas)"
+  },
+  "optFallbackHint": {
+    "message": "Las cadenas de respuestas (Message-ID, References, In-Reply-To) se usan siempre primero. La alternativa solo se aplica a mensajes sin cadena."
+  },
+  "optFallbackDays": {
+    "message": "Reglas adicionales: distancia máxima en días"
+  },
+  "optFallbackPeople": {
+    "message": "Reglas adicionales: al menos un remitente o destinatario en común"
+  },
+  "optDebugTiming": {
+    "message": "Escribir los tiempos en la consola de errores"
+  },
+  "optDebugTimingHint": {
+    "message": "Para diagnóstico: muestra cuánto tardan la búsqueda, la carga y la construcción (Ctrl+Mayús+J)."
+  },
+  "optEngine": {
+    "message": "Fuente de las conversaciones"
+  },
+  "optEngineAuto": {
+    "message": "Automático (NovaBird-DB, luego Gloda, luego la búsqueda de Betterbird)"
+  },
+  "optEngineQuery": {
+    "message": "Siempre la búsqueda de Betterbird"
+  },
+  "optEngineHint": {
+    "message": "El índice de NovaBird-DB encuentra conversaciones en pocos milisegundos. Si falta, aún está indexando o no responde, se prueba Gloda (el índice propio de Betterbird) y después la búsqueda de Betterbird. Las reglas de agrupación para mensajes sin cadena se aplican a NovaBird-DB y a la búsqueda; Gloda usa las suyas."
+  },
+  "optLimit": {
+    "message": "Número máximo de mensajes por conversación (NovaBird-DB)"
+  },
+  "optEngineDb": {
+    "message": "Solo NovaBird-DB (si no, la búsqueda de Betterbird)"
+  },
+  "optEngineGloda": {
+    "message": "Solo Gloda (si no, la búsqueda de Betterbird)"
+  },
+  "optTabSettings": {
+    "message": "Ajustes"
+  },
+  "optTabLook": {
+    "message": "Apariencia"
+  },
+  "optStyle": {
+    "message": "Estilo"
+  },
+  "optStyleSoft": {
+    "message": "Suave"
+  },
+  "optStyleSoftDesc": {
+    "message": "Tarjetas redondeadas con avatares, mucho aire."
+  },
+  "optStyleClear": {
+    "message": "Claro"
+  },
+  "optStyleClearDesc": {
+    "message": "Filas planas con líneas finas, más texto por pantalla."
+  },
+  "optStyleThread": {
+    "message": "Hilo"
+  },
+  "optStyleThreadDesc": {
+    "message": "Línea de tiempo con puntos, tus propios mensajes resaltados."
+  },
+  "delete": {
+    "message": "Eliminar"
+  },
+  "deleteTip": {
+    "message": "Mover este mensaje a la papelera"
+  },
+  "optAutoOpen": {
+    "message": "Abrir la fila bajo el puntero tras desplazarse"
+  },
+  "optAutoOpenHint": {
+    "message": "Una fila plegada se abre cuando el puntero se detiene sobre ella (según la opción, solo tras desplazarse o también sin hacerlo). No se abre nada mientras se desplaza. Con IMAP, el texto se descarga entonces."
+  },
+  "optAutoOpenTrigger": {
+    "message": "Abrir al"
+  },
+  "optAutoOpenTrScroll": {
+    "message": "Solo tras desplazarse"
+  },
+  "optAutoOpenTrHover": {
+    "message": "También al dejar el puntero quieto"
+  },
+  "optAutoOpenDelay": {
+    "message": "Tiempo de espera del puntero antes de abrir (ms, 50–200)"
+  },
+  "optOpenMs": {
+    "message": "Duración de la animación de apertura (ms, 0 = desactivada)"
+  },
+  "optFadeMs": {
+    "message": "Aparición gradual al cargar la conversación (ms, 0 = desactivada)"
+  },
+  "optRowLines": {
+    "message": "Líneas de vista previa en los mensajes plegados"
+  },
+  "remoteShow": {
+    "message": "Opciones"
+  },
+  "remoteThis": {
+    "message": "Solo este mensaje"
+  },
+  "remoteAll": {
+    "message": "Toda la conversación"
+  },
+  "remoteCancel": {
+    "message": "Cancelar"
+  },
+  "remoteAsk": {
+    "message": "Cargar contenido remoto para"
+  },
+  "remoteSender": {
+    "message": "Siempre de este remitente"
+  },
+  "spam": {
+    "message": "Spam"
+  },
+  "spamTip": {
+    "message": "Marcar como spam y mover a la carpeta de spam"
+  },
+  "notSpam": {
+    "message": "No es spam"
+  },
+  "notSpamTip": {
+    "message": "Marcar como no spam y mover a la bandeja de entrada"
+  },
+  "optStickyHeader": {
+    "message": "Mantener visible el encabezado al desplazar mensajes largos (estilos Suave y Claro)"
+  },
+  "originalBtn": {
+    "message": "Original"
+  },
+  "originalTip": {
+    "message": "Mostrar la vista original de Betterbird"
+  },
+  "backToConversation": {
+    "message": "Volver a la conversación"
+  },
+  "optAutoOriginal": {
+    "message": "Mostrar automáticamente el original de los mensajes ilegibles"
+  },
+  "optAutoOriginalHint": {
+    "message": "Si la vista de un mensaje solo muestra muy poco texto aunque el mensaje contiene mucho, se muestra la vista original de Betterbird."
+  },
+  "hintLimit": {
+    "message": "Número máximo de mensajes que se cargan del índice por conversación. Limita los grupos grandes de boletines con asuntos idénticos; los valores más altos tardan un poco más."
+  },
+  "hintOrder": {
+    "message": "«Más reciente primero» muestra la última respuesta arriba; «Más antiguo primero» se lee como una conversación de arriba abajo."
+  },
+  "hintPin": {
+    "message": "El mensaje más reciente se queda arriba mientras se desplaza por los más antiguos. Si supera la altura indicada abajo, «Mostrar todo» lo abre por completo."
+  },
+  "hintExpand": {
+    "message": "Qué mensajes aparecen desplegados al abrir una conversación. Los no leídos y el seleccionado siempre están abiertos; los demás muestran una fila con vista previa."
+  },
+  "hintAttachments": {
+    "message": "Dónde aparecen los adjuntos en cada mensaje: sobre el texto se ven enseguida, bajo el texto no molestan la lectura."
+  },
+  "hintQuotes": {
+    "message": "Las respuestas citadas se ocultan tras «…». Un clic muestra el texto citado."
+  },
+  "hintSticky": {
+    "message": "Al leer un mensaje largo, el remitente, la fecha y los botones permanecen visibles arriba hasta que termina el mensaje."
+  },
+  "hintRowLines": {
+    "message": "Cuántas líneas de vista previa muestra un mensaje plegado (1–6). Más líneas = más contenido, menos mensajes a la vez."
+  },
+  "hintOpenMs": {
+    "message": "Duración de la animación al abrir y cerrar un mensaje. 0 la desactiva; se respeta el ajuste del sistema «Reducir movimiento»."
+  },
+  "hintFadeMs": {
+    "message": "Cuánto tarda en aparecer la conversación al cargar. 0 la muestra de inmediato; los valores cortos evitan parpadeos."
+  },
+  "capPin": {
+    "message": "Más reciente fijado"
+  },
+  "capExpand": {
+    "message": "Abiertos: el más reciente, el anterior, los no leídos"
+  },
+  "capAttTop": {
+    "message": "Adjuntos arriba"
+  },
+  "capAttBottom": {
+    "message": "Adjuntos abajo"
+  },
+  "capQuote": {
+    "message": "Cita tras «…»"
+  },
+  "capAutoOpen": {
+    "message": "El puntero se detiene → la fila se abre"
+  }
+}

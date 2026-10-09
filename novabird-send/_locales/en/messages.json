@@ -1,0 +1,188 @@
+{
+  "extName": {
+    "message": "NovaBird-Send"
+  },
+  "extDescription": {
+    "message": "Delayed sending with an undo overlay and a queue."
+  },
+  "noSubject": {
+    "message": "(No subject)"
+  },
+  "overlayStatusWaiting": {
+    "message": "Sending shortly"
+  },
+  "overlayStatusSending": {
+    "message": "Sending …"
+  },
+  "overlayUndo": {
+    "message": "Undo"
+  },
+  "overlaySendNow": {
+    "message": "Send now"
+  },
+  "noticeOk": {
+    "message": "OK"
+  },
+  "noticeOffline": {
+    "message": "No connection – the message was not sent. The compose window has been reopened."
+  },
+  "noticeFailedNoDetail": {
+    "message": "Sending failed. The compose window has been reopened."
+  },
+  "previewSubject": {
+    "message": "Preview – this is what the overlay looks like"
+  },
+  "optTitle": {
+    "message": "NovaBird-Send"
+  },
+  "optHeadingSend": {
+    "message": "Sending"
+  },
+  "optDelay": {
+    "message": "Delay before sending"
+  },
+  "optSeconds": {
+    "message": "seconds"
+  },
+  "optShowNotices": {
+    "message": "Error notice"
+  },
+  "optShowNoticesText": {
+    "message": "Show a notice with an OK button when a message could not be sent"
+  },
+  "optHeadingOverlay": {
+    "message": "Overlay"
+  },
+  "optSize": {
+    "message": "Size"
+  },
+  "optSizeSmall": {
+    "message": "Small"
+  },
+  "optSizeNormal": {
+    "message": "Normal"
+  },
+  "optSizeLarge": {
+    "message": "Large"
+  },
+  "optSizeXLarge": {
+    "message": "Extra large"
+  },
+  "optPosition": {
+    "message": "Horizontal position"
+  },
+  "optLeft": {
+    "message": "Left"
+  },
+  "optCenter": {
+    "message": "Center"
+  },
+  "optRight": {
+    "message": "Right"
+  },
+  "optBottom": {
+    "message": "Distance from bottom edge"
+  },
+  "optBottomUnit": {
+    "message": "% of window height"
+  },
+  "optHeadingBar": {
+    "message": "Countdown bar"
+  },
+  "optBarHeight": {
+    "message": "Thickness"
+  },
+  "optPixels": {
+    "message": "pixels"
+  },
+  "optBarStyle": {
+    "message": "Style"
+  },
+  "optBarSoft": {
+    "message": "Soft: edges fade out, bar fades as it runs down (default)"
+  },
+  "optBarClassic": {
+    "message": "Classic: solid color with hard edges"
+  },
+  "optPreview": {
+    "message": "Show in main window"
+  },
+  "optReset": {
+    "message": "Reset to defaults"
+  },
+  "optSaved": {
+    "message": "Saved"
+  },
+  "overlayQueued": {
+    "message": "$COUNT$ more in queue",
+    "description": "Overlay: number of queued messages",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "noticeFailed": {
+    "message": "Sending failed: $DETAIL$. The compose window has been reopened.",
+    "description": "Notice for a send error with details",
+    "placeholders": {
+      "detail": {
+        "content": "$1",
+        "example": "Server unreachable"
+      }
+    }
+  },
+  "optHeadingPreview": {
+    "message": "Preview"
+  },
+  "optHeadingColors": {
+    "message": "Colors"
+  },
+  "optColorMode": {
+    "message": "Color source"
+  },
+  "optColorTheme": {
+    "message": "Use theme colors (folder pane)"
+  },
+  "optColorCustom": {
+    "message": "Custom colors"
+  },
+  "optColorBg": {
+    "message": "Background"
+  },
+  "optColorFg": {
+    "message": "Text"
+  },
+  "optColorAccent": {
+    "message": "Accent (bar, OK)"
+  },
+  "optColorUndo": {
+    "message": "Undo button color"
+  },
+  "optUndoTone": {
+    "message": "Undo button"
+  },
+  "optUndoRed": {
+    "message": "Soft red (default)"
+  },
+  "optUndoAccent": {
+    "message": "Accent color"
+  },
+  "optColorHint": {
+    "message": "Changing a color switches to “Custom colors” automatically. If the contrast is too low, the text switches to light or dark automatically."
+  },
+  "optVersion": {
+    "message": "Version $VERSION$",
+    "description": "Settings: version display",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "1.0"
+      }
+    }
+  },
+  "optDelayHint": {
+    "message": "After “Send” the message is held back for this long (3–60 seconds). During that time “Undo” brings it back, and the compose window reappears as before. Quitting while waiting saves the message as a draft."
+  }
+}

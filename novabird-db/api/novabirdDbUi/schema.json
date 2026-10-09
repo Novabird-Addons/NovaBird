@@ -1,0 +1,61 @@
+[
+  {
+    "namespace": "novabirdDbUi",
+    "description": "Fortschritts-Overlay für den Indexaufbau im Hauptfenster. Nur Anzeige, keine Datenbank- oder Mail-Logik.",
+    "functions": [
+      {
+        "name": "setStrings",
+        "type": "function",
+        "async": true,
+        "description": "Übersetzte Texte (title, pausedTitle, count mit {done}/{total}, pause, resume, hide, hint).",
+        "parameters": [{ "name": "strings", "type": "object", "additionalProperties": { "type": "string" } }]
+      },
+      {
+        "name": "showProgress",
+        "type": "function",
+        "async": true,
+        "description": "Blendet das Overlay ein bzw. aktualisiert es.",
+        "parameters": [
+          {
+            "name": "progress",
+            "type": "object",
+            "properties": {
+              "done": { "type": "integer" },
+              "total": { "type": "integer", "optional": true },
+              "percent": { "type": "integer", "optional": true },
+              "paused": { "type": "boolean", "optional": true },
+              "folder": { "type": "string", "optional": true }
+            }
+          }
+        ]
+      },
+      {
+        "name": "showDialog",
+        "type": "function",
+        "async": true,
+        "description": "Zeigt eine Meldung/Rückfrage mit Knöpfen (der letzte Knopf ist die Vorgabe) und liefert die id des gedrückten Knopfes.",
+        "parameters": [
+          { "name": "title", "type": "string" },
+          { "name": "text", "type": "string" },
+          { "name": "buttons", "type": "array", "items": { "type": "object", "properties": { "id": { "type": "string" }, "label": { "type": "string" } } } }
+        ],
+        "returns": { "type": "string" }
+      },
+      {
+        "name": "hideProgress",
+        "type": "function",
+        "async": true,
+        "description": "Blendet das Overlay aus und setzt das manuelle Ausblenden zurück.",
+        "parameters": []
+      }
+    ],
+    "events": [
+      {
+        "name": "onControl",
+        "type": "function",
+        "description": "Der Nutzer hat im Overlay „Anhalten“ oder „Fortsetzen“ gedrückt (action: stop | resume).",
+        "parameters": [{ "name": "action", "type": "string" }]
+      }
+    ]
+  }
+]

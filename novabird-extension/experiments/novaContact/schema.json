@@ -1,0 +1,57 @@
+[
+  {
+    "namespace": "novaContact",
+    "functions": [
+      {
+        "name": "setEnabled",
+        "type": "function",
+        "async": true,
+        "description": "Schaltet die Erg\u00e4nzungen im Kontakte-Tab ein oder aus.",
+        "parameters": [
+          {
+            "name": "on",
+            "type": "boolean"
+          }
+        ]
+      },
+      {
+        "name": "setLog",
+        "type": "function",
+        "async": true,
+        "description": "Protokoll ein/aus.",
+        "parameters": [
+          {
+            "name": "on",
+            "type": "boolean"
+          }
+        ]
+      },
+      {
+        "name": "getLog",
+        "type": "function",
+        "async": true,
+        "description": "Protokolleintr\u00e4ge.",
+        "parameters": []
+      },
+      {
+        "name": "clearLog",
+        "type": "function",
+        "async": true,
+        "description": "Protokoll leeren.",
+        "parameters": []
+      },
+      {
+        "name": "log",
+        "type": "function",
+        "async": true,
+        "description": "Eintrag ins Protokoll schreiben.",
+        "parameters": [
+          {
+            "name": "text",
+            "type": "string"
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,344 @@
+{
+  "extName": {
+    "message": "NovaBird-Search"
+  },
+  "extDescription": {
+    "message": "Una sola barra de búsqueda en lugar de dos: ámbito y opciones en el campo, resultados en vivo en la lista de mensajes, los más recientes primero."
+  },
+  "placeholder": {
+    "message": "Buscar mensajes"
+  },
+  "scopeAll": {
+    "message": "Todas las carpetas"
+  },
+  "scopeFolder": {
+    "message": "Carpeta actual"
+  },
+  "options": {
+    "message": "Opciones de búsqueda"
+  },
+  "optFrom": {
+    "message": "De"
+  },
+  "optTo": {
+    "message": "Para"
+  },
+  "optSubject": {
+    "message": "Contenido: asunto"
+  },
+  "optBody": {
+    "message": "Contenido: mensaje"
+  },
+  "optAttachment": {
+    "message": "Con adjunto"
+  },
+  "optUnread": {
+    "message": "Solo no leídos"
+  },
+  "optTrash": {
+    "message": "Papelera"
+  },
+  "optSpam": {
+    "message": "Spam"
+  },
+  "includeLabel": {
+    "message": "Incluir"
+  },
+  "busy": {
+    "message": "Buscando en el texto de los mensajes …"
+  },
+  "clear": {
+    "message": "Borrar búsqueda"
+  },
+  "optHeadingResults": {
+    "message": "Resultados"
+  },
+  "optGroup": {
+    "message": "Agrupar resultados por conversación"
+  },
+  "optGroupHint": {
+    "message": "Desactivado: lista plana, el mensaje más reciente primero. Activado: conversaciones, ordenadas por la respuesta más reciente."
+  },
+  "optHeadingFulltext": {
+    "message": "Búsqueda de texto completo"
+  },
+  "optLimit": {
+    "message": "Número máximo de resultados"
+  },
+  "optLimitHint": {
+    "message": "Se aplica a la búsqueda en el texto de los mensajes: se muestran los resultados más recientes. «Sin límite» puede ser lento en buzones muy grandes (con Gloda, como máximo 20 000). Personalizado: de 100 a 1 000 000. Se añaden los resultados de De, Para y Asunto."
+  },
+  "optSaved": {
+    "message": "Guardado"
+  },
+  "openSettings": {
+    "message": "Ajustes …"
+  },
+  "optEnter": {
+    "message": "Intro en el campo de búsqueda"
+  },
+  "optEnterOff": {
+    "message": "Nada (la búsqueda se queda en la ventana)"
+  },
+  "optEnterSnapshot": {
+    "message": "Filtrar: resultados en una pestaña nueva, allí se puede afinar"
+  },
+  "optEnterHint": {
+    "message": "Filtrar: una instantánea de los resultados en una pestaña nueva; la barra de búsqueda de allí afina los resultados. Analizar: página de análisis propia con filtros en los que se puede hacer clic (remitente, carpeta, fecha, adjunto). Preguntar: una pequeña pregunta en cada Intro, con «Recordar»."
+  },
+  "rangeAll": {
+    "message": "Todo"
+  },
+  "range3": {
+    "message": "3 días"
+  },
+  "range7": {
+    "message": "7 días"
+  },
+  "range30": {
+    "message": "30 días"
+  },
+  "rangeToday": {
+    "message": "Hoy"
+  },
+  "optHeadingShared": {
+    "message": "Carpetas compartidas"
+  },
+  "optShared": {
+    "message": "Crear carpetas compartidas"
+  },
+  "optSharedHint": {
+    "message": "Crea tres carpetas virtuales, arriba en el modo «Carpetas unificadas» (y bajo Carpetas locales): Todas las bandejas de entrada, Todos los no leídos y Seguimiento. Para poner un mensaje en seguimiento, haga clic derecho sobre él; recibe la etiqueta «Seguimiento». Las carpetas son solo vistas en este equipo: no se mueve nada en el servidor. Leer, marcar y borrar actúan sobre los mensajes reales y, por tanto, también en sus otros dispositivos."
+  },
+  "sharedInbox": {
+    "message": "Todas las bandejas de entrada"
+  },
+  "sharedUnread": {
+    "message": "Todos los no leídos"
+  },
+  "sharedFollowup": {
+    "message": "Seguimiento"
+  },
+  "menuFollowupAdd": {
+    "message": "Añadir a seguimiento"
+  },
+  "menuFollowupRemove": {
+    "message": "Quitar de seguimiento"
+  },
+  "optSharedMonths": {
+    "message": "Todas las bandejas de entrada: meses"
+  },
+  "optSharedMonthsHint": {
+    "message": "La bandeja compartida solo muestra mensajes de los últimos N meses (por defecto 3, 0 = todos). Así la vista se mantiene rápida. «Todos los no leídos» y «Seguimiento» siguen mostrándolo todo."
+  },
+  "optHeadingDb": {
+    "message": "NovaBird-DB (índice de búsqueda propio)"
+  },
+  "optDbMode": {
+    "message": "Usar NovaBird-DB:"
+  },
+  "optDbAuto": {
+    "message": "Automático (si está presente y listo)"
+  },
+  "optDbOff": {
+    "message": "Nunca (solo Gloda)"
+  },
+  "optDbHint": {
+    "message": "Si el complemento «NovaBird-DB» está instalado y su índice está completo, sustituye al índice de Gloda en la búsqueda de texto completo en todas las carpetas. Si falta o no está listo, NovaBird-Search busca con Gloda como antes."
+  },
+  "optDbStateChecking": {
+    "message": "Comprobando el estado …"
+  },
+  "optDbStateMissing": {
+    "message": "NovaBird-DB no encontrado – se usa Gloda."
+  },
+  "optDbStateIndexing": {
+    "message": "NovaBird-DB encontrado, el índice aún se está creando ($1 mensajes) – se usa Gloda mientras tanto."
+  },
+  "optDbStateEmpty": {
+    "message": "NovaBird-DB encontrado, pero su índice está vacío – se usa Gloda."
+  },
+  "optDbStateNotReady": {
+    "message": "NovaBird-DB encontrado, pero la primera creación del índice no ha terminado – se usa Gloda mientras tanto."
+  },
+  "optDbStateReady": {
+    "message": "NovaBird-DB activo ($1 mensajes indexados, versión $2)."
+  },
+  "optDbStateOff": {
+    "message": "NovaBird-DB no se usa (ajuste «Nunca»)."
+  },
+  "optSort": {
+    "message": "Orden de resultados (NovaBird-DB):"
+  },
+  "optSortDate": {
+    "message": "Fecha (más recientes primero)"
+  },
+  "optSortRelevance": {
+    "message": "Relevancia – EXPERIMENTAL (con bonificación para mensajes recientes)"
+  },
+  "optSortHint": {
+    "message": "Experimental: la ordenación por relevancia aún no está madura. Solo se aplica con NovaBird-DB. Los resultados de Gloda y la búsqueda rápida en las cabeceras siguen ordenados por fecha."
+  },
+  "suggest": {
+    "message": "¿Quiso decir: {text}?"
+  },
+  "resultsTitle": {
+    "message": "Resultados de la búsqueda"
+  },
+  "noteDbOff": {
+    "message": "NovaBird-DB está SIN CONEXIÓN – búsqueda con Gloda"
+  },
+  "noteDbMissing": {
+    "message": "NovaBird-DB está SIN CONEXIÓN – búsqueda con Gloda"
+  },
+  "noteDbBuilding": {
+    "message": "NovaBird-DB está creando su índice – búsqueda con Gloda"
+  },
+  "noteDbTip": {
+    "message": "La búsqueda usa el índice integrado de Betterbird (Gloda) en lugar de NovaBird-DB: menos precisa, sin equivalencia de diéresis, sin sugerencia de corrección."
+  },
+  "historyTitle": {
+    "message": "Búsquedas recientes"
+  },
+  "historyClear": {
+    "message": "Borrar historial"
+  },
+  "historyRemove": {
+    "message": "Quitar entrada"
+  },
+  "optEnterAnalysis": {
+    "message": "Analizar: abrir la página de análisis con filtros"
+  },
+  "optEnterAsk": {
+    "message": "Preguntar (filtrar o analizar)"
+  },
+  "askTitle": {
+    "message": "¿Qué hacer con los resultados?"
+  },
+  "askFilter": {
+    "message": "Filtrar"
+  },
+  "askAnalyze": {
+    "message": "Analizar"
+  },
+  "askRemember": {
+    "message": "Recordar y no volver a preguntar (se puede cambiar en los ajustes)"
+  },
+  "refinePlaceholder": {
+    "message": "Buscar en los resultados"
+  },
+  "anaTitle": {
+    "message": "Análisis"
+  },
+  "anaCount": {
+    "message": "{n} resultados en {f} carpetas"
+  },
+  "anaOpenList": {
+    "message": "Abrir como lista"
+  },
+  "anaPerMonth": {
+    "message": "Resultados por mes"
+  },
+  "anaFrom": {
+    "message": "De"
+  },
+  "anaFolder": {
+    "message": "Carpeta"
+  },
+  "anaAttachment": {
+    "message": "Adjunto"
+  },
+  "anaWithAtt": {
+    "message": "Con adjunto"
+  },
+  "anaReset": {
+    "message": "Restablecer filtros"
+  },
+  "anaNone": {
+    "message": "Sin resultados."
+  },
+  "anaShown": {
+    "message": "{n} de {m} mostrados"
+  },
+  "anaMore": {
+    "message": "Mostrar más"
+  },
+  "anaLoading": {
+    "message": "Cargando …"
+  },
+  "anaGone": {
+    "message": "Este análisis ya no está disponible. Repita la búsqueda."
+  },
+  "optLimitUnlimited": {
+    "message": "Sin límite"
+  },
+  "optLimitCustom": {
+    "message": "Personalizado …"
+  },
+  "anaTo": {
+    "message": "Para"
+  },
+  "anaMe": {
+    "message": "Yo"
+  },
+  "anaMyAddresses": {
+    "message": "Mis direcciones"
+  },
+  "anaRecipLoading": {
+    "message": "Leyendo destinatarios … {p} %"
+  },
+  "anaOpenTab": {
+    "message": "Abrir en una pestaña"
+  },
+  "anaPickMsg": {
+    "message": "Seleccione un mensaje"
+  },
+  "anaMsgError": {
+    "message": "No se pudo mostrar el mensaje."
+  },
+  "anaCc": {
+    "message": "Cc"
+  },
+  "anaNoText": {
+    "message": "(Sin texto)"
+  },
+  "noteShort": {
+    "message": "Al menos 3 caracteres – Intro busca de todos modos"
+  },
+  "noteShortTip": {
+    "message": "Los términos más cortos no inician una búsqueda en vivo (coincidirían con casi todo el índice). Pulse Intro para buscar de todos modos."
+  },
+  "noteDbBroken": {
+    "message": "Índice de NovaBird-DB dañado – búsqueda con Gloda"
+  },
+  "noteDbTipBroken": {
+    "message": "El índice de búsqueda de NovaBird-DB no se puede usar. Reconstrúyalo en los ajustes de NovaBird-DB («Reconstruir índice»). Mientras tanto, NovaBird-Search busca con Gloda (más lento, menos preciso)."
+  },
+  "noteDbOutdated": {
+    "message": "NovaBird-DB desactualizado – búsqueda con Gloda"
+  },
+  "noteDbTipOutdated": {
+    "message": "Esta versión de NovaBird-Search necesita NovaBird-DB 1.0 o posterior. Actualice NovaBird-DB. Mientras tanto, NovaBird-Search busca con Gloda."
+  },
+  "optLimitWarn": {
+    "message": "No se recomiendan más de 10 000 resultados: Betterbird puede dejar de responder unos segundos o más mientras se crea la lista (y el análisis). Esto vale para cualquier búsqueda con un límite alto."
+  },
+  "optEsrHeading": {
+    "message": "Versión de Betterbird"
+  },
+  "optEsrText": {
+    "message": "NovaBird-Search y NovaBird-DB usan API experimentales. Solo funcionan en Betterbird y Thunderbird ESR (Extended Support Release), no en la versión normal de Thunderbird. Recomendamos las versiones ESR."
+  },
+  "markAllRead": {
+    "message": "Marcar todo como leído"
+  },
+  "capEnter": {
+    "message": "Intro → pestaña de resultados o análisis"
+  },
+  "capShared": {
+    "message": "Tres carpetas compartidas arriba"
+  },
+  "capGroup": {
+    "message": "Plana o en conversaciones"
+  }
+}

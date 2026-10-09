@@ -1,0 +1,25 @@
+/* Account sub pages (am-*.xhtml), loaded inside about:accountsettings. */
+html, body { background: var(--tbsr-bg) !important; color: var(--tbsr-text); }
+body { padding: 8px 24px 40px; }
+.dialogheader { background: transparent !important; border: 0 !important; margin: 14px 0 6px !important; }
+.dialogheader-title { font-size: 20px !important; font-weight: 600 !important; }
+
+/* legend + groups become cards, same as the preference panes */
+fieldset {
+  background: var(--tbsr-panel); border: 1px solid var(--tbsr-line) !important; border-radius: var(--tbsr-radius);
+  padding: 0 0 14px !important; margin: 0 0 18px !important; overflow: hidden; min-inline-size: 0;
+}
+fieldset > legend {
+  float: left; width: 100%; box-sizing: border-box; padding: 14px 18px 8px !important; margin: 0 !important;
+  font-size: 15px !important; font-weight: 600; border: 0 !important;
+}
+fieldset > :not(legend) { clear: both; }
+fieldset > :not(legend) { margin-inline: 18px; }
+
+button:not(#deleteAccount):not(.button-flat) { border: 1px solid var(--tbsr-line); border-radius: 8px; }
+
+/* long text inside cards must wrap instead of overflowing */
+fieldset description { overflow-wrap: anywhere; }
+fieldset label, fieldset .tip-caption { white-space: normal !important; }
+
+.dialogheader-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }

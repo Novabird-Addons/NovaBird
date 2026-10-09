@@ -1,0 +1,784 @@
+[
+  {
+    "namespace": "searchBar",
+    "types": [
+      {
+        "id": "Strings",
+        "type": "object",
+        "description": "Übersetzte Texte der Oberfläche (Schlüssel siehe implementation.js, DEFAULT_STRINGS).",
+        "additionalProperties": {
+          "type": "string"
+        }
+      },
+      {
+        "id": "State",
+        "type": "object",
+        "description": "Einstellungen des Suchfelds (Bereich und Optionen).",
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": [
+              "all",
+              "folder"
+            ],
+            "optional": true
+          },
+          "from": {
+            "type": "boolean",
+            "optional": true
+          },
+          "to": {
+            "type": "boolean",
+            "optional": true
+          },
+          "subject": {
+            "type": "boolean",
+            "optional": true
+          },
+          "body": {
+            "type": "boolean",
+            "optional": true
+          },
+          "attachment": {
+            "type": "boolean",
+            "optional": true
+          },
+          "unread": {
+            "type": "boolean",
+            "optional": true
+          },
+          "trash": {
+            "type": "boolean",
+            "optional": true
+          },
+          "spam": {
+            "type": "boolean",
+            "optional": true
+          },
+          "group": {
+            "type": "boolean",
+            "optional": true
+          },
+          "range": {
+            "type": "string",
+            "enum": [
+              "all",
+              "today",
+              "3d",
+              "7d",
+              "30d"
+            ],
+            "optional": true
+          },
+          "limit": {
+            "type": "integer",
+            "optional": true
+          }
+        }
+      },
+      {
+        "id": "Query",
+        "type": "object",
+        "description": "Suchtext plus aktueller Zustand der Optionen.",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "state": {
+            "$ref": "State"
+          },
+          "refine": {
+            "type": "boolean",
+            "optional": true,
+            "description": "true: Eingabe stammt aus einem Treffer-Tab (nur innerhalb der Treffer suchen)."
+          },
+          "barId": {
+            "type": "string",
+            "optional": true,
+            "description": "Kennung der Suchleiste, aus der die Eingabe stammt."
+          }
+        }
+      },
+      {
+        "id": "Criteria",
+        "type": "object",
+        "description": "Ausgewertete Suchkriterien aus parser.js",
+        "additionalProperties": {
+          "type": "any"
+        }
+      }
+    ],
+    "functions": [
+      {
+        "name": "ensureSharedFolders",
+        "type": "function",
+        "async": true,
+        "description": "Legt die gemeinsamen virtuellen Ordner an oder aktualisiert sie (Name + Art: inbox, unread, followup). Gibt die Zahl der Ordner zurück.",
+        "parameters": [
+          {
+            "name": "specs",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "inbox",
+                    "unread",
+                    "followup"
+                  ]
+                },
+                "tagKey": {
+                  "type": "string",
+                  "optional": true
+                },
+                "months": {
+                  "type": "integer",
+                  "optional": true
+                }
+              }
+            }
+          }
+        ],
+        "returns": {
+          "type": "integer"
+        }
+      },
+      {
+        "name": "log",
+        "type": "function",
+        "async": true,
+        "description": "Schreibt eine Zeile ins Diagnose-Log (nur wenn DEBUG an ist).",
+        "parameters": [
+          {
+            "name": "message",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "name": "ensureFollowupTag",
+        "type": "function",
+        "async": true,
+        "description": "Legt das Schlagwort für die Wiedervorlage an, falls es fehlt, und gibt dessen Schlüssel zurück.",
+        "parameters": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "color",
+            "type": "string"
+          }
+        ],
+        "returns": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "removeSharedFolders",
+        "type": "function",
+        "async": true,
+        "description": "Entfernt die gemeinsamen virtuellen Ordner mit diesen Namen (nur virtuelle).",
+        "parameters": [
+          {
+            "name": "names",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ],
+        "returns": {
+          "type": "integer"
+        }
+      },
+      {
+        "name": "setStrings",
+        "type": "function",
+        "async": true,
+        "description": "Setzt die übersetzten Texte der Oberfläche.",
+        "parameters": [
+          {
+            "name": "strings",
+            "$ref": "Strings"
+          }
+        ]
+      },
+      {
+        "name": "highlight",
+        "type": "function",
+        "async": true,
+        "description": "Markiert das Wort im angezeigten Nachrichtentext (leer = Markierung entfernen). Wird bei jeder neu angezeigten Nachricht erneut angewendet.",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          },
+          {
+            "name": "word",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "name": "openFacetSearch",
+        "type": "function",
+        "async": true,
+        "description": "Öffnet Thunderbirds Detailsuche (Gloda-Suchansicht mit Filtern) für den Suchtext.",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          },
+          {
+            "name": "text",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "type": "integer",
+            "optional": true
+          }
+        ],
+        "returns": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "openResultsInNewTab",
+        "type": "function",
+        "async": true,
+        "description": "Öffnet die Treffer der aktuellen Ansicht als Momentaufnahme in einem neuen Tab. Gibt die Trefferzahl zurück (0 keine, -1 kein Fenster).",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "optional": true
+          }
+        ],
+        "returns": {
+          "type": "integer"
+        }
+      },
+      {
+        "name": "restoreFolderView",
+        "type": "function",
+        "async": true,
+        "description": "Beendet eine Treffer-Ansicht (Gloda) und zeigt wieder den ausgewählten Ordner.",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          }
+        ]
+      },
+      {
+        "name": "setGroupMode",
+        "type": "function",
+        "async": true,
+        "description": "Konversationsansicht während der Suche: Datum der neuesten Nachricht zeigen, neueste Nachricht hervorheben.",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          },
+          {
+            "name": "on",
+            "type": "boolean"
+          }
+        ]
+      },
+      {
+        "name": "setBusy",
+        "type": "function",
+        "async": true,
+        "description": "Zeigt oder verbirgt das Lade-Symbol im Suchfeld.",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          },
+          {
+            "name": "busy",
+            "type": "boolean"
+          }
+        ]
+      },
+      {
+        "name": "glodaSearch",
+        "type": "function",
+        "async": true,
+        "description": "Volltextsuche: Treffer aus Kopfzeilen und Gloda-Index vereinigen und in der Liste anzeigen. Gibt die Trefferzahl zurück (-1 überholt, -2 nicht angezeigt).",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          },
+          {
+            "name": "criteria",
+            "$ref": "Criteria"
+          },
+          {
+            "name": "state",
+            "$ref": "State"
+          },
+          {
+            "name": "currentFolderId",
+            "type": "string",
+            "optional": true
+          }
+        ],
+        "returns": {
+          "type": "integer"
+        }
+      },
+      {
+        "name": "refineSnapshot",
+        "type": "function",
+        "async": true,
+        "description": "Treffer-Tab: zeigt nur die Ausgangstreffer, die zu den NovaBird-DB-Zeilen passen (ohne rows: einfacher Textvergleich mit text; ohne Text alle). Gibt die Trefferzahl zurück (-1 kein Treffer-Tab).",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          },
+          {
+            "name": "rows",
+            "type": "array",
+            "optional": true,
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "any"
+              }
+            }
+          },
+          {
+            "name": "text",
+            "type": "string",
+            "optional": true
+          }
+        ],
+        "returns": {
+          "type": "integer"
+        }
+      },
+      {
+        "name": "describeHits",
+        "type": "function",
+        "async": true,
+        "description": "Wandelt NovaBird-DB-Zeilen in einfache Beschreibungen (Betreff, Absender, Datum, Ordner, Flags, Nachrichten-ID) für die Analyseseite.",
+        "parameters": [
+          {
+            "name": "rows",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "any"
+              }
+            }
+          },
+          {
+            "name": "state",
+            "$ref": "State"
+          },
+          {
+            "name": "token",
+            "type": "integer",
+            "optional": true
+          }
+        ],
+        "returns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "any"
+            }
+          }
+        }
+      },
+      {
+        "name": "recipientsChunk",
+        "type": "function",
+        "async": true,
+        "description": "Empfänger (An und Kopie) eines Blocks von Analyse-Treffern: je Treffer [Adressen, Namen].",
+        "parameters": [
+          {
+            "name": "token",
+            "type": "integer"
+          },
+          {
+            "name": "from",
+            "type": "integer"
+          },
+          {
+            "name": "count",
+            "type": "integer"
+          }
+        ],
+        "returns": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "openHitsInTab",
+        "type": "function",
+        "async": true,
+        "description": "Öffnet Treffer (headerMessageId + Ordner-URI) als Liste in einem neuen Tab. Gibt die Trefferzahl zurück.",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          },
+          {
+            "name": "items",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "any"
+              }
+            }
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "optional": true
+          }
+        ],
+        "returns": {
+          "type": "integer"
+        }
+      },
+      {
+        "name": "myAddresses",
+        "type": "function",
+        "async": true,
+        "description": "Eigene E-Mail-Adressen aller Konten ({ email, account }).",
+        "parameters": [],
+        "returns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "any"
+            }
+          }
+        }
+      },
+      {
+        "name": "openPage",
+        "type": "function",
+        "async": true,
+        "description": "Öffnet eine Seite der Erweiterung (moz-extension://) in einem neuen Tab.",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          },
+          {
+            "name": "url",
+            "type": "string"
+          }
+        ],
+        "returns": {
+          "type": "boolean"
+        }
+      },
+      {
+        "name": "themeVars",
+        "type": "function",
+        "async": true,
+        "description": "Farbvariablen des aktuellen Themes (für die Analyseseite).",
+        "parameters": [],
+        "returns": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      {
+        "name": "askEnter",
+        "type": "function",
+        "async": true,
+        "description": "Zeigt unter dem Suchfeld die Rückfrage Filtern oder Auswerten. Liefert { choice: snapshot|analysis, remember } oder null bei Abbruch.",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          }
+        ],
+        "returns": {
+          "type": "object",
+          "optional": true,
+          "additionalProperties": {
+            "type": "any"
+          }
+        }
+      },
+      {
+        "name": "idSearch",
+        "type": "function",
+        "async": true,
+        "description": "Zeigt eine fertige Trefferliste (headerMessageId + folderId, z. B. vom NovaBird-DB) in der Liste an. Wendet nur Ordner-, Zeitraum-, Ungelesen- und Anhang-Optionen an. Gibt die Trefferzahl zurück (-1 überholt, -2 nicht angezeigt).",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          },
+          {
+            "name": "rows",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "any"
+              }
+            }
+          },
+          {
+            "name": "criteria",
+            "$ref": "Criteria"
+          },
+          {
+            "name": "state",
+            "$ref": "State"
+          },
+          {
+            "name": "keepOrder",
+            "type": "boolean",
+            "optional": true,
+            "description": "true: Reihenfolge der Zeilen beibehalten (Relevanz) statt nach Datum zu sortieren."
+          }
+        ],
+        "returns": {
+          "type": "integer"
+        }
+      },
+      {
+        "name": "setSuggestion",
+        "type": "function",
+        "async": true,
+        "description": "Zeigt den Tippfehler-Vorschlag „Meinten Sie …?“ rechts neben den Zeitfenstern (text = vorgeschlagene Suchanfrage) bzw. blendet ihn aus (leer/null).",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          },
+          {
+            "name": "text",
+            "type": "string",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "name": "setNote",
+        "type": "function",
+        "async": true,
+        "description": "Zeigt einen kleinen Hinweis rechts neben den Zeitfenstern (z. B. „NovaBird-DB nicht verfügbar – Gloda“) bzw. blendet ihn aus (leer/null). tooltip ist optional.",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          },
+          {
+            "name": "text",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "tooltip",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "name": "kind",
+            "type": "string",
+            "optional": true,
+            "description": "info = dezenter Hinweis statt rotem Alarm."
+          }
+        ]
+      },
+      {
+        "name": "setHistory",
+        "type": "function",
+        "async": true,
+        "description": "Setzt die Suchhistorie (neueste zuerst), die beim Fokus auf das leere Suchfeld aufklappt.",
+        "parameters": [
+          {
+            "name": "items",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      {
+        "name": "clearText",
+        "type": "function",
+        "async": true,
+        "description": "Leert das Suchfeld in allen Fenstern.",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          }
+        ]
+      },
+      {
+        "name": "createSearchFolder",
+        "type": "function",
+        "async": true,
+        "description": "Legt den virtuellen Ordner 'Suchergebnisse' neu an und gibt dessen MailFolderId zurück.",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          },
+          {
+            "name": "criteria",
+            "$ref": "Criteria"
+          },
+          {
+            "name": "state",
+            "$ref": "State"
+          },
+          {
+            "name": "currentFolderId",
+            "type": "string",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "name": "tabIdOf",
+        "type": "function",
+        "async": true,
+        "description": "Tab-ID der WebExtension-API des Tabs, in dem die Suchleiste mit dieser Kennung sitzt (null, wenn unbekannt).",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string"
+          }
+        ],
+        "returns": {
+          "type": "integer",
+          "optional": true
+        }
+      }
+    ],
+    "events": [
+      {
+        "name": "onQuery",
+        "type": "function",
+        "description": "Der Nutzer hat Text oder Optionen geändert.",
+        "parameters": [
+          {
+            "name": "query",
+            "$ref": "Query"
+          }
+        ]
+      },
+      {
+        "name": "onOpenSettings",
+        "type": "function",
+        "description": "Der Nutzer hat im Optionsmenü „Einstellungen“ gewählt.",
+        "parameters": []
+      },
+      {
+        "name": "onEnter",
+        "type": "function",
+        "description": "Der Nutzer hat im Suchfeld Enter gedrückt.",
+        "parameters": [
+          {
+            "name": "text",
+            "type": "string"
+          },
+          {
+            "name": "barId",
+            "type": "string",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "name": "onHistoryAdd",
+        "type": "function",
+        "description": "Eine Suche soll in die Historie (Enter oder Feld verlassen).",
+        "parameters": [
+          {
+            "name": "text",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "name": "onHistoryRemove",
+        "type": "function",
+        "description": "Der Nutzer hat einen Historieneintrag entfernt.",
+        "parameters": [
+          {
+            "name": "text",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "name": "onHistoryClear",
+        "type": "function",
+        "description": "Der Nutzer hat „Verlauf löschen“ gewählt.",
+        "parameters": []
+      },
+      {
+        "name": "onStateChanged",
+        "type": "function",
+        "description": "Der Nutzer hat Bereich oder Optionen geändert (zum Speichern).",
+        "parameters": [
+          {
+            "name": "state",
+            "$ref": "State"
+          }
+        ]
+      }
+    ]
+  }
+]

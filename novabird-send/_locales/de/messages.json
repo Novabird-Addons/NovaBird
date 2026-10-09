@@ -1,0 +1,226 @@
+{
+  "extName": {
+    "message": "NovaBird-Send",
+    "description": "Name der Erweiterung"
+  },
+  "extDescription": {
+    "message": "Verzögertes Senden mit Rückgängig-Overlay und Warteschlange.",
+    "description": "Beschreibung der Erweiterung"
+  },
+  "noSubject": {
+    "message": "(Kein Betreff)",
+    "description": "Anzeige, wenn die Mail keinen Betreff hat"
+  },
+  "overlayStatusWaiting": {
+    "message": "Wird gleich gesendet",
+    "description": "Overlay: Countdown läuft"
+  },
+  "overlayStatusSending": {
+    "message": "Wird gesendet …",
+    "description": "Overlay: Versand läuft"
+  },
+  "overlayUndo": {
+    "message": "Rückgängig",
+    "description": "Overlay-Button"
+  },
+  "overlaySendNow": {
+    "message": "Jetzt senden",
+    "description": "Overlay-Button"
+  },
+  "noticeOk": {
+    "message": "OK",
+    "description": "Button im Hinweis"
+  },
+  "noticeOffline": {
+    "message": "Keine Verbindung – die Mail wurde nicht gesendet. Das Verfassen-Fenster ist wieder geöffnet.",
+    "description": "Hinweis bei Verbindungsverlust"
+  },
+  "noticeFailedNoDetail": {
+    "message": "Senden fehlgeschlagen. Das Verfassen-Fenster ist wieder geöffnet.",
+    "description": "Hinweis bei Versandfehler ohne Fehlertext"
+  },
+  "previewSubject": {
+    "message": "Vorschau – so sieht das Overlay aus",
+    "description": "Betreff in der Vorschau der Einstellungen"
+  },
+  "optTitle": {
+    "message": "NovaBird-Send",
+    "description": "Titel der Einstellungsseite"
+  },
+  "optHeadingSend": {
+    "message": "Senden",
+    "description": "Einstellungen: Überschrift"
+  },
+  "optDelay": {
+    "message": "Verzögerung vor dem Senden",
+    "description": "Einstellungen"
+  },
+  "optSeconds": {
+    "message": "Sekunden",
+    "description": "Einstellungen: Einheit"
+  },
+  "optShowNotices": {
+    "message": "Hinweis bei Fehlern",
+    "description": "Einstellungen"
+  },
+  "optShowNoticesText": {
+    "message": "Mit OK-Button anzeigen, wenn eine Mail nicht gesendet werden konnte",
+    "description": "Einstellungen"
+  },
+  "optHeadingOverlay": {
+    "message": "Overlay",
+    "description": "Einstellungen: Überschrift"
+  },
+  "optSize": {
+    "message": "Größe",
+    "description": "Einstellungen"
+  },
+  "optSizeSmall": {
+    "message": "Klein",
+    "description": "Einstellungen: Auswahl"
+  },
+  "optSizeNormal": {
+    "message": "Normal",
+    "description": "Einstellungen: Auswahl"
+  },
+  "optSizeLarge": {
+    "message": "Groß",
+    "description": "Einstellungen: Auswahl"
+  },
+  "optSizeXLarge": {
+    "message": "Sehr groß",
+    "description": "Einstellungen: Auswahl"
+  },
+  "optPosition": {
+    "message": "Position waagerecht",
+    "description": "Einstellungen"
+  },
+  "optLeft": {
+    "message": "Links",
+    "description": "Einstellungen: Auswahl"
+  },
+  "optCenter": {
+    "message": "Mitte",
+    "description": "Einstellungen: Auswahl"
+  },
+  "optRight": {
+    "message": "Rechts",
+    "description": "Einstellungen: Auswahl"
+  },
+  "optBottom": {
+    "message": "Abstand vom unteren Rand",
+    "description": "Einstellungen"
+  },
+  "optBottomUnit": {
+    "message": "% der Fensterhöhe",
+    "description": "Einstellungen: Einheit"
+  },
+  "optHeadingBar": {
+    "message": "Zeitbalken",
+    "description": "Einstellungen: Überschrift"
+  },
+  "optBarHeight": {
+    "message": "Dicke",
+    "description": "Einstellungen"
+  },
+  "optPixels": {
+    "message": "Pixel",
+    "description": "Einstellungen: Einheit"
+  },
+  "optBarStyle": {
+    "message": "Stil",
+    "description": "Einstellungen"
+  },
+  "optBarSoft": {
+    "message": "Weich: Ränder laufen aus, Balken blendet aus (Standard)",
+    "description": "Einstellungen: Auswahl"
+  },
+  "optBarClassic": {
+    "message": "Klassisch: einfarbig mit harten Kanten",
+    "description": "Einstellungen: Auswahl"
+  },
+  "optPreview": {
+    "message": "Im Hauptfenster zeigen",
+    "description": "Einstellungen: Button"
+  },
+  "optReset": {
+    "message": "Auf Standard zurücksetzen",
+    "description": "Einstellungen: Button"
+  },
+  "optSaved": {
+    "message": "Gespeichert",
+    "description": "Einstellungen: Rückmeldung"
+  },
+  "overlayQueued": {
+    "message": "$COUNT$ weitere in Warteschlange",
+    "description": "Overlay: Anzahl wartender Mails",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "noticeFailed": {
+    "message": "Senden fehlgeschlagen: $DETAIL$. Das Verfassen-Fenster ist wieder geöffnet.",
+    "description": "Hinweis bei Versandfehler mit Fehlertext",
+    "placeholders": {
+      "detail": {
+        "content": "$1",
+        "example": "Server nicht erreichbar"
+      }
+    }
+  },
+  "optHeadingPreview": {
+    "message": "Vorschau"
+  },
+  "optHeadingColors": {
+    "message": "Farben"
+  },
+  "optColorMode": {
+    "message": "Farbquelle"
+  },
+  "optColorTheme": {
+    "message": "Vom Theme übernehmen (Ordnerbereich)"
+  },
+  "optColorCustom": {
+    "message": "Eigene Farben"
+  },
+  "optColorBg": {
+    "message": "Hintergrund"
+  },
+  "optColorFg": {
+    "message": "Text"
+  },
+  "optColorAccent": {
+    "message": "Akzent (Zeitbalken, OK)"
+  },
+  "optColorUndo": {
+    "message": "Farbe „Rückgängig“"
+  },
+  "optUndoTone": {
+    "message": "Button „Rückgängig“"
+  },
+  "optUndoRed": {
+    "message": "Sanft rot (Standard)"
+  },
+  "optUndoAccent": {
+    "message": "In Akzentfarbe"
+  },
+  "optColorHint": {
+    "message": "Beim Ändern einer Farbe wird automatisch auf „Eigene Farben“ umgestellt. Bei zu geringem Kontrast wechselt die Schrift automatisch auf hell oder dunkel."
+  },
+  "optVersion": {
+    "message": "Version $VERSION$",
+    "description": "Einstellungen: Versionsanzeige",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "1.0"
+      }
+    }
+  },
+  "optDelayHint": {
+    "message": "Nach „Senden“ bleibt die Mail so lange zurückgehalten (3–60 Sekunden). In dieser Zeit kannst du sie mit „Rückgängig“ zurückholen; das Verfassen-Fenster erscheint dann wie vorher. Beenden während der Wartezeit speichert die Mail als Entwurf."
+  }
+}

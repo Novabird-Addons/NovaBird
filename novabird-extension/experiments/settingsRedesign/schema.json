@@ -1,0 +1,34 @@
+[
+  {
+    "namespace": "settingsRedesign",
+    "functions": [
+      {
+        "name": "start",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          {
+            "name": "css",
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      {
+        "name": "setColors",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          {
+            "name": "colors",
+            "type": "object",
+            "optional": true,
+            "additionalProperties": true
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,244 @@
+{
+  "extName": {
+    "message": "NovaBird-DB"
+  },
+  "extDescription": {
+    "message": "Eigener Suchindex (SQLite) als Ersatz für Gloda."
+  },
+  "uiTitle": {
+    "message": "Suchindex wird aufgebaut"
+  },
+  "uiPausedTitle": {
+    "message": "Indexaufbau angehalten"
+  },
+  "uiCount": {
+    "message": "{done} von {total} Mails"
+  },
+  "uiPause": {
+    "message": "Anhalten"
+  },
+  "uiResume": {
+    "message": "Fortsetzen"
+  },
+  "uiHide": {
+    "message": "Ausblenden"
+  },
+  "uiHint": {
+    "message": "Beim ersten Mal kann das eine ganze Weile dauern. Betterbird bleibt benutzbar, die Suche ist während der Indizierung aber eingeschränkt (NovaBird-Search nutzt in der Zeit Gloda). Anhalten und später Fortsetzen ist jederzeit möglich."
+  },
+  "rebuildTitle": {
+    "message": "Suchindex neu aufbauen?"
+  },
+  "rebuildWhyCorrupt": {
+    "message": "er ist beschädigt oder unbrauchbar"
+  },
+  "rebuildWhyNewer": {
+    "message": "er stammt von einer neueren NovaBird-DB-Version und kann hier nicht gelesen werden"
+  },
+  "rebuildText": {
+    "message": "Der Suchindex von NovaBird-DB kann nicht benutzt werden: $WHY$.\n\nOhne Index sucht NovaBird-Search nur noch über Gloda (langsamer, weniger genau). Soll der Index jetzt neu aufgebaut werden? Das dauert je nach Postfach einige Minuten, Betterbird bleibt bedienbar. Die alte Datei bleibt bis zum Ende erhalten und wird erst danach gelöscht.",
+    "placeholders": {
+      "why": {
+        "content": "$1"
+      }
+    }
+  },
+  "rebuildYes": {
+    "message": "Neu aufbauen"
+  },
+  "rebuildNo": {
+    "message": "Abbrechen"
+  },
+  "rebuildDeclinedTitle": {
+    "message": "Index wird nicht neu aufgebaut"
+  },
+  "rebuildDeclinedText": {
+    "message": "Suchgeschwindigkeit und Trefferqualität sind stark eingeschränkt, solange der Index nicht neu aufgebaut ist. Der Neuaufbau ist für die volle Funktion erforderlich und muss jetzt manuell in den Einstellungen von NovaBird-DB gestartet werden („Index neu aufbauen“). Beim nächsten Start fragt NovaBird-DB erneut."
+  },
+  "rebuildDeclinedOk": {
+    "message": "Verstanden"
+  },
+  "optPageTitle": {
+    "message": "NovaBird-DB Einstellungen"
+  },
+  "optHStatus": {
+    "message": "Status"
+  },
+  "optRowMessages": {
+    "message": "Mails im Index"
+  },
+  "optRowHeadersOnly": {
+    "message": "davon ohne Volltext"
+  },
+  "optRowSize": {
+    "message": "Dateigröße"
+  },
+  "optRowFts": {
+    "message": "Volltextmodus"
+  },
+  "optFts5Loaded": {
+    "message": " (FTS5 nachgeladen)"
+  },
+  "optRowCatchUp": {
+    "message": "Zuletzt nachgeholt"
+  },
+  "optNotYet": {
+    "message": "noch nicht"
+  },
+  "optCatchUpFmt": {
+    "message": "$1 ($2 neu von $3 geprüft)"
+  },
+  "optRowPhase": {
+    "message": "Stand"
+  },
+  "optPhaseFolder": {
+    "message": "Indizierung läuft ($1)"
+  },
+  "optHIndexing": {
+    "message": "Indexierung"
+  },
+  "optPause": {
+    "message": "Anhalten"
+  },
+  "optResume": {
+    "message": "Fortsetzen"
+  },
+  "optCheckNow": {
+    "message": "Index jetzt prüfen"
+  },
+  "optIndexingHint": {
+    "message": "Angehaltene Läufe setzen später dort fort, wo sie aufgehört haben."
+  },
+  "optHLog": {
+    "message": "Protokoll"
+  },
+  "optCopy": {
+    "message": "Kopieren"
+  },
+  "optClearEvents": {
+    "message": "Leeren"
+  },
+  "optLogHint": {
+    "message": "Zeigt, was NovaBird-DB gerade tut (Ordner, Zahlen, Abgleich). Bleibt auch nach einem Neustart erhalten (letzte 400 Zeilen)."
+  },
+  "optLogCopied": {
+    "message": "Protokoll kopiert."
+  },
+  "optHCompound": {
+    "message": "Zusammensetzungen (Speiseplan → Wochenspeiseplan)"
+  },
+  "optCompoundLabel": {
+    "message": "Wie sollen zusammengesetzte Wörter gefunden werden?"
+  },
+  "optCompQuery": {
+    "message": "Bei der Suche (Standard)"
+  },
+  "optCompIndex": {
+    "message": "Beim Indexieren (terms_de)"
+  },
+  "optCompQueryHead": {
+    "message": "Bei der Suche (Standard):"
+  },
+  "optCompQueryText": {
+    "message": " Zu jedem Suchbegriff sucht NovaBird-DB in der Wortliste des Index nach längeren Wörtern, die ihn enthalten und deren Vorsatz selbst ein bekanntes Wort ist („Speiseplan“ → „Wochenspeiseplan“, aber „meldung“ nicht „Anmeldung“). Kein Neuaufbau nötig, lernt automatisch aus neuen Mails; die erste Suche nach einem Begriff kann bei sehr großen Postfächern einen Moment dauern, danach ist sie zwischengespeichert."
+  },
+  "optCompIndexHead": {
+    "message": "Beim Indexieren (terms_de):"
+  },
+  "optCompIndexText": {
+    "message": " Beim Einlesen jeder Mail werden zusammengesetzte Wörter schon in ihre Teile zerlegt (aus der Wortliste des eigenen Postfachs, ohne Wörterbuch) und in einem Zusatzindex abgelegt. Die Suche braucht dann keine Wortliste mehr. Beim Umschalten liest NovaBird-DB alle Mails einmal neu ein (bei 75.000 Mails ca. 6–10 Minuten, doppelt so lang bei einer frischen Installation). Nachteil: Zerlegt wird nur, wenn beide Teile im Postfach auch einzeln oft vorkommen; Tests fanden damit weniger Zusammensetzungen als im Standard. Gut zum Vergleichen."
+  },
+  "optCompNoFts": {
+    "message": "Nur mit FTS5 verfügbar (hier nicht)."
+  },
+  "optCompActiveIndex": {
+    "message": "Aktiv: Zerlegung beim Indexieren (Saatliste $1 Wörter)."
+  },
+  "optCompActiveQuery": {
+    "message": "Aktiv: Erweiterung bei der Suche."
+  },
+  "optConfirmCompound": {
+    "message": "Zerlegung beim Indexieren einschalten? Alle Mails werden dafür einmal neu eingelesen (kann einige Minuten dauern, die Suche läuft währenddessen über Gloda)."
+  },
+  "optSwitchedIndex": {
+    "message": "Umgestellt. Der Index wird neu eingelesen, Fortschritt siehe Overlay und Protokoll."
+  },
+  "optSwitchedQuery": {
+    "message": "Umgestellt auf „Bei der Suche“."
+  },
+  "optHPrivacy": {
+    "message": "Datenschutz"
+  },
+  "optPrivacyText": {
+    "message": "Der Index enthält den Text jeder Mail (bis 100.000 Zeichen) und die Namen der Anhänge im Klartext in der Datei novabird-db/index.sqlite im Betterbird-Profil, wie der Index von Betterbird selbst. Er verlässt den Rechner nie. Wer die Profilordner sichert oder die Festplatte nicht verschlüsselt, sichert und schützt damit auch den Mailtext. Verschlüsselte Mails (OpenPGP, S/MIME) werden nicht indiziert. „Index löschen“ entfernt die Datei vollständig."
+  },
+  "optHVersion": {
+    "message": "Betterbird-Version"
+  },
+  "optVersionText": {
+    "message": "NovaBird-DB und NovaBird-Search nutzen Experiment-APIs. Die laufen nur in Betterbird und in Thunderbird ESR (Extended Support Release), nicht in der normalen Thunderbird-Release. Wir empfehlen die ESR-Versionen, sonst funktionieren die Add-ons nicht oder nicht dauerhaft."
+  },
+  "optHMaint": {
+    "message": "Wartung"
+  },
+  "optMaintain": {
+    "message": "Aufräumen und verkleinern"
+  },
+  "optReindex": {
+    "message": "Index neu aufbauen"
+  },
+  "optDelete": {
+    "message": "Index löschen"
+  },
+  "optMaintHint": {
+    "message": "„Neu aufbauen“ legt die alte Indexdatei zur Seite, liest alle Mails erneut ein und löscht die alte Datei erst, wenn der neue Index vollständig ist. „Löschen“ entfernt die Datei, bis du neu aufbaust oder Betterbird neu startest. Die Mails selbst werden nie verändert."
+  },
+  "optMaintaining": {
+    "message": "Räume auf …"
+  },
+  "optDone": {
+    "message": "Fertig: $1 → $2"
+  },
+  "optError": {
+    "message": "Fehler: $1"
+  },
+  "optConfirmReindex": {
+    "message": "Index löschen und alle Mails neu einlesen?"
+  },
+  "optReindexStarted": {
+    "message": "Neuaufbau gestartet. Fortschritt siehst du im Overlay."
+  },
+  "optConfirmDelete": {
+    "message": "Den Index wirklich löschen?"
+  },
+  "optDeleted": {
+    "message": "Index gelöscht."
+  },
+  "optHLogging": {
+    "message": "Suchprotokoll"
+  },
+  "optLogging": {
+    "message": "Suchanfragen lokal speichern"
+  },
+  "optLoggingHint": {
+    "message": "Es werden nur Anfragen gespeichert, die du mit Enter bestätigt oder mit einem Treffer abgeschlossen hast. Nichts verlässt den Rechner. Später lässt sich daran erkennen, welche Formulierungen der Parser lernen sollte."
+  },
+  "optLogCount": {
+    "message": "$1 Anfragen gespeichert"
+  },
+  "optExport": {
+    "message": "Als Textdatei speichern"
+  },
+  "optClearLog": {
+    "message": "Protokoll löschen"
+  },
+  "optConfirmClearLog": {
+    "message": "Suchprotokoll löschen?"
+  },
+  "optHLangs": {
+    "message": "Suchsprachen"
+  },
+  "optLangsHint": {
+    "message": "In diesen Sprachen werden Suchanfragen als Satz verstanden, z. B. „Rechnungen von Jonas letzte Woche“. Standard ist die Sprache von Betterbird. Mehrere Sprachen sind für gemischte Postfächer gedacht; kurze Wörter mit mehreren Bedeutungen (etwa „an“ auf Deutsch und auf Englisch) können dann falsch gedeutet werden. Die Kurzschreibweise (von:, from:, an:, to: …) geht immer."
+  }
+}

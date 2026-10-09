@@ -1,0 +1,1075 @@
+{
+ "_hinweis": "Golden-Tests für den Parser. 'Heute' = Montag 05.10.2026 12:00 (Europe/Berlin). Datumsangaben als lokales YYYY-MM-DD; dateTo ist exklusiv. Nicht genannte Felder müssen leer/null sein. Neue Fälle einfach ergänzen.",
+ "now": "2026-10-05T12:00:00",
+ "cases": [
+  {
+   "q": "Speisepläne von Jonas aus den letzten 6 Monaten",
+   "expect": {
+    "terms": [
+     [
+      "speiseplän"
+     ]
+    ],
+    "from": [
+     {
+      "name": "Jonas"
+     }
+    ],
+    "dateFrom": "2026-04-05"
+   }
+  },
+  {
+   "q": "ich suche Speisepläne von Jonas aus den letzten 6 Monaten",
+   "expect": {
+    "terms": [
+     [
+      "speiseplän"
+     ]
+    ],
+    "from": [
+     {
+      "name": "Jonas"
+     }
+    ],
+    "dateFrom": "2026-04-05"
+   }
+  },
+  {
+   "q": "Speiseplan von Jonas",
+   "expect": {
+    "terms": [
+     [
+      "speiseplan"
+     ]
+    ],
+    "from": [
+     {
+      "name": "Jonas"
+     }
+    ]
+   }
+  },
+  {
+   "q": "speiseplan von jonas",
+   "expect": {
+    "terms": [
+     [
+      "speiseplan"
+     ]
+    ],
+    "from": [
+     {
+      "name": "jonas"
+     }
+    ]
+   }
+  },
+  {
+   "q": "Mails von Jonas Müller mit Anhang",
+   "expect": {
+    "terms": [
+     [
+      "müller"
+     ]
+    ],
+    "from": [
+     {
+      "name": "Jonas"
+     }
+    ],
+    "hasAttachment": true
+   }
+  },
+  {
+   "q": "was hat Jonas geschickt",
+   "expect": {
+    "from": [
+     {
+      "name": "Jonas"
+     }
+    ]
+   }
+  },
+  {
+   "q": "was hat Jonas mir geschickt",
+   "expect": {
+    "from": [
+     {
+      "name": "Jonas"
+     }
+    ]
+   }
+  },
+  {
+   "q": "Rechnungen an Petra seit März",
+   "expect": {
+    "terms": [
+     [
+      "rechnung"
+     ]
+    ],
+    "to": [
+     {
+      "name": "Petra"
+     }
+    ],
+    "dateFrom": "2026-03-01"
+   }
+  },
+  {
+   "q": "Excel-Speiseplan von jonas",
+   "expect": {
+    "terms": [
+     [
+      "speiseplan"
+     ]
+    ],
+    "from": [
+     {
+      "name": "jonas"
+     }
+    ],
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "excel"
+    ]
+   }
+  },
+  {
+   "q": "ungelesene Mails von gestern",
+   "expect": {
+    "dateFrom": "2026-10-04",
+    "dateTo": "2026-10-05",
+    "unread": true
+   }
+  },
+  {
+   "q": "Speiseplan oder Stundenplan",
+   "expect": {
+    "terms": [
+     [
+      "speiseplan",
+      "stundenplan"
+     ]
+    ]
+   }
+  },
+  {
+   "q": "Speiseplan oder Stundenplan -Urlaub",
+   "expect": {
+    "terms": [
+     [
+      "speiseplan",
+      "stundenplan"
+     ]
+    ],
+    "exclude": [
+     "urlaub"
+    ]
+   }
+  },
+  {
+   "q": "speiseplan ohne urlaub",
+   "expect": {
+    "terms": [
+     [
+      "speiseplan"
+     ]
+    ],
+    "exclude": [
+     "urlaub"
+    ]
+   }
+  },
+  {
+   "q": "KW 14",
+   "expect": {
+    "dateFrom": "2026-03-30",
+    "dateTo": "2026-04-06"
+   }
+  },
+  {
+   "q": "Speiseplan KW 41",
+   "expect": {
+    "terms": [
+     [
+      "speiseplan"
+     ]
+    ],
+    "dateFrom": "2026-10-05",
+    "dateTo": "2026-10-12"
+   }
+  },
+  {
+   "q": "Speiseplan KW 45",
+   "expect": {
+    "terms": [
+     [
+      "speiseplan"
+     ]
+    ],
+    "dateFrom": "2025-11-03",
+    "dateTo": "2025-11-10"
+   }
+  },
+  {
+   "q": "Kalenderwoche 3 2026",
+   "expect": {
+    "dateFrom": "2026-01-12",
+    "dateTo": "2026-01-19"
+   }
+  },
+  {
+   "q": "im November",
+   "expect": {
+    "dateFrom": "2025-11-01",
+    "dateTo": "2025-12-01"
+   }
+  },
+  {
+   "q": "im Oktober",
+   "expect": {
+    "dateFrom": "2026-10-01",
+    "dateTo": "2026-11-01"
+   }
+  },
+  {
+   "q": "im Mai 2025",
+   "expect": {
+    "dateFrom": "2025-05-01",
+    "dateTo": "2025-06-01"
+   }
+  },
+  {
+   "q": "Mai 2025",
+   "expect": {
+    "dateFrom": "2025-05-01",
+    "dateTo": "2025-06-01"
+   }
+  },
+  {
+   "q": "zwischen Mai und Juli",
+   "expect": {
+    "dateFrom": "2026-05-01",
+    "dateTo": "2026-08-01"
+   }
+  },
+  {
+   "q": "zwischen 1.3. und 15.3.",
+   "expect": {
+    "dateFrom": "2026-03-01",
+    "dateTo": "2026-03-16"
+   }
+  },
+  {
+   "q": "vom 1.3. bis 15.3.",
+   "expect": {
+    "dateFrom": "2026-03-01",
+    "dateTo": "2026-03-16"
+   }
+  },
+  {
+   "q": "von März bis Mai",
+   "expect": {
+    "dateFrom": "2026-03-01",
+    "dateTo": "2026-06-01"
+   }
+  },
+  {
+   "q": "letzte Woche",
+   "expect": {
+    "dateFrom": "2026-09-28",
+    "dateTo": "2026-10-05"
+   }
+  },
+  {
+   "q": "letzten Monat",
+   "expect": {
+    "dateFrom": "2026-09-01",
+    "dateTo": "2026-10-01"
+   }
+  },
+  {
+   "q": "letztes Jahr",
+   "expect": {
+    "dateFrom": "2025-01-01",
+    "dateTo": "2026-01-01"
+   }
+  },
+  {
+   "q": "diese Woche",
+   "expect": {
+    "dateFrom": "2026-10-05",
+    "dateTo": "2026-10-12"
+   }
+  },
+  {
+   "q": "diesen Monat",
+   "expect": {
+    "dateFrom": "2026-10-01",
+    "dateTo": "2026-11-01"
+   }
+  },
+  {
+   "q": "dieses Jahr",
+   "expect": {
+    "dateFrom": "2026-01-01",
+    "dateTo": "2027-01-01"
+   }
+  },
+  {
+   "q": "heute",
+   "expect": {
+    "dateFrom": "2026-10-05",
+    "dateTo": "2026-10-06"
+   }
+  },
+  {
+   "q": "gestern",
+   "expect": {
+    "dateFrom": "2026-10-04",
+    "dateTo": "2026-10-05"
+   }
+  },
+  {
+   "q": "vorgestern",
+   "expect": {
+    "dateFrom": "2026-10-03",
+    "dateTo": "2026-10-04"
+   }
+  },
+  {
+   "q": "in den letzten 30 Tagen",
+   "expect": {
+    "dateFrom": "2026-09-05"
+   }
+  },
+  {
+   "q": "der letzten zwei Wochen",
+   "expect": {
+    "dateFrom": "2026-09-21"
+   }
+  },
+  {
+   "q": "in den letzten Tagen",
+   "expect": {
+    "dateFrom": "2026-09-28"
+   }
+  },
+  {
+   "q": "in den letzten Wochen",
+   "expect": {
+    "dateFrom": "2026-09-07"
+   }
+  },
+  {
+   "q": "im letzten halben Jahr",
+   "expect": {
+    "dateFrom": "2026-04-05"
+   }
+  },
+  {
+   "q": "seit 3 Wochen",
+   "expect": {
+    "dateFrom": "2026-09-14"
+   }
+  },
+  {
+   "q": "vor 3 Wochen",
+   "expect": {
+    "dateFrom": "2026-09-07",
+    "dateTo": "2026-09-21"
+   }
+  },
+  {
+   "q": "vor einem Monat",
+   "expect": {
+    "dateFrom": "2026-08-05",
+    "dateTo": "2026-10-05"
+   }
+  },
+  {
+   "q": "seit März",
+   "expect": {
+    "dateFrom": "2026-03-01"
+   }
+  },
+  {
+   "q": "seit 2025",
+   "expect": {
+    "dateFrom": "2025-01-01"
+   }
+  },
+  {
+   "q": "seit 01.03.2026",
+   "expect": {
+    "dateFrom": "2026-03-01"
+   }
+  },
+  {
+   "q": "ab 15.9.",
+   "expect": {
+    "dateFrom": "2026-09-15"
+   }
+  },
+  {
+   "q": "bis Juni",
+   "expect": {
+    "dateTo": "2026-07-01"
+   }
+  },
+  {
+   "q": "bis zum 31.3.",
+   "expect": {
+    "dateTo": "2026-04-01"
+   }
+  },
+  {
+   "q": "am 3.10.",
+   "expect": {
+    "dateFrom": "2026-10-03",
+    "dateTo": "2026-10-04"
+   }
+  },
+  {
+   "q": "03.10.2026",
+   "expect": {
+    "dateFrom": "2026-10-03",
+    "dateTo": "2026-10-04"
+   }
+  },
+  {
+   "q": "2026-09-30",
+   "expect": {
+    "dateFrom": "2026-09-30",
+    "dateTo": "2026-10-01"
+   }
+  },
+  {
+   "q": "Rechnungen 2025",
+   "expect": {
+    "terms": [
+     [
+      "rechnung"
+     ]
+    ],
+    "dateFrom": "2025-01-01",
+    "dateTo": "2026-01-01"
+   }
+  },
+  {
+   "q": "aus 2024",
+   "expect": {
+    "dateFrom": "2024-01-01",
+    "dateTo": "2025-01-01"
+   }
+  },
+  {
+   "q": "ERP-Wartung im Archiv",
+   "expect": {
+    "phrases": [
+     "erp wartung"
+    ],
+    "folder": {
+     "type": "archives"
+    }
+   }
+  },
+  {
+   "q": "\"ERP Wartung\" seit Juni",
+   "expect": {
+    "phrases": [
+     "erp wartung"
+    ],
+    "dateFrom": "2026-06-01"
+   }
+  },
+  {
+   "q": "„Wartung ERP“",
+   "expect": {
+    "phrases": [
+     "wartung erp"
+    ]
+   }
+  },
+  {
+   "q": "Berichte als PDF 2025",
+   "expect": {
+    "terms": [
+     [
+      "bericht"
+     ]
+    ],
+    "dateFrom": "2025-01-01",
+    "dateTo": "2026-01-01",
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "pdf"
+    ]
+   }
+  },
+  {
+   "q": "Berichte als PDF",
+   "expect": {
+    "terms": [
+     [
+      "bericht"
+     ]
+    ],
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "pdf"
+    ]
+   }
+  },
+  {
+   "q": "mit PDF",
+   "expect": {
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "pdf"
+    ]
+   }
+  },
+  {
+   "q": "pdf",
+   "expect": {
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "pdf"
+    ]
+   }
+  },
+  {
+   "q": "Excel Speiseplan",
+   "expect": {
+    "terms": [
+     [
+      "speiseplan"
+     ]
+    ],
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "excel"
+    ]
+   }
+  },
+  {
+   "q": "Speiseplan als Excel-Datei",
+   "expect": {
+    "terms": [
+     [
+      "speiseplan"
+     ]
+    ],
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "excel"
+    ]
+   }
+  },
+  {
+   "q": "mit Bildern",
+   "expect": {
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "image"
+    ]
+   }
+  },
+  {
+   "q": "Fotos von Petra",
+   "expect": {
+    "from": [
+     {
+      "name": "Petra"
+     }
+    ],
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "image"
+    ]
+   }
+  },
+  {
+   "q": "ohne Anhang",
+   "expect": {
+    "hasAttachment": false
+   }
+  },
+  {
+   "q": "mit Anhängen",
+   "expect": {
+    "hasAttachment": true
+   }
+  },
+  {
+   "q": "Rechnung inkl. Anhang",
+   "expect": {
+    "terms": [
+     [
+      "rechnung"
+     ]
+    ],
+    "hasAttachment": true
+   }
+  },
+  {
+   "q": "ungelesen",
+   "expect": {
+    "unread": true
+   }
+  },
+  {
+   "q": "markierte Rechnungen",
+   "expect": {
+    "terms": [
+     [
+      "rechnung"
+     ]
+    ],
+    "flagged": true
+   }
+  },
+  {
+   "q": "mit Stern",
+   "expect": {
+    "flagged": true
+   }
+  },
+  {
+   "q": "Mails im Posteingang",
+   "expect": {
+    "folder": {
+     "type": "inbox"
+    }
+   }
+  },
+  {
+   "q": "gesendete Mails an Petra",
+   "expect": {
+    "to": [
+     {
+      "name": "Petra"
+     }
+    ],
+    "folder": {
+     "type": "sent"
+    }
+   }
+  },
+  {
+   "q": "im Papierkorb",
+   "expect": {
+    "folder": {
+     "type": "trash"
+    }
+   }
+  },
+  {
+   "q": "Entwürfe",
+   "expect": {
+    "folder": {
+     "type": "drafts"
+    }
+   }
+  },
+  {
+   "q": "Spam",
+   "expect": {
+    "folder": {
+     "type": "junk"
+    }
+   }
+  },
+  {
+   "q": "im Ordner Steuer",
+   "expect": {
+    "folder": {
+     "name": "Steuer"
+    }
+   }
+  },
+  {
+   "q": "ordner:Steuer",
+   "expect": {
+    "folder": {
+     "name": "Steuer"
+    }
+   }
+  },
+  {
+   "q": "von:jonas betreff:speiseplan anhang:pdf ist:ungelesen",
+   "expect": {
+    "subjectTerms": [
+     "speiseplan"
+    ],
+    "from": [
+     {
+      "name": "jonas"
+     }
+    ],
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "pdf"
+    ],
+    "unread": true
+   }
+  },
+  {
+   "q": "von:\"Jonas Müller\" seit:märz",
+   "expect": {
+    "from": [
+     {
+      "name": "Jonas Müller"
+     }
+    ],
+    "dateFrom": "2026-03-01"
+   }
+  },
+  {
+   "q": "an:petra@firma.example",
+   "expect": {
+    "to": [
+     {
+      "email": "petra@firma.example"
+     }
+    ]
+   }
+  },
+  {
+   "q": "anhang:nein Urlaub",
+   "expect": {
+    "terms": [
+     [
+      "urlaub"
+     ]
+    ],
+    "hasAttachment": false
+   }
+  },
+  {
+   "q": "tag:Wichtig",
+   "expect": {
+    "tags": [
+     "Wichtig"
+    ]
+   }
+  },
+  {
+   "q": "mit Schlagwort Wichtig",
+   "expect": {
+    "tags": [
+     "Wichtig"
+    ]
+   }
+  },
+  {
+   "q": "datum:2026-03-01..2026-03-31",
+   "expect": {
+    "dateFrom": "2026-03-01",
+    "dateTo": "2026-04-01"
+   }
+  },
+  {
+   "q": "von mir an Petra",
+   "expect": {
+    "from": [
+     {
+      "me": true
+     }
+    ],
+    "to": [
+     {
+      "name": "Petra"
+     }
+    ]
+   }
+  },
+  {
+   "q": "an mich von Petra",
+   "expect": {
+    "from": [
+     {
+      "name": "Petra"
+     }
+    ],
+    "to": [
+     {
+      "me": true
+     }
+    ]
+   }
+  },
+  {
+   "q": "die ich an Petra geschickt habe",
+   "expect": {
+    "from": [
+     {
+      "me": true
+     }
+    ],
+    "to": [
+     {
+      "name": "Petra"
+     }
+    ]
+   }
+  },
+  {
+   "q": "was ich geschickt habe",
+   "expect": {
+    "from": [
+     {
+      "me": true
+     }
+    ]
+   }
+  },
+  {
+   "q": "mit Anna über Urlaubsplanung",
+   "expect": {
+    "terms": [
+     [
+      "urlaubsplanung"
+     ]
+    ],
+    "involves": [
+     {
+      "name": "Anna"
+     }
+    ]
+   }
+  },
+  {
+   "q": "Erinnerung an die Wartung",
+   "expect": {
+    "terms": [
+     [
+      "erinnerung"
+     ],
+     [
+      "wartung"
+     ]
+    ]
+   }
+  },
+  {
+   "q": "von jonas@firma.example",
+   "expect": {
+    "from": [
+     {
+      "email": "jonas@firma.example"
+     }
+    ]
+   }
+  },
+  {
+   "q": "Mails von Petra Schneider im Archiv seit Juni mit PDF",
+   "expect": {
+    "terms": [
+     [
+      "schneider"
+     ]
+    ],
+    "from": [
+     {
+      "name": "Petra"
+     }
+    ],
+    "dateFrom": "2026-06-01",
+    "hasAttachment": true,
+    "attachmentTypes": [
+     "pdf"
+    ],
+    "folder": {
+     "type": "archives"
+    }
+   }
+  },
+  {
+   "q": "Gerätewartung",
+   "expect": {
+    "terms": [
+     [
+      "gerätewartung"
+     ]
+    ]
+   }
+  },
+  {
+   "q": "ich suche alle Mails über Gerätewartung",
+   "expect": {
+    "terms": [
+     [
+      "gerätewartung"
+     ]
+    ]
+   }
+  },
+  {
+   "q": "zeig mir die Rechnungen vom Steuerbüro",
+   "expect": {
+    "terms": [
+     [
+      "rechnung"
+     ]
+    ],
+    "from": [
+     {
+      "name": "Steuerbüro"
+     }
+    ]
+   }
+  },
+  {
+   "q": "Berichte Lehrerinnen",
+   "expect": {
+    "terms": [
+     [
+      "bericht"
+     ],
+     [
+      "lehrerin"
+     ]
+    ]
+   }
+  },
+  {
+   "q": "Termine Urlaub Weihnachten",
+   "expect": {
+    "terms": [
+     [
+      "termin"
+     ],
+     [
+      "urlaub"
+     ],
+     [
+      "weihnacht"
+     ]
+    ]
+   }
+  },
+  {
+   "q": "Wartungsvertrag Siemens",
+   "expect": {
+    "terms": [
+     [
+      "wartungsvertrag"
+     ],
+     [
+      "siemen"
+     ]
+    ]
+   }
+  },
+  {
+   "q": "Speiseplan Dezember",
+   "expect": {
+    "terms": [
+     [
+      "speiseplan"
+     ],
+     [
+      "dezember"
+     ]
+    ]
+   }
+  },
+  {
+   "q": "Urlaubsanträge der letzten 3 Monate",
+   "expect": {
+    "terms": [
+     [
+      "urlaubsanträg"
+     ]
+    ],
+    "dateFrom": "2026-07-05"
+   }
+  },
+  {
+   "q": "Fortbildungen 2026",
+   "expect": {
+    "terms": [
+     [
+      "fortbildung"
+     ]
+    ],
+    "dateFrom": "2026-01-01",
+    "dateTo": "2027-01-01"
+   }
+  },
+  {
+   "q": "Zertifikat",
+   "expect": {
+    "terms": [
+     [
+      "zertifikat"
+     ]
+    ]
+   }
+  },
+  {
+   "q": "von:jonas anh:ja",
+   "expect": {
+    "from": [
+     {
+      "name": "jonas"
+     }
+    ],
+    "hasAttachment": true
+   }
+  },
+  {
+   "q": "anh:nein plan",
+   "expect": {
+    "hasAttachment": false,
+    "terms": [
+     [
+      "plan"
+     ]
+    ]
+   }
+  },
+  {
+   "q": "seit:7t",
+   "expect": {
+    "dateFrom": "2026-09-28"
+   }
+  },
+  {
+   "q": "seit:3w",
+   "expect": {
+    "dateFrom": "2026-09-14"
+   }
+  },
+  {
+   "q": "seit:6m rechnung",
+   "expect": {
+    "terms": [
+     [
+      "rechnung"
+     ]
+    ],
+    "dateFrom": "2026-04-05"
+   }
+  },
+  {
+   "q": "seit:1j",
+   "expect": {
+    "dateFrom": "2025-10-05"
+   }
+  },
+  {
+   "q": "text:wartung",
+   "expect": {
+    "terms": [
+     [
+      "wartung"
+     ]
+    ]
+   }
+  }
+ ]
+}

@@ -1,0 +1,185 @@
+{
+  "extName": {
+    "message": "NovaBird-Send"
+  },
+  "extDescription": {
+    "message": "Envoi différé avec superposition d’annulation et file d’attente."
+  },
+  "noSubject": {
+    "message": "(Sans objet)"
+  },
+  "overlayStatusWaiting": {
+    "message": "Envoi imminent"
+  },
+  "overlayStatusSending": {
+    "message": "Envoi en cours …"
+  },
+  "overlayUndo": {
+    "message": "Annuler"
+  },
+  "overlaySendNow": {
+    "message": "Envoyer maintenant"
+  },
+  "noticeOk": {
+    "message": "OK"
+  },
+  "noticeOffline": {
+    "message": "Pas de connexion – le message n’a pas été envoyé. La fenêtre de rédaction a été rouverte."
+  },
+  "noticeFailedNoDetail": {
+    "message": "Échec de l’envoi. La fenêtre de rédaction a été rouverte."
+  },
+  "previewSubject": {
+    "message": "Aperçu – voici à quoi ressemble la superposition"
+  },
+  "optTitle": {
+    "message": "NovaBird-Send"
+  },
+  "optHeadingSend": {
+    "message": "Envoi"
+  },
+  "optDelay": {
+    "message": "Délai avant l’envoi"
+  },
+  "optSeconds": {
+    "message": "secondes"
+  },
+  "optShowNotices": {
+    "message": "Avis d’erreur"
+  },
+  "optShowNoticesText": {
+    "message": "Afficher un avis avec un bouton OK quand un message n’a pas pu être envoyé"
+  },
+  "optHeadingOverlay": {
+    "message": "Superposition"
+  },
+  "optSize": {
+    "message": "Taille"
+  },
+  "optSizeSmall": {
+    "message": "Petite"
+  },
+  "optSizeNormal": {
+    "message": "Normale"
+  },
+  "optSizeLarge": {
+    "message": "Grande"
+  },
+  "optSizeXLarge": {
+    "message": "Très grande"
+  },
+  "optPosition": {
+    "message": "Position horizontale"
+  },
+  "optLeft": {
+    "message": "Gauche"
+  },
+  "optCenter": {
+    "message": "Centre"
+  },
+  "optRight": {
+    "message": "Droite"
+  },
+  "optBottom": {
+    "message": "Distance du bord inférieur"
+  },
+  "optBottomUnit": {
+    "message": "% de la hauteur de la fenêtre"
+  },
+  "optHeadingBar": {
+    "message": "Barre du compte à rebours"
+  },
+  "optBarHeight": {
+    "message": "Épaisseur"
+  },
+  "optPixels": {
+    "message": "pixels"
+  },
+  "optBarStyle": {
+    "message": "Style"
+  },
+  "optBarSoft": {
+    "message": "Doux : les bords s’estompent, la barre s’efface en s’écoulant (par défaut)"
+  },
+  "optBarClassic": {
+    "message": "Classique : couleur pleine aux bords nets"
+  },
+  "optPreview": {
+    "message": "Afficher dans la fenêtre principale"
+  },
+  "optReset": {
+    "message": "Rétablir les valeurs par défaut"
+  },
+  "optSaved": {
+    "message": "Enregistré"
+  },
+  "overlayQueued": {
+    "message": "$COUNT$ de plus en attente",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "noticeFailed": {
+    "message": "Échec de l’envoi : $DETAIL$. La fenêtre de rédaction a été rouverte.",
+    "placeholders": {
+      "detail": {
+        "content": "$1",
+        "example": "Server unreachable"
+      }
+    }
+  },
+  "optHeadingPreview": {
+    "message": "Aperçu"
+  },
+  "optHeadingColors": {
+    "message": "Couleurs"
+  },
+  "optColorMode": {
+    "message": "Source des couleurs"
+  },
+  "optColorTheme": {
+    "message": "Utiliser les couleurs du thème (volet des dossiers)"
+  },
+  "optColorCustom": {
+    "message": "Couleurs personnalisées"
+  },
+  "optColorBg": {
+    "message": "Arrière-plan"
+  },
+  "optColorFg": {
+    "message": "Texte"
+  },
+  "optColorAccent": {
+    "message": "Accent (barre, OK)"
+  },
+  "optColorUndo": {
+    "message": "Couleur du bouton Annuler"
+  },
+  "optUndoTone": {
+    "message": "Bouton Annuler"
+  },
+  "optUndoRed": {
+    "message": "Rouge doux (par défaut)"
+  },
+  "optUndoAccent": {
+    "message": "Couleur d’accent"
+  },
+  "optColorHint": {
+    "message": "Modifier une couleur passe automatiquement à « Couleurs personnalisées ». Si le contraste est trop faible, le texte passe automatiquement en clair ou en foncé."
+  },
+  "optVersion": {
+    "message": "Version $VERSION$",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "1.0"
+      }
+    }
+  },
+  "optDelayHint": {
+    "message": "Après « Envoyer », le message est retenu pendant ce délai (3 à 60 secondes). Pendant ce temps, « Annuler » le récupère et la fenêtre de rédaction réapparaît comme avant. Quitter pendant l’attente enregistre le message comme brouillon."
+  }
+}

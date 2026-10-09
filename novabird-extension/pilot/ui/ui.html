@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Nova-Contact</title>
+  <link rel="stylesheet" href="ui.css">
+</head>
+<body>
+<main>
+  <header class="top">
+    <div class="brand">
+      <span class="logo"><svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5aaefc"/><stop offset="1" stop-color="#2a7fe0"/></linearGradient></defs><rect width="40" height="40" rx="11" fill="url(#lg)"/><g fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="15.5" r="4.5" fill="rgba(255,255,255,.25)"/><path d="M8 29c.9-4.4 4.1-6.8 8-6.8s7.1 2.4 8 6.8"/><circle cx="27.5" cy="14.5" r="3.4"/><path d="M27 21.2c3.4 0 5.6 1.9 6.2 5.3"/></g></svg></span>
+      <div><h1><span data-i18n="appTitle"></span></h1></div>
+    </div>
+  </header>
+  <nav class="mainnav">
+    <button type="button" data-main="collect" class="active"><i data-icon="inbox"></i><span data-i18n="navCollect"></span></button>
+    <button type="button" data-main="manage"><i data-icon="merge"></i><span data-i18n="navManage"></span></button>
+    <button type="button" data-main="clean"><i data-icon="trash"></i><span data-i18n="navClean"></span></button>
+  </nav>
+
+<div id="viewCollect">
+  <p class="hint intro" data-i18n="collectIntro"></p>
+
+  <!-- Schritt 1 -->
+  <section id="step1" class="step">
+    <h2><span class="num">1</span><span data-i18n="step1"></span></h2>
+    <div class="grid">
+      <div>
+        <h3><i data-icon="folder"></i><span data-i18n="folders"></span></h3>
+        <div id="folderPick">
+        <div id="folders" class="folders"><p class="muted" data-i18n="loadingFolders"></p></div>
+        <div class="row small">
+          <button type="button" class="link" id="selDefault" data-i18n="selDefault"></button>
+          <button type="button" class="link" id="selNone" data-i18n="selNone"></button>
+        </div>
+        </div>
+
+        <h3><i data-icon="bookcheck"></i><span data-i18n="compareHead"></span></h3>
+        <label class="check"><input type="checkbox" id="cmpOn"> <span data-i18n="compareOn"></span></label>
+        <div id="cmpBooks" class="books" hidden></div>
+        <p class="hint" id="cmpHint"></p>
+      </div>
+      <div>
+        <h3><i data-icon="filter"></i><span data-i18n="filter"></span></h3>
+        <label class="field"><span data-i18n="minPre"></span>
+          <input type="number" id="min" value="3" min="1"> <span data-i18n="minPost"></span></label>
+        <p class="hint" data-i18n="minHint"></p>
+        <label class="field"><span data-i18n="yearsPre"></span>
+          <input type="number" id="years" value="3" min="0" step="1"> <span data-i18n="yearsPost"></span></label>
+        <p class="hint" data-i18n="yearsHint"></p>
+        <h3><i data-icon="at"></i><span data-i18n="fields"></span></h3>
+        <label class="check"><input type="checkbox" id="fFrom" checked> <span data-i18n="fFrom"></span></label>
+        <label class="check"><input type="checkbox" id="fTo" checked> <span data-i18n="fTo"></span></label>
+        <label class="check"><input type="checkbox" id="fCc" checked> <span data-i18n="fCc"></span></label>
+        <h3><i data-icon="ban"></i><span data-i18n="exclude"></span></h3>
+        <textarea id="excl" rows="7" spellcheck="false">noreply
+no-reply
+donotreply
+do-not-reply
+mailer-daemon
+postmaster
+newsletter
+notification
+bounce
+reply+</textarea>
+        <p class="hint" data-i18n="excludeHint"></p>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="button" class="primary" id="scan"><i data-icon="search"></i><span data-i18n="scan"></span></button>
+      <button type="button" id="cancel" hidden><i data-icon="x"></i><span data-i18n="cancel"></span></button>
+      <div class="progress" id="prog" hidden><div class="bar"><span id="progBar"></span></div><span id="progText"></span></div>
+    </div>
+  </section>
+
+  <!-- Schritt 2 -->
+  <section id="step2" class="step" hidden>
+    <h2><span class="num">2</span><span data-i18n="step2"></span></h2>
+    <div id="summary" class="stats"></div>
+    <nav class="tabs">
+      <button type="button" data-view="open" class="active"><i data-icon="sparkle"></i><span data-i18n="tabOpen"></span> <b id="cOpen">0</b></button>
+      <button type="button" data-view="all"><i data-icon="list"></i><span data-i18n="tabAll"></span> <b id="cAll">0</b></button>
+      <button type="button" data-view="list"><i data-icon="users"></i><span data-i18n="tabList"></span> <b id="cList">0</b></button>
+    </nav>
+    <div id="toolbar" class="toolbar"></div>
+    <div id="results"></div>
+  </section>
+
+  <!-- Schritt 3 -->
+  <section id="step3" class="step" hidden>
+    <h2><span class="num">3</span><span data-i18n="step3"></span></h2>
+    <div class="grid">
+      <div>
+        <label class="field col"><span class="lbl"><i data-icon="book"></i><span data-i18n="targetBook"></span></span><select id="book"></select></label>
+        <label class="field col" id="newBookWrap"><span data-i18n="newBookName"></span><input type="text" id="newBook"></label>
+      </div>
+      <div>
+        <label class="check"><input type="checkbox" id="optExisting" checked> <span data-i18n="optExisting"></span></label>
+        <label class="check"><input type="checkbox" id="optExtend" checked> <span data-i18n="optExtend"></span></label>
+        <label class="check"><input type="checkbox" id="optCheckDup"> <span data-i18n="optCheckDup"></span></label>
+        <label class="field col sub" id="dupBookWrap" hidden><span class="lbl"><i data-icon="link"></i><span data-i18n="dupBook"></span></span><select id="dupBook"></select></label>
+      </div>
+    </div>
+    <p class="hint" id="openHint"></p>
+    <div class="actions">
+      <button type="button" class="primary" id="save"></button>
+      <div class="progress" id="sprog" hidden><div class="bar"><span id="sprogBar"></span></div><span id="sprogText"></span></div>
+    </div>
+    <div id="saveResult"></div>
+  </section>
+</div>
+
+<div id="viewManage" hidden>
+  <div id="mBanner" class="banner" hidden></div>
+  <section class="step">
+    <h2><span class="num ic-num"><i data-icon="merge"></i></span><span data-i18n="manageHead"></span></h2>
+    <p class="hint" data-i18n="manageIntro"></p>
+    <div class="toolbar">
+      <div class="dupbox">
+        <label class="check"><input type="checkbox" id="mOnlyDup"> <b data-i18n="onlyDup"></b></label>
+        <div class="subopts">
+          <span class="muted" data-i18n="countsAs"></span>
+          <label class="check"><input type="checkbox" id="mByName" checked> <span data-i18n="byName"></span></label>
+          <label class="check"><input type="checkbox" id="mByMail" checked> <span data-i18n="byMail"></span></label>
+          <label class="check"><input type="checkbox" id="mBySim"> <span data-i18n="bySim"></span> <span class="muted" data-i18n="bySimEx"></span></label>
+        </div>
+        <span class="legend"><span class="dupic"><i data-icon="link"></i></span><span data-i18n="legend"></span></span>
+      </div>
+      <span class="grow"></span>
+      <button type="button" class="primary" id="mMerge" disabled></button>
+    </div>
+    <div class="cols">
+      <div class="col" data-side="a">
+        <div class="side-label"><span class="src a">A</span><i data-icon="book"></i><span data-i18n="addressBook"></span></div>
+        <select class="mBook"></select>
+        <div class="onlynew" hidden></div>
+        <input type="search" class="mSearch" data-i18n-ph="searchPh">
+        <div class="mCount hint"></div>
+        <ul class="mList"></ul>
+      </div>
+      <div class="col" data-side="b">
+        <div class="side-label"><span class="src b">B</span><i data-icon="book"></i><span data-i18n="addressBook"></span></div>
+        <select class="mBook"></select>
+        <div class="onlynew" hidden></div>
+        <input type="search" class="mSearch" data-i18n-ph="searchPh">
+        <div class="mCount hint"></div>
+        <ul class="mList"></ul>
+      </div>
+    </div>
+  </section>
+  <section class="step" id="mergePanel" hidden></section>
+</div>
+<div id="viewClean" hidden>
+  <section class="step">
+    <h2><span class="num ic-num"><i data-icon="trash"></i></span><span data-i18n="c_head"></span></h2>
+    <p class="hint" data-i18n="c_intro"></p>
+    <div class="grid">
+      <div>
+        <label class="field col"><span class="lbl"><i data-icon="book"></i><span data-i18n="c_book"></span></span><select id="cBook"></select></label>
+        <label class="field col"><span data-i18n="c_count"></span>
+          <select id="cCount"><option value="both" data-i18n="c_both"></option><option value="recv" data-i18n="c_recv"></option><option value="sent" data-i18n="c_sent"></option></select></label>
+        <h3><i data-icon="folder"></i><span data-i18n="c_folders"></span></h3>
+        <div id="cFolders"></div>
+      </div>
+      <div>
+        <h3><i data-icon="filter"></i><span data-i18n="c_filters"></span></h3>
+        <label class="check"><input type="checkbox" id="cFew" checked> <span data-i18n="c_fFewPre"></span> <input type="number" id="cFewN" value="1" min="0" class="narrow"> <span data-i18n="c_fFewPost"></span></label>
+        <label class="check"><input type="checkbox" id="cOld"> <span data-i18n="c_fOldPre"></span> <input type="number" id="cOldN" value="3" min="1" class="narrow"> <span data-i18n="c_fOldPost"></span></label>
+        <label class="check"><input type="checkbox" id="cNoMail"> <span data-i18n="c_fNoMail"></span></label>
+        <label class="check"><input type="checkbox" id="cNoName"> <span data-i18n="c_fNoName"></span></label>
+        <label class="check"><input type="checkbox" id="cDup"> <span data-i18n="c_fDup"></span></label>
+        <label class="check"><input type="checkbox" id="cPlain"> <span data-i18n="c_fPlain"></span></label>
+        <label class="field col"><select id="cMode"><option value="all" data-i18n="c_modeAll"></option><option value="any" data-i18n="c_modeAny"></option></select></label>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="button" class="primary" id="cGo"><i data-icon="search"></i><span data-i18n="c_analyse"></span></button>
+      <button type="button" id="cCancel" hidden><i data-icon="x"></i><span data-i18n="cancel"></span></button>
+      <div class="progress" id="cprog" hidden><div class="bar"><span id="cprogBar"></span></div><span id="cprogText"></span></div>
+    </div>
+  </section>
+  <section class="step" id="cResult" hidden>
+    <div class="toolbar">
+      <b id="cCountText"></b><span class="grow"></span>
+      <button type="button" class="link" id="cSelAll" data-i18n="c_selAll"></button>
+      <button type="button" class="link" id="cSelNone" data-i18n="c_selNone"></button>
+    </div>
+    <div id="cList"></div>
+    <p class="hint" id="cMore" hidden></p>
+    <div class="actions">
+      <button type="button" class="danger" id="cDel" disabled></button>
+      <button type="button" id="cSave" data-i18n="c_save"></button>
+    </div>
+    <div id="cMsg"></div>
+  </section>
+  <section class="step" id="cRestore" hidden>
+    <h2><span class="num ic-num"><i data-icon="clock"></i></span><span data-i18n="c_restoreHead"></span></h2>
+    <div id="cRestoreList"></div>
+  </section>
+</div>
+<section class="step" id="logPanel" hidden>
+  <div class="toolbar"><h2 style="margin:0"><span data-i18n="logHead"></span></h2><span class="grow"></span><button type="button" id="logClear" data-i18n="logClear"></button></div>
+  <pre id="logList" class="logList"></pre>
+</section>
+</main>
+<script src="theme.js"></script>
+<script src="api.js"></script>
+<script src="dom.js"></script>
+<script src="icons.js"></script>
+<script src="i18n-extra.js"></script>
+<script src="i18n-clean.js"></script>
+<script src="i18n.js"></script>
+<script src="logic.js"></script>
+<script src="ui.js"></script>
+<script src="manager.js"></script>
+<script src="cleanup.js"></script>
+<script src="cplog.js"></script>
+</body>
+</html>

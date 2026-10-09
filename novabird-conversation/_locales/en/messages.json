@@ -1,0 +1,339 @@
+{
+  "extName": {
+    "message": "NovaBird-Conversation"
+  },
+  "extDescription": {
+    "message": "Shows all messages of a conversation in the message pane: newest pinned on top, older ones below."
+  },
+  "messagesCount": {
+    "message": "$N$ messages",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "toNames": {
+    "message": "to $NAMES$",
+    "placeholders": {
+      "names": {
+        "content": "$1"
+      }
+    }
+  },
+  "newBadge": {
+    "message": "new"
+  },
+  "reply": {
+    "message": "Reply"
+  },
+  "replyAll": {
+    "message": "Reply all"
+  },
+  "more": {
+    "message": "More"
+  },
+  "forward": {
+    "message": "Forward"
+  },
+  "forwardAsAttachment": {
+    "message": "Forward as attachment"
+  },
+  "editAsNew": {
+    "message": "Edit as new message"
+  },
+  "expandAll": {
+    "message": "Expand all"
+  },
+  "collapseAll": {
+    "message": "Collapse all"
+  },
+  "showFull": {
+    "message": "Show all"
+  },
+  "showLess": {
+    "message": "Show less"
+  },
+  "quoteToggle": {
+    "message": "Show quoted text"
+  },
+  "remoteBlocked": {
+    "message": "To protect your privacy, remote content in this message has been blocked."
+  },
+  "noText": {
+    "message": "(No text)"
+  },
+  "loading": {
+    "message": "Loading …"
+  },
+  "history": {
+    "message": "Earlier messages"
+  },
+  "optTitle": {
+    "message": "NovaBird-Conversation"
+  },
+  "optOrder": {
+    "message": "Order"
+  },
+  "optOrderNewest": {
+    "message": "Newest first"
+  },
+  "optOrderOldest": {
+    "message": "Oldest first"
+  },
+  "optPin": {
+    "message": "Pin the newest message while scrolling (newest first only)"
+  },
+  "optMaxHeight": {
+    "message": "Maximum height of the pinned message (% of window)"
+  },
+  "optExpand": {
+    "message": "Expand automatically"
+  },
+  "optExpandLatest": {
+    "message": "Newest message and unread ones"
+  },
+  "optExpandLatestPrev": {
+    "message": "Newest, the one before it, and unread ones"
+  },
+  "optExpandAll": {
+    "message": "All messages"
+  },
+  "optAttachments": {
+    "message": "Attachments"
+  },
+  "optAttTop": {
+    "message": "Above the text"
+  },
+  "optAttBottom": {
+    "message": "Below the text"
+  },
+  "optCollapseQuotes": {
+    "message": "Collapse quoted text"
+  },
+  "optAlwaysRender": {
+    "message": "Also show single messages in this view"
+  },
+  "optAlwaysRenderHint": {
+    "message": "Off: messages without replies keep the standard display."
+  },
+  "optSaved": {
+    "message": "Saved"
+  },
+  "optHideHeader": {
+    "message": "Hide Betterbird's standard message header and attachment bar"
+  },
+  "optHideHeaderHint": {
+    "message": "Only while this view is shown. Single messages keep the standard header."
+  },
+  "loadFailed": {
+    "message": "This message could not be loaded."
+  },
+  "notDownloaded": {
+    "message": "Not downloaded yet – loads when opened"
+  },
+  "optFallback": {
+    "message": "When a message has no reply chain"
+  },
+  "optFallbackSubject": {
+    "message": "Group by identical subject (usual)"
+  },
+  "optFallbackSmart": {
+    "message": "Group by subject with extra rules"
+  },
+  "optFallbackOff": {
+    "message": "Do not group (reply chains only)"
+  },
+  "optFallbackHint": {
+    "message": "Reply chains (Message-ID, References, In-Reply-To) are always used first. The fallback applies only to messages without a chain."
+  },
+  "optFallbackDays": {
+    "message": "Extra rules: maximum distance in days"
+  },
+  "optFallbackPeople": {
+    "message": "Extra rules: at least one shared sender or recipient"
+  },
+  "optDebugTiming": {
+    "message": "Write timings to the error console"
+  },
+  "optDebugTimingHint": {
+    "message": "For troubleshooting: shows how long searching, loading and building take (Ctrl+Shift+J)."
+  },
+  "optEngine": {
+    "message": "Source for conversations"
+  },
+  "optEngineAuto": {
+    "message": "Automatic (NovaBird-DB, then Gloda, then Betterbird's search)"
+  },
+  "optEngineQuery": {
+    "message": "Always Betterbird's search"
+  },
+  "optEngineHint": {
+    "message": "The NovaBird-DB index finds conversations in a few milliseconds. If it is missing, still indexing or does not answer, Gloda (Betterbird's own index) is tried, then Betterbird's search. The grouping rules for messages without a reply chain apply to NovaBird-DB and the search; Gloda uses its own."
+  },
+  "optLimit": {
+    "message": "Maximum messages per conversation (NovaBird-DB)"
+  },
+  "optEngineDb": {
+    "message": "NovaBird-DB only (otherwise Betterbird's search)"
+  },
+  "optEngineGloda": {
+    "message": "Gloda only (otherwise Betterbird's search)"
+  },
+  "optTabSettings": {
+    "message": "Settings"
+  },
+  "optTabLook": {
+    "message": "Appearance"
+  },
+  "optStyle": {
+    "message": "Style"
+  },
+  "optStyleSoft": {
+    "message": "Soft"
+  },
+  "optStyleSoftDesc": {
+    "message": "Rounded cards with avatars, lots of air."
+  },
+  "optStyleClear": {
+    "message": "Clear"
+  },
+  "optStyleClearDesc": {
+    "message": "Flat rows with thin lines, more text per screen."
+  },
+  "optStyleThread": {
+    "message": "Thread"
+  },
+  "optStyleThreadDesc": {
+    "message": "Timeline with dots, your own messages tinted."
+  },
+  "delete": {
+    "message": "Delete"
+  },
+  "deleteTip": {
+    "message": "Move this message to the trash"
+  },
+  "optAutoOpen": {
+    "message": "Open the row under the pointer when scrolling"
+  },
+  "optAutoOpenHint": {
+    "message": "A collapsed row opens when the pointer rests on it (depending on the choice only after scrolling, or also without). Nothing opens while you are still scrolling. With IMAP the text is then fetched."
+  },
+  "optAutoOpenTrigger": {
+    "message": "Open on"
+  },
+  "optAutoOpenTrScroll": {
+    "message": "Only after scrolling"
+  },
+  "optAutoOpenTrHover": {
+    "message": "Also when the pointer just rests"
+  },
+  "optAutoOpenDelay": {
+    "message": "Pointer dwell time before opening (ms, 50–200)"
+  },
+  "optOpenMs": {
+    "message": "Duration of the opening animation (ms, 0 = off)"
+  },
+  "optFadeMs": {
+    "message": "Fade-in when a conversation loads (ms, 0 = off)"
+  },
+  "optRowLines": {
+    "message": "Lines of preview text for collapsed messages"
+  },
+  "remoteShow": {
+    "message": "Options"
+  },
+  "remoteThis": {
+    "message": "This message only"
+  },
+  "remoteAll": {
+    "message": "Entire conversation"
+  },
+  "remoteCancel": {
+    "message": "Cancel"
+  },
+  "remoteAsk": {
+    "message": "Load remote content for"
+  },
+  "remoteSender": {
+    "message": "Always from this sender"
+  },
+  "spam": {
+    "message": "Spam"
+  },
+  "spamTip": {
+    "message": "Mark as spam and move to the spam folder"
+  },
+  "notSpam": {
+    "message": "Not spam"
+  },
+  "notSpamTip": {
+    "message": "Mark as not spam and move to the inbox"
+  },
+  "optStickyHeader": {
+    "message": "Keep the header in view while scrolling long messages (Soft and Clear styles)"
+  },
+  "originalBtn": {
+    "message": "Original"
+  },
+  "originalTip": {
+    "message": "Show Betterbird’s original view"
+  },
+  "backToConversation": {
+    "message": "Back to conversation view"
+  },
+  "optAutoOriginal": {
+    "message": "Show unreadable single messages in the original view automatically"
+  },
+  "optAutoOriginalHint": {
+    "message": "If the view of a single message shows hardly any text although the message contains a lot, Betterbird’s original view is shown instead."
+  },
+  "hintLimit": {
+    "message": "The maximum number of messages loaded from the index per conversation. This limits large newsletter groups with many identical subjects; higher values take a little longer."
+  },
+  "hintOrder": {
+    "message": "Newest first shows the latest reply on top; Oldest first reads like a conversation from top to bottom."
+  },
+  "hintPin": {
+    "message": "The newest message stays on top while you scroll through older ones. If it is taller than the height below, “Show all” opens it fully."
+  },
+  "hintExpand": {
+    "message": "Which messages appear expanded when a conversation opens. Unread and the selected message are always open; all others show a row with a preview."
+  },
+  "hintAttachments": {
+    "message": "Where the attachment chips appear in each message: above the text you see them at once, below the text they do not interrupt reading."
+  },
+  "hintQuotes": {
+    "message": "Quoted replies are hidden behind “…”. A click shows the quoted text."
+  },
+  "hintSticky": {
+    "message": "While reading a long message, sender, date and buttons stay in view at the top until the message ends."
+  },
+  "hintRowLines": {
+    "message": "How many lines of preview text a collapsed message shows (1–6). More lines = more content, fewer messages at once."
+  },
+  "hintOpenMs": {
+    "message": "Duration of the animation when a message opens or closes. 0 turns it off; the system setting “Reduce motion” is respected."
+  },
+  "hintFadeMs": {
+    "message": "How long the conversation fades in while loading. 0 shows it at once; short values avoid flicker."
+  },
+  "capPin": {
+    "message": "Newest pinned"
+  },
+  "capExpand": {
+    "message": "Open: newest, the one before, unread"
+  },
+  "capAttTop": {
+    "message": "Attachments on top"
+  },
+  "capAttBottom": {
+    "message": "Attachments below"
+  },
+  "capQuote": {
+    "message": "Quote behind “…”"
+  },
+  "capAutoOpen": {
+    "message": "Pointer rests → row opens"
+  }
+}

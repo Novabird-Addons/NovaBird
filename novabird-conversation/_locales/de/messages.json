@@ -1,0 +1,339 @@
+{
+  "extName": {
+    "message": "NovaBird-Conversation"
+  },
+  "extDescription": {
+    "message": "Zeigt alle Nachrichten einer Konversation im Lesebereich: die neueste oben fixiert, ältere darunter."
+  },
+  "messagesCount": {
+    "message": "$N$ Nachrichten",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "toNames": {
+    "message": "an $NAMES$",
+    "placeholders": {
+      "names": {
+        "content": "$1"
+      }
+    }
+  },
+  "newBadge": {
+    "message": "neu"
+  },
+  "reply": {
+    "message": "Antworten"
+  },
+  "replyAll": {
+    "message": "Allen antworten"
+  },
+  "more": {
+    "message": "Mehr"
+  },
+  "forward": {
+    "message": "Weiterleiten"
+  },
+  "forwardAsAttachment": {
+    "message": "Als Anhang weiterleiten"
+  },
+  "editAsNew": {
+    "message": "Als neu bearbeiten"
+  },
+  "expandAll": {
+    "message": "Alle aufklappen"
+  },
+  "collapseAll": {
+    "message": "Alle einklappen"
+  },
+  "showFull": {
+    "message": "Ganz anzeigen"
+  },
+  "showLess": {
+    "message": "Weniger"
+  },
+  "quoteToggle": {
+    "message": "Zitat anzeigen"
+  },
+  "remoteBlocked": {
+    "message": "Zum Schutz der Privatsphäre wurden externe Inhalte in dieser Nachricht blockiert."
+  },
+  "noText": {
+    "message": "(Kein Text)"
+  },
+  "loading": {
+    "message": "Lädt …"
+  },
+  "history": {
+    "message": "Ältere Nachrichten"
+  },
+  "optTitle": {
+    "message": "NovaBird-Conversation"
+  },
+  "optOrder": {
+    "message": "Reihenfolge"
+  },
+  "optOrderNewest": {
+    "message": "Neueste zuerst"
+  },
+  "optOrderOldest": {
+    "message": "Älteste zuerst"
+  },
+  "optPin": {
+    "message": "Neueste Nachricht beim Scrollen fixieren (nur bei „Neueste zuerst“)"
+  },
+  "optMaxHeight": {
+    "message": "Maximale Höhe der fixierten Nachricht (% des Fensters)"
+  },
+  "optExpand": {
+    "message": "Automatisch aufklappen"
+  },
+  "optExpandLatest": {
+    "message": "Neueste und ungelesene"
+  },
+  "optExpandLatestPrev": {
+    "message": "Neueste, die davor und ungelesene"
+  },
+  "optExpandAll": {
+    "message": "Alle Nachrichten"
+  },
+  "optAttachments": {
+    "message": "Anhänge"
+  },
+  "optAttTop": {
+    "message": "Über dem Text"
+  },
+  "optAttBottom": {
+    "message": "Unter dem Text"
+  },
+  "optCollapseQuotes": {
+    "message": "Zitierten Text einklappen"
+  },
+  "optAlwaysRender": {
+    "message": "Auch einzelne Nachrichten in dieser Ansicht zeigen"
+  },
+  "optAlwaysRenderHint": {
+    "message": "Aus: Nachrichten ohne Antworten behalten die Standardanzeige."
+  },
+  "optSaved": {
+    "message": "Gespeichert"
+  },
+  "optHideHeader": {
+    "message": "Standard-Nachrichtenkopf und Anhangsleiste von Betterbird ausblenden"
+  },
+  "optHideHeaderHint": {
+    "message": "Nur solange diese Ansicht angezeigt wird. Einzelne Nachrichten behalten den Standardkopf."
+  },
+  "loadFailed": {
+    "message": "Diese Nachricht konnte nicht geladen werden."
+  },
+  "notDownloaded": {
+    "message": "Noch nicht heruntergeladen – wird beim Aufklappen geladen"
+  },
+  "optFallback": {
+    "message": "Wenn eine Nachricht keine Antwortkette hat"
+  },
+  "optFallbackSubject": {
+    "message": "Nach gleichem Betreff gruppieren (üblich)"
+  },
+  "optFallbackSmart": {
+    "message": "Nach Betreff mit zusätzlichen Regeln gruppieren"
+  },
+  "optFallbackOff": {
+    "message": "Nicht gruppieren (nur Antwortketten)"
+  },
+  "optFallbackHint": {
+    "message": "Antwortketten (Message-ID, References, In-Reply-To) gelten immer zuerst. Der Ersatz gilt nur für Nachrichten ohne Kette."
+  },
+  "optFallbackDays": {
+    "message": "Zusatzregeln: höchstens so viele Tage Abstand"
+  },
+  "optFallbackPeople": {
+    "message": "Zusatzregeln: mindestens ein gemeinsamer Absender oder Empfänger"
+  },
+  "optDebugTiming": {
+    "message": "Zeiten in der Fehlerkonsole ausgeben"
+  },
+  "optDebugTimingHint": {
+    "message": "Zur Fehlersuche: zeigt, wie lange Suche, Laden und Aufbau dauern (Strg+Umschalt+J)."
+  },
+  "optEngine": {
+    "message": "Quelle für Konversationen"
+  },
+  "optEngineAuto": {
+    "message": "Automatisch (NovaBird-DB, dann Gloda, dann Suche von Betterbird)"
+  },
+  "optEngineQuery": {
+    "message": "Immer Suche von Betterbird"
+  },
+  "optEngineHint": {
+    "message": "Der NovaBird-DB-Index findet Konversationen in wenigen Millisekunden. Fehlt er, indexiert er noch oder antwortet nicht, wird Gloda (Betterbirds eigener Index) versucht, danach die Suche von Betterbird. Die Regeln für Nachrichten ohne Antwortkette gelten für NovaBird-DB und die Suche; Gloda gruppiert nach seinen eigenen."
+  },
+  "optLimit": {
+    "message": "Höchstzahl Nachrichten je Konversation (NovaBird-DB)"
+  },
+  "optEngineDb": {
+    "message": "Nur NovaBird-DB (sonst Suche von Betterbird)"
+  },
+  "optEngineGloda": {
+    "message": "Nur Gloda (sonst Suche von Betterbird)"
+  },
+  "optTabSettings": {
+    "message": "Einstellungen"
+  },
+  "optTabLook": {
+    "message": "Aussehen"
+  },
+  "optStyle": {
+    "message": "Stil"
+  },
+  "optStyleSoft": {
+    "message": "Sanft"
+  },
+  "optStyleSoftDesc": {
+    "message": "Runde Karten mit Avataren, viel Luft."
+  },
+  "optStyleClear": {
+    "message": "Klar"
+  },
+  "optStyleClearDesc": {
+    "message": "Flache Zeilen mit dünnen Linien, mehr Text pro Bildschirm."
+  },
+  "optStyleThread": {
+    "message": "Faden"
+  },
+  "optStyleThreadDesc": {
+    "message": "Zeitleiste mit Punkten, eigene Nachrichten unterlegt."
+  },
+  "delete": {
+    "message": "Löschen"
+  },
+  "deleteTip": {
+    "message": "Diese Nachricht in den Papierkorb verschieben"
+  },
+  "optAutoOpen": {
+    "message": "Zeile unter dem Mauszeiger beim Scrollen aufklappen"
+  },
+  "optAutoOpenHint": {
+    "message": "Eine zugeklappte Zeile öffnet sich, wenn der Mauszeiger darauf stehen bleibt (je nach Auswahl nur nach dem Scrollen oder auch ohne). Beim Scrollen selbst öffnet sich nichts. Bei IMAP wird der Text dann nachgeladen."
+  },
+  "optAutoOpenTrigger": {
+    "message": "Aufklappen auslösen"
+  },
+  "optAutoOpenTrScroll": {
+    "message": "Nur nach dem Scrollen"
+  },
+  "optAutoOpenTrHover": {
+    "message": "Auch beim bloßen Verweilen"
+  },
+  "optAutoOpenDelay": {
+    "message": "Verweildauer des Zeigers vor dem Aufklappen (ms, 50–200)"
+  },
+  "optOpenMs": {
+    "message": "Dauer der Aufklapp-Animation (ms, 0 = aus)"
+  },
+  "optFadeMs": {
+    "message": "Einblenden beim Laden der Konversation (ms, 0 = aus)"
+  },
+  "optRowLines": {
+    "message": "Zeilen Vorschautext bei zugeklappten Nachrichten"
+  },
+  "remoteShow": {
+    "message": "Optionen"
+  },
+  "remoteThis": {
+    "message": "Nur diese Nachricht"
+  },
+  "remoteAll": {
+    "message": "Ganze Unterhaltung"
+  },
+  "remoteCancel": {
+    "message": "Abbrechen"
+  },
+  "remoteAsk": {
+    "message": "Externe Inhalte laden für"
+  },
+  "remoteSender": {
+    "message": "Immer von diesem Absender"
+  },
+  "spam": {
+    "message": "Spam"
+  },
+  "spamTip": {
+    "message": "Als Spam markieren und in den Spam-Ordner verschieben"
+  },
+  "notSpam": {
+    "message": "Kein Spam"
+  },
+  "notSpamTip": {
+    "message": "Nicht als Spam markieren und in den Posteingang verschieben"
+  },
+  "optStickyHeader": {
+    "message": "Kopfzeile beim Scrollen langer Nachrichten fixieren (Stile Sanft und Klar)"
+  },
+  "originalBtn": {
+    "message": "Original"
+  },
+  "originalTip": {
+    "message": "Originalansicht von Betterbird zeigen"
+  },
+  "backToConversation": {
+    "message": "Zur Konversationsansicht"
+  },
+  "optAutoOriginal": {
+    "message": "Unlesbare Einzelmails automatisch im Original zeigen"
+  },
+  "optAutoOriginalHint": {
+    "message": "Zeigt die Ansicht von einer einzelnen Mail kaum Text, obwohl die Mail viel enthält, wird stattdessen Betterbirds Originalansicht gezeigt."
+  },
+  "hintLimit": {
+    "message": "Wie viele Nachrichten höchstens pro Konversation aus dem Index geladen werden. Große Newsletter-Gruppen mit sehr vielen gleichen Betreffen werden dadurch begrenzt; höhere Werte brauchen etwas länger."
+  },
+  "hintOrder": {
+    "message": "Neueste zuerst zeigt die letzte Antwort oben, Älteste zuerst liest sich wie ein Gespräch von oben nach unten."
+  },
+  "hintPin": {
+    "message": "Die neueste Nachricht bleibt oben stehen, während du in älteren Nachrichten scrollst. Ist sie länger als die Höhe unten, kannst du sie mit „Ganz anzeigen“ öffnen."
+  },
+  "hintExpand": {
+    "message": "Welche Nachrichten beim Öffnen einer Konversation aufgeklappt erscheinen. Ungelesene und die gewählte Nachricht sind immer offen; alle anderen zeigen eine Zeile mit Vorschau."
+  },
+  "hintAttachments": {
+    "message": "Ort der Anhang-Chips in jeder Nachricht: über dem Text sieht man sie sofort, unter dem Text stören sie das Lesen nicht."
+  },
+  "hintQuotes": {
+    "message": "Zitierte Antworten werden hinter „…“ versteckt. Ein Klick darauf zeigt den zitierten Text."
+  },
+  "hintSticky": {
+    "message": "Beim Lesen einer langen Nachricht bleiben Absender, Datum und Knöpfe oben im Blick, bis die Nachricht endet."
+  },
+  "hintRowLines": {
+    "message": "Wie viele Zeilen Vorschautext eine zugeklappte Nachricht zeigt (1–6). Mehr Zeilen = mehr Inhalt, weniger Nachrichten auf einmal."
+  },
+  "hintOpenMs": {
+    "message": "Dauer der Animation beim Auf- und Zuklappen einer Nachricht. 0 schaltet die Animation aus; „Bewegung reduzieren“ des Systems wird respektiert."
+  },
+  "hintFadeMs": {
+    "message": "Wie lange die Konversation beim Laden eingeblendet wird. 0 zeigt sie sofort; kurze Werte verhindern ein Flackern."
+  },
+  "capPin": {
+    "message": "Neueste fixiert"
+  },
+  "capExpand": {
+    "message": "Offen: neueste, die davor, ungelesene"
+  },
+  "capAttTop": {
+    "message": "Anhänge oben"
+  },
+  "capAttBottom": {
+    "message": "Anhänge unten"
+  },
+  "capQuote": {
+    "message": "Zitat hinter „…“"
+  },
+  "capAutoOpen": {
+    "message": "Zeiger bleibt → Zeile klappt auf"
+  }
+}

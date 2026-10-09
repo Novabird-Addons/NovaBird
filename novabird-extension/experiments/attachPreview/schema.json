@@ -1,0 +1,25 @@
+[
+  {
+    "namespace": "attachPreview",
+    "functions": [
+      {
+        "name": "setEnabled",
+        "type": "function",
+        "async": true,
+        "description": "Schaltet die Vorschau (PDF/Bilder) beim Überfahren von Anhängen ein oder aus.",
+        "parameters": [
+          { "name": "on", "type": "boolean" }
+        ]
+      },
+      {
+        "name": "setDelay",
+        "type": "function",
+        "async": true,
+        "description": "Verzögerung in Millisekunden, bevor die Vorschau erscheint.",
+        "parameters": [
+          { "name": "ms", "type": "integer" }
+        ]
+      }
+    ]
+  }
+]

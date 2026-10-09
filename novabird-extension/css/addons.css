@@ -1,0 +1,56 @@
+/* about:addons – in-content-Variablen auf die NovaBird-Palette umbiegen */
+:root:root:root {
+  --in-content-page-background: var(--tbsr-bg);
+  --in-content-page-color: var(--tbsr-text);
+  --in-content-text-color: var(--tbsr-text);
+  --in-content-deemphasized-text: var(--tbsr-muted);
+  --in-content-box-background: var(--tbsr-panel);
+  --in-content-box-background-hover: var(--tbsr-hover);
+  --in-content-box-border-color: var(--tbsr-line);
+  --in-content-border-color: var(--tbsr-line);
+  --in-content-border-radius: 10px;
+  --in-content-item-hover: var(--tbsr-hover);
+  --in-content-item-selected: var(--tbsr-accent-bg);
+  --in-content-item-selected-text: var(--tbsr-accent-text);
+  --in-content-primary-button-background: var(--tbsr-accent);
+  --in-content-accent-color: var(--tbsr-accent);
+  --in-content-link-color: var(--tbsr-accent);
+  --in-content-button-background: var(--tbsr-panel);
+  --in-content-button-background-hover: var(--tbsr-hover);
+  --in-content-button-text-color: var(--tbsr-text);
+  --background-color-canvas: var(--tbsr-bg);
+  --background-color-box: var(--tbsr-panel);
+  --text-color: var(--tbsr-text);
+  --text-color-deemphasized: var(--tbsr-muted);
+  --border-color: var(--tbsr-line);
+  --link-color: var(--tbsr-accent);
+  --color-accent-primary: var(--tbsr-accent);
+}
+html, body, #full { background: var(--tbsr-bg) !important; color: var(--tbsr-text); }
+#sidebar { background: var(--tbsr-side) !important; border-inline-end: 1px solid var(--tbsr-line); }
+#content, #main { background: transparent !important; }
+moz-page-nav-button, #sidebar moz-page-nav-button {
+  --page-nav-button-bg-hover: var(--tbsr-hover);
+  --page-nav-button-bg-selected: var(--tbsr-accent-bg);
+  --page-nav-button-text-color-selected: var(--tbsr-accent-text);
+  color: var(--tbsr-text);
+}
+addon-card, .card, .addon-card { border-radius: 12px; }
+button:not(.ghost-button):not(.close-icon) { border-radius: 8px; }
+input[type="search"], search-textbox { border-radius: 8px; }
+addon-page-header, #page-header, #content > *:not(#main) { background: transparent !important; }
+moz-page-nav-button, #sidebar moz-page-nav-button, moz-page-nav {
+  --page-nav-button-background-color-selected: var(--tbsr-accent-bg);
+  --page-nav-button-background-color-hover: var(--tbsr-hover);
+  --page-nav-button-text-color-selected: var(--tbsr-accent-text);
+  --button-background-color-selected: var(--tbsr-accent-bg);
+  --button-background-color-hover: var(--tbsr-hover);
+  --button-text-color-selected: var(--tbsr-accent-text);
+  --background-color-interactive-hover: var(--tbsr-hover);
+  --background-color-interactive-selected: var(--tbsr-accent-bg);
+  --text-color-selected: var(--tbsr-accent-text);
+}
+moz-page-nav-button[selected] { border-radius: 9px; }
+.main-heading, .sticky-container, .main-search { background: transparent !important; }
+moz-page-nav-button { --page-nav-button-text-color: var(--tbsr-text); --page-nav-button-text-color-hover: var(--tbsr-text); --button-text-color-ghost: var(--tbsr-text); }
+moz-page-nav-button[selected], moz-page-nav-button:where([selected]) { --page-nav-button-text-color: var(--tbsr-accent-text); }

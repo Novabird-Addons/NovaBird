@@ -1,0 +1,19 @@
+/* about:accountsettings (top document) */
+body:has(> #tbsr-nav) {
+  grid-template-columns: 280px auto 1fr !important; grid-template-rows: 100% !important;
+  background: var(--tbsr-bg) !important; color: var(--tbsr-text);
+}
+#accountTreeBox { background: var(--tbsr-panel) !important; border-inline-end: 1px solid var(--tbsr-line) !important; }
+#prefsButton { display: none !important; }
+
+#accountTreeBox, #accounttree, #accountTreeBox * { font-size: 14px !important; font-family: var(--tbsr-font) !important; }
+/* the add-ons link is in the shared navigation now */
+#accountTreeBox > :last-child:not(#accounttree):not(#accountTreeHeaderBar) { display: none !important; }
+
+/* account list: selected row as soft pill (only the row itself, not its children) */
+#accounttree li > .container { border-radius: 8px; }
+#accounttree li.selected > .container {
+  background: var(--tbsr-accent-bg) !important; color: var(--tbsr-accent-text) !important;
+  border-color: transparent !important; outline: none !important;
+}
+#accounttree li.selected, #accounttree li.current { background: transparent !important; border-color: transparent !important; outline: none !important; }

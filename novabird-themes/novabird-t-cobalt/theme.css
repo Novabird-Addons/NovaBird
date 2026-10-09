@@ -1,0 +1,1336 @@
+/* Cobalt – kompakt & kräftig – theme.css (ehemals userChrome.css) (Version 1.0) */
+
+:root {
+  --ms-accent: #2559b8;
+  --ms-accent-dark: #1b4590;
+  --ms-accent-soft: #e4ecf9;
+  --ms-accent-soft-focus: #dbe5f6;
+  --ms-sidebar: #eceff6;
+  --ms-spaces: #dde3ee;
+  --ms-sidebar-text: #25374d;
+  --ms-text: #18212f;
+  --ms-muted: #5f6b7e;
+  --ms-border: #d0d7e5;
+  --ms-row-line: #e9eef4;
+  --ms-hover: #e1e8f4;
+  --ms-toolbar: #f5f7fb;
+  --ms-list-bg: #ffffff;
+  --ms-radius: 3px;
+  --ms-row-h: 26px;
+  --ms-select-bar: 3px;
+  --ms-count-bg: #2b3a55;
+  --ms-count-fg: #ffffff;
+  --ms-row-pad: 7px 12px;
+  --ms-font: "Segoe UI Variable Text", "Segoe UI", "Noto Sans", Cantarell, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ---------- Schrift ---------------------------------------------------- */
+:root, body, #messengerWindow, #threadTree, #folderTree {
+  font-family: var(--ms-font) !important;
+}
+
+/* ---------- Spaces-Leiste ---------------------------------------------- */
+#spacesToolbar {
+  background-color: var(--ms-spaces) !important;
+  border-inline-end: 1px solid var(--ms-border) !important;
+}
+.spaces-toolbar-button { border-radius: 8px !important; }
+.spaces-toolbar-button:hover { background-color: var(--ms-hover) !important; }
+.spaces-toolbar-button.current { background-color: var(--ms-accent-soft-focus) !important; }
+
+#mailButton img        { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23dbe5f6%22%20x%3D%222.5%22%20y%3D%224.5%22%20width%3D%2215%22%20height%3D%2211%22%20rx%3D%221.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22m3%205.5%207%205.5%207-5.5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#addressBookButton img { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20fill%3D%22%23dbe5f6%22%20cx%3D%2210%22%20cy%3D%227.5%22%20r%3D%223%22%2F%3E%3Cpath%20fill%3D%22%23dbe5f6%22%20d%3D%22M4%2016.5c.6-2.9%203-4.5%206-4.5s5.4%201.6%206%204.5z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#calendarButton img    { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23dbe5f6%22%20x%3D%223%22%20y%3D%224%22%20width%3D%2214%22%20height%3D%2213%22%20rx%3D%221.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22M3%208h14%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M7%202.5v3M13%202.5v3%22%2F%3E%3C%2Fsvg%3E") !important; }
+#tasksButton img       { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23dbe5f6%22%20x%3D%223%22%20y%3D%223%22%20width%3D%2214%22%20height%3D%2214%22%20rx%3D%222%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22m6.5%2010%202.5%202.5%204.5-5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#chatButton img        { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23dbe5f6%22%20d%3D%22M3%205a1.5%201.5%200%200%201%201.5-1.5h11A1.5%201.5%200%200%201%2017%205v7a1.5%201.5%200%200%201-1.5%201.5H8.5L5%2016.5v-3h-.5A1.5%201.5%200%200%201%203%2012z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#settingsButton img    { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%206H11M15%206h1.5M3.5%2014H5M9%2014h7.5%22%2F%3E%3Ccircle%20fill%3D%22%23dbe5f6%22%20cx%3D%2213%22%20cy%3D%226%22%20r%3D%222%22%2F%3E%3Ccircle%20fill%3D%22%23dbe5f6%22%20cx%3D%227%22%20cy%3D%2214%22%20r%3D%222%22%2F%3E%3C%2Fsvg%3E") !important; }
+
+/* ---------- Obere Werkzeugleiste --------------------------------------- */
+#unifiedToolbarContainer, unified-toolbar {
+  background-color: var(--ms-toolbar) !important;
+  border-bottom: 1px solid var(--ms-border) !important;
+}
+#unifiedToolbar .unified-toolbar-button,
+#unifiedToolbar button { border-radius: var(--ms-radius) !important; }
+li[item-id="write-message"] .button-icon {
+  content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23dbe5f6%22%20d%3D%22M9.5%203.5H5A1.5%201.5%200%200%200%203.5%205v10A1.5%201.5%200%200%200%205%2016.5h10a1.5%201.5%200%200%200%201.5-1.5v-4.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22M14.6%202.9a1.4%201.4%200%200%201%202%202L10%2011.5l-2.5.5.5-2.5z%22%2F%3E%3C%2Fsvg%3E") !important; background-image: none !important;
+}
+li[item-id="get-messages"] .button-icon {
+  content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M16.5%2010a6.5%206.5%200%201%201-1.9-4.6%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22M16.5%203v3.5H13%22%2F%3E%3C%2Fsvg%3E") !important; background-image: none !important;
+}
+
+/* ---------- Ordnerbereich ---------------------------------------------- */
+#folderPane, #folderTree, #folderPaneHeaderBar {
+  background-color: var(--ms-sidebar) !important;
+}
+#folderPaneHeaderBar { border-bottom: none !important; }
+
+#folderTree li > .container {
+  margin-inline: 6px !important;
+  border-radius: var(--ms-radius) !important;
+  min-height: var(--ms-row-h) !important;
+  color: var(--ms-sidebar-text) !important;
+}
+#folderTree li > .container:hover { background-color: var(--ms-hover) !important; }
+#folderTree li.selected > .container {
+  background-color: var(--ms-accent-soft) !important;
+  color: var(--ms-accent-dark) !important;
+  box-shadow: inset var(--ms-select-bar) 0 0 var(--ms-accent) !important;
+}
+#folderTree:focus-within li.selected > .container {
+  background-color: var(--ms-accent-soft-focus) !important;
+  font-weight: 600 !important;
+}
+
+/* Kontennamen als Abschnittsüberschrift */
+#folderTree li[data-server-type] > .container {
+  font-size: 0.82em !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.03em !important;
+  color: var(--ms-muted) !important;
+  margin-top: 8px !important;
+}
+
+/* Ungelesen-Zähler als Pille */
+#folderTree .unread-count {
+  background-color: var(--ms-count-bg) !important;
+  color: var(--ms-count-fg) !important;
+  border-radius: 10px !important;
+  padding: 0 7px !important;
+  font-weight: 600 !important;
+  font-size: 0.85em !important;
+}
+
+/* Ordner-Icons */
+#folderTree li > .container > .icon {
+  content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23dbe5f6%22%20d%3D%22M2.5%206A1.5%201.5%200%200%201%204%204.5h3.6l1.6%202H16a1.5%201.5%200%200%201%201.5%201.5v7a1.5%201.5%200%200%201-1.5%201.5H4A1.5%201.5%200%200%201%202.5%2015z%22%2F%3E%3C%2Fsvg%3E") !important;
+  width: 16px !important; height: 16px !important;
+}
+#folderTree li[data-folder-type="inbox"]     > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3%2011.5%205.2%204.6a1.5%201.5%200%200%201%201.4-1.1h6.8a1.5%201.5%200%200%201%201.4%201.1L17%2011.5%22%2F%3E%3Cpath%20fill%3D%22%23dbe5f6%22%20d%3D%22M3%2011.5V15a1.5%201.5%200%200%200%201.5%201.5h11A1.5%201.5%200%200%200%2017%2015v-3.5h-4l-1%202H8l-1-2H3z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="sent"]      > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23dbe5f6%22%20d%3D%22M17.5%202.5%2012%2017.5l-3-6.5-6.5-3z%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M17.5%202.5%209%2011%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="drafts"]    > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23dbe5f6%22%20d%3D%22M11%203.5H5.5A1.5%201.5%200%200%200%204%205v10a1.5%201.5%200%200%200%201.5%201.5h9A1.5%201.5%200%200%200%2016%2015V9%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22M14.6%202.9a1.4%201.4%200%200%201%202%202L10.5%2011l-2.5.5.5-2.5z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="trash"]     > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23dbe5f6%22%20d%3D%22m5%205.5.8%2010.1A1.5%201.5%200%200%200%207.3%2017h5.4a1.5%201.5%200%200%200%201.5-1.4L15%205.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%205.5h13%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8%205.5V4a1%201%200%200%201%201-1h2a1%201%200%200%201%201%201v1.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8.5%208.5v5M11.5%208.5v5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="junk"]      > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23dbe5f6%22%20d%3D%22M10%202.5%204%204.8v4.7c0%203.6%202.6%206.4%206%208%203.4-1.6%206-4.4%206-8V4.8z%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22m8%208%204%204M12%208l-4%204%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="archive"]   > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23dbe5f6%22%20d%3D%22M4%207.5V15a1.5%201.5%200%200%200%201.5%201.5h9A1.5%201.5%200%200%200%2016%2015V7.5%22%2F%3E%3Crect%20fill%3D%22none%22%20x%3D%222.5%22%20y%3D%223.5%22%20width%3D%2215%22%20height%3D%224%22%20rx%3D%221%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22M8%2011h4%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="outbox"]    > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23dbe5f6%22%20d%3D%22M3%2011.5V15a1.5%201.5%200%200%200%201.5%201.5h11A1.5%201.5%200%200%200%2017%2015v-3.5h-4l-1%202H8l-1-2H3z%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22M10%202.5v7M7%205.5l3-3%203%203%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="templates"] > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23dbe5f6%22%20x%3D%226%22%20y%3D%222.5%22%20width%3D%2210.5%22%20height%3D%2212%22%20rx%3D%221.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%206v9.5A1.5%201.5%200%200%200%205%2017h8%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22M9%206.5h4.5M9%209.5h4.5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="virtual"]   > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23dbe5f6%22%20d%3D%22M2.5%206A1.5%201.5%200%200%201%204%204.5h3.6l1.6%202H16a1.5%201.5%200%200%201%201.5%201.5v7a1.5%201.5%200%200%201-1.5%201.5H4A1.5%201.5%200%200%201%202.5%2015z%22%2F%3E%3Ccircle%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20cx%3D%229.5%22%20cy%3D%2211%22%20r%3D%222%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22m11%2012.5%201.5%201.5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-server-type]             > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20fill%3D%22%23dbe5f6%22%20cx%3D%2210%22%20cy%3D%2210%22%20r%3D%223%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M13%2010v1.2a2.3%202.3%200%200%200%204.5%200V10a7.5%207.5%200%201%200-3%206%22%2F%3E%3C%2Fsvg%3E") !important; }
+
+/* ---------- Nachrichtenliste ------------------------------------------- */
+#threadPane, #threadTree, #threadPaneHeaderBar {
+  background-color: var(--ms-list-bg) !important;
+}
+#threadPaneHeaderBar { border-bottom: 1px solid var(--ms-border) !important; }
+
+#threadTree tbody tr { border-bottom: 1px solid var(--ms-row-line) !important; }
+#threadTree tbody tr:hover { background-color: var(--ms-hover) !important; }
+#threadTree tbody tr.selected {
+  background-color: var(--ms-accent-soft) !important;
+  color: var(--ms-text) !important;
+}
+#threadTree:focus-within tbody tr.selected {
+  background-color: var(--ms-accent) !important;
+  color: #ffffff !important;
+}
+#threadTree tbody tr.unread .subject,
+#threadTree tbody tr.unread .sender,
+#threadTree tbody tr.unread .correspondentcol-column { font-weight: 600 !important; }
+
+/* Kartenansicht */
+/* Nur den seitlichen Abstand setzen: Betterbird rechnet die Zeilenhöhe fest aus (Karten-Innenabstand ca. 7 px gesamt),
+   größerer senkrechter Abstand schneidet sonst die Absenderzeile ab. */
+tr[is="thread-card"] .card-container { padding-inline: 14px !important; }
+tr[is="thread-card"].unread .card-container { box-shadow: inset 3px 0 0 var(--ms-accent) !important; }
+tr[is="thread-card"] .date { color: color-mix(in srgb, var(--ms-text) 72%, #ffffff) !important; }
+/* Auswahl: die Karte selbst bleibt durchsichtig, die Zeile liefert den Grund. Heller Grund + dunkle Schrift in jedem
+   Zustand (mit und ohne Fokus), damit Schrift und Hintergrund nie zu nah beieinander liegen. */
+#threadTree tr[is="thread-card"].selected .card-container { background-color: transparent !important; box-shadow: inset 3px 0 0 var(--ms-accent) !important; }
+#threadTree tr[is="thread-card"].selected { background-color: var(--ms-accent-soft) !important; color: var(--ms-text) !important; }
+#threadTree:focus-within tr[is="thread-card"].selected { background-color: var(--ms-accent-soft-focus) !important; color: var(--ms-text) !important; }
+#threadTree tr[is="thread-card"].selected :is(.sender, .subject, .thread-card-subject-container, .correspondent) { color: var(--ms-text) !important; }
+#threadTree tr[is="thread-card"].selected .date,
+#threadTree:focus-within tr[is="thread-card"].selected .date { color: var(--ms-sidebar-text) !important; }
+/* Cobalt färbt Absender in der Tabelle bei Fokus weiß (Zeilen unten); für Karten höher gewichten */
+#threadTree:focus-within tbody tr[is="thread-card"].selected :is(.sender, .correspondent) { color: var(--ms-text) !important; }
+
+/* ---------- Trennlinien ------------------------------------------------ */
+#folderPaneSplitter, #messagePaneSplitter, splitter {
+  --splitter-color: var(--ms-border) !important;
+  border-color: var(--ms-border) !important;
+}
+
+/* ---------- Nachrichtenkopf -------------------------------------------- */
+#messageHeader {
+  background-color: var(--ms-list-bg) !important;
+  border-bottom: 1px solid var(--ms-border) !important;
+}
+#header-view-toolbar toolbarbutton,
+#header-view-toolbar .toolbarbutton-1 { border-radius: var(--ms-radius) !important; }
+#hdrReplyButton, #hdrReplyToSenderButton { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22M8%205%203.5%209.5%208%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%209.5H11a5%205%200%200%201%205%205v1%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrReplyAllButton { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22M10%205%205.5%209.5%2010%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22M6%205%201.5%209.5%206%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M5.5%209.5H12a5%205%200%200%201%205%205v1%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrForwardButton  { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22m12%205%204.5%204.5L12%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M16.5%209.5H9a5%205%200%200%200-5%205v1%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrArchiveButton  { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23dbe5f6%22%20d%3D%22M4%207.5V15a1.5%201.5%200%200%200%201.5%201.5h9A1.5%201.5%200%200%200%2016%2015V7.5%22%2F%3E%3Crect%20fill%3D%22none%22%20x%3D%222.5%22%20y%3D%223.5%22%20width%3D%2215%22%20height%3D%224%22%20rx%3D%221%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22M8%2011h4%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrJunkButton     { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23dbe5f6%22%20d%3D%22M10%202.5%204%204.8v4.7c0%203.6%202.6%206.4%206%208%203.4-1.6%206-4.4%206-8V4.8z%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%232559b8%22%20d%3D%22m8%208%204%204M12%208l-4%204%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrTrashButton    { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%2333466a%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23dbe5f6%22%20d%3D%22m5%205.5.8%2010.1A1.5%201.5%200%200%200%207.3%2017h5.4a1.5%201.5%200%200%200%201.5-1.4L15%205.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%205.5h13%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8%205.5V4a1%201%200%200%201%201-1h2a1%201%200%200%201%201%201v1.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8.5%208.5v5M11.5%208.5v5%22%2F%3E%3C%2Fsvg%3E") !important; }
+
+/* ---------- Menüs ------------------------------------------------------ */
+menupopup, panel { --panel-border-radius: 8px !important; }
+
+/* ---------- Cobalt: kompakte Tabellenansicht --------------------------- */
+#threadTree thead th {
+  background-color: var(--ms-sidebar) !important;
+  color: var(--ms-sidebar-text) !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid var(--ms-border) !important;
+}
+#threadTree tbody tr.unread:not(.selected) .correspondentcol-column,
+#threadTree tbody tr.unread:not(.selected) .sender {
+  color: var(--ms-text) !important;
+}
+#threadTree:focus-within tbody tr.selected .correspondentcol-column,
+#threadTree:focus-within tbody tr.selected .sender { color: #ffffff !important; }
+
+/* Ordnerbereich etwas dichter, Konten mit Trennlinie */
+#folderTree li > .container { margin-inline: 4px !important; }
+#folderTree li[data-server-type] > .container {
+  border-top: 1px solid var(--ms-border) !important;
+  border-radius: 0 !important;
+  padding-top: 6px !important;
+}
+#folderTree > li:first-child > .container { border-top: none !important; }
+
+/* Verfassen-Button als blaue Schaltfläche */
+li[item-id="write-message"] button {
+  background-color: var(--ms-accent) !important;
+  color: #ffffff !important;
+}
+li[item-id="write-message"] .button-icon { filter: brightness(0) invert(1) !important; }
+
+/* ===== NovaBird-Erweiterungen (aus dem früheren Polar übertragen, Farben umgerechnet) ===== */
+/* Kontextmenüs und Menüs: Theme-Farben statt Systemgrau (nur wo Menüs nicht nativ gezeichnet werden, z. B. Windows) */
+:root:root:root:root menupopup:not([type="arrow"]) {
+  --panel-background-color: #FBFCFD;
+  --panel-text-color: #18212f;
+  --panel-border-color: #D5DFE8;
+  --panel-border-radius: 10px;
+  --panel-padding: 5px;
+  --menuitem-border-radius: 6px;
+  --menuitem-padding: 0.4em 0.8em;
+  --panel-separator-color: #E7EDF3;
+  --panel-box-shadow: 0 6px 22px rgba(30, 50, 90, 0.18);
+  --panel-box-shadow-margin: 12px;
+}
+:root:root:root:root menupopup > :is(menuitem, menu)[_moz-menuactive]:not([disabled]) {
+  background-color: #dbe5f6;
+  color: #10263F;
+}
+:root:root:root:root menupopup > :is(menuitem, menu)[disabled] {
+  color: #8E9DAC;
+}
+
+/* Kalender: ruhiges Raster, Heute als Akzent, Termine als weiche Pillen */
+:root:root:root:root {
+  --viewColor: #18212f;
+  --viewBackground: #FBFCFE;
+  --viewBorderColor: #EDF2F6;
+  --viewWeekendBackground: #F3F7FB;
+  --viewTodayBackground: #EAF2FD;
+  --viewTodayWeekendBackground: #E6F0FB;
+  --viewTodayOffBackground: #E6F0FB;
+  --viewTodayLabelBackground: #2559b8;
+  --viewTodayLabelColor: #FFFFFF;
+  --viewHighlightBorderColor: rgba(31, 111, 214, 0.45);
+  --viewDayBoxSelectedBackground: #E3EFFC;
+  --viewDayBoxOffSelectedBackground: #E0ECFA;
+  --viewDayBoxOtherSelectedBackground: #E0ECFA;
+  --viewHeaderSelectedBackground: #dbe5f6;
+  --viewMonthOtherBackground: #F8FAFC;
+  --viewMonthDayOtherBackground: #F8FAFC;
+  --viewMonthWeekLabelBackground: #EDF2F6;
+  --viewMonthDayBoxLabelColor: #35475A;
+  --viewMonthDayBoxSelectedColor: #18212f;
+  --viewCalendarHeaderBackground: #F8FAFC;
+  --viewOffTimeBackground: #F3F7FB;
+  --viewTimeBoxColor: #7C8D9E;
+  --viewDayLabelSelectedBackground: #2559b8;
+  --viewDragboxBackground: #2559b8;
+  --viewDropshadowBackground: #2559b8;
+  --calendar-view-toggle-background: #EDF2F6;
+  --calendar-view-toggle-selected-background: #FFFFFF;
+  --calendar-view-toggle-hover-background: #dbe5f6;
+  --button-border-radius: 8px;
+}
+.calendar-color-box {
+  border-radius: 6px;
+  background-color: color-mix(in srgb, var(--item-backcolor) 88%, white);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--item-backcolor) 75%, black);
+}
+calendar-month-day-box calendar-month-day-box-item[allday="true"].calendar-color-box {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--item-backcolor) 75%, black);
+}
+.calendar-month-day-box-list-item {
+  margin: 1px 4px;
+}
+.calendar-month-day-box-date-label[relation="today"] {
+  box-shadow: 0 1px 4px rgba(31, 111, 214, 0.35);
+}
+.calendar-month-day-box-week-label {
+  font-weight: 600;
+}
+.day-column-heading {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.multiday-grid:not(.multiday-grid-rotated) .timeIndicator {
+  border-block-start-color: #E5484D;
+  opacity: 0.9;
+}
+.multiday-timebar-now-indicator {
+  border-color: #E5484D;
+}
+calendar-day-label {
+  background-color: var(--viewCalendarHeaderBackground);
+  color: #5B6E81;
+}
+.calendar-day-label-name {
+  font-weight: 600;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Heute-Markierung lesbar (--selected-item-color ist im Theme ein helles Blau und taugt nur als Fläche) */
+.day-column-today .day-column-heading,
+.day-column-selected .day-column-heading,
+calendar-day-label[relation="today"] {
+  color: #2559b8;
+}
+:root:root:root:root calendar-minimonth {
+  --mmDaySelectedColor: #17387a;
+  --mmDaySelectedBackground: rgba(31, 111, 214, 0.22);
+  --mmDaySelectedBorderColor: rgba(31, 111, 214, 0.5);
+  --mmDaySelectedTodayBackground: rgba(31, 111, 214, 0.18);
+  --mmDaySelectedTodayBorderColor: rgba(31, 111, 214, 0.5);
+  --mmDayTodayColor: #17387a;
+  --mmDayTodayBackground: rgba(31, 111, 214, 0.12);
+}
+
+/* Menüs: zusätzlich direkt am Inhaltsbereich, falls die Variablen nicht greifen */
+menupopup:not([type="arrow"])::part(content) {
+  background: #FBFCFD !important;
+  color: #18212f !important;
+  border: 1px solid #D5DFE8 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 6px 22px rgba(30, 50, 90, 0.18) !important;
+}
+
+/* Mini-Kalender: Heute kräftig blau, angewählter Tag sanft gelb */
+:root:root:root:root calendar-minimonth {
+  --mmDayTodayBackground: #2559b8;
+  --mmDayTodayColor: #FFFFFF;
+  --mmDayTodayBorderColor: #2559b8;
+  --mmDaySelectedBackground: #FFF0B3;
+  --mmDaySelectedColor: #4A3800;
+  --mmDaySelectedBorderColor: #E3B93C;
+  --mmDaySelectedTodayBackground: #2559b8;
+  --mmDaySelectedTodayBorderColor: #E3B93C;
+}
+.minimonth-day[today="true"],
+.minimonth-day[selected="true"][today="true"] {
+  color: #FFFFFF;
+  font-weight: 700;
+}
+.minimonth-day[selected="true"]:not([today="true"]) {
+  font-weight: 600;
+}
+
+/* Wochen-/Monatsansicht: angewählter Tag ebenfalls sanft gelb, Heute bleibt blau */
+:root:root:root:root {
+  --viewDayBoxSelectedBackground: #FFF6D6;
+  --viewDayBoxOffSelectedBackground: #FFF1C4;
+  --viewDayBoxOtherSelectedBackground: #FFF1C4;
+  --viewHighlightBorderColor: rgba(227, 185, 60, 0.75);
+}
+.day-column-selected .day-column-heading {
+  color: #8A6400;
+}
+.day-column-today .day-column-heading {
+  color: #2559b8;
+}
+
+/* ===== Kalender 2.0: moderner Look ===== */
+
+/* Termine: Pastellfläche in der Kalenderfarbe, dunkler Text, kräftiger Streifen links */
+.calendar-color-box {
+  border-radius: 8px;
+  background-color: color-mix(in srgb, var(--item-backcolor) 20%, #FFFFFF);
+  color: color-mix(in srgb, var(--item-backcolor) 35%, #0F1D2E);
+  box-shadow: inset 4px 0 0 var(--item-backcolor), 0 1px 2px rgba(30, 50, 90, 0.10);
+  transition: box-shadow 0.12s ease, transform 0.12s ease;
+}
+calendar-month-day-box calendar-month-day-box-item[allday="true"].calendar-color-box {
+  box-shadow: inset 4px 0 0 var(--item-backcolor), 0 1px 2px rgba(30, 50, 90, 0.10);
+}
+calendar-event-box:hover .calendar-color-box,
+calendar-month-day-box-item:hover.calendar-color-box {
+  box-shadow: inset 4px 0 0 var(--item-backcolor), 0 4px 12px rgba(30, 50, 90, 0.18);
+}
+.calendar-item-flex {
+  padding: 5px 8px 5px 10px;
+}
+.item-time-label {
+  font-weight: 600;
+  opacity: 0.8;
+}
+.event-name-label {
+  font-weight: 600;
+}
+.multiday-event-listitem {
+  padding: 1px 2px;
+}
+
+/* Ansichtsumschalter (Tag/Woche/Monat) als runde Pille */
+.calview-toggle {
+  border-radius: 999px;
+  padding: 2px;
+  box-shadow: none;
+}
+button.calview-toggle-item {
+  border-radius: 999px;
+  font-weight: 500;
+}
+button.calview-toggle-item[role="tab"][aria-selected="true"] {
+  background-color: #FFFFFF;
+  color: #17387a;
+  font-weight: 600;
+  border-color: transparent;
+  box-shadow: 0 1px 4px rgba(30, 50, 90, 0.20);
+}
+button.calview-toggle-item[role="tab"][aria-selected="false"]:hover {
+  background-color: rgba(31, 111, 214, 0.10);
+}
+
+/* Navigation (zurück / heute / vor) */
+.calendar-nav-buttons-container .button,
+.calendar-nav-buttons-container button {
+  border-radius: 999px;
+}
+
+/* Raster: nur horizontale Haarlinien, keine harten Spaltenlinien */
+.multiday-hour-box {
+  border-color: #F6F8FB;
+}
+calendar-event-column {
+  border-inline-start-color: #F6F8FB;
+}
+.day-column-heading {
+  border-color: transparent;
+  padding-block: 6px 5px;
+}
+calendar-header-container {
+  border-inline-start-color: #F6F8FB;
+  border-block-end: 1px solid #E7EDF3;
+}
+
+/* Monatsansicht: luftig, Tageszellen mit sanftem Hover */
+.monthtable {
+  border-radius: 10px;
+}
+.monthtable :is(td, th) > * {
+  border-inline-start-color: #F6F8FB;
+  border-block-start-color: #F6F8FB;
+}
+calendar-month-day-box {
+  transition: background-color 0.12s ease;
+}
+calendar-month-day-box:hover {
+  background-color: #F1F7FE;
+}
+.calendar-month-day-box-date-label {
+  font-weight: 500;
+  padding: 3px 6px;
+}
+.calendar-month-day-box-date-label[relation="today"] {
+  padding-inline: 8px;
+  margin: 2px;
+}
+.calendar-month-day-box-list-item {
+  margin: 2px 5px;
+}
+
+/* Termin-Dialog (Neuer Termin / Termin bearbeiten): Systemgrau durch Theme-Fläche ersetzen */
+:root:root #calendar-item-panel-iframe,
+:root:root #calendar-event-dialog,
+:root:root #calendar-task-dialog,
+:root:root #calendar-event-dialog-inner,
+:root:root #calendar-task-dialog-inner,
+:root:root #calendar-event-summary-dialog {
+  background: #F7F9FB !important;
+  color: #18212f;
+}
+
+/* Termine kräftiger absetzen (helle Kalenderfarben gingen sonst im Hintergrund unter) */
+.calendar-color-box {
+  background-color: color-mix(in srgb, var(--item-backcolor) 42%, #FFFFFF);
+  color: color-mix(in srgb, var(--item-backcolor) 25%, #0F1D2E);
+  box-shadow:
+    inset 4px 0 0 color-mix(in srgb, var(--item-backcolor) 65%, #000000),
+    0 0 0 1px color-mix(in srgb, var(--item-backcolor) 55%, #FFFFFF),
+    0 1px 3px rgba(30, 50, 90, 0.14);
+}
+calendar-month-day-box calendar-month-day-box-item[allday="true"].calendar-color-box {
+  box-shadow:
+    inset 4px 0 0 color-mix(in srgb, var(--item-backcolor) 65%, #000000),
+    0 0 0 1px color-mix(in srgb, var(--item-backcolor) 55%, #FFFFFF),
+    0 1px 3px rgba(30, 50, 90, 0.14);
+}
+calendar-event-box:hover .calendar-color-box,
+calendar-month-day-box-item:hover.calendar-color-box {
+  box-shadow:
+    inset 4px 0 0 color-mix(in srgb, var(--item-backcolor) 65%, #000000),
+    0 0 0 1px color-mix(in srgb, var(--item-backcolor) 55%, #FFFFFF),
+    0 4px 12px rgba(30, 50, 90, 0.22);
+}
+
+/* Wochenende außerhalb der Arbeitszeit: bläulich statt Grau */
+:root:root:root:root {
+  --viewMonthDayOffLabelBackground: #F0F5F9;
+  --viewOffTimeBackground: #F0F5FA;
+}
+
+/* Grundpalette der Oberfläche: Buttons, Auswahllisten, Felder und Kopfzeilen bläulich statt neutralgrau */
+:root:root:root:root {
+  --layout-background-0: #FBFCFE;
+  --layout-background-1: #F7F9FB;
+  --layout-background-2: #F0F5F9;
+  --layout-background-3: #E8EFF5;
+  --layout-background-4: #DAE4EE;
+  --layout-color-1: #18212f;
+  --layout-color-2: #45576A;
+  --layout-border-0: #DFE7EE;
+  --layout-border-1: #CDD9E4;
+  --button-background-color: #F0F5F9;
+  --button-hover-background-color: #dbe5f6;
+  --button-active-background-color: #C7DCF5;
+  --button-border-color: #D5DFE8;
+  --button-border-radius: 8px;
+  --button-text-color: #18212f;
+}
+
+/* Termin-Dialog: der Iframe-Inhalt ist selbst das Wurzelelement, daher eigene Selektoren */
+html#calendar-event-dialog-inner:root,
+html#calendar-task-dialog-inner:root {
+  background: #F7F9FB !important;
+  color: #18212f;
+}
+
+/* Termin-Dialog: Reiter (Beschreibung / Anhänge / Teilnehmer) in Theme-Farben */
+html#calendar-event-dialog-inner:root {
+  --panel-background-color-dimmed: #DCE9F7;
+}
+html#calendar-event-dialog-inner tab:hover {
+  background-color: rgba(31, 111, 214, 0.10);
+}
+html#calendar-event-dialog-inner tab:hover:active {
+  background-color: rgba(31, 111, 214, 0.18);
+}
+html#calendar-event-dialog-inner tab[selected] {
+  border-block-end-color: #2559b8;
+}
+
+/* ===== Kontakte / Adressbuch ===== */
+:root:root:root:root[lwtheme] {
+  --recipient-avatar-color: #1b4590;
+  --tree-card-background: #FBFCFE;
+  --tree-card-border: transparent;
+  --tree-card-border-hover: #BFD6F3;
+  --tree-card-background-current: #EAF2FD;
+  --tree-card-background-selected: #dbe5f6;
+  --tree-card-background-selected-current: #dbe5f6;
+  --tree-card-border-selected: #A9C8EE;
+  --tree-card-border-focus: #2559b8;
+  --tree-card-background-selected-unfocused: #E3EDF8;
+  --tree-card-background-current-unfocused: #EEF4FB;
+  --ab-contact-photo-size: 96px;
+  --ab-detail-section-padding: 18px;
+}
+
+/* Avatare: weiches Blau statt Grau, ohne Ring */
+:root:root:root:root .recipient-avatar {
+  background-color: #DCEAFB;
+  color: #1b4590;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+/* Liste: Karten ohne Rahmen, runde Ecken, genug Luft */
+tr[is="ab-card-row"] td > .card-container {
+  border-radius: 12px;
+  padding-block: 4px;
+}
+tr[is="ab-card-row"] .name {
+  font-weight: 600;
+}
+
+/* Suchfeld und Seitenleiste */
+#searchInput {
+  border-radius: 999px;
+}
+#books .listRow-container {
+  border-radius: 8px;
+}
+
+/* Detailansicht: Kopf großzügig, Aktionen als Pillen, Abschnitte als weiche Karten */
+.contact-photo {
+  background-color: #DCEAFB;
+  stroke: #1b4590;
+  box-shadow: 0 2px 8px rgba(30, 50, 90, 0.12);
+}
+.contact-heading-name {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.contact-heading-email,
+.contact-heading-nickname {
+  color: #5B6E81;
+}
+#detailsBody {
+  gap: 14px;
+}
+#detailsBody section {
+  background-color: #FBFCFE;
+  border: 1px solid #EDF2F6;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(30, 50, 90, 0.06);
+}
+#detailsBody h2 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5B6E81;
+}
+#detailsActions.button-block,
+#detailsActions {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  padding-inline: 0;
+}
+#detailsActions button {
+  border-radius: 999px;
+  padding-inline: 14px;
+}
+#detailsActions button.icon-button {
+  padding-inline-start: 32px;
+}
+/* „… hinzufügen“ und (+) im Bearbeiten-Modus: gut lesbar statt blassem Hellblau */
+.addr-book-edit-fieldset-button.add-property-button {
+  color: #1b4590;
+}
+.entry-type {
+  color: #7C8D9E;
+  opacity: 1;
+}
+.entry-value a {
+  color: #1b4590;
+}
+
+/* Termin-Dialog: gewählter Reiter */
+html#calendar-event-dialog-inner tab[selected],
+html#calendar-event-dialog-inner tab[visuallyselected] {
+  background-color: #DCE9F7 !important;
+}
+
+
+/* Kontakt-Avatare sind eigene Elemente mit Schattendokument: Farben als Variablen am Element setzen */
+contact-avatar {
+  --color-surface-deep: #DCEAFB;
+  --color-text-base: #1b4590;
+}
+
+/* Symbole anderer Add-ons in der linken Leiste (Notizen, Ordner …): einfarbig in der Farbe der Leiste statt Grau/Bunt */
+:root:root:root:root .spaces-addon-button > img {
+  content: none !important;
+  inline-size: var(--spaces-icon-size);
+  block-size: var(--spaces-icon-size);
+  background-color: currentColor;
+  -webkit-mask: var(--webextension-toolbar-image) center / contain no-repeat;
+  mask: var(--webextension-toolbar-image) center / contain no-repeat;
+}
+
+/* ===== Dunkelmodus (Betriebssystem) ===== */
+@media (prefers-color-scheme: dark) {
+/* Cobalt – kompakt & kräftig – theme.css (ehemals userChrome.css) (Version 1.0) */
+
+:root {
+  --ms-accent: #88b3fe;
+  --ms-accent-dark: #99befc;
+  --ms-accent-soft: #191f2a;
+  --ms-accent-soft-focus: #263a5c;
+  --ms-sidebar: #161d27;
+  --ms-spaces: #202530;
+  --ms-sidebar-text: #c4d8f1;
+  --ms-text: #dbe6f8;
+  --ms-muted: #9fabbd;
+  --ms-border: #292f3a;
+  --ms-row-line: #171e28;
+  --ms-hover: #1c222d;
+  --ms-toolbar: #101821;
+  --ms-list-bg: #0b121b;
+  --ms-radius: 3px;
+  --ms-row-h: 26px;
+  --ms-select-bar: 3px;
+  --ms-count-bg: #c1d2f1;
+  --ms-count-fg: #0b121b;
+  --ms-row-pad: 7px 12px;
+  --ms-font: "Segoe UI Variable Text", "Segoe UI", "Noto Sans", Cantarell, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ---------- Schrift ---------------------------------------------------- */
+:root, body, #messengerWindow, #threadTree, #folderTree {
+  font-family: var(--ms-font) !important;
+}
+
+/* ---------- Spaces-Leiste ---------------------------------------------- */
+#spacesToolbar {
+  background-color: var(--ms-spaces) !important;
+  border-inline-end: 1px solid var(--ms-border) !important;
+}
+.spaces-toolbar-button { border-radius: 8px !important; }
+.spaces-toolbar-button:hover { background-color: var(--ms-hover) !important; }
+.spaces-toolbar-button.current { background-color: var(--ms-accent-soft-focus) !important; }
+
+#mailButton img        { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23263a5c%22%20x%3D%222.5%22%20y%3D%224.5%22%20width%3D%2215%22%20height%3D%2211%22%20rx%3D%221.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22m3%205.5%207%205.5%207-5.5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#addressBookButton img { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20fill%3D%22%23263a5c%22%20cx%3D%2210%22%20cy%3D%227.5%22%20r%3D%223%22%2F%3E%3Cpath%20fill%3D%22%23263a5c%22%20d%3D%22M4%2016.5c.6-2.9%203-4.5%206-4.5s5.4%201.6%206%204.5z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#calendarButton img    { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23263a5c%22%20x%3D%223%22%20y%3D%224%22%20width%3D%2214%22%20height%3D%2213%22%20rx%3D%221.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22M3%208h14%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M7%202.5v3M13%202.5v3%22%2F%3E%3C%2Fsvg%3E") !important; }
+#tasksButton img       { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23263a5c%22%20x%3D%223%22%20y%3D%223%22%20width%3D%2214%22%20height%3D%2214%22%20rx%3D%222%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22m6.5%2010%202.5%202.5%204.5-5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#chatButton img        { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23263a5c%22%20d%3D%22M3%205a1.5%201.5%200%200%201%201.5-1.5h11A1.5%201.5%200%200%201%2017%205v7a1.5%201.5%200%200%201-1.5%201.5H8.5L5%2016.5v-3h-.5A1.5%201.5%200%200%201%203%2012z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#settingsButton img    { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%206H11M15%206h1.5M3.5%2014H5M9%2014h7.5%22%2F%3E%3Ccircle%20fill%3D%22%23263a5c%22%20cx%3D%2213%22%20cy%3D%226%22%20r%3D%222%22%2F%3E%3Ccircle%20fill%3D%22%23263a5c%22%20cx%3D%227%22%20cy%3D%2214%22%20r%3D%222%22%2F%3E%3C%2Fsvg%3E") !important; }
+
+/* ---------- Obere Werkzeugleiste --------------------------------------- */
+#unifiedToolbarContainer, unified-toolbar {
+  background-color: var(--ms-toolbar) !important;
+  border-bottom: 1px solid var(--ms-border) !important;
+}
+#unifiedToolbar .unified-toolbar-button,
+#unifiedToolbar button { border-radius: var(--ms-radius) !important; }
+li[item-id="write-message"] .button-icon {
+  content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23263a5c%22%20d%3D%22M9.5%203.5H5A1.5%201.5%200%200%200%203.5%205v10A1.5%201.5%200%200%200%205%2016.5h10a1.5%201.5%200%200%200%201.5-1.5v-4.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22M14.6%202.9a1.4%201.4%200%200%201%202%202L10%2011.5l-2.5.5.5-2.5z%22%2F%3E%3C%2Fsvg%3E") !important; background-image: none !important;
+}
+li[item-id="get-messages"] .button-icon {
+  content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M16.5%2010a6.5%206.5%200%201%201-1.9-4.6%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22M16.5%203v3.5H13%22%2F%3E%3C%2Fsvg%3E") !important; background-image: none !important;
+}
+
+/* ---------- Ordnerbereich ---------------------------------------------- */
+#folderPane, #folderTree, #folderPaneHeaderBar {
+  background-color: var(--ms-sidebar) !important;
+}
+#folderPaneHeaderBar { border-bottom: none !important; }
+
+#folderTree li > .container {
+  margin-inline: 6px !important;
+  border-radius: var(--ms-radius) !important;
+  min-height: var(--ms-row-h) !important;
+  color: var(--ms-sidebar-text) !important;
+}
+#folderTree li > .container:hover { background-color: var(--ms-hover) !important; }
+#folderTree li.selected > .container {
+  background-color: var(--ms-accent-soft) !important;
+  color: var(--ms-accent-dark) !important;
+  box-shadow: inset var(--ms-select-bar) 0 0 var(--ms-accent) !important;
+}
+#folderTree:focus-within li.selected > .container {
+  background-color: var(--ms-accent-soft-focus) !important;
+  font-weight: 600 !important;
+}
+
+/* Kontennamen als Abschnittsüberschrift */
+#folderTree li[data-server-type] > .container {
+  font-size: 0.82em !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.03em !important;
+  color: var(--ms-muted) !important;
+  margin-top: 8px !important;
+}
+
+/* Ungelesen-Zähler als Pille */
+#folderTree .unread-count {
+  background-color: var(--ms-count-bg) !important;
+  color: var(--ms-count-fg) !important;
+  border-radius: 10px !important;
+  padding: 0 7px !important;
+  font-weight: 600 !important;
+  font-size: 0.85em !important;
+}
+
+/* Ordner-Icons */
+#folderTree li > .container > .icon {
+  content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23263a5c%22%20d%3D%22M2.5%206A1.5%201.5%200%200%201%204%204.5h3.6l1.6%202H16a1.5%201.5%200%200%201%201.5%201.5v7a1.5%201.5%200%200%201-1.5%201.5H4A1.5%201.5%200%200%201%202.5%2015z%22%2F%3E%3C%2Fsvg%3E") !important;
+  width: 16px !important; height: 16px !important;
+}
+#folderTree li[data-folder-type="inbox"]     > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3%2011.5%205.2%204.6a1.5%201.5%200%200%201%201.4-1.1h6.8a1.5%201.5%200%200%201%201.4%201.1L17%2011.5%22%2F%3E%3Cpath%20fill%3D%22%23263a5c%22%20d%3D%22M3%2011.5V15a1.5%201.5%200%200%200%201.5%201.5h11A1.5%201.5%200%200%200%2017%2015v-3.5h-4l-1%202H8l-1-2H3z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="sent"]      > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23263a5c%22%20d%3D%22M17.5%202.5%2012%2017.5l-3-6.5-6.5-3z%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M17.5%202.5%209%2011%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="drafts"]    > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23263a5c%22%20d%3D%22M11%203.5H5.5A1.5%201.5%200%200%200%204%205v10a1.5%201.5%200%200%200%201.5%201.5h9A1.5%201.5%200%200%200%2016%2015V9%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22M14.6%202.9a1.4%201.4%200%200%201%202%202L10.5%2011l-2.5.5.5-2.5z%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="trash"]     > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23263a5c%22%20d%3D%22m5%205.5.8%2010.1A1.5%201.5%200%200%200%207.3%2017h5.4a1.5%201.5%200%200%200%201.5-1.4L15%205.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%205.5h13%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8%205.5V4a1%201%200%200%201%201-1h2a1%201%200%200%201%201%201v1.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8.5%208.5v5M11.5%208.5v5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="junk"]      > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23263a5c%22%20d%3D%22M10%202.5%204%204.8v4.7c0%203.6%202.6%206.4%206%208%203.4-1.6%206-4.4%206-8V4.8z%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22m8%208%204%204M12%208l-4%204%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="archive"]   > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23263a5c%22%20d%3D%22M4%207.5V15a1.5%201.5%200%200%200%201.5%201.5h9A1.5%201.5%200%200%200%2016%2015V7.5%22%2F%3E%3Crect%20fill%3D%22none%22%20x%3D%222.5%22%20y%3D%223.5%22%20width%3D%2215%22%20height%3D%224%22%20rx%3D%221%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22M8%2011h4%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="outbox"]    > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23263a5c%22%20d%3D%22M3%2011.5V15a1.5%201.5%200%200%200%201.5%201.5h11A1.5%201.5%200%200%200%2017%2015v-3.5h-4l-1%202H8l-1-2H3z%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22M10%202.5v7M7%205.5l3-3%203%203%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="templates"] > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20fill%3D%22%23263a5c%22%20x%3D%226%22%20y%3D%222.5%22%20width%3D%2210.5%22%20height%3D%2212%22%20rx%3D%221.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%206v9.5A1.5%201.5%200%200%200%205%2017h8%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22M9%206.5h4.5M9%209.5h4.5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-folder-type="virtual"]   > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23263a5c%22%20d%3D%22M2.5%206A1.5%201.5%200%200%201%204%204.5h3.6l1.6%202H16a1.5%201.5%200%200%201%201.5%201.5v7a1.5%201.5%200%200%201-1.5%201.5H4A1.5%201.5%200%200%201%202.5%2015z%22%2F%3E%3Ccircle%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20cx%3D%229.5%22%20cy%3D%2211%22%20r%3D%222%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22m11%2012.5%201.5%201.5%22%2F%3E%3C%2Fsvg%3E") !important; }
+#folderTree li[data-server-type]             > .container > .icon { content: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20fill%3D%22%23263a5c%22%20cx%3D%2210%22%20cy%3D%2210%22%20r%3D%223%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M13%2010v1.2a2.3%202.3%200%200%200%204.5%200V10a7.5%207.5%200%201%200-3%206%22%2F%3E%3C%2Fsvg%3E") !important; }
+
+/* ---------- Nachrichtenliste ------------------------------------------- */
+#threadPane, #threadTree, #threadPaneHeaderBar {
+  background-color: var(--ms-list-bg) !important;
+}
+#threadPaneHeaderBar { border-bottom: 1px solid var(--ms-border) !important; }
+
+#threadTree tbody tr { border-bottom: 1px solid var(--ms-row-line) !important; }
+#threadTree tbody tr:hover { background-color: var(--ms-hover) !important; }
+#threadTree tbody tr.selected {
+  background-color: var(--ms-accent-soft) !important;
+  color: var(--ms-text) !important;
+}
+#threadTree:focus-within tbody tr.selected {
+  background-color: var(--ms-accent) !important;
+  color: #0a1428 !important;
+}
+#threadTree tbody tr.unread .subject,
+#threadTree tbody tr.unread .sender,
+#threadTree tbody tr.unread .correspondentcol-column { font-weight: 600 !important; }
+
+/* Kartenansicht */
+/* Nur den seitlichen Abstand setzen: Betterbird rechnet die Zeilenhöhe fest aus (Karten-Innenabstand ca. 7 px gesamt),
+   größerer senkrechter Abstand schneidet sonst die Absenderzeile ab. */
+tr[is="thread-card"] .card-container { padding-inline: 14px !important; }
+tr[is="thread-card"].unread .card-container { box-shadow: inset 3px 0 0 var(--ms-accent) !important; }
+tr[is="thread-card"] .date { color: color-mix(in srgb, var(--ms-text) 72%, #101827) !important; }
+/* Auswahl: die Karte selbst bleibt durchsichtig, die Zeile liefert den Grund. Heller Grund + dunkle Schrift in jedem
+   Zustand (mit und ohne Fokus), damit Schrift und Hintergrund nie zu nah beieinander liegen. */
+#threadTree tr[is="thread-card"].selected .card-container { background-color: transparent !important; box-shadow: inset 3px 0 0 var(--ms-accent) !important; }
+#threadTree tr[is="thread-card"].selected { background-color: var(--ms-accent-soft) !important; color: var(--ms-text) !important; }
+#threadTree:focus-within tr[is="thread-card"].selected { background-color: var(--ms-accent-soft-focus) !important; color: var(--ms-text) !important; }
+#threadTree tr[is="thread-card"].selected :is(.sender, .subject, .thread-card-subject-container, .correspondent) { color: var(--ms-text) !important; }
+#threadTree tr[is="thread-card"].selected .date,
+#threadTree:focus-within tr[is="thread-card"].selected .date { color: var(--ms-sidebar-text) !important; }
+/* Cobalt färbt Absender in der Tabelle bei Fokus weiß (Zeilen unten); für Karten höher gewichten */
+#threadTree:focus-within tbody tr[is="thread-card"].selected :is(.sender, .correspondent) { color: var(--ms-text) !important; }
+
+/* ---------- Trennlinien ------------------------------------------------ */
+#folderPaneSplitter, #messagePaneSplitter, splitter {
+  --splitter-color: var(--ms-border) !important;
+  border-color: var(--ms-border) !important;
+}
+
+/* ---------- Nachrichtenkopf -------------------------------------------- */
+#messageHeader {
+  background-color: var(--ms-list-bg) !important;
+  border-bottom: 1px solid var(--ms-border) !important;
+}
+#header-view-toolbar toolbarbutton,
+#header-view-toolbar .toolbarbutton-1 { border-radius: var(--ms-radius) !important; }
+#hdrReplyButton, #hdrReplyToSenderButton { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22M8%205%203.5%209.5%208%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%209.5H11a5%205%200%200%201%205%205v1%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrReplyAllButton { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22M10%205%205.5%209.5%2010%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22M6%205%201.5%209.5%206%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M5.5%209.5H12a5%205%200%200%201%205%205v1%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrForwardButton  { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22m12%205%204.5%204.5L12%2014%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M16.5%209.5H9a5%205%200%200%200-5%205v1%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrArchiveButton  { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23263a5c%22%20d%3D%22M4%207.5V15a1.5%201.5%200%200%200%201.5%201.5h9A1.5%201.5%200%200%200%2016%2015V7.5%22%2F%3E%3Crect%20fill%3D%22none%22%20x%3D%222.5%22%20y%3D%223.5%22%20width%3D%2215%22%20height%3D%224%22%20rx%3D%221%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22M8%2011h4%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrJunkButton     { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23263a5c%22%20d%3D%22M10%202.5%204%204.8v4.7c0%203.6%202.6%206.4%206%208%203.4-1.6%206-4.4%206-8V4.8z%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%2388b3fe%22%20d%3D%22m8%208%204%204M12%208l-4%204%22%2F%3E%3C%2Fsvg%3E") !important; }
+#hdrTrashButton    { list-style-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23b1c6ed%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20fill%3D%22%23263a5c%22%20d%3D%22m5%205.5.8%2010.1A1.5%201.5%200%200%200%207.3%2017h5.4a1.5%201.5%200%200%200%201.5-1.4L15%205.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M3.5%205.5h13%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8%205.5V4a1%201%200%200%201%201-1h2a1%201%200%200%201%201%201v1.5%22%2F%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8.5%208.5v5M11.5%208.5v5%22%2F%3E%3C%2Fsvg%3E") !important; }
+
+/* ---------- Menüs ------------------------------------------------------ */
+menupopup, panel { --panel-border-radius: 8px !important; }
+
+/* ---------- Cobalt: kompakte Tabellenansicht --------------------------- */
+#threadTree thead th {
+  background-color: var(--ms-sidebar) !important;
+  color: var(--ms-sidebar-text) !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid var(--ms-border) !important;
+}
+#threadTree tbody tr.unread:not(.selected) .correspondentcol-column,
+#threadTree tbody tr.unread:not(.selected) .sender {
+  color: var(--ms-text) !important;
+}
+#threadTree:focus-within tbody tr.selected .correspondentcol-column,
+#threadTree:focus-within tbody tr.selected .sender { color: #0a1428 !important; }
+
+/* Ordnerbereich etwas dichter, Konten mit Trennlinie */
+#folderTree li > .container { margin-inline: 4px !important; }
+#folderTree li[data-server-type] > .container {
+  border-top: 1px solid var(--ms-border) !important;
+  border-radius: 0 !important;
+  padding-top: 6px !important;
+}
+#folderTree > li:first-child > .container { border-top: none !important; }
+
+/* Verfassen-Button als blaue Schaltfläche */
+li[item-id="write-message"] button {
+  background-color: var(--ms-accent) !important;
+  color: #0a1428 !important;
+}
+li[item-id="write-message"] .button-icon { filter: brightness(0) invert(1) !important; }
+
+/* ===== NovaBird-Erweiterungen (aus dem früheren Polar übertragen, Farben umgerechnet) ===== */
+/* Kontextmenüs und Menüs: Theme-Farben statt Systemgrau (nur wo Menüs nicht nativ gezeichnet werden, z. B. Windows) */
+:root:root:root:root menupopup:not([type="arrow"]) {
+  --panel-background-color: #0d141d;
+  --panel-text-color: #dbe6f8;
+  --panel-border-color: #202a33;
+  --panel-border-radius: 10px;
+  --panel-padding: 5px;
+  --menuitem-border-radius: 6px;
+  --menuitem-padding: 0.4em 0.8em;
+  --panel-separator-color: #171f29;
+  --panel-box-shadow: 0 6px 22px rgba(30, 50, 90, 0.18);
+  --panel-box-shadow-margin: 12px;
+}
+:root:root:root:root menupopup > :is(menuitem, menu)[_moz-menuactive]:not([disabled]) {
+  background-color: #263a5c;
+  color: #d1e5fe;
+}
+:root:root:root:root menupopup > :is(menuitem, menu)[disabled] {
+  color: #7d8a97;
+}
+
+/* Kalender: ruhiges Raster, Heute als Akzent, Termine als weiche Pillen */
+:root:root:root:root {
+  --viewColor: #dbe6f8;
+  --viewBackground: #0d141d;
+  --viewBorderColor: #141b25;
+  --viewWeekendBackground: #101821;
+  --viewTodayBackground: #141b25;
+  --viewTodayWeekendBackground: #151e27;
+  --viewTodayOffBackground: #151e27;
+  --viewTodayLabelBackground: #88b3fe;
+  --viewTodayLabelColor: #0a1428;
+  --viewHighlightBorderColor: rgba(31, 111, 214, 0.45);
+  --viewDayBoxSelectedBackground: #1b2a45;
+  --viewDayBoxOffSelectedBackground: #1b2a45;
+  --viewDayBoxOtherSelectedBackground: #1b2a45;
+  --viewHeaderSelectedBackground: #263a5c;
+  --viewMonthOtherBackground: #0e161f;
+  --viewMonthDayOtherBackground: #0e161f;
+  --viewMonthWeekLabelBackground: #141b25;
+  --viewMonthDayBoxLabelColor: #b6c9dd;
+  --viewMonthDayBoxSelectedColor: #dbe6f8;
+  --viewCalendarHeaderBackground: #0e161f;
+  --viewOffTimeBackground: #101821;
+  --viewTimeBoxColor: #8695a5;
+  --viewDayLabelSelectedBackground: #88b3fe;
+  --viewDragboxBackground: #88b3fe;
+  --viewDropshadowBackground: #88b3fe;
+  --calendar-view-toggle-background: #141b25;
+  --calendar-view-toggle-selected-background: #0b121b;
+  --calendar-view-toggle-hover-background: #263a5c;
+  --button-border-radius: 8px;
+}
+.calendar-color-box {
+  border-radius: 6px;
+  background-color: color-mix(in srgb, var(--item-backcolor) 88%, white);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--item-backcolor) 75%, black);
+}
+calendar-month-day-box calendar-month-day-box-item[allday="true"].calendar-color-box {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--item-backcolor) 75%, black);
+}
+.calendar-month-day-box-list-item {
+  margin: 1px 4px;
+}
+.calendar-month-day-box-date-label[relation="today"] {
+  box-shadow: 0 1px 4px rgba(31, 111, 214, 0.35);
+}
+.calendar-month-day-box-week-label {
+  font-weight: 600;
+}
+.day-column-heading {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.multiday-grid:not(.multiday-grid-rotated) .timeIndicator {
+  border-block-start-color: #E5484D;
+  opacity: 0.9;
+}
+.multiday-timebar-now-indicator {
+  border-color: #E5484D;
+}
+calendar-day-label {
+  background-color: var(--viewCalendarHeaderBackground);
+  color: #99abbe;
+}
+.calendar-day-label-name {
+  font-weight: 600;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Heute-Markierung lesbar (--selected-item-color ist im Theme ein helles Blau und taugt nur als Fläche) */
+.day-column-today .day-column-heading,
+.day-column-selected .day-column-heading,
+calendar-day-label[relation="today"] {
+  color: #88b3fe;
+}
+:root:root:root:root calendar-minimonth {
+  --mmDaySelectedColor: #a4c4fd;
+  --mmDaySelectedBackground: rgba(31, 111, 214, 0.22);
+  --mmDaySelectedBorderColor: rgba(31, 111, 214, 0.5);
+  --mmDaySelectedTodayBackground: rgba(31, 111, 214, 0.18);
+  --mmDaySelectedTodayBorderColor: rgba(31, 111, 214, 0.5);
+  --mmDayTodayColor: #a4c4fd;
+  --mmDayTodayBackground: rgba(31, 111, 214, 0.12);
+}
+
+/* Menüs: zusätzlich direkt am Inhaltsbereich, falls die Variablen nicht greifen */
+menupopup:not([type="arrow"])::part(content) {
+  background: #0d141d !important;
+  color: #dbe6f8 !important;
+  border: 1px solid #202a33 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 6px 22px rgba(30, 50, 90, 0.18) !important;
+}
+
+/* Mini-Kalender: Heute kräftig blau, angewählter Tag sanft gelb */
+:root:root:root:root calendar-minimonth {
+  --mmDayTodayBackground: #88b3fe;
+  --mmDayTodayColor: #0a1428;
+  --mmDayTodayBorderColor: #88b3fe;
+  --mmDaySelectedBackground: #1e3560;
+  --mmDaySelectedColor: #cdbc94;
+  --mmDaySelectedBorderColor: #74a7f6;
+  --mmDaySelectedTodayBackground: #88b3fe;
+  --mmDaySelectedTodayBorderColor: #74a7f6;
+}
+.minimonth-day[today="true"],
+.minimonth-day[selected="true"][today="true"] {
+  color: #0a1428;
+  font-weight: 700;
+}
+.minimonth-day[selected="true"]:not([today="true"]) {
+  font-weight: 600;
+}
+
+/* Wochen-/Monatsansicht: angewählter Tag ebenfalls sanft gelb, Heute bleibt blau */
+:root:root:root:root {
+  --viewDayBoxSelectedBackground: #1b2a45;
+  --viewDayBoxOffSelectedBackground: #1b2a45;
+  --viewDayBoxOtherSelectedBackground: #1b2a45;
+  --viewHighlightBorderColor: rgba(116, 167, 246, 0.7);
+}
+.day-column-selected .day-column-heading {
+  color: #dab97c;
+}
+.day-column-today .day-column-heading {
+  color: #88b3fe;
+}
+
+/* ===== Kalender 2.0: moderner Look ===== */
+
+/* Termine: Pastellfläche in der Kalenderfarbe, dunkler Text, kräftiger Streifen links */
+.calendar-color-box {
+  border-radius: 8px;
+  background-color: color-mix(in srgb, var(--item-backcolor) 20%, #101827);
+  color: color-mix(in srgb, var(--item-backcolor) 35%, #daeafe);
+  box-shadow: inset 4px 0 0 var(--item-backcolor), 0 1px 2px rgba(30, 50, 90, 0.10);
+  transition: box-shadow 0.12s ease, transform 0.12s ease;
+}
+calendar-month-day-box calendar-month-day-box-item[allday="true"].calendar-color-box {
+  box-shadow: inset 4px 0 0 var(--item-backcolor), 0 1px 2px rgba(30, 50, 90, 0.10);
+}
+calendar-event-box:hover .calendar-color-box,
+calendar-month-day-box-item:hover.calendar-color-box {
+  box-shadow: inset 4px 0 0 var(--item-backcolor), 0 4px 12px rgba(30, 50, 90, 0.18);
+}
+.calendar-item-flex {
+  padding: 5px 8px 5px 10px;
+}
+.item-time-label {
+  font-weight: 600;
+  opacity: 0.8;
+}
+.event-name-label {
+  font-weight: 600;
+}
+.multiday-event-listitem {
+  padding: 1px 2px;
+}
+
+/* Ansichtsumschalter (Tag/Woche/Monat) als runde Pille */
+.calview-toggle {
+  border-radius: 999px;
+  padding: 2px;
+  box-shadow: none;
+}
+button.calview-toggle-item {
+  border-radius: 999px;
+  font-weight: 500;
+}
+button.calview-toggle-item[role="tab"][aria-selected="true"] {
+  background-color: #0b121b;
+  color: #a4c4fd;
+  font-weight: 600;
+  border-color: transparent;
+  box-shadow: 0 1px 4px rgba(30, 50, 90, 0.20);
+}
+button.calview-toggle-item[role="tab"][aria-selected="false"]:hover {
+  background-color: rgba(31, 111, 214, 0.10);
+}
+
+/* Navigation (zurück / heute / vor) */
+.calendar-nav-buttons-container .button,
+.calendar-nav-buttons-container button {
+  border-radius: 999px;
+}
+
+/* Raster: nur horizontale Haarlinien, keine harten Spaltenlinien */
+.multiday-hour-box {
+  border-color: #101720;
+}
+calendar-event-column {
+  border-inline-start-color: #101720;
+}
+.day-column-heading {
+  border-color: transparent;
+  padding-block: 6px 5px;
+}
+calendar-header-container {
+  border-inline-start-color: #101720;
+  border-block-end: 1px solid #171f29;
+}
+
+/* Monatsansicht: luftig, Tageszellen mit sanftem Hover */
+.monthtable {
+  border-radius: 10px;
+}
+.monthtable :is(td, th) > * {
+  border-inline-start-color: #101720;
+  border-block-start-color: #101720;
+}
+calendar-month-day-box {
+  transition: background-color 0.12s ease;
+}
+calendar-month-day-box:hover {
+  background-color: #111821;
+}
+.calendar-month-day-box-date-label {
+  font-weight: 500;
+  padding: 3px 6px;
+}
+.calendar-month-day-box-date-label[relation="today"] {
+  padding-inline: 8px;
+  margin: 2px;
+}
+.calendar-month-day-box-list-item {
+  margin: 2px 5px;
+}
+
+/* Termin-Dialog (Neuer Termin / Termin bearbeiten): Systemgrau durch Theme-Fläche ersetzen */
+:root:root #calendar-item-panel-iframe,
+:root:root #calendar-event-dialog,
+:root:root #calendar-task-dialog,
+:root:root #calendar-event-dialog-inner,
+:root:root #calendar-task-dialog-inner,
+:root:root #calendar-event-summary-dialog {
+  background: #0f1620 !important;
+  color: #dbe6f8;
+}
+
+/* Termine kräftiger absetzen (helle Kalenderfarben gingen sonst im Hintergrund unter) */
+.calendar-color-box {
+  background-color: color-mix(in srgb, var(--item-backcolor) 42%, #101827);
+  color: color-mix(in srgb, var(--item-backcolor) 25%, #daeafe);
+  box-shadow:
+    inset 4px 0 0 color-mix(in srgb, var(--item-backcolor) 65%, #000000),
+    0 0 0 1px color-mix(in srgb, var(--item-backcolor) 55%, #101827),
+    0 1px 3px rgba(30, 50, 90, 0.14);
+}
+calendar-month-day-box calendar-month-day-box-item[allday="true"].calendar-color-box {
+  box-shadow:
+    inset 4px 0 0 color-mix(in srgb, var(--item-backcolor) 65%, #000000),
+    0 0 0 1px color-mix(in srgb, var(--item-backcolor) 55%, #101827),
+    0 1px 3px rgba(30, 50, 90, 0.14);
+}
+calendar-event-box:hover .calendar-color-box,
+calendar-month-day-box-item:hover.calendar-color-box {
+  box-shadow:
+    inset 4px 0 0 color-mix(in srgb, var(--item-backcolor) 65%, #000000),
+    0 0 0 1px color-mix(in srgb, var(--item-backcolor) 55%, #101827),
+    0 4px 12px rgba(30, 50, 90, 0.22);
+}
+
+/* Wochenende außerhalb der Arbeitszeit: bläulich statt Grau */
+:root:root:root:root {
+  --viewMonthDayOffLabelBackground: #121923;
+  --viewOffTimeBackground: #121923;
+}
+
+/* Grundpalette der Oberfläche: Buttons, Auswahllisten, Felder und Kopfzeilen bläulich statt neutralgrau */
+:root:root:root:root {
+  --layout-background-0: #0d141d;
+  --layout-background-1: #0f1620;
+  --layout-background-2: #121923;
+  --layout-background-3: #161e28;
+  --layout-background-4: #1d2630;
+  --layout-color-1: #dbe6f8;
+  --layout-color-2: #a9bcd0;
+  --layout-border-0: #1a242d;
+  --layout-border-1: #252f39;
+  --button-background-color: #121923;
+  --button-hover-background-color: #263a5c;
+  --button-active-background-color: #244161;
+  --button-border-color: #202a33;
+  --button-border-radius: 8px;
+  --button-text-color: #dbe6f8;
+}
+
+/* Termin-Dialog: der Iframe-Inhalt ist selbst das Wurzelelement, daher eigene Selektoren */
+html#calendar-event-dialog-inner:root,
+html#calendar-task-dialog-inner:root {
+  background: #0f1620 !important;
+  color: #dbe6f8;
+}
+
+/* Termin-Dialog: Reiter (Beschreibung / Anhänge / Teilnehmer) in Theme-Farben */
+html#calendar-event-dialog-inner:root {
+  --panel-background-color-dimmed: #1a232c;
+}
+html#calendar-event-dialog-inner tab:hover {
+  background-color: rgba(31, 111, 214, 0.10);
+}
+html#calendar-event-dialog-inner tab:hover:active {
+  background-color: rgba(31, 111, 214, 0.18);
+}
+html#calendar-event-dialog-inner tab[selected] {
+  border-block-end-color: #88b3fe;
+}
+
+/* ===== Kontakte / Adressbuch ===== */
+:root:root:root:root[lwtheme] {
+  --recipient-avatar-color: #99befc;
+  --tree-card-background: #0d141d;
+  --tree-card-border: transparent;
+  --tree-card-border-hover: #284365;
+  --tree-card-background-current: #141b25;
+  --tree-card-background-selected: #263a5c;
+  --tree-card-background-selected-current: #263a5c;
+  --tree-card-border-selected: #2f4b6c;
+  --tree-card-border-focus: #88b3fe;
+  --tree-card-background-selected-unfocused: #172029;
+  --tree-card-background-current-unfocused: #131a24;
+  --ab-contact-photo-size: 96px;
+  --ab-detail-section-padding: 18px;
+}
+
+/* Avatare: weiches Blau statt Grau, ohne Ring */
+:root:root:root:root .recipient-avatar {
+  background-color: #1e3959;
+  color: #99befc;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+/* Liste: Karten ohne Rahmen, runde Ecken, genug Luft */
+tr[is="ab-card-row"] td > .card-container {
+  border-radius: 12px;
+  padding-block: 4px;
+}
+tr[is="ab-card-row"] .name {
+  font-weight: 600;
+}
+
+/* Suchfeld und Seitenleiste */
+#searchInput {
+  border-radius: 999px;
+}
+#books .listRow-container {
+  border-radius: 8px;
+}
+
+/* Detailansicht: Kopf großzügig, Aktionen als Pillen, Abschnitte als weiche Karten */
+.contact-photo {
+  background-color: #1e3959;
+  stroke: #99befc;
+  box-shadow: 0 2px 8px rgba(30, 50, 90, 0.12);
+}
+.contact-heading-name {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.contact-heading-email,
+.contact-heading-nickname {
+  color: #99abbe;
+}
+#detailsBody {
+  gap: 14px;
+}
+#detailsBody section {
+  background-color: #0d141d;
+  border: 1px solid #141b25;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(30, 50, 90, 0.06);
+}
+#detailsBody h2 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #99abbe;
+}
+#detailsActions.button-block,
+#detailsActions {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  padding-inline: 0;
+}
+#detailsActions button {
+  border-radius: 999px;
+  padding-inline: 14px;
+}
+#detailsActions button.icon-button {
+  padding-inline-start: 32px;
+}
+/* „… hinzufügen“ und (+) im Bearbeiten-Modus: gut lesbar statt blassem Hellblau */
+.addr-book-edit-fieldset-button.add-property-button {
+  color: #99befc;
+}
+.entry-type {
+  color: #8695a5;
+  opacity: 1;
+}
+.entry-value a {
+  color: #99befc;
+}
+
+/* Termin-Dialog: gewählter Reiter */
+html#calendar-event-dialog-inner tab[selected],
+html#calendar-event-dialog-inner tab[visuallyselected] {
+  background-color: #1a232c !important;
+}
+
+
+/* Kontakt-Avatare sind eigene Elemente mit Schattendokument: Farben als Variablen am Element setzen */
+contact-avatar {
+  --color-surface-deep: #1e3959;
+  --color-text-base: #99befc;
+}
+
+/* Symbole anderer Add-ons in der linken Leiste (Notizen, Ordner …): einfarbig in der Farbe der Leiste statt Grau/Bunt */
+:root:root:root:root .spaces-addon-button > img {
+  content: none !important;
+  inline-size: var(--spaces-icon-size);
+  block-size: var(--spaces-icon-size);
+  background-color: currentColor;
+  -webkit-mask: var(--webextension-toolbar-image) center / contain no-repeat;
+  mask: var(--webextension-toolbar-image) center / contain no-repeat;
+}
+
+/* Palette Dunkel (NovaBird-Cobalt): feste Werte für die Haupt-Variablen */
+:root:root {
+  --ms-accent: #74a7f6; --ms-accent-dark: #9bc0fa; --ms-accent-soft: #1e3157; --ms-accent-soft-focus: #1e3560;
+  --ms-sidebar: #141d2e; --ms-spaces: #121b2b; --ms-sidebar-text: #cdd7ea; --ms-text: #e6ebf5; --ms-muted: #98a5bd;
+  --ms-border: #26324a; --ms-row-line: #1b2538; --ms-hover: #202c45; --ms-toolbar: #19233a; --ms-list-bg: #101827;
+  --ms-count-bg: #3a4c70; --ms-count-fg: #ffffff;
+}
+}

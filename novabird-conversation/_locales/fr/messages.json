@@ -1,0 +1,339 @@
+{
+  "extName": {
+    "message": "NovaBird-Conversation"
+  },
+  "extDescription": {
+    "message": "Affiche tous les messages d'une conversation dans le volet de lecture : le plus récent épinglé en haut, les plus anciens en dessous."
+  },
+  "messagesCount": {
+    "message": "$N$ messages",
+    "placeholders": {
+      "n": {
+        "content": "$1"
+      }
+    }
+  },
+  "toNames": {
+    "message": "à $NAMES$",
+    "placeholders": {
+      "names": {
+        "content": "$1"
+      }
+    }
+  },
+  "newBadge": {
+    "message": "nouveau"
+  },
+  "reply": {
+    "message": "Répondre"
+  },
+  "replyAll": {
+    "message": "Répondre à tous"
+  },
+  "more": {
+    "message": "Plus"
+  },
+  "forward": {
+    "message": "Transférer"
+  },
+  "forwardAsAttachment": {
+    "message": "Transférer en pièce jointe"
+  },
+  "editAsNew": {
+    "message": "Modifier comme nouveau message"
+  },
+  "expandAll": {
+    "message": "Tout déplier"
+  },
+  "collapseAll": {
+    "message": "Tout replier"
+  },
+  "showFull": {
+    "message": "Tout afficher"
+  },
+  "showLess": {
+    "message": "Moins"
+  },
+  "quoteToggle": {
+    "message": "Afficher le texte cité"
+  },
+  "remoteBlocked": {
+    "message": "Pour protéger votre vie privée, le contenu distant de ce message a été bloqué."
+  },
+  "noText": {
+    "message": "(Aucun texte)"
+  },
+  "loading": {
+    "message": "Chargement …"
+  },
+  "history": {
+    "message": "Messages précédents"
+  },
+  "optTitle": {
+    "message": "NovaBird-Conversation"
+  },
+  "optOrder": {
+    "message": "Ordre"
+  },
+  "optOrderNewest": {
+    "message": "Le plus récent d'abord"
+  },
+  "optOrderOldest": {
+    "message": "Le plus ancien d'abord"
+  },
+  "optPin": {
+    "message": "Épingler le message le plus récent pendant le défilement (uniquement « Le plus récent d'abord »)"
+  },
+  "optMaxHeight": {
+    "message": "Hauteur maximale du message épinglé (% de la fenêtre)"
+  },
+  "optExpand": {
+    "message": "Déplier automatiquement"
+  },
+  "optExpandLatest": {
+    "message": "Le plus récent et les non lus"
+  },
+  "optExpandLatestPrev": {
+    "message": "Le plus récent, le précédent et les non lus"
+  },
+  "optExpandAll": {
+    "message": "Tous les messages"
+  },
+  "optAttachments": {
+    "message": "Pièces jointes"
+  },
+  "optAttTop": {
+    "message": "Au-dessus du texte"
+  },
+  "optAttBottom": {
+    "message": "Sous le texte"
+  },
+  "optCollapseQuotes": {
+    "message": "Replier le texte cité"
+  },
+  "optAlwaysRender": {
+    "message": "Afficher aussi les messages isolés dans cette vue"
+  },
+  "optAlwaysRenderHint": {
+    "message": "Désactivé : les messages sans réponse gardent l'affichage standard."
+  },
+  "optSaved": {
+    "message": "Enregistré"
+  },
+  "optHideHeader": {
+    "message": "Masquer l'en-tête standard et la barre des pièces jointes de Betterbird"
+  },
+  "optHideHeaderHint": {
+    "message": "Uniquement tant que cette vue est affichée. Les messages isolés gardent l'en-tête standard."
+  },
+  "loadFailed": {
+    "message": "Ce message n'a pas pu être chargé."
+  },
+  "notDownloaded": {
+    "message": "Pas encore téléchargé – se charge à l'ouverture"
+  },
+  "optFallback": {
+    "message": "Lorsqu'un message n'a pas de chaîne de réponses"
+  },
+  "optFallbackSubject": {
+    "message": "Regrouper par sujet identique (habituel)"
+  },
+  "optFallbackSmart": {
+    "message": "Regrouper par sujet avec des règles supplémentaires"
+  },
+  "optFallbackOff": {
+    "message": "Ne pas regrouper (chaînes de réponses uniquement)"
+  },
+  "optFallbackHint": {
+    "message": "Les chaînes de réponses (Message-ID, References, In-Reply-To) sont toujours utilisées en premier. Le repli ne s'applique qu'aux messages sans chaîne."
+  },
+  "optFallbackDays": {
+    "message": "Règles supplémentaires : écart maximal en jours"
+  },
+  "optFallbackPeople": {
+    "message": "Règles supplémentaires : au moins un expéditeur ou destinataire en commun"
+  },
+  "optDebugTiming": {
+    "message": "Écrire les durées dans la console d'erreurs"
+  },
+  "optDebugTimingHint": {
+    "message": "Pour le dépannage : indique la durée de la recherche, du chargement et de l'affichage (Ctrl+Maj+J)."
+  },
+  "optEngine": {
+    "message": "Source des conversations"
+  },
+  "optEngineAuto": {
+    "message": "Automatique (NovaBird-DB, puis Gloda, puis la recherche de Betterbird)"
+  },
+  "optEngineQuery": {
+    "message": "Toujours la recherche de Betterbird"
+  },
+  "optEngineHint": {
+    "message": "L'index NovaBird-DB trouve les conversations en quelques millisecondes. S'il est absent, en cours d'indexation ou ne répond pas, Gloda (l'index propre à Betterbird) est essayé, puis la recherche de Betterbird. Les règles de regroupement pour les messages sans chaîne s'appliquent à NovaBird-DB et à la recherche ; Gloda utilise les siennes."
+  },
+  "optLimit": {
+    "message": "Nombre maximal de messages par conversation (NovaBird-DB)"
+  },
+  "optEngineDb": {
+    "message": "NovaBird-DB uniquement (sinon la recherche de Betterbird)"
+  },
+  "optEngineGloda": {
+    "message": "Gloda uniquement (sinon la recherche de Betterbird)"
+  },
+  "optTabSettings": {
+    "message": "Réglages"
+  },
+  "optTabLook": {
+    "message": "Apparence"
+  },
+  "optStyle": {
+    "message": "Style"
+  },
+  "optStyleSoft": {
+    "message": "Doux"
+  },
+  "optStyleSoftDesc": {
+    "message": "Cartes arrondies avec avatars, beaucoup d'air."
+  },
+  "optStyleClear": {
+    "message": "Net"
+  },
+  "optStyleClearDesc": {
+    "message": "Lignes plates avec traits fins, plus de texte par écran."
+  },
+  "optStyleThread": {
+    "message": "Fil"
+  },
+  "optStyleThreadDesc": {
+    "message": "Chronologie avec points, vos propres messages en couleur."
+  },
+  "delete": {
+    "message": "Supprimer"
+  },
+  "deleteTip": {
+    "message": "Déplacer ce message dans la corbeille"
+  },
+  "optAutoOpen": {
+    "message": "Ouvrir la ligne sous le pointeur après le défilement"
+  },
+  "optAutoOpenHint": {
+    "message": "Une ligne repliée s’ouvre quand le pointeur s’y arrête (selon le choix, seulement après le défilement ou aussi sans). Rien ne s’ouvre pendant le défilement. Avec IMAP, le texte est alors récupéré."
+  },
+  "optAutoOpenTrigger": {
+    "message": "Déclencher l’ouverture"
+  },
+  "optAutoOpenTrScroll": {
+    "message": "Seulement après le défilement"
+  },
+  "optAutoOpenTrHover": {
+    "message": "Aussi quand le pointeur s’arrête simplement"
+  },
+  "optAutoOpenDelay": {
+    "message": "Durée d’arrêt du pointeur avant l’ouverture (ms, 50–200)"
+  },
+  "optOpenMs": {
+    "message": "Durée de l’animation d’ouverture (ms, 0 = désactivée)"
+  },
+  "optFadeMs": {
+    "message": "Apparition en fondu au chargement de la conversation (ms, 0 = désactivée)"
+  },
+  "optRowLines": {
+    "message": "Lignes d’aperçu pour les messages repliés"
+  },
+  "remoteShow": {
+    "message": "Options"
+  },
+  "remoteThis": {
+    "message": "Ce message seulement"
+  },
+  "remoteAll": {
+    "message": "Toute la conversation"
+  },
+  "remoteCancel": {
+    "message": "Annuler"
+  },
+  "remoteAsk": {
+    "message": "Charger le contenu distant pour"
+  },
+  "remoteSender": {
+    "message": "Toujours de cet expéditeur"
+  },
+  "spam": {
+    "message": "Spam"
+  },
+  "spamTip": {
+    "message": "Marquer comme indésirable et déplacer vers le dossier des indésirables"
+  },
+  "notSpam": {
+    "message": "Pas un spam"
+  },
+  "notSpamTip": {
+    "message": "Marquer comme légitime et déplacer vers la boîte de réception"
+  },
+  "optStickyHeader": {
+    "message": "Garder l’en-tête visible en faisant défiler les longs messages (styles Doux et Net)"
+  },
+  "originalBtn": {
+    "message": "Original"
+  },
+  "originalTip": {
+    "message": "Afficher l’affichage d’origine de Betterbird"
+  },
+  "backToConversation": {
+    "message": "Retour à la conversation"
+  },
+  "optAutoOriginal": {
+    "message": "Afficher automatiquement l’original des messages illisibles"
+  },
+  "optAutoOriginalHint": {
+    "message": "Si l’affichage d’un message seul montre à peine du texte alors que le message en contient beaucoup, l’affichage d’origine de Betterbird est utilisé."
+  },
+  "hintLimit": {
+    "message": "Nombre maximal de messages chargés depuis l’index par conversation. Cela limite les gros groupes de newsletters aux objets identiques ; des valeurs plus élevées prennent un peu plus de temps."
+  },
+  "hintOrder": {
+    "message": "« Plus récent d’abord » montre la dernière réponse en haut ; « Plus ancien d’abord » se lit comme une conversation de haut en bas."
+  },
+  "hintPin": {
+    "message": "Le message le plus récent reste en haut pendant que vous faites défiler les plus anciens. S’il dépasse la hauteur ci-dessous, « Tout afficher » l’ouvre en entier."
+  },
+  "hintExpand": {
+    "message": "Quels messages apparaissent dépliés à l’ouverture d’une conversation. Les messages non lus et celui sélectionné sont toujours ouverts ; les autres montrent une ligne avec aperçu."
+  },
+  "hintAttachments": {
+    "message": "Emplacement des pastilles de pièces jointes dans chaque message : au-dessus du texte on les voit tout de suite, sous le texte elles ne gênent pas la lecture."
+  },
+  "hintQuotes": {
+    "message": "Les réponses citées sont masquées derrière « … ». Un clic affiche le texte cité."
+  },
+  "hintSticky": {
+    "message": "Pendant la lecture d’un long message, l’expéditeur, la date et les boutons restent visibles en haut jusqu’à la fin du message."
+  },
+  "hintRowLines": {
+    "message": "Nombre de lignes d’aperçu affichées par un message replié (1–6). Plus de lignes = plus de contenu, moins de messages à la fois."
+  },
+  "hintOpenMs": {
+    "message": "Durée de l’animation à l’ouverture et à la fermeture d’un message. 0 la désactive ; le réglage système « Réduire les animations » est respecté."
+  },
+  "hintFadeMs": {
+    "message": "Durée du fondu de la conversation au chargement. 0 l’affiche tout de suite ; de courtes valeurs évitent le scintillement."
+  },
+  "capPin": {
+    "message": "Plus récent épinglé"
+  },
+  "capExpand": {
+    "message": "Ouverts : le plus récent, le précédent, les non lus"
+  },
+  "capAttTop": {
+    "message": "Pièces jointes en haut"
+  },
+  "capAttBottom": {
+    "message": "Pièces jointes en bas"
+  },
+  "capQuote": {
+    "message": "Citation derrière « … »"
+  },
+  "capAutoOpen": {
+    "message": "Le pointeur s’arrête → la ligne s’ouvre"
+  }
+}

@@ -1,0 +1,344 @@
+{
+  "extName": {
+    "message": "NovaBird-Search"
+  },
+  "extDescription": {
+    "message": "One search bar instead of two: scope and options in the field, results live in the message list, newest first."
+  },
+  "placeholder": {
+    "message": "Search messages"
+  },
+  "scopeAll": {
+    "message": "All folders"
+  },
+  "scopeFolder": {
+    "message": "Current folder"
+  },
+  "options": {
+    "message": "Search options"
+  },
+  "optFrom": {
+    "message": "From"
+  },
+  "optTo": {
+    "message": "To"
+  },
+  "optSubject": {
+    "message": "Content: Subject"
+  },
+  "optBody": {
+    "message": "Content: Message"
+  },
+  "optAttachment": {
+    "message": "With attachment"
+  },
+  "optUnread": {
+    "message": "Unread only"
+  },
+  "optTrash": {
+    "message": "Trash"
+  },
+  "optSpam": {
+    "message": "Spam"
+  },
+  "includeLabel": {
+    "message": "Include"
+  },
+  "busy": {
+    "message": "Searching message text …"
+  },
+  "clear": {
+    "message": "Clear search"
+  },
+  "optHeadingResults": {
+    "message": "Results"
+  },
+  "optGroup": {
+    "message": "Group results by conversation"
+  },
+  "optGroupHint": {
+    "message": "Off: flat list, newest message first. On: conversations, sorted by the newest reply."
+  },
+  "optHeadingFulltext": {
+    "message": "Full-text search"
+  },
+  "optLimit": {
+    "message": "Maximum number of results"
+  },
+  "optLimitHint": {
+    "message": "Applies to the message text search: the newest hits are shown. \"Unlimited\" can be slow on very large mailboxes (with Gloda at most 20,000). Custom: 100 to 1,000,000. Hits from From, To and Subject are added."
+  },
+  "optSaved": {
+    "message": "Saved"
+  },
+  "openSettings": {
+    "message": "Settings …"
+  },
+  "optEnter": {
+    "message": "Enter in the search field"
+  },
+  "optEnterOff": {
+    "message": "Nothing (search stays in the window)"
+  },
+  "optEnterSnapshot": {
+    "message": "Filter: results in a new tab, narrow down there"
+  },
+  "optEnterHint": {
+    "message": "Filter: a snapshot of the results in a new tab; the search bar there narrows the results further. Analyze: own analysis page with clickable filters (sender, folder, date, attachment). Ask: a small prompt on every Enter, with \"Remember\"."
+  },
+  "rangeAll": {
+    "message": "All"
+  },
+  "range3": {
+    "message": "3 days"
+  },
+  "range7": {
+    "message": "7 days"
+  },
+  "range30": {
+    "message": "30 days"
+  },
+  "rangeToday": {
+    "message": "Today"
+  },
+  "optHeadingShared": {
+    "message": "Shared folders"
+  },
+  "optShared": {
+    "message": "Create shared folders"
+  },
+  "optSharedHint": {
+    "message": "Creates three virtual folders, at the top of the “Unified Folders” mode (and under Local Folders): All inboxes, All unread and Follow-up. Put a message into the follow-up by right-clicking it; it gets the tag “Follow-up”. The folders are views on this computer only: nothing is moved on the server. Reading, starring and deleting act on the real messages and therefore also on your other devices."
+  },
+  "sharedInbox": {
+    "message": "All inboxes"
+  },
+  "sharedUnread": {
+    "message": "All unread"
+  },
+  "sharedFollowup": {
+    "message": "Follow-up"
+  },
+  "menuFollowupAdd": {
+    "message": "Add to follow-up"
+  },
+  "menuFollowupRemove": {
+    "message": "Remove from follow-up"
+  },
+  "optSharedMonths": {
+    "message": "All inboxes: months"
+  },
+  "optSharedMonthsHint": {
+    "message": "The shared inbox only shows messages from the last N months (default 3, 0 = all). This keeps the view fast. “All unread” and “Follow-up” still show everything."
+  },
+  "optHeadingDb": {
+    "message": "NovaBird-DB (own search index)"
+  },
+  "optDbMode": {
+    "message": "Use NovaBird-DB:"
+  },
+  "optDbAuto": {
+    "message": "Automatic (when present and ready)"
+  },
+  "optDbOff": {
+    "message": "Never (Gloda only)"
+  },
+  "optDbHint": {
+    "message": "If the \"NovaBird-DB\" add-on is installed and its index is complete, it replaces the Gloda index for full-text search across all folders. If it is missing or not ready, NovaBird-Search searches with Gloda as before."
+  },
+  "optDbStateChecking": {
+    "message": "Checking status …"
+  },
+  "optDbStateMissing": {
+    "message": "NovaBird-DB not found – using Gloda."
+  },
+  "optDbStateIndexing": {
+    "message": "NovaBird-DB found, index is still being built ($1 mails) – using Gloda until then."
+  },
+  "optDbStateEmpty": {
+    "message": "NovaBird-DB found, but its index is empty – using Gloda."
+  },
+  "optDbStateNotReady": {
+    "message": "NovaBird-DB found, but the initial index build is not finished yet – using Gloda until then."
+  },
+  "optDbStateReady": {
+    "message": "NovaBird-DB active ($1 mails indexed, version $2)."
+  },
+  "optDbStateOff": {
+    "message": "NovaBird-DB is not used (setting \"Never\")."
+  },
+  "optSort": {
+    "message": "Result order (NovaBird-DB):"
+  },
+  "optSortDate": {
+    "message": "Date (newest first)"
+  },
+  "optSortRelevance": {
+    "message": "Relevance – EXPERIMENTAL (with bonus for newer mails)"
+  },
+  "optSortHint": {
+    "message": "Experimental: relevance sorting is not mature yet. Only applies when NovaBird-DB is used. Gloda results and the quick header search stay sorted by date."
+  },
+  "suggest": {
+    "message": "Did you mean: {text}?"
+  },
+  "resultsTitle": {
+    "message": "Search results"
+  },
+  "noteDbOff": {
+    "message": "NovaBird-DB is OFFLINE – Gloda search"
+  },
+  "noteDbMissing": {
+    "message": "NovaBird-DB is OFFLINE – Gloda search"
+  },
+  "noteDbBuilding": {
+    "message": "NovaBird-DB is building its index – Gloda search"
+  },
+  "noteDbTip": {
+    "message": "The search uses Betterbird's built-in index (Gloda) instead of NovaBird-DB: less accurate, no umlaut equivalence, no typo suggestion."
+  },
+  "historyTitle": {
+    "message": "Recent searches"
+  },
+  "historyClear": {
+    "message": "Clear history"
+  },
+  "historyRemove": {
+    "message": "Remove entry"
+  },
+  "optEnterAnalysis": {
+    "message": "Analyze: open analysis page with filters"
+  },
+  "optEnterAsk": {
+    "message": "Ask (filter or analyze)"
+  },
+  "askTitle": {
+    "message": "What next with the results?"
+  },
+  "askFilter": {
+    "message": "Filter"
+  },
+  "askAnalyze": {
+    "message": "Analyze"
+  },
+  "askRemember": {
+    "message": "Remember and don't ask again (changeable in settings)"
+  },
+  "refinePlaceholder": {
+    "message": "Search within results"
+  },
+  "anaTitle": {
+    "message": "Analysis"
+  },
+  "anaCount": {
+    "message": "{n} results in {f} folders"
+  },
+  "anaOpenList": {
+    "message": "Open as list"
+  },
+  "anaPerMonth": {
+    "message": "Results per month"
+  },
+  "anaFrom": {
+    "message": "From"
+  },
+  "anaFolder": {
+    "message": "Folder"
+  },
+  "anaAttachment": {
+    "message": "Attachment"
+  },
+  "anaWithAtt": {
+    "message": "With attachment"
+  },
+  "anaReset": {
+    "message": "Reset filters"
+  },
+  "anaNone": {
+    "message": "No results."
+  },
+  "anaShown": {
+    "message": "{n} of {m} shown"
+  },
+  "anaMore": {
+    "message": "Show more"
+  },
+  "anaLoading": {
+    "message": "Loading …"
+  },
+  "anaGone": {
+    "message": "This analysis is no longer available. Please run the search again."
+  },
+  "optLimitUnlimited": {
+    "message": "Unlimited"
+  },
+  "optLimitCustom": {
+    "message": "Custom …"
+  },
+  "anaTo": {
+    "message": "To"
+  },
+  "anaMe": {
+    "message": "Me"
+  },
+  "anaMyAddresses": {
+    "message": "My addresses"
+  },
+  "anaRecipLoading": {
+    "message": "Reading recipients … {p} %"
+  },
+  "anaOpenTab": {
+    "message": "Open in tab"
+  },
+  "anaPickMsg": {
+    "message": "Select a message"
+  },
+  "anaMsgError": {
+    "message": "The message could not be displayed."
+  },
+  "anaCc": {
+    "message": "Cc"
+  },
+  "anaNoText": {
+    "message": "(No text)"
+  },
+  "noteShort": {
+    "message": "At least 3 characters – Enter searches anyway"
+  },
+  "noteShortTip": {
+    "message": "Shorter search terms do not trigger a live search (they would match almost the whole index). Press Enter to search anyway."
+  },
+  "noteDbBroken": {
+    "message": "NovaBird-DB index damaged – Gloda search"
+  },
+  "noteDbTipBroken": {
+    "message": "The NovaBird-DB search index is unusable. Rebuild it in the NovaBird-DB settings (\"Rebuild index\"). Until then NovaBird-Search searches through Gloda (slower, less accurate)."
+  },
+  "noteDbOutdated": {
+    "message": "NovaBird-DB outdated – Gloda search"
+  },
+  "noteDbTipOutdated": {
+    "message": "This NovaBird-Search version needs NovaBird-DB 1.0 or newer. Please update NovaBird-DB. Until then NovaBird-Search searches through Gloda."
+  },
+  "optLimitWarn": {
+    "message": "More than 10,000 hits are not recommended: Betterbird may stop responding for a few seconds or longer while building the list (and the analysis). This applies to any search with a high limit."
+  },
+  "optEsrHeading": {
+    "message": "Betterbird version"
+  },
+  "optEsrText": {
+    "message": "NovaBird-Search and NovaBird-DB use experiment APIs. They only run in Betterbird and Thunderbird ESR (Extended Support Release), not in the regular Thunderbird release. We recommend the ESR versions."
+  },
+  "markAllRead": {
+    "message": "Mark all as read"
+  },
+  "capEnter": {
+    "message": "Enter → results tab or analysis"
+  },
+  "capShared": {
+    "message": "Three shared folders on top"
+  },
+  "capGroup": {
+    "message": "Flat or as conversations"
+  }
+}

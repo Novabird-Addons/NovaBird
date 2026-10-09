@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>NovaBird-Extension</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font: message-box; margin: 16px; max-width: 38em; }
+    nav { display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+    nav button { border: 0; background: none; padding: 8px 14px; font: inherit; color: inherit; border-bottom: 2px solid transparent; cursor: pointer; }
+    nav button[aria-selected="true"] { border-bottom-color: #2F6BD8; font-weight: 600; }
+    section[hidden] { display: none; }
+    h3 { margin: 22px 0 6px; }
+    label { display: block; margin: 8px 0; }
+    .color { display: flex; align-items: center; gap: 10px; margin: 6px 0 6px 22px; }
+    .color input { width: 3em; height: 1.8em; padding: 0; }
+    .color span { min-width: 12em; }
+    #colors[disabled] { opacity: 0.45; }
+    #hint { opacity: .65; margin-top: 16px; }
+    #pilotDesc, #previewDesc { line-height: 1.5; margin: 10px 0 14px 0; color: color-mix(in srgb, currentColor 78%, transparent); }
+    #reset { margin-top: 10px; }
+    .opt { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+    .opt .txt { flex: 1 1 18em; min-width: 0; }
+    figure { margin: 8px 0 0; flex: none; text-align: center; }
+    figure svg { width: 200px; height: auto; display: block; border-radius: 8px; background: color-mix(in srgb, currentColor 5%, transparent); border: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
+    .cap { display: block; font-size: 12px; opacity: .75; margin-top: 4px; }
+    .fr { fill: none; stroke: currentColor; stroke-opacity: .4; stroke-width: 1; }
+    .bar { fill: currentColor; fill-opacity: .28; }
+    .band { fill: currentColor; fill-opacity: .14; }
+    .acc { fill: #2F6BD8; }
+    .accl { fill: #2F6BD8; fill-opacity: .25; }
+    .dash { stroke: currentColor; stroke-opacity: .5; stroke-dasharray: 3 2; stroke-width: 1; }
+    .solid { stroke: currentColor; stroke-opacity: .6; stroke-width: 2; }
+  </style>
+</head>
+<body>
+  <h2 id="title"></h2>
+  <nav>
+    <button type="button" data-tab="calendar" id="tabCalendar"></button>
+    <button type="button" data-tab="colors" id="tabColors"></button>
+    <button type="button" data-tab="preview" id="tabPreview"></button>
+    <button type="button" data-tab="pilot" id="tabPilot"></button>
+  </nav>
+
+  <section id="calendar">
+    <h3 id="layoutTitle"></h3>
+    <div class="opt">
+      <div class="txt">
+        <label><input type="radio" name="paneLayout" value="nova"> <span id="layoutNova"></span></label>
+        <label><input type="radio" name="paneLayout" value="default"> <span id="layoutDefault"></span></label>
+      </div>
+      <figure><div id="layoutPreview"></div></figure>
+    </div>
+    <h3 id="agendaTitle"></h3>
+    <label><span id="agendaLabel"></span> <input type="number" id="agendaDays" min="1" max="28" style="width:4em"></label>
+    <h3 id="attachTitle"></h3>
+    <div class="opt">
+      <div class="txt">
+        <label><input type="checkbox" id="attachPane"> <span id="attachLabel"></span></label>
+        <button id="resetAttach" type="button"></button>
+      </div>
+      <figure><div id="attachPreview"></div></figure>
+    </div>
+  </section>
+
+  <section id="colorsTab" hidden>
+    <h3 id="colorTitle"></h3>
+    <label><input type="radio" name="colorMode" value="theme"> <span id="modeTheme"></span></label>
+    <label><input type="radio" name="colorMode" value="custom"> <span id="modeCustom"></span></label>
+    <fieldset id="colors" style="border:none;padding:0;margin:0">
+      <div class="color"><input type="color" id="bg"><span id="bgLabel"></span></div>
+      <div class="color"><input type="color" id="fg"><span id="fgLabel"></span></div>
+      <div class="color"><input type="color" id="border"><span id="borderLabel"></span></div>
+      <div class="color"><input type="color" id="accent"><span id="accentLabel"></span></div>
+      <button id="reset" type="button"></button>
+    </fieldset>
+  </section>
+
+  <section id="previewTab" hidden>
+    <h3 id="previewTitle"></h3>
+    <label><input type="checkbox" id="previewEnabled"> <span id="previewEnableLabel"></span></label>
+    <p id="previewDesc"></p>
+    <label><span id="previewDelayLabel"></span>
+      <select id="previewDelay">
+        <option value="200">0,2 s</option>
+        <option value="400">0,4 s</option>
+        <option value="800">0,8 s</option>
+        <option value="1500">1,5 s</option>
+      </select></label>
+  </section>
+
+  <section id="pilotTab" hidden>
+    <h3 id="pilotTitle"></h3>
+    <label><input type="checkbox" id="pilotEnabled"> <span id="pilotEnableLabel"></span></label>
+    <p id="pilotDesc"></p>
+    <label><input type="checkbox" id="pilotLog"> <span id="pilotLogLabel"></span></label>
+  </section>
+
+  <section id="diag">
+    <h3 id="diagTitle"></h3>
+    <button id="diagBtn" type="button"></button>
+    <pre id="diagOut" style="white-space:pre-wrap;user-select:text"></pre>
+  </section>
+  <p id="hint"></p>
+  <script src="options.js"></script>
+</body>
+</html>
