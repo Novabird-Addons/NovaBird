@@ -1,4 +1,5 @@
 /* Nachrichtenliste im neuen Stil (Kartenansicht in about:3pane) – Teil der NovaBird-Extension, privilegiert.
+ *  Dichte (airy|normal|compact) und Kontofarbe (bar|ring|dot) kommen dazu; Kompakt = einzeilig (Klar-Aufbau).
  *  Stile: "soft" (Sanft: Avatar, Vorschauzeile, runde Karten), "clear" (Klar: eine flache Zeile je Mail), "thread" (Faden: Zeitleiste mit Datum links), "default" (unverändert).
  *  Technik: Stylesheet je about:3pane-Dokument (Attribut data-nbx-ml an <html>), fillRow der Karte um Avatar/Vorschau erweitert,
  *  ThreadCard.ROW_HEIGHT angepasst (Zeilen haben feste Höhe) und die Liste neu aufgebaut.
@@ -16,7 +17,8 @@ const STYLE_ID = "nbx-ml-style";
 const SNIP_MAX = 160;
 const CACHE_MAX = 600;
 
-const opts = { style: "default", preview: true, avatars: true };
+const opts = { style: "default", preview: true, avatars: true, density: "airy", acct: "none", colors: {} };
+const acctCache = new Map(); // Server-Schlüssel -> { key, name }
 const snippets = new Map(); // messageId -> Text
 const wins = new Map();     // about:3pane-Fenster -> { orig, origDensity }
 let started = false;
@@ -25,7 +27,22 @@ const waiting = [];
 
 const CSS = `
 html[data-nbx-ml] { --nbx-accent: var(--lwt-toolbarbutton-icon-fill-attention, AccentColor); }
-#threadTree .nbx-av, #threadTree .nbx-av2, #threadTree .nbx-snip { display: none; }
+#threadTree .nbx-av, #threadTree .nbx-av2, #threadTree .nbx-snip, #threadTree .nbx-acct { display: none; }
+
+/* ---------- Kontofarbe (Balken, Ring um den Avatar, Punkt mit Kontoname) ---------- */
+html[data-nbx-ml] #threadTree[rows="thread-card"] .card-layout.nbx-ac:not([data-properties~="dummy"]) .card-container {
+  --nbx-acm: color-mix(in srgb, var(--nbx-ac) 92%, var(--tree-card-background, Canvas));
+}
+html[data-nbx-ml-ac="bar"] #threadTree[rows="thread-card"] .card-layout.nbx-ac:not([data-properties~="dummy"]) > td > .card-container { box-shadow: inset 4.6px 0 0 var(--nbx-acm); }
+html[data-nbx-ml="clear"][data-nbx-ml-ac="bar"] #threadTree[rows="thread-card"] .card-layout.nbx-ac[data-properties~="unread"]:not([data-properties~="dummy"]) > td > .card-container::before { inset-inline-start: 6px; }
+html[data-nbx-ml-ac="ring"] #threadTree[rows="thread-card"] .card-layout.nbx-ac:not([data-properties~="dummy"]) .card-container .nbx-av { box-shadow: inset 0 0 0 2.3px var(--nbx-acm); }
+html[data-nbx-ml-ac="dot"] #threadTree[rows="thread-card"] .card-layout.nbx-ac:not([data-properties~="dummy"]) .card-container .nbx-acct {
+  display: inline-flex; align-items: center; gap: 5px; flex: none; margin-inline-end: 6px; white-space: nowrap;
+  font-size: .85em; font-weight: 400; color: color-mix(in srgb, currentColor 62%, transparent);
+}
+#threadTree .nbx-acct i { display: block; inline-size: 8px; block-size: 8px; border-radius: 50%; background: var(--nbx-acm); flex: none; }
+#threadTree .nbx-acct b { font-weight: 400; }
+html[data-nbx-ml="clear"] #threadTree .nbx-acct b { display: none; }
 
 /* ---------- gemeinsam: Karten-Zeilen ---------- */
 html[data-nbx-ml] #threadTree[rows="thread-card"] .card-layout:not([data-properties~="dummy"]) .card-container .sender { font-weight: 500; }
@@ -277,6 +294,33 @@ function groupWord(n) {
   return n + " " + w;
 }
 
+/* Wirksamer Stil: „Kompakt“ macht aus Sanft/Faden die einzeilige Liste (Klar-Aufbau). */
+function eff() { return opts.density === "compact" && (opts.style === "soft" || opts.style === "thread") ? "clear" : opts.style; }
+function avOn() { return opts.avatars && eff() === "soft" && opts.density !== "compact"; }
+function pvOn() { return opts.preview && (opts.density === "airy" || (eff() === "clear" && opts.density === "normal")); }
+function acMode() {
+  if (opts.acct === "none" || opts.style === "default") return "none";
+  if (opts.acct === "dot") return opts.density === "compact" ? "bar" : "dot";
+  if (opts.acct === "ring") return avOn() ? "ring" : "bar";
+  return "bar";
+}
+
+function acctOf(hdr) {
+  const server = hdr.folder.server;
+  let a = acctCache.get(server.key);
+  if (!a) {
+    const { MailServices } = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
+    a = { key: MailServices.accounts.findAccountForServer(server)?.key || "", name: server.prettyName || "" };
+    acctCache.set(server.key, a);
+  }
+  return a;
+}
+
+function cleanDoc(doc) {
+  for (const el of doc.querySelectorAll(".nbx-av, .nbx-av2, .nbx-grp, .nbx-snip, .nbx-acct")) el.remove();
+  for (const r of doc.querySelectorAll(".nbx-me, .nbx-ac")) { r.classList.remove("nbx-me", "nbx-ac"); r.style.removeProperty("--nbx-ac"); }
+}
+
 function decorate(cw, row) {
   const card = row.querySelector(".card-container");
   if (!card || (row.dataset.properties || "").split(" ").includes("dummy")) return;
@@ -290,7 +334,7 @@ function decorate(cw, row) {
   av.textContent = initials(row.querySelector(".sender")?.textContent);
   let sn = card.querySelector(".nbx-snip");
   if (!sn) { sn = doc.createElement("span"); sn.className = "nbx-snip"; }
-  const parent = opts.style === "clear" ? subjectBox : dyn;
+  const parent = eff() === "clear" ? subjectBox : dyn;
   if (sn.parentNode !== parent) parent.append(sn);
   sn.textContent = "";
   let hdr = null;
@@ -303,7 +347,7 @@ function decorate(cw, row) {
       const th = hdr.folder.msgDatabase.getThreadContainingMsgHdr(hdr), total = th.numChildren;
       const btn = card.querySelector(".thread-card-button");
       if (btn && !grp) { grp = row.ownerDocument.createElement("span"); grp.className = "nbx-grp"; btn.append(grp); }
-      if (grp) grp.textContent = opts.style === "clear" ? String(total) : groupWord(total);
+      if (grp) grp.textContent = eff() === "clear" ? String(total) : groupWord(total);
       if (!av2) { av2 = row.ownerDocument.createElement("span"); av2.className = "nbx-av2"; col1.append(av2); }
       const first = hdr.mime2DecodedAuthor || "";
       let other = "";
@@ -315,22 +359,35 @@ function decorate(cw, row) {
     } catch (e) { /* ohne Gruppenmarker */ }
   } else { grp?.remove(); av2?.remove(); }
   const dl = row.querySelector(".date");
-  if (dl && hdr.date) { dl.title = dl.textContent; dl.textContent = opts.style === "thread" ? threadDate(hdr.date) : shortDate(hdr.date); }
-  row.classList.toggle("nbx-me", opts.style === "thread" && isMine(hdr));
-  if (!opts.preview) return;
+  if (dl && hdr.date) { dl.title = dl.textContent; dl.textContent = eff() === "thread" ? threadDate(hdr.date) : shortDate(hdr.date); }
+  row.classList.toggle("nbx-me", eff() === "thread" && isMine(hdr));
+  /* Kontofarbe */
+  const mode = acMode();
+  let acct = null, color = "";
+  if (mode !== "none") { try { acct = acctOf(hdr); color = opts.colors[acct.key] || ""; } catch (e) { /* ohne Farbe */ } }
+  if (/^#[0-9a-f]{6}$/i.test(color)) { row.style.setProperty("--nbx-ac", color); row.classList.add("nbx-ac"); }
+  else { row.style.removeProperty("--nbx-ac"); row.classList.remove("nbx-ac"); color = ""; }
+  let ad = card.querySelector(".nbx-acct");
+  if (mode === "dot" && color) {
+    if (!ad) { ad = doc.createElement("span"); ad.className = "nbx-acct"; ad.append(doc.createElement("i"), doc.createElement("b")); }
+    if (subjectBox.firstChild !== ad) subjectBox.prepend(ad);
+    ad.lastChild.textContent = acct.name; ad.title = acct.name;
+  } else ad?.remove();
+  if (!pvOn()) return;
   const idx = row.index;
   loadSnippet(hdr, text => { if (row.index === idx && row.isConnected && text) sn.textContent = text; });
 }
 
 function rowHeight(cw, base) {
-  if (opts.style === "clear") {
+  if (eff() === "clear") {
     const fs = parseFloat(cw.getComputedStyle(cw.document.documentElement).fontSize) || 14;
-    return Math.round(fs * 1.5) + 10;
+    return Math.round(fs * 1.5) + (opts.density === "compact" ? 2 : opts.density === "normal" ? 6 : 10);
   }
   if (opts.style === "soft" || opts.style === "thread") {
     const fs = parseFloat(cw.getComputedStyle(cw.document.documentElement).fontSize) || 14;
-    const lines = opts.preview ? 3 : 2;
-    return Math.max(Math.round(fs * 1.5 * lines) + 14, base);
+    const lines = pvOn() ? 3 : 2;
+    const h = Math.round(fs * 1.5 * lines) + 14;
+    return opts.density === "airy" ? Math.max(h, base) : h;
   }
   return base;
 }
@@ -358,12 +415,13 @@ function applyWindow(cw) {
   }
   const root = doc.documentElement;
   if (opts.style === "default") {
-    root.removeAttribute("data-nbx-ml"); root.removeAttribute("data-nbx-ml-av"); root.removeAttribute("data-nbx-ml-pv");
-    for (const el of doc.querySelectorAll(".nbx-av, .nbx-av2, .nbx-grp, .nbx-snip")) el.remove();
+    for (const a of ["data-nbx-ml", "data-nbx-ml-av", "data-nbx-ml-pv", "data-nbx-ml-ac"]) root.removeAttribute(a);
+    cleanDoc(doc);
   } else {
-    root.setAttribute("data-nbx-ml", opts.style);
-    root.setAttribute("data-nbx-ml-av", opts.avatars && opts.style === "soft" ? "1" : "0");
-    root.setAttribute("data-nbx-ml-pv", opts.preview ? "1" : "0");
+    root.setAttribute("data-nbx-ml", eff());
+    root.setAttribute("data-nbx-ml-av", avOn() ? "1" : "0");
+    root.setAttribute("data-nbx-ml-pv", pvOn() ? "1" : "0");
+    root.setAttribute("data-nbx-ml-ac", acMode());
   }
   return refreshHeight(cw);
 }
@@ -388,9 +446,8 @@ function undoWindow(cw) {
   cw.threadPane.densityChange = st.baseDensity;
   doc.getElementById(STYLE_ID)?.remove();
   const root = doc.documentElement;
-  root.removeAttribute("data-nbx-ml"); root.removeAttribute("data-nbx-ml-av"); root.removeAttribute("data-nbx-ml-pv");
-  for (const el of doc.querySelectorAll(".nbx-av, .nbx-av2, .nbx-grp, .nbx-snip")) el.remove();
-  for (const r of doc.querySelectorAll(".nbx-me")) r.classList.remove("nbx-me");
+  for (const a of ["data-nbx-ml", "data-nbx-ml-av", "data-nbx-ml-pv", "data-nbx-ml-ac"]) root.removeAttribute(a);
+  cleanDoc(doc);
   wins.delete(cw);
   Promise.resolve(st.baseDensity.call(cw.threadPane)).then(() => cw.threadTree.reset?.()).catch(() => {});
 }
@@ -453,10 +510,14 @@ const API = class extends ExtensionCommon.ExtensionAPI {
   getAPI() {
     return {
       messageList: {
-        async setOptions(style, preview, avatars) {
+        async setOptions(style, preview, avatars, density, acct, colors) {
           opts.style = ["soft", "clear", "thread"].includes(style) ? style : "default";
           opts.preview = !!preview;
           opts.avatars = !!avatars;
+          opts.density = ["normal", "compact"].includes(density) ? density : "airy";
+          opts.acct = ["bar", "ring", "dot"].includes(acct) ? acct : "none";
+          try { opts.colors = JSON.parse(colors || "{}") || {}; } catch (e) { opts.colors = {}; }
+          acctCache.clear();
           if (!started) startAll();
           for (const win of Services.wm.getEnumerator("mail:3pane")) {
             if (!win._nbxMl) hookWindow(win);

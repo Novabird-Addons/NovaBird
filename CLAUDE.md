@@ -7,6 +7,7 @@ Monorepo mit sechs Gruppen von Betterbird-Add-ons (siehe `README.md`). Jedes Add
 Namensmuster: Ordner `novabird-<name>`, Add-on-ID `<ordner>@novabird`, Anzeigename `NovaBird-<Name>`; Themes `novabird-t-<name>@novabird`. Die Pfade `$NOVABIRD/Release/Kandidaten/` und `$NOVABIRD/Testlab/` in den add-on-eigenen Anleitungen meinen einen lokalen Arbeitsordner außerhalb des Repos (`$NOVABIRD` = Elternordner von `Source/`).
 
 ## Gemeinsame Regeln
+- Branches: `main` enthält nur freigegebene Stände (Releases als Tags `vX.Y.Z`), Entwicklung auf `testing`; `main` wird erst nach ausdrücklicher Entscheidung des Maintainers durch `testing` ersetzt (bis dahin nur auf `testing` pushen).
 - Jede Änderung: Version in `manifest.json` erhöhen; Kandidaten tragen `RC`. Keine Freigabe ohne ausdrückliches Wort des Maintainers; Endnummern vergibt er.
 - Vor einer Freigabe: Unit-Tests, die Tests des Add-ons im Labor und der **Beenden-Test mit fest installierten Add-ons** (temporär geladene Add-ons verstecken Beenden-Fehler; Erwartung: Beenden in 1–2 s, kein FATAL/ABORT).
 - Neue Texte immer in allen vier Sprachen (DE, EN, FR, ES; `default_locale` = en); die Tests `tests/locales*.test.js` prüfen Schlüssel und Platzhalter. Optionsseiten brauchen für jede Option eine kurze Erklärung, bei sichtbarer Wirkung eine kleine Skizze (inline SVG, `currentColor`).
@@ -31,7 +32,7 @@ Namensmuster: Ordner `novabird-<name>`, Add-on-ID `<ordner>@novabird`, Anzeigena
 | NovaBird-DB | 1.2.0 | – (Clients: Search, Conversation) | 128 |
 | NovaBird-Conversation | 0.14.1 | optional NovaBird-DB `api ≥ 1` | 128 |
 | NovaBird-Send | 1.0.2 | – | 128 |
-| NovaBird-Extension | 1.9.5 | – (nutzt Conversation-DOM und Theme-Variablen, wenn vorhanden) | 128 |
+| NovaBird-Extension | 1.9.7 | – (nutzt Conversation-DOM und Theme-Variablen, wenn vorhanden) | 128 |
 | NovaBird-Sand / -Cobalt / -Springlight | 1.0.0 / 1.0.2 / 1.7.2 | – | 128 / 115 / 115 |
 Nie gleichzeitig installieren: ein altes Add-on mit alter ID (Such-Pilot, DB-Pilot, Sende-Pilot, Conversation-Pilot, Stream Extension/Themes, Kalender-/Kontakt-Pilot) zusammen mit dem neuen.
 
