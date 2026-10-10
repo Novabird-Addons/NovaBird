@@ -1,6 +1,6 @@
 # NovaBird-Search
 
-Eine Suchleiste statt zwei für **Betterbird** / Thunderbird ESR (ab 128): ersetzt globale Suche und Schnellfilter durch **ein Feld in der Kopfzeile der Nachrichtenliste**. Version 1.2.4 · Deutsch, English, Français, Español.
+Eine Suchleiste statt zwei für **Betterbird** / Thunderbird ESR (ab 128): ersetzt globale Suche und Schnellfilter durch **ein Feld in der Kopfzeile der Nachrichtenliste**. Version 1.2.5 · Deutsch, English, Français, Español.
 
 ## Funktionen
 - **Treffer beim Tippen** in der normalen Nachrichtenliste, flach und **strikt nach Datum** (neueste zuerst). Bereich links im Feld: *Alle Ordner* oder *Aktueller Ordner*.

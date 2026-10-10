@@ -75,7 +75,8 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top
 td input.nm { width: 100%; box-sizing: border-box; border-color: transparent; }
 td input.nm:hover { border-color: var(--border); }
 td.ems { font-size: 13px; }
-td.num, th.num { text-align: right; white-space: nowrap; }
+/* Tabellenzellen heißen auch „num“ wie die nummerierten Schritt-Kreise oben: Kreisformat zurücknehmen */
+td.num, th.num { text-align: right; white-space: nowrap; width: auto; height: auto; border-radius: 0; background: none; color: inherit; font-size: inherit; display: table-cell; }
 tr.off td { opacity: .45; }
 .empty { color: var(--muted); padding: 18px 0; }
 .result { margin-top: 16px; padding: 12px 14px; border-radius: 8px; background: var(--ok-soft); }

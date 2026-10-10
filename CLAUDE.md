@@ -27,10 +27,13 @@ Namensmuster: Ordner `novabird-<name>`, Add-on-ID `<ordner>@novabird`, Anzeigena
 ## Kompatibilität (Stand der Kandidaten)
 | Add-on | Version | braucht | min. Betterbird |
 |---|---|---|---|
-| NovaBird-Search | 1.2.4 | optional NovaBird-DB `api ≥ 1` | 128 |
+| NovaBird-Search | 1.2.5 | optional NovaBird-DB `api ≥ 1` | 128 |
 | NovaBird-DB | 1.2.0 | – (Clients: Search, Conversation) | 128 |
 | NovaBird-Conversation | 0.14.0 | optional NovaBird-DB `api ≥ 1` | 128 |
 | NovaBird-Send | 1.0.2 | – | 128 |
-| NovaBird-Extension | 1.9.2 | – (nutzt Conversation-DOM und Theme-Variablen, wenn vorhanden) | 128 |
+| NovaBird-Extension | 1.9.3 | – (nutzt Conversation-DOM und Theme-Variablen, wenn vorhanden) | 128 |
 | NovaBird-Sand / -Cobalt / -Springlight | 1.0.0 / 1.0.2 / 1.7.2 | – | 128 / 115 / 115 |
 Nie gleichzeitig installieren: ein altes Add-on mit alter ID (Such-Pilot, DB-Pilot, Sende-Pilot, Conversation-Pilot, Stream Extension/Themes, Kalender-/Kontakt-Pilot) zusammen mit dem neuen.
+
+## Startseite und Dokumente
+`README.md` (englisch, GitHub-Startseite mit Bildern aus `docs/images/`), `README.de.md`, `HANDBOOK.md` (englisch) und `HANDBUCH.md` (deutsch) mitpflegen: Versionen und Funktionen bei jeder Freigabe angleichen. Screenshots nur mit erfundenen Demo-Daten (Labor siehe lokale Anleitung des Maintainers), nie echte Mails.

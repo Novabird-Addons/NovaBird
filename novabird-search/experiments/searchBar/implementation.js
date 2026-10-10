@@ -426,8 +426,9 @@ function markSharedRows(cw, list) {
   const apply = () => {
     try {
       // Hintergrund des Ordnerbaums übernehmen, damit scrollende Zeilen nicht durchscheinen
+      // Farbe von dem, was hinter der Zeile sichtbar ist: der Ordnerbaum (die Liste selbst hat bei manchen Themes eine andere Standardfarbe)
       let bg = "";
-      for (let el = list; el && !bg; el = el.parentElement) {
+      for (let el = list.closest("#folderTree") || list; el && !bg; el = el.parentElement) {
         const c = cw.getComputedStyle(el).backgroundColor;
         if (c && c !== "rgba(0, 0, 0, 0)" && c !== "transparent") {
           bg = c;
@@ -448,6 +449,21 @@ function markSharedRows(cw, list) {
   };
   apply();
   cw.requestAnimationFrame(apply); // nach dem Layout noch einmal (Zeilenhöhen)
+  // Beim Start sind die Theme-Farben des Ordnerbereichs oft noch nicht gesetzt: später erneut übernehmen
+  cw.setTimeout(apply, 700);
+  cw.setTimeout(apply, 3000);
+  // Theme oder hell/dunkel wechselt zur Laufzeit: Hintergrund der fixierten Zeilen neu übernehmen (sonst bleiben sie hell auf dunklem Grund)
+  cw._nbsSharedApply = apply;
+  if (!cw._nbsSharedThemeWatch) {
+    cw._nbsSharedThemeWatch = true;
+    const again = () => cw.setTimeout(() => cw._nbsSharedApply?.(), 300);
+    try {
+      cw.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", again);
+      new cw.MutationObserver(again).observe(cw.top.document.documentElement, { attributes: true, attributeFilter: ["lwtheme", "lwthemetextcolor", "style"] });
+    } catch (e) {
+      dbg("theme watch failed", String(e));
+    }
+  }
 }
 
 function isSharedUri(uri) {

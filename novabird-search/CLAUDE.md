@@ -32,6 +32,7 @@ Eine Leiste in der Kopfzeile: Bereich (Alle Ordner / Aktueller Ordner), Eingabe,
 - Neue Tabs/Fenster laden spät: `injectWhenReady`/`retryTabs` (bis 10 s).
 - Synthetische Ansicht verlassen: `folderPane._onSelect()` bricht dort ab → `leaveSyntheticView(cw)`.
 - Virtuelle Ordner: `wrapper.searchFolders = "*"` wirft → `dBFolderInfo.setCharProperty("searchFolderUri","*")`; Ordnermodi in `folderPane._modes`; `mode.active` erst nach `init()`; `folder.markMessagesRead(Array, true)` braucht ein JS-Array.
+- Sammelordner-Zeilen (sticky) bekommen ihren Hintergrund aus der Farbe des **Ordnerbaums** (`#folderTree` bzw. Vorfahren, nicht der Liste selbst); beim Start (0,7 s/3 s später) und bei Theme-/Hell-Dunkel-Wechsel (`matchMedia`, `MutationObserver` auf dem Hauptfenster) wird sie neu gelesen (`cw._nbsSharedApply`). Prüfen mit Cobalt dunkel, frischer Start (Fehler bis 1.2.4).
 - CSS: `.nbs-field` braucht `flex: none`; Sammelordner-Zeilen `position: sticky` (Liste des Ordnermodus braucht `overflow: visible`, `#folderTree::before` ausblenden).
 - `messenger.tabs.create` für Extension-Seiten hatte im Test kein `messenger` → `openPage` (contentTab im Experiment); `hdr.date` ist in Mikrosekunden. `messages.listTags() deprecated` in der Konsole ist harmlos.
 - Nicht getestet: echtes Profil (IMAP, Mehrkonten), mehr als zwei Hauptfenster, Rückfallweg bei gleichzeitiger Suche mehrerer Fenster ohne DB, „Alle als gelesen markieren“ bei IMAP.

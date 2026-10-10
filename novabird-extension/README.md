@@ -1,6 +1,6 @@
 # NovaBird-Extension
 
-Ergänzt **Betterbird** / Thunderbird ESR (ab 128) um Oberfläche und Werkzeuge, die ein Theme allein nicht liefern kann; Begleiter der [NovaBird-Themes](../novabird-themes/). Version 1.9.2 · Deutsch, English, Français, Español.
+Ergänzt **Betterbird** / Thunderbird ESR (ab 128) um Oberfläche und Werkzeuge, die ein Theme allein nicht liefern kann; Begleiter der [NovaBird-Themes](../novabird-themes/). Version 1.9.3 · Deutsch, English, Français, Español.
 
 ## Funktionen
 - **Rechte Leiste** in Mail, Kalender und Aufgaben: Tagesplan, Aufgabenliste und ein **Anhänge-Bereich** (Anhänge der gewählten Mail oder der ganzen Unterhaltung; Klick springt zur Mail). Wahlweise Betterbird-Standardlayout.
