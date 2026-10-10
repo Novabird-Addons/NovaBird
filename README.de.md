@@ -20,7 +20,7 @@ Eine Familie von Add-ons für **Betterbird** (Thunderbird ESR, getestet mit Bett
 - **Extension ↔ Themes:** die Extension liest die Standard-Theme-Variablen des aktiven Themes (keine ID-Kopplung); beide funktionieren auch einzeln.
 
 ## Bauen und Testen
-Jedes Add-on hat einen `build.sh` (erzeugt `novabird-<name>-<Version>.xpi`) und eine eigene `CLAUDE.md` mit Ordnern, Architektur, Tests und Stolpersteinen. Unit-Tests: `novabird-db` (`npm install && npm test`), `novabird-search`/`-send`/`-conversation` (`node --test tests/*.test.js`). Tests im echten Betterbird laufen headless per Marionette in einem lokalen Labor (nicht Teil dieses Repos).
+Jedes Add-on hat einen `build.sh` (erzeugt `novabird-<name>-<Version>.xpi`). Unit-Tests: `novabird-db` (`npm install && npm test`), `novabird-search`/`-send`/`-conversation` (`node --test tests/*.test.js`). Tests im echten Betterbird laufen headless per Marionette in einem lokalen Labor (nicht Teil dieses Repos).
 Installieren: das `.xpi` im Add-ons-Manager („Add-on aus Datei installieren“).
 
 ## Hinweise

@@ -97,7 +97,7 @@ Planned: more screenshots and docs, synonyms and abbreviations for search, furth
 
 ## Building from source
 
-Each add-on folder has a `build.sh` and a `CLAUDE.md` with architecture, tests and pitfalls. Unit tests: `novabird-db` (`npm install && npm test`), the others `node --test tests/*.test.js`.
+Each add-on folder has a `build.sh`. Unit tests: `novabird-db` (`npm install && npm test`), the others `node --test tests/*.test.js`.
 
 ## License
 

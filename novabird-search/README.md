@@ -17,4 +17,3 @@ Ohne [NovaBird-DB](../novabird-db/) sucht die Leiste über Gloda (Betterbirds In
 ## Installation und Einstellungen
 `novabird-search-<Version>.xpi` im Add-ons-Manager (Zahnrad → „Add-on aus Datei installieren“). Nur Betterbird / Thunderbird ESR (Experiment-API), nicht der monatliche Release-Kanal. Einstellungen (Add-ons-Manager → NovaBird-Search): Höchstzahl der Treffer, Enter-Verhalten, NovaBird-DB an/aus, gemeinsame Ordner, Sortierung (Relevanz: experimentell).
 
-Entwicklerinfo: [CLAUDE.md](CLAUDE.md).

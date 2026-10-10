@@ -16,4 +16,4 @@ Ein Theme kann keine Dialogfenster, Einstellungsseiten oder Skripte gestalten. D
 ## Installation
 `novabird-t-<name>-<Version>.xpi` im Add-ons-Manager unter „Themes“ installieren und aktivieren. Alte „Stream“-Themes vorher entfernen.
 
-Entwicklerinfo, Bauen und Arbeitsweise: [CLAUDE.md](CLAUDE.md).
+

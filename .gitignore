@@ -7,3 +7,6 @@ node_modules/
 bb.log
 bb.pid
 .DS_Store
+
+# Lokale Arbeitsanleitungen (nicht veröffentlicht)
+CLAUDE.md

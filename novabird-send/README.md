@@ -22,4 +22,3 @@ Verzögertes Senden mit Rückgängig-Overlay für **Betterbird** / Thunderbird E
 
 *Die Bilder sind gezeichnete Darstellungen, keine Bildschirmfotos.*
 
-Entwicklerinfo: [CLAUDE.md](CLAUDE.md).

@@ -18,4 +18,3 @@ Quellenkette: **[NovaBird-DB](../novabird-db/)** (optional, 5–70 ms) → Gloda
 ## Hinweise
 Bunte Newsletter erscheinen bewusst schlicht (Mail-Stile werden nicht übernommen); „Original“ zeigt sie wie gewohnt. Tastatur und „als gelesen markieren“ bleiben bei den Betterbird-Standards.
 
-Entwicklerinfo: [CLAUDE.md](CLAUDE.md).

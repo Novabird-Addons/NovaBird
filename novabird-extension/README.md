@@ -15,4 +15,3 @@ Ergänzt **Betterbird** / Thunderbird ESR (ab 128) um Oberfläche und Werkzeuge,
 `novabird-extension-<Version>.xpi` im Add-ons-Manager („Add-on aus Datei installieren“); Betterbird danach neu starten. Nur Betterbird / Thunderbird ESR (Experiment-API). Einstellungen (Add-ons-Manager → NovaBird-Extension): Rechte Leiste (Layout, Tage voraus, Anhänge, Miniaturen), Nachrichtenliste, Farben, Anhang-Vorschau, Nova-Contact.
 Nicht gleichzeitig mit der früheren „Stream Extension“, dem Kalender-Pilot oder Kontakt-Pilot installieren.
 
-Entwicklerinfo: [CLAUDE.md](CLAUDE.md).
