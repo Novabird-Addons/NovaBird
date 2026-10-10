@@ -228,6 +228,9 @@
   "optAutoOpenTrHover": {
     "message": "También al dejar el puntero quieto"
   },
+  "optAutoOpenDwell": {
+    "message": "Usar (experimental, no funciona de forma fiable)"
+  },
   "optAutoOpenDelay": {
     "message": "Tiempo de espera del puntero antes de abrir (ms, 50–200)"
   },

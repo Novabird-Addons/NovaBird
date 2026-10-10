@@ -228,6 +228,9 @@
   "optAutoOpenTrHover": {
     "message": "Auch beim bloßen Verweilen"
   },
+  "optAutoOpenDwell": {
+    "message": "Verwenden (experimentell, funktioniert nicht zuverlässig)"
+  },
   "optAutoOpenDelay": {
     "message": "Verweildauer des Zeigers vor dem Aufklappen (ms, 50–200)"
   },

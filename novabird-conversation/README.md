@@ -1,6 +1,6 @@
 # NovaBird-Conversation
 
-Zeigt im Lesebereich von **Betterbird** / Thunderbird ESR (ab 128) **alle Nachrichten einer Konversation** – über alle Ordner, auch Gesendet und Archiv – übersichtlich untereinander. Version 0.14.0 · Deutsch, English, Français, Español.
+Zeigt im Lesebereich von **Betterbird** / Thunderbird ESR (ab 128) **alle Nachrichten einer Konversation** – über alle Ordner, auch Gesendet und Archiv – übersichtlich untereinander. Version 0.14.1 · Deutsch, English, Français, Español.
 
 ## Funktionen
 - **Konversation:** neueste Nachricht oben fixiert, ältere darunter (wahlweise älteste zuerst); neueste, vorherige und ungelesene aufgeklappt, der Rest als Zeile mit Name, Datum und Vorschau; Zitate hinter „…“; Anhänge als Chips; „Ganz anzeigen“ für lange Nachrichten.

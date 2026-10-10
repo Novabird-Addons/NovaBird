@@ -228,6 +228,9 @@
   "optAutoOpenTrHover": {
     "message": "Aussi quand le pointeur s’arrête simplement"
   },
+  "optAutoOpenDwell": {
+    "message": "Utiliser (expérimental, ne fonctionne pas de façon fiable)"
+  },
   "optAutoOpenDelay": {
     "message": "Durée d’arrêt du pointeur avant l’ouverture (ms, 50–200)"
   },

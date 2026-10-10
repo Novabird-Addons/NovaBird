@@ -20,6 +20,7 @@ const SETTINGS_DEFAULTS = {
   autoOriginal: true,         // einzelne Mail, die in unserer Ansicht kaum Text zeigt: automatisch Betterbirds Originalansicht
   autoOpen: false,            // ältere Nachrichten beim Scrollen automatisch aufklappen
   autoOpenTrigger: "scroll", // autoOpen: scroll = nur nach dem Scrollen | hover = auch beim bloßen Verweilen des Zeigers
+  autoOpenDwell: false,       // autoOpen: Verweildauer (autoOpenDelay) verwenden (experimentell); aus = ohne Wartezeit
   autoOpenDelay: 80,          // autoOpen: so lange (ms) muss der Zeiger nach dem Scrollen auf einer Zeile stehen bleiben (50–200)
   openMs: 180,                // Dauer der Aufklapp-Animation in ms (0 = aus)
   fadeMs: 90,                 // Einblenden der Konversation beim Laden in ms (0 = aus)
@@ -57,6 +58,7 @@ function sanitizeSettings(raw) {
     autoOriginal: bool(r.autoOriginal, d.autoOriginal),
     autoOpen: bool(r.autoOpen, d.autoOpen),
     autoOpenTrigger: oneOf(r.autoOpenTrigger, ["scroll", "hover"], d.autoOpenTrigger),
+    autoOpenDwell: bool(r.autoOpenDwell, d.autoOpenDwell),
     autoOpenDelay: clampInt(r.autoOpenDelay, 50, 200, d.autoOpenDelay),
     openMs: clampInt(r.openMs, 0, 1000, d.openMs),
     fadeMs: clampInt(r.fadeMs, 0, 250, d.fadeMs),

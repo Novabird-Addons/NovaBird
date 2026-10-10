@@ -29,9 +29,9 @@ Namensmuster: Ordner `novabird-<name>`, Add-on-ID `<ordner>@novabird`, Anzeigena
 |---|---|---|---|
 | NovaBird-Search | 1.2.5 | optional NovaBird-DB `api ≥ 1` | 128 |
 | NovaBird-DB | 1.2.0 | – (Clients: Search, Conversation) | 128 |
-| NovaBird-Conversation | 0.14.0 | optional NovaBird-DB `api ≥ 1` | 128 |
+| NovaBird-Conversation | 0.14.1 | optional NovaBird-DB `api ≥ 1` | 128 |
 | NovaBird-Send | 1.0.2 | – | 128 |
-| NovaBird-Extension | 1.9.4 | – (nutzt Conversation-DOM und Theme-Variablen, wenn vorhanden) | 128 |
+| NovaBird-Extension | 1.9.5 | – (nutzt Conversation-DOM und Theme-Variablen, wenn vorhanden) | 128 |
 | NovaBird-Sand / -Cobalt / -Springlight | 1.0.0 / 1.0.2 / 1.7.2 | – | 128 / 115 / 115 |
 Nie gleichzeitig installieren: ein altes Add-on mit alter ID (Such-Pilot, DB-Pilot, Sende-Pilot, Conversation-Pilot, Stream Extension/Themes, Kalender-/Kontakt-Pilot) zusammen mit dem neuen.
 

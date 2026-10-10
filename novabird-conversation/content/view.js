@@ -642,7 +642,7 @@
         break;
       }
     };
-    const rearm = () => { clearTimeout(timer); timer = setTimeout(fire, settings.autoOpenDelay); };
+    const rearm = () => { clearTimeout(timer); timer = setTimeout(fire, settings.autoOpenDwell ? settings.autoOpenDelay : 0); };
     scroller.addEventListener("scroll", () => {
       if (Date.now() < quietUntil || busy) return;
       scrolled = true;

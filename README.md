@@ -2,7 +2,7 @@
 
 <h1 align="center">NovaBird</h1>
 
-<p align="center"><b>A modern face and a much faster brain for Betterbird.</b><br>
+<p align="center"><b>A modern face and a much improved featureset for Betterbird.</b><br>
 A redesigned interface, one unified search bar on top of an upgraded database,<br>
 a real conversation view, undo-send and a calmer calendar and address book.</p>
 
@@ -15,7 +15,7 @@ a real conversation view, undo-send and a calmer calendar and address book.</p>
 
 ![NovaBird main window: card message list, conversation view, agenda and attachments](docs/images/hero-light.png)
 
-NovaBird is a family of add-ons for [Betterbird](https://www.betterbird.eu/) (and Thunderbird ESR). Use one, use all: they work on their own and get better together. Everything runs locally; nothing leaves your computer.
+NovaBird is a family of add-ons for [Betterbird](https://www.betterbird.eu/) (and Thunderbird ESR) where all addons work together. Everything runs locally; nothing leaves your computer.
 
 ## What you get
 
@@ -68,7 +68,7 @@ Calendar dialogs and views pick up your theme. **Nova-Contact** adds tag filters
 | **[NovaBird-DB](novabird-db/README.md)** | Fast full-text index and the sentence parser (DE, EN, FR, ES) |
 | **[NovaBird-Conversation](novabird-conversation/README.md)** | Whole threads in the reading pane |
 | **[NovaBird-Send](novabird-send/README.md)** | Undo send with queue |
-| **[NovaBird-Extension](novabird-extension/README.md)** | Right pane, attachment preview, Nova-Contact, new-style settings, the NovaBird settings page |
+| **[NovaBird-Extension](novabird-extension/README.md)** | Message list (Soft, Clear, Thread), right pane, attachment preview, Nova-Contact, new-style settings, the NovaBird settings page |
 | **[NovaBird-Sand / -Cobalt / -Springlight](novabird-themes/README.md)** | The themes |
 
 They cooperate loosely: Search and Conversation use the DB if it is installed (and fall back to Betterbird's own index if not); the Extension takes its colors from the active theme. None of them requires another.

@@ -10,6 +10,9 @@ const DEFAULTS = {
   pilotLog: false,
   previewEnabled: true,
   previewDelay: 400,
+  listStyle: "default",
+  listPreview: true,
+  listAvatars: true,
   colors: { bg: "#EEF2F8", fg: "#1B2433", border: "#D2DAE6", accent: "#2F6BD8" },
 };
 
@@ -34,6 +37,7 @@ async function applySettings() {
   await safe("Nova-Contact", () => messenger.novaContact.setEnabled(s.pilotEnabled !== false));
   await safe("Vorschau Verzögerung", () => messenger.attachPreview.setDelay(s.previewDelay));
   await safe("Vorschau", () => messenger.attachPreview.setEnabled(s.previewEnabled !== false));
+  await safe("Nachrichtenliste", () => messenger.messageList.setOptions(s.listStyle, s.listPreview !== false, s.listAvatars !== false));
 }
 
 (async () => {
@@ -92,6 +96,9 @@ messenger.storage.onChanged.addListener(async changes => {
   }
   if (keys.includes("previewEnabled")) {
     safe("Vorschau", () => messenger.attachPreview.setEnabled(s.previewEnabled !== false));
+  }
+  if (keys.includes("listStyle") || keys.includes("listPreview") || keys.includes("listAvatars")) {
+    safe("Nachrichtenliste", () => messenger.messageList.setOptions(s.listStyle, s.listPreview !== false, s.listAvatars !== false));
   }
   if (keys.includes("colorMode") || keys.includes("colors")) {
     safe("Kalenderfarben", () => messenger.novaCalendar.setColors(colors));

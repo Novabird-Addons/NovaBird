@@ -5,6 +5,20 @@ const TEXTS = {
   de: {
     title: "NovaBird-Extension",
     tabPreview: "Anhang-Vorschau",
+    tabList: "Nachrichtenliste",
+    listTitle: "Aussehen der Nachrichtenliste",
+    listIntro: "Gilt für die Kartenansicht der Nachrichtenliste (Einstellung „Ansicht“ → Karten). Die Tabellenansicht bleibt unverändert.",
+    listDefault: "Betterbird-Standard",
+    listSoft: "Sanft",
+    listClear: "Klar",
+    listDefaultDesc: "Unverändert: Absender, Betreff und Datum in zwei bis drei Zeilen.",
+    listSoftDesc: "Runde Karten mit Avatar (Initialen), Betreff und einer Vorschauzeile; Ungelesenes mit Punkt.",
+    listClearDesc: "Eine flache Zeile pro Nachricht: Absender, Betreff, Vorschau und Datum. Dicht und übersichtlich.",
+    listThread: "Faden",
+    listThreadDesc: "Zeitleiste: Datum links, Linie mit Punkten, Karte mit Betreff und Vorschauzeile; eigene Nachrichten getönt.",
+    listPreviewLabel: "Vorschauzeile aus dem Nachrichtentext anzeigen",
+    listAvatarsLabel: "Avatar mit Initialen anzeigen (nur Sanft)",
+    listNote: "Die Vorschau wird nur für lokal gespeicherte Nachrichten angezeigt, damit nichts vom Server nachgeladen werden muss. Datum kurz (Uhrzeit, Wochentag, Datum). Änderungen wirken sofort.",
     previewTitle: "Vorschau von PDF- und Bild-Anhängen",
     previewEnableLabel: "Vorschau beim Überfahren anzeigen",
     previewDesc: "Zeigt beim Überfahren eines Anhangs mit der Maus – in der Anhangsliste der Mail, im Anhänge-Bereich der rechten Leiste und (falls installiert) in der Konversationsansicht – das PDF oder Bild in einem scrollbaren Fenster neben dem Anhang. „Öffnen“ im Fenster öffnet den Anhang in einem eigenen Tab. Es wird nichts heruntergeladen oder verändert.",
@@ -41,6 +55,20 @@ const TEXTS = {
   en: {
     title: "NovaBird-Extension",
     tabPreview: "Attachment preview",
+    tabList: "Message list",
+    listTitle: "Look of the message list",
+    listIntro: "Applies to the cards view of the message list (View setting → Cards). The table view stays unchanged.",
+    listDefault: "Betterbird default",
+    listSoft: "Soft",
+    listClear: "Clear",
+    listDefaultDesc: "Unchanged: sender, subject and date in two or three lines.",
+    listSoftDesc: "Rounded cards with an avatar (initials), subject and a preview line; unread messages get a dot.",
+    listClearDesc: "One flat line per message: sender, subject, preview and date. Dense and easy to scan.",
+    listThread: "Thread",
+    listThreadDesc: "Timeline: date on the left, a line with dots, a card with subject and preview line; your own messages tinted.",
+    listPreviewLabel: "Show a preview line from the message text",
+    listAvatarsLabel: "Show an avatar with initials (Soft only)",
+    listNote: "The preview is shown for locally stored messages only, so nothing has to be fetched from the server. Short dates (time, weekday, date). Changes apply immediately.",
     previewTitle: "Preview of PDF and image attachments",
     previewEnableLabel: "Show preview on hover",
     previewDesc: "When you hover an attachment – in the message’s attachment list, in the right-hand attachments area and (if installed) in the conversation view – the PDF or image appears in a scrollable window next to it. “Open” in the window opens the attachment in its own tab. Nothing is downloaded or changed.",
@@ -77,6 +105,20 @@ const TEXTS = {
   fr: {
     title: "NovaBird-Extension",
     tabPreview: "Aperçu des pièces jointes",
+    tabList: "Liste des messages",
+    listTitle: "Apparence de la liste des messages",
+    listIntro: "S’applique à l’affichage en cartes de la liste des messages (réglage Affichage → Cartes). L’affichage en tableau reste inchangé.",
+    listDefault: "Standard de Betterbird",
+    listSoft: "Doux",
+    listClear: "Net",
+    listDefaultDesc: "Inchangé : expéditeur, objet et date sur deux ou trois lignes.",
+    listSoftDesc: "Cartes arrondies avec avatar (initiales), objet et une ligne d’aperçu ; les messages non lus ont un point.",
+    listClearDesc: "Une ligne plate par message : expéditeur, objet, aperçu et date. Dense et lisible.",
+    listThread: "Fil",
+    listThreadDesc: "Chronologie : date à gauche, ligne avec points, carte avec objet et ligne d’aperçu ; vos propres messages teintés.",
+    listPreviewLabel: "Afficher une ligne d’aperçu du texte du message",
+    listAvatarsLabel: "Afficher un avatar avec les initiales (Doux uniquement)",
+    listNote: "L’aperçu n’est affiché que pour les messages stockés localement, afin de ne rien télécharger depuis le serveur. Dates courtes (heure, jour, date). Les changements s’appliquent immédiatement.",
     previewTitle: "Aperçu des pièces jointes PDF et images",
     previewEnableLabel: "Afficher l’aperçu au survol",
     previewDesc: "Au survol d’une pièce jointe – dans la liste des pièces jointes du message, dans la zone des pièces jointes à droite et (si installée) dans la vue des conversations – le PDF ou l’image s’affiche dans une fenêtre défilante à côté. « Ouvrir » ouvre la pièce jointe dans un onglet. Rien n’est téléchargé ni modifié.",
@@ -113,6 +155,20 @@ const TEXTS = {
   es: {
     title: "NovaBird-Extension",
     tabPreview: "Vista previa de adjuntos",
+    tabList: "Lista de mensajes",
+    listTitle: "Aspecto de la lista de mensajes",
+    listIntro: "Se aplica a la vista de tarjetas de la lista de mensajes (ajuste Vista → Tarjetas). La vista de tabla no cambia.",
+    listDefault: "Estándar de Betterbird",
+    listSoft: "Suave",
+    listClear: "Claro",
+    listDefaultDesc: "Sin cambios: remitente, asunto y fecha en dos o tres líneas.",
+    listSoftDesc: "Tarjetas redondeadas con avatar (iniciales), asunto y una línea de vista previa; los no leídos llevan un punto.",
+    listClearDesc: "Una línea plana por mensaje: remitente, asunto, vista previa y fecha. Compacta y clara.",
+    listThread: "Hilo",
+    listThreadDesc: "Línea de tiempo: fecha a la izquierda, línea con puntos, tarjeta con asunto y línea de vista previa; sus propios mensajes teñidos.",
+    listPreviewLabel: "Mostrar una línea de vista previa del texto del mensaje",
+    listAvatarsLabel: "Mostrar un avatar con iniciales (solo Suave)",
+    listNote: "La vista previa solo se muestra para mensajes guardados localmente, para no descargar nada del servidor. Fechas cortas (hora, día de la semana, fecha). Los cambios se aplican de inmediato.",
     previewTitle: "Vista previa de adjuntos PDF e imágenes",
     previewEnableLabel: "Mostrar vista previa al pasar el ratón",
     previewDesc: "Al pasar el ratón sobre un adjunto – en la lista de adjuntos del mensaje, en el área de adjuntos de la derecha y (si está instalado) en la vista de conversaciones – el PDF o la imagen aparece en una ventana desplazable junto a él. «Abrir» abre el adjunto en una pestaña propia. No se descarga ni se modifica nada.",
@@ -156,6 +212,9 @@ const DEFAULTS = {
   pilotLog: false,
   previewEnabled: true,
   previewDelay: 400,
+  listStyle: "default",
+  listPreview: true,
+  listAvatars: true,
   colors: { bg: "#EEF2F8", fg: "#1B2433", border: "#D2DAE6", accent: "#2F6BD8" },
 };
 const KEYS = ["bg", "fg", "border", "accent"];
@@ -242,10 +301,35 @@ for (const b of document.querySelectorAll("nav button")) {
     document.getElementById("calendar").hidden = b.dataset.tab !== "calendar";
     document.getElementById("colorsTab").hidden = b.dataset.tab !== "colors";
     document.getElementById("previewTab").hidden = b.dataset.tab !== "preview";
+    document.getElementById("listTab").hidden = b.dataset.tab !== "list";
     document.getElementById("pilotTab").hidden = b.dataset.tab !== "pilot";
   });
 }
 document.getElementById("tabCalendar").setAttribute("aria-selected", "true");
+
+// Skizzen der drei Stile der Nachrichtenliste
+function listSvg(style) {
+  let o = `<rect x="1.5" y="1.5" width="117" height="77" rx="5" class="fr"/>`;
+  for (let i = 0; i < 3; i++) {
+    const y = style === "clear" ? 8 + i * 15 : 7 + i * 24;
+    if (style === "soft") {
+      o += `<rect x="6" y="${y}" width="108" height="20" rx="5" class="fr"/><circle cx="17" cy="${y + 10}" r="5" class="${i === 0 ? "accl" : "band"}"/>`;
+      o += `<rect x="27" y="${y + 3}" width="${40 + i * 6}" height="3.5" rx="1.7" class="bar"/><rect x="95" y="${y + 3}" width="12" height="3" rx="1.5" class="bar" fill-opacity=".18"/>`;
+      o += `<rect x="27" y="${y + 9}" width="${60 - i * 8}" height="3" rx="1.5" class="bar" fill-opacity=".45"/><rect x="27" y="${y + 14}" width="${70 + i * 4}" height="2.5" rx="1.2" class="bar" fill-opacity=".18"/>`;
+    } else if (style === "thread") {
+      o += `<line x1="30" y1="${y - 4}" x2="30" y2="${y + 24}" class="fr" stroke-opacity=".5"/><circle cx="30" cy="${y + 8}" r="3" class="${i === 0 ? "acc" : "band"}"/>`;
+      o += `<rect x="6" y="${y + 5}" width="14" height="3" rx="1.5" class="bar" fill-opacity=".3"/><rect x="6" y="${y + 11}" width="10" height="2.5" rx="1.2" class="bar" fill-opacity=".2"/>`;
+      o += `<rect x="38" y="${y}" width="76" height="20" rx="5" class="fr"/><rect x="43" y="${y + 4}" width="${34 + i * 6}" height="3.5" rx="1.7" class="bar"/><rect x="43" y="${y + 11}" width="${54 - i * 6}" height="3" rx="1.5" class="bar" fill-opacity=".45"/>`;
+    } else if (style === "clear") {
+      o += `<line x1="2" y1="${y + 12}" x2="118" y2="${y + 12}" class="fr" stroke-opacity=".25"/>`;
+      if (i === 0) o += `<rect x="2" y="${y}" width="2" height="12" class="acc"/>`;
+      o += `<rect x="8" y="${y + 4}" width="26" height="3.5" rx="1.7" class="bar"/><rect x="40" y="${y + 4}" width="${34 - i * 4}" height="3.5" rx="1.7" class="bar" fill-opacity=".4"/><rect x="${78 - i * 4}" y="${y + 4.2}" width="24" height="3" rx="1.5" class="bar" fill-opacity=".18"/><rect x="104" y="${y + 4}" width="10" height="3" rx="1.5" class="bar" fill-opacity=".18"/>`;
+    } else {
+      o += `<rect x="6" y="${y}" width="108" height="20" rx="5" class="fr"/><rect x="11" y="${y + 4}" width="${36 + i * 6}" height="3.5" rx="1.7" class="bar"/><rect x="11" y="${y + 11}" width="${64 - i * 6}" height="3" rx="1.5" class="bar" fill-opacity=".45"/><rect x="92" y="${y + 4}" width="16" height="3" rx="1.5" class="bar" fill-opacity=".18"/>`;
+    }
+  }
+  return `<svg viewBox="0 0 120 80" role="img" aria-label="${style}" style="width:120px">${o}</svg>`;
+}
 
 const save = patch => messenger.storage.local.set(patch);
 
@@ -289,6 +373,19 @@ const save = patch => messenger.storage.local.set(patch);
     drawPreviews(s);
     save({ attachPane: ap.checked });
   });
+
+  const lp = document.getElementById("listPreview"), la = document.getElementById("listAvatars");
+  const syncList = () => { la.disabled = s.listStyle !== "soft"; };
+  for (const radio of document.querySelectorAll("input[name=listStyle]")) {
+    radio.checked = radio.value === (["soft", "clear", "thread"].includes(s.listStyle) ? s.listStyle : "default");
+    document.getElementById("sk_" + radio.value).innerHTML = listSvg(radio.value);
+    radio.addEventListener("change", () => { s.listStyle = radio.value; syncList(); save({ listStyle: radio.value }); });
+  }
+  lp.checked = s.listPreview !== false;
+  la.checked = s.listAvatars !== false;
+  syncList();
+  lp.addEventListener("change", () => save({ listPreview: lp.checked }));
+  la.addEventListener("change", () => save({ listAvatars: la.checked }));
 
   const ve = document.getElementById("previewEnabled"), vd = document.getElementById("previewDelay");
   ve.checked = s.previewEnabled !== false;

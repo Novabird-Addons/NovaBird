@@ -17,7 +17,7 @@
     .color span { min-width: 12em; }
     #colors[disabled] { opacity: 0.45; }
     #hint { opacity: .65; margin-top: 16px; }
-    #pilotDesc, #previewDesc { line-height: 1.5; margin: 10px 0 14px 0; color: color-mix(in srgb, currentColor 78%, transparent); }
+    #pilotDesc, #previewDesc, #listIntro, #listNote { line-height: 1.5; margin: 10px 0 14px 0; color: color-mix(in srgb, currentColor 78%, transparent); }
     #reset { margin-top: 10px; }
     .opt { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
     .opt .txt { flex: 1 1 18em; min-width: 0; }
@@ -37,6 +37,7 @@
   <h2 id="title"></h2>
   <nav>
     <button type="button" data-tab="calendar" id="tabCalendar"></button>
+    <button type="button" data-tab="list" id="tabList"></button>
     <button type="button" data-tab="colors" id="tabColors"></button>
     <button type="button" data-tab="preview" id="tabPreview"></button>
     <button type="button" data-tab="pilot" id="tabPilot"></button>
@@ -61,6 +62,18 @@
       </div>
       <figure><div id="attachPreview"></div></figure>
     </div>
+  </section>
+
+  <section id="listTab" hidden>
+    <h3 id="listTitle"></h3>
+    <p id="listIntro"></p>
+    <div class="opt"><div class="txt"><label><input type="radio" name="listStyle" value="default"> <b id="listDefault"></b><br><small id="listDefaultDesc"></small></label></div><figure id="sk_default"></figure></div>
+    <div class="opt"><div class="txt"><label><input type="radio" name="listStyle" value="soft"> <b id="listSoft"></b><br><small id="listSoftDesc"></small></label></div><figure id="sk_soft"></figure></div>
+    <div class="opt"><div class="txt"><label><input type="radio" name="listStyle" value="clear"> <b id="listClear"></b><br><small id="listClearDesc"></small></label></div><figure id="sk_clear"></figure></div>
+    <div class="opt"><div class="txt"><label><input type="radio" name="listStyle" value="thread"> <b id="listThread"></b><br><small id="listThreadDesc"></small></label></div><figure id="sk_thread"></figure></div>
+    <label><input type="checkbox" id="listPreview"> <span id="listPreviewLabel"></span></label>
+    <label><input type="checkbox" id="listAvatars"> <span id="listAvatarsLabel"></span></label>
+    <p id="listNote"></p>
   </section>
 
   <section id="colorsTab" hidden>

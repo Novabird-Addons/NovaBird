@@ -7,7 +7,7 @@ for (const node of document.querySelectorAll("[data-i18n]")) {
 }
 document.title = api.i18n.getMessage("optTitle");
 
-const FIELDS = ["engine", "limit", "order", "pin", "maxHeight", "expand", "attachments", "collapseQuotes", "rowLines", "autoOriginal", "stickyHeader", "autoOpen", "autoOpenTrigger", "autoOpenDelay", "openMs", "fadeMs", "fallback", "fallbackDays", "fallbackPeople", "hideHeader", "debugTiming", "alwaysRender"];
+const FIELDS = ["engine", "limit", "order", "pin", "maxHeight", "expand", "attachments", "collapseQuotes", "rowLines", "autoOriginal", "stickyHeader", "autoOpen", "autoOpenTrigger", "autoOpenDwell", "autoOpenDelay", "openMs", "fadeMs", "fallback", "fallbackDays", "fallbackPeople", "hideHeader", "debugTiming", "alwaysRender"];
 const field = id => document.getElementById(id);
 let hideTimer;
 
@@ -19,6 +19,7 @@ function apply(settings) {
     else input.value = settings[id];
   }
   field("pin").disabled = settings.order !== "newest";
+  field("autoOpenDelay").disabled = !settings.autoOpenDwell;
   field("fallbackDays").disabled = field("fallbackPeople").disabled = settings.fallback !== "smart";
 }
 

@@ -228,6 +228,9 @@
   "optAutoOpenTrHover": {
     "message": "Also when the pointer just rests"
   },
+  "optAutoOpenDwell": {
+    "message": "Use (experimental, does not work reliably)"
+  },
   "optAutoOpenDelay": {
     "message": "Pointer dwell time before opening (ms, 50–200)"
   },

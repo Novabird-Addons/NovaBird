@@ -1,0 +1,18 @@
+[
+  {
+    "namespace": "messageList",
+    "functions": [
+      {
+        "name": "setOptions",
+        "type": "function",
+        "async": true,
+        "description": "Stil der Nachrichtenliste (Kartenansicht): default, soft oder clear; Vorschauzeile und Avatare (nur soft) ein/aus. Immer alle Argumente übergeben.",
+        "parameters": [
+          { "name": "style", "type": "string" },
+          { "name": "preview", "type": "boolean" },
+          { "name": "avatars", "type": "boolean" }
+        ]
+      }
+    ]
+  }
+]
