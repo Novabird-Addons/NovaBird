@@ -13,8 +13,29 @@ const DEFAULTS = {
   listStyle: "default",
   listPreview: true,
   listAvatars: true,
+  listDensity: "airy",
+  listAcct: "none",
+  listAcctColors: {},
   colors: { bg: "#EEF2F8", fg: "#1B2433", border: "#D2DAE6", accent: "#2F6BD8" },
 };
+
+const ACCT_PALETTE = ["#378ADD", "#1D9E75", "#D85A30", "#7F77DD", "#BA7517", "#D4537E", "#0F6E56", "#888780"];
+
+// Kontofarben: gespeicherte Wahl, sonst Palette nach Reihenfolge der Konten (Optionsseite nutzt dieselbe Regel)
+async function accountColors(s) {
+  const out = {};
+  try {
+    const list = await messenger.accounts.list(false);
+    list.forEach((a, i) => { out[a.id] = (s.listAcctColors || {})[a.id] || ACCT_PALETTE[i % ACCT_PALETTE.length]; });
+  } catch (e) { /* ohne Kontofarben */ }
+  return JSON.stringify(out);
+}
+
+async function applyList(s) {
+  await messenger.messageList.setOptions(s.listStyle, s.listPreview !== false, s.listAvatars !== false,
+    ["normal", "compact"].includes(s.listDensity) ? s.listDensity : "airy",
+    ["bar", "ring", "dot"].includes(s.listAcct) ? s.listAcct : "none", await accountColors(s));
+}
 
 // Jeder Schritt einzeln abgesichert: ein Fehler im einen Teil darf den anderen nicht verhindern.
 async function safe(label, fn) {
@@ -37,7 +58,7 @@ async function applySettings() {
   await safe("Nova-Contact", () => messenger.novaContact.setEnabled(s.pilotEnabled !== false));
   await safe("Vorschau Verzögerung", () => messenger.attachPreview.setDelay(s.previewDelay));
   await safe("Vorschau", () => messenger.attachPreview.setEnabled(s.previewEnabled !== false));
-  await safe("Nachrichtenliste", () => messenger.messageList.setOptions(s.listStyle, s.listPreview !== false, s.listAvatars !== false));
+  await safe("Nachrichtenliste", () => applyList(s));
 }
 
 (async () => {
@@ -97,8 +118,8 @@ messenger.storage.onChanged.addListener(async changes => {
   if (keys.includes("previewEnabled")) {
     safe("Vorschau", () => messenger.attachPreview.setEnabled(s.previewEnabled !== false));
   }
-  if (keys.includes("listStyle") || keys.includes("listPreview") || keys.includes("listAvatars")) {
-    safe("Nachrichtenliste", () => messenger.messageList.setOptions(s.listStyle, s.listPreview !== false, s.listAvatars !== false));
+  if (keys.some(k => k.startsWith("list"))) {
+    safe("Nachrichtenliste", () => applyList(s));
   }
   if (keys.includes("colorMode") || keys.includes("colors")) {
     safe("Kalenderfarben", () => messenger.novaCalendar.setColors(colors));

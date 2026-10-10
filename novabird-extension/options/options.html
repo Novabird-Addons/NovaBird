@@ -11,13 +11,14 @@
     nav button[aria-selected="true"] { border-bottom-color: #2F6BD8; font-weight: 600; }
     section[hidden] { display: none; }
     h3 { margin: 22px 0 6px; }
+    h4 { margin: 20px 0 4px; font-size: 1.05em; }
     label { display: block; margin: 8px 0; }
     .color { display: flex; align-items: center; gap: 10px; margin: 6px 0 6px 22px; }
     .color input { width: 3em; height: 1.8em; padding: 0; }
     .color span { min-width: 12em; }
     #colors[disabled] { opacity: 0.45; }
     #hint { opacity: .65; margin-top: 16px; }
-    #pilotDesc, #previewDesc, #listIntro, #listNote { line-height: 1.5; margin: 10px 0 14px 0; color: color-mix(in srgb, currentColor 78%, transparent); }
+    #pilotDesc, #previewDesc, #listIntro, #listNote, #listAcctNote, #listDensityNote { line-height: 1.5; margin: 10px 0 14px 0; color: color-mix(in srgb, currentColor 78%, transparent); }
     #reset { margin-top: 10px; }
     .opt { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
     .opt .txt { flex: 1 1 18em; min-width: 0; }
@@ -36,14 +37,14 @@
 <body>
   <h2 id="title"></h2>
   <nav>
-    <button type="button" data-tab="calendar" id="tabCalendar"></button>
     <button type="button" data-tab="list" id="tabList"></button>
+    <button type="button" data-tab="calendar" id="tabCalendar"></button>
     <button type="button" data-tab="colors" id="tabColors"></button>
     <button type="button" data-tab="preview" id="tabPreview"></button>
     <button type="button" data-tab="pilot" id="tabPilot"></button>
   </nav>
 
-  <section id="calendar">
+  <section id="calendar" hidden>
     <h3 id="layoutTitle"></h3>
     <div class="opt">
       <div class="txt">
@@ -64,16 +65,31 @@
     </div>
   </section>
 
-  <section id="listTab" hidden>
+  <section id="listTab">
     <h3 id="listTitle"></h3>
     <p id="listIntro"></p>
+    <h4 id="listStyleTitle"></h4>
     <div class="opt"><div class="txt"><label><input type="radio" name="listStyle" value="default"> <b id="listDefault"></b><br><small id="listDefaultDesc"></small></label></div><figure id="sk_default"></figure></div>
     <div class="opt"><div class="txt"><label><input type="radio" name="listStyle" value="soft"> <b id="listSoft"></b><br><small id="listSoftDesc"></small></label></div><figure id="sk_soft"></figure></div>
     <div class="opt"><div class="txt"><label><input type="radio" name="listStyle" value="clear"> <b id="listClear"></b><br><small id="listClearDesc"></small></label></div><figure id="sk_clear"></figure></div>
     <div class="opt"><div class="txt"><label><input type="radio" name="listStyle" value="thread"> <b id="listThread"></b><br><small id="listThreadDesc"></small></label></div><figure id="sk_thread"></figure></div>
+    <h4 id="listDensityTitle"></h4>
+    <div class="opt"><div class="txt"><label><input type="radio" name="listDensity" value="airy"> <b id="dAiry"></b><br><small id="dAiryDesc"></small></label></div><figure id="sd_airy"></figure></div>
+    <div class="opt"><div class="txt"><label><input type="radio" name="listDensity" value="normal"> <b id="dNormal"></b><br><small id="dNormalDesc"></small></label></div><figure id="sd_normal"></figure></div>
+    <div class="opt"><div class="txt"><label><input type="radio" name="listDensity" value="compact"> <b id="dCompact"></b><br><small id="dCompactDesc"></small></label></div><figure id="sd_compact"></figure></div>
+    <h4 id="listAcctTitle"></h4>
+    <div class="opt"><div class="txt"><label><input type="radio" name="listAcct" value="none"> <b id="aNone"></b><br><small id="aNoneDesc"></small></label></div><figure id="sa_none"></figure></div>
+    <div class="opt"><div class="txt"><label><input type="radio" name="listAcct" value="bar"> <b id="aBar"></b><br><small id="aBarDesc"></small></label></div><figure id="sa_bar"></figure></div>
+    <div class="opt"><div class="txt"><label><input type="radio" name="listAcct" value="ring"> <b id="aRing"></b><br><small id="aRingDesc"></small></label></div><figure id="sa_ring"></figure></div>
+    <div class="opt"><div class="txt"><label><input type="radio" name="listAcct" value="dot"> <b id="aDot"></b><br><small id="aDotDesc"></small></label></div><figure id="sa_dot"></figure></div>
+    <p id="listAcctColorsLabel" style="margin:10px 0 2px"></p>
+    <div id="acctColors"></div>
+    <p id="listAcctNote"></p>
+    <h4 id="listDetailsTitle"></h4>
     <label><input type="checkbox" id="listPreview"> <span id="listPreviewLabel"></span></label>
     <label><input type="checkbox" id="listAvatars"> <span id="listAvatarsLabel"></span></label>
     <p id="listNote"></p>
+    <p id="listDensityNote"></p>
   </section>
 
   <section id="colorsTab" hidden>

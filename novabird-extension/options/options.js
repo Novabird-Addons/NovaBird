@@ -3,6 +3,27 @@
 // Texte: Deutsch, Englisch, Französisch, Spanisch (Sprache der Betterbird-Oberfläche, sonst Englisch)
 const TEXTS = {
   de: {
+    listStyleTitle: "Stil",
+    listDensityTitle: "Dichte",
+    dAiry: "Luftig",
+    dAiryDesc: "Wie bisher: Avatar, Vorschauzeile und großzügige Abstände (Standard).",
+    dNormal: "Normal",
+    dNormalDesc: "Zwei Zeilen ohne Avatar und Vorschau: etwa 40 % mehr Nachrichten sichtbar.",
+    dCompact: "Kompakt",
+    dCompactDesc: "Eine Zeile pro Nachricht wie in einer Tabelle: bis zu dreimal so viele Nachrichten sichtbar. Sanft und Faden erscheinen dabei im Aufbau von Klar.",
+    listAcctTitle: "Kontofarbe",
+    aNone: "Aus",
+    aNoneDesc: "Keine Kennzeichnung des Kontos.",
+    aBar: "Farbbalken",
+    aBarDesc: "Schmaler Balken am linken Rand der Zeile (in Kompakt immer diese Form).",
+    aRing: "Ring",
+    aRingDesc: "Ring um den Avatar (nur Sanft in Luftig, sonst Balken).",
+    aDot: "Punkt mit Kontoname",
+    aDotDesc: "Farbiger Punkt und Kontoname vor dem Betreff (in Kompakt als Balken).",
+    listAcctColorsLabel: "Farbe je Konto:",
+    listAcctNote: "Die Farben werden automatisch vergeben und lassen sich hier ändern.",
+    listDetailsTitle: "Weitere Optionen",
+    listDensityNote: "Dichte und Kontofarbe gelten nicht für den Betterbird-Standard.",
     title: "NovaBird-Extension",
     tabPreview: "Anhang-Vorschau",
     tabList: "Nachrichtenliste",
@@ -53,6 +74,27 @@ const TEXTS = {
     hint: "Änderungen wirken sofort; offene Fenster übernehmen sie beim nächsten Öffnen.",
   },
   en: {
+    listStyleTitle: "Style",
+    listDensityTitle: "Density",
+    dAiry: "Airy",
+    dAiryDesc: "As before: avatar, preview line and generous spacing (default).",
+    dNormal: "Normal",
+    dNormalDesc: "Two lines without avatar and preview: about 40% more messages visible.",
+    dCompact: "Compact",
+    dCompactDesc: "One line per message like a table: up to three times as many messages visible. Soft and Thread then use the layout of Clear.",
+    listAcctTitle: "Account colour",
+    aNone: "Off",
+    aNoneDesc: "No account marking.",
+    aBar: "Colour bar",
+    aBarDesc: "Narrow bar at the left edge of the row (always used in Compact).",
+    aRing: "Ring",
+    aRingDesc: "Ring around the avatar (Soft in Airy only, otherwise a bar).",
+    aDot: "Dot with account name",
+    aDotDesc: "Coloured dot and account name before the subject (a bar in Compact).",
+    listAcctColorsLabel: "Colour per account:",
+    listAcctNote: "Colours are assigned automatically and can be changed here.",
+    listDetailsTitle: "More options",
+    listDensityNote: "Density and account colour do not apply to the Betterbird default.",
     title: "NovaBird-Extension",
     tabPreview: "Attachment preview",
     tabList: "Message list",
@@ -103,6 +145,27 @@ const TEXTS = {
     hint: "Changes apply immediately; open windows pick them up the next time they open.",
   },
   fr: {
+    listStyleTitle: "Style",
+    listDensityTitle: "Densité",
+    dAiry: "Aérée",
+    dAiryDesc: "Comme avant : avatar, ligne d’aperçu et espacement généreux (par défaut).",
+    dNormal: "Normale",
+    dNormalDesc: "Deux lignes sans avatar ni aperçu : environ 40 % de messages visibles en plus.",
+    dCompact: "Compacte",
+    dCompactDesc: "Une ligne par message comme dans un tableau : jusqu’à trois fois plus de messages visibles. Doux et Fil prennent alors la disposition de Clair.",
+    listAcctTitle: "Couleur du compte",
+    aNone: "Désactivée",
+    aNoneDesc: "Aucun marquage du compte.",
+    aBar: "Barre de couleur",
+    aBarDesc: "Barre étroite au bord gauche de la ligne (toujours utilisée en mode compact).",
+    aRing: "Anneau",
+    aRingDesc: "Anneau autour de l’avatar (Doux en mode aéré uniquement, sinon une barre).",
+    aDot: "Point avec nom du compte",
+    aDotDesc: "Point coloré et nom du compte avant l’objet (une barre en mode compact).",
+    listAcctColorsLabel: "Couleur par compte :",
+    listAcctNote: "Les couleurs sont attribuées automatiquement et modifiables ici.",
+    listDetailsTitle: "Autres options",
+    listDensityNote: "La densité et la couleur du compte ne s’appliquent pas au style par défaut de Betterbird.",
     title: "NovaBird-Extension",
     tabPreview: "Aperçu des pièces jointes",
     tabList: "Liste des messages",
@@ -153,6 +216,27 @@ const TEXTS = {
     hint: "Les modifications s'appliquent immédiatement ; les fenêtres ouvertes les prennent en compte à la prochaine ouverture.",
   },
   es: {
+    listStyleTitle: "Estilo",
+    listDensityTitle: "Densidad",
+    dAiry: "Amplia",
+    dAiryDesc: "Como antes: avatar, línea de vista previa y espaciado generoso (predeterminada).",
+    dNormal: "Normal",
+    dNormalDesc: "Dos líneas sin avatar ni vista previa: aproximadamente un 40 % más de mensajes visibles.",
+    dCompact: "Compacta",
+    dCompactDesc: "Una línea por mensaje como en una tabla: hasta tres veces más mensajes visibles. Suave e Hilo usan entonces la disposición de Claro.",
+    listAcctTitle: "Color de la cuenta",
+    aNone: "Desactivado",
+    aNoneDesc: "Sin marca de cuenta.",
+    aBar: "Barra de color",
+    aBarDesc: "Barra estrecha en el borde izquierdo de la fila (siempre en el modo compacto).",
+    aRing: "Anillo",
+    aRingDesc: "Anillo alrededor del avatar (solo Suave en modo amplio; si no, una barra).",
+    aDot: "Punto con nombre de cuenta",
+    aDotDesc: "Punto de color y nombre de cuenta antes del asunto (una barra en modo compacto).",
+    listAcctColorsLabel: "Color por cuenta:",
+    listAcctNote: "Los colores se asignan automáticamente y se pueden cambiar aquí.",
+    listDetailsTitle: "Más opciones",
+    listDensityNote: "La densidad y el color de la cuenta no se aplican al estilo predeterminado de Betterbird.",
     title: "NovaBird-Extension",
     tabPreview: "Vista previa de adjuntos",
     tabList: "Lista de mensajes",
@@ -215,6 +299,9 @@ const DEFAULTS = {
   listStyle: "default",
   listPreview: true,
   listAvatars: true,
+  listDensity: "airy",
+  listAcct: "none",
+  listAcctColors: {},
   colors: { bg: "#EEF2F8", fg: "#1B2433", border: "#D2DAE6", accent: "#2F6BD8" },
 };
 const KEYS = ["bg", "fg", "border", "accent"];
@@ -305,7 +392,7 @@ for (const b of document.querySelectorAll("nav button")) {
     document.getElementById("pilotTab").hidden = b.dataset.tab !== "pilot";
   });
 }
-document.getElementById("tabCalendar").setAttribute("aria-selected", "true");
+document.getElementById("tabList").setAttribute("aria-selected", "true");
 
 // Skizzen der drei Stile der Nachrichtenliste
 function listSvg(style) {
@@ -329,6 +416,39 @@ function listSvg(style) {
     }
   }
   return `<svg viewBox="0 0 120 80" role="img" aria-label="${style}" style="width:120px">${o}</svg>`;
+}
+
+// Skizzen für Dichte und Kontofarbe
+function denSvg(kind) {
+  let o = `<rect x="1.5" y="1.5" width="117" height="77" rx="5" class="fr"/>`;
+  const h = { airy: 24, normal: 17, compact: 9 }[kind], n = Math.floor(70 / h);
+  for (let i = 0; i < n; i++) {
+    const y = 6 + i * h;
+    if (kind === "compact") {
+      o += `<line x1="2" y1="${y + h}" x2="118" y2="${y + h}" class="fr" stroke-opacity=".25"/><rect x="8" y="${y + 3}" width="22" height="3" rx="1.5" class="bar"/><rect x="36" y="${y + 3}" width="${40 - (i % 3) * 6}" height="3" rx="1.5" class="bar" fill-opacity=".4"/><rect x="100" y="${y + 3}" width="12" height="3" rx="1.5" class="bar" fill-opacity=".18"/>`;
+    } else {
+      o += `<rect x="6" y="${y}" width="108" height="${h - 3}" rx="4" class="fr"/>`;
+      if (kind === "airy") o += `<circle cx="17" cy="${y + 10}" r="5" class="band"/>`;
+      const x = kind === "airy" ? 27 : 12;
+      o += `<rect x="${x}" y="${y + 4}" width="${40 + (i % 3) * 6}" height="3.5" rx="1.7" class="bar"/><rect x="${x}" y="${y + 10}" width="${56 - (i % 3) * 8}" height="3" rx="1.5" class="bar" fill-opacity=".45"/>`;
+      if (kind === "airy") o += `<rect x="${x}" y="${y + 15}" width="${66 + (i % 3) * 4}" height="2.5" rx="1.2" class="bar" fill-opacity=".18"/>`;
+    }
+  }
+  return `<svg viewBox="0 0 120 80" role="img" aria-label="${kind}" style="width:120px">${o}</svg>`;
+}
+const ACCT_COLORS = ["#378ADD", "#1D9E75", "#D85A30"];
+function acctSvg(kind) {
+  let o = `<rect x="1.5" y="1.5" width="117" height="47" rx="5" class="fr"/>`;
+  for (let i = 0; i < 3; i++) {
+    const y = 5 + i * 14, c = ACCT_COLORS[i];
+    o += `<rect x="6" y="${y}" width="108" height="12" rx="3" class="fr" stroke-opacity=".25"/>`;
+    if (kind === "bar") o += `<rect x="6" y="${y}" width="3" height="12" fill="${c}"/>`;
+    if (kind === "ring") o += `<circle cx="16" cy="${y + 6}" r="4" fill="none" stroke="${c}" stroke-width="1.8"/>`;
+    if (kind === "dot") o += `<circle cx="14" cy="${y + 6}" r="2.6" fill="${c}"/><rect x="19" y="${y + 4.5}" width="14" height="3" rx="1.5" class="bar" fill-opacity=".3"/>`;
+    const x = kind === "dot" ? 38 : 24;
+    o += `<rect x="${x}" y="${y + 4.5}" width="${46 - i * 6}" height="3" rx="1.5" class="bar"/><rect x="98" y="${y + 4.5}" width="10" height="3" rx="1.5" class="bar" fill-opacity=".18"/>`;
+  }
+  return `<svg viewBox="0 0 120 52" role="img" aria-label="${kind}" style="width:120px">${o}</svg>`;
 }
 
 const save = patch => messenger.storage.local.set(patch);
@@ -375,7 +495,35 @@ const save = patch => messenger.storage.local.set(patch);
   });
 
   const lp = document.getElementById("listPreview"), la = document.getElementById("listAvatars");
-  const syncList = () => { la.disabled = s.listStyle !== "soft"; };
+  const syncList = () => { la.disabled = s.listStyle !== "soft" || s.listDensity !== "airy"; lp.disabled = s.listDensity === "compact"; };
+  for (const radio of document.querySelectorAll("input[name=listDensity]")) {
+    radio.checked = radio.value === (["normal", "compact"].includes(s.listDensity) ? s.listDensity : "airy");
+    document.getElementById("sd_" + radio.value).innerHTML = denSvg(radio.value);
+    radio.addEventListener("change", () => { s.listDensity = radio.value; syncList(); save({ listDensity: radio.value }); });
+  }
+  for (const radio of document.querySelectorAll("input[name=listAcct]")) {
+    radio.checked = radio.value === (["bar", "ring", "dot"].includes(s.listAcct) ? s.listAcct : "none");
+    document.getElementById("sa_" + radio.value).innerHTML = acctSvg(radio.value);
+    radio.addEventListener("change", () => { s.listAcct = radio.value; save({ listAcct: radio.value }); });
+  }
+  // Farbe je Konto: gespeicherte Wahl, sonst Palette nach Reihenfolge (wie background.js)
+  const PALETTE = ["#378ADD", "#1D9E75", "#D85A30", "#7F77DD", "#BA7517", "#D4537E", "#0F6E56", "#888780"];
+  try {
+    const box = document.getElementById("acctColors");
+    const stored = { ...(s.listAcctColors || {}) };
+    (await messenger.accounts.list(false)).forEach((a, i) => {
+      const row = document.createElement("div");
+      row.className = "color";
+      const input = document.createElement("input");
+      input.type = "color";
+      input.value = stored[a.id] || PALETTE[i % PALETTE.length];
+      const name = document.createElement("span");
+      name.textContent = a.name;
+      row.append(input, name);
+      input.addEventListener("input", () => { stored[a.id] = input.value; save({ listAcctColors: { ...stored } }); });
+      box.append(row);
+    });
+  } catch (e) { /* ohne Kontoliste */ }
   for (const radio of document.querySelectorAll("input[name=listStyle]")) {
     radio.checked = radio.value === (["soft", "clear", "thread"].includes(s.listStyle) ? s.listStyle : "default");
     document.getElementById("sk_" + radio.value).innerHTML = listSvg(radio.value);
