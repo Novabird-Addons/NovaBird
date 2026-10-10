@@ -69,7 +69,7 @@ Calendar dialogs and views pick up your theme. **Nova-Contact** adds tag filters
 | **[NovaBird-DB](novabird-db/README.md)** | Fast full-text index and the sentence parser (DE, EN, FR, ES) |
 | **[NovaBird-Conversation](novabird-conversation/README.md)** | Whole threads in the reading pane |
 | **[NovaBird-Send](novabird-send/README.md)** | Undo send with queue |
-| **[NovaBird-Extension](novabird-extension/README.md)** | Message list (Soft, Clear, Thread), right pane, attachment preview, Nova-Contact, new-style settings, the NovaBird settings page |
+| **[NovaBird-Extension](novabird-extension/README.md)** | Message list (Soft, Clear, Thread; three densities and per-account colours), right pane, attachment preview, Nova-Contact, new-style settings, the NovaBird settings page |
 | **[NovaBird-Sand / -Cobalt / -Springlight](novabird-themes/README.md)** | The themes |
 
 They cooperate loosely: Search and Conversation use the DB if it is installed (and fall back to Betterbird's own index if not); the Extension takes its colors from the active theme. None of them requires another.
