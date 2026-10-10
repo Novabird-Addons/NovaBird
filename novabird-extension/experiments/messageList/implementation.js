@@ -296,7 +296,7 @@ function groupWord(n) {
 
 /* Wirksamer Stil: „Kompakt“ macht aus Sanft/Faden die einzeilige Liste (Klar-Aufbau). */
 function eff() { return opts.density === "compact" && (opts.style === "soft" || opts.style === "thread") ? "clear" : opts.style; }
-function avOn() { return opts.avatars && eff() === "soft" && opts.density === "airy"; }
+function avOn() { return opts.avatars && eff() === "soft" && opts.density !== "compact"; }
 function pvOn() { return opts.preview && (opts.density === "airy" || (eff() === "clear" && opts.density === "normal")); }
 function acMode() {
   if (opts.acct === "none" || opts.style === "default") return "none";

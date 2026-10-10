@@ -8,7 +8,7 @@ const TEXTS = {
     dAiry: "Luftig",
     dAiryDesc: "Wie bisher: Avatar, Vorschauzeile und großzügige Abstände (Standard).",
     dNormal: "Normal",
-    dNormalDesc: "Zwei Zeilen ohne Avatar und Vorschau: etwa 40 % mehr Nachrichten sichtbar.",
+    dNormalDesc: "Zwei Zeilen ohne Vorschau, Avatar möglich: etwa 40 % mehr Nachrichten sichtbar.",
     dCompact: "Kompakt",
     dCompactDesc: "Eine Zeile pro Nachricht wie in einer Tabelle: bis zu dreimal so viele Nachrichten sichtbar. Sanft und Faden erscheinen dabei im Aufbau von Klar.",
     listAcctTitle: "Kontofarbe",
@@ -17,7 +17,7 @@ const TEXTS = {
     aBar: "Farbbalken",
     aBarDesc: "Schmaler Balken am linken Rand der Zeile (in Kompakt immer diese Form).",
     aRing: "Ring",
-    aRingDesc: "Ring um den Avatar (nur Sanft in Luftig, sonst Balken).",
+    aRingDesc: "Ring um den Avatar (nur Sanft mit Avatar, nicht in Kompakt; sonst Balken).",
     aDot: "Punkt mit Kontoname",
     aDotDesc: "Farbiger Punkt und Kontoname vor dem Betreff (in Kompakt als Balken).",
     listAcctColorsLabel: "Farbe je Konto:",
@@ -79,7 +79,7 @@ const TEXTS = {
     dAiry: "Airy",
     dAiryDesc: "As before: avatar, preview line and generous spacing (default).",
     dNormal: "Normal",
-    dNormalDesc: "Two lines without avatar and preview: about 40% more messages visible.",
+    dNormalDesc: "Two lines without preview, avatar possible: about 40% more messages visible.",
     dCompact: "Compact",
     dCompactDesc: "One line per message like a table: up to three times as many messages visible. Soft and Thread then use the layout of Clear.",
     listAcctTitle: "Account colour",
@@ -88,7 +88,7 @@ const TEXTS = {
     aBar: "Colour bar",
     aBarDesc: "Narrow bar at the left edge of the row (always used in Compact).",
     aRing: "Ring",
-    aRingDesc: "Ring around the avatar (Soft in Airy only, otherwise a bar).",
+    aRingDesc: "Ring around the avatar (Soft with avatar, not in Compact; otherwise a bar).",
     aDot: "Dot with account name",
     aDotDesc: "Coloured dot and account name before the subject (a bar in Compact).",
     listAcctColorsLabel: "Colour per account:",
@@ -150,7 +150,7 @@ const TEXTS = {
     dAiry: "Aérée",
     dAiryDesc: "Comme avant : avatar, ligne d’aperçu et espacement généreux (par défaut).",
     dNormal: "Normale",
-    dNormalDesc: "Deux lignes sans avatar ni aperçu : environ 40 % de messages visibles en plus.",
+    dNormalDesc: "Deux lignes sans aperçu, avatar possible : environ 40 % de messages visibles en plus.",
     dCompact: "Compacte",
     dCompactDesc: "Une ligne par message comme dans un tableau : jusqu’à trois fois plus de messages visibles. Doux et Fil prennent alors la disposition de Clair.",
     listAcctTitle: "Couleur du compte",
@@ -159,7 +159,7 @@ const TEXTS = {
     aBar: "Barre de couleur",
     aBarDesc: "Barre étroite au bord gauche de la ligne (toujours utilisée en mode compact).",
     aRing: "Anneau",
-    aRingDesc: "Anneau autour de l’avatar (Doux en mode aéré uniquement, sinon une barre).",
+    aRingDesc: "Anneau autour de l’avatar (Doux avec avatar, pas en mode compact ; sinon une barre).",
     aDot: "Point avec nom du compte",
     aDotDesc: "Point coloré et nom du compte avant l’objet (une barre en mode compact).",
     listAcctColorsLabel: "Couleur par compte :",
@@ -221,7 +221,7 @@ const TEXTS = {
     dAiry: "Amplia",
     dAiryDesc: "Como antes: avatar, línea de vista previa y espaciado generoso (predeterminada).",
     dNormal: "Normal",
-    dNormalDesc: "Dos líneas sin avatar ni vista previa: aproximadamente un 40 % más de mensajes visibles.",
+    dNormalDesc: "Dos líneas sin vista previa, avatar posible: aproximadamente un 40 % más de mensajes visibles.",
     dCompact: "Compacta",
     dCompactDesc: "Una línea por mensaje como en una tabla: hasta tres veces más mensajes visibles. Suave e Hilo usan entonces la disposición de Claro.",
     listAcctTitle: "Color de la cuenta",
@@ -230,7 +230,7 @@ const TEXTS = {
     aBar: "Barra de color",
     aBarDesc: "Barra estrecha en el borde izquierdo de la fila (siempre en el modo compacto).",
     aRing: "Anillo",
-    aRingDesc: "Anillo alrededor del avatar (solo Suave en modo amplio; si no, una barra).",
+    aRingDesc: "Anillo alrededor del avatar (Suave con avatar, no en modo compacto; si no, una barra).",
     aDot: "Punto con nombre de cuenta",
     aDotDesc: "Punto de color y nombre de cuenta antes del asunto (una barra en modo compacto).",
     listAcctColorsLabel: "Color por cuenta:",
@@ -495,16 +495,35 @@ const save = patch => messenger.storage.local.set(patch);
   });
 
   const lp = document.getElementById("listPreview"), la = document.getElementById("listAvatars");
-  const syncList = () => { la.disabled = s.listStyle !== "soft" || s.listDensity !== "airy"; lp.disabled = s.listDensity === "compact"; };
+  // „Ausgegraut“ ohne disabled: deaktivierte Eingaben sind in der eingebetteten Seite (dunkles/helles Schema) unsichtbar
+  const dim = (input, off) => {
+    input.closest("label").classList.toggle("off", off);
+    input.dataset.off = off ? "1" : "";
+    input.tabIndex = off ? -1 : 0;
+  };
+  const syncList = () => {
+    const soft = s.listStyle === "soft", compact = s.listDensity === "compact", plain = s.listStyle === "default" || !s.listStyle;
+    dim(la, plain || !soft || compact);
+    dim(lp, plain || compact);
+    for (const r of document.querySelectorAll("input[name=listDensity]")) dim(r, plain);
+    for (const r of document.querySelectorAll("input[name=listAcct]")) {
+      dim(r, plain || (r.value === "dot" && compact) || (r.value === "ring" && (!soft || compact || !la.checked)));
+    }
+  };
+  const revert = () => {
+    for (const r of document.querySelectorAll("input[name=listDensity]")) r.checked = r.value === (["normal", "compact"].includes(s.listDensity) ? s.listDensity : "airy");
+    for (const r of document.querySelectorAll("input[name=listAcct]")) r.checked = r.value === (["bar", "ring", "dot"].includes(s.listAcct) ? s.listAcct : "none");
+    la.checked = s.listAvatars !== false; lp.checked = s.listPreview !== false;
+  };
   for (const radio of document.querySelectorAll("input[name=listDensity]")) {
     radio.checked = radio.value === (["normal", "compact"].includes(s.listDensity) ? s.listDensity : "airy");
     document.getElementById("sd_" + radio.value).innerHTML = denSvg(radio.value);
-    radio.addEventListener("change", () => { s.listDensity = radio.value; syncList(); save({ listDensity: radio.value }); });
+    radio.addEventListener("change", () => { if (radio.dataset.off) return revert(); s.listDensity = radio.value; syncList(); save({ listDensity: radio.value }); });
   }
   for (const radio of document.querySelectorAll("input[name=listAcct]")) {
     radio.checked = radio.value === (["bar", "ring", "dot"].includes(s.listAcct) ? s.listAcct : "none");
     document.getElementById("sa_" + radio.value).innerHTML = acctSvg(radio.value);
-    radio.addEventListener("change", () => { s.listAcct = radio.value; save({ listAcct: radio.value }); });
+    radio.addEventListener("change", () => { if (radio.dataset.off) return revert(); s.listAcct = radio.value; save({ listAcct: radio.value }); });
   }
   // Farbe je Konto: gespeicherte Wahl, sonst Palette nach Reihenfolge (wie background.js)
   const PALETTE = ["#378ADD", "#1D9E75", "#D85A30", "#7F77DD", "#BA7517", "#D4537E", "#0F6E56", "#888780"];
@@ -532,8 +551,8 @@ const save = patch => messenger.storage.local.set(patch);
   lp.checked = s.listPreview !== false;
   la.checked = s.listAvatars !== false;
   syncList();
-  lp.addEventListener("change", () => save({ listPreview: lp.checked }));
-  la.addEventListener("change", () => save({ listAvatars: la.checked }));
+  lp.addEventListener("change", () => { if (lp.dataset.off) return revert(); save({ listPreview: lp.checked }); });
+  la.addEventListener("change", () => { if (la.dataset.off) return revert(); syncList(); save({ listAvatars: la.checked }); });
 
   const ve = document.getElementById("previewEnabled"), vd = document.getElementById("previewDelay");
   ve.checked = s.previewEnabled !== false;

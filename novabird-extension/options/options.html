@@ -5,7 +5,13 @@
   <title>NovaBird-Extension</title>
   <style>
     :root { color-scheme: light dark; }
-    body { font: message-box; margin: 16px; max-width: 38em; }
+    body { font: message-box; margin: 16px; max-width: 70em; }
+    .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(19em, 1fr)); gap: 0 32px; align-items: start; }
+    .cols .opt { gap: 12px; }
+    .cols .opt .txt { flex: 1 1 8em; }
+    label.off { color: color-mix(in srgb, currentColor 42%, transparent); pointer-events: none; }
+    label.off input { accent-color: color-mix(in srgb, currentColor 42%, transparent); }
+    #listTab .wide { max-width: 38em; }
     nav { display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
     nav button { border: 0; background: none; padding: 8px 14px; font: inherit; color: inherit; border-bottom: 2px solid transparent; cursor: pointer; }
     nav button[aria-selected="true"] { border-bottom-color: #2F6BD8; font-weight: 600; }
@@ -68,15 +74,21 @@
   <section id="listTab">
     <h3 id="listTitle"></h3>
     <p id="listIntro"></p>
+    <div class="cols">
+    <div>
     <h4 id="listStyleTitle"></h4>
     <div class="opt"><div class="txt"><label><input type="radio" name="listStyle" value="default"> <b id="listDefault"></b><br><small id="listDefaultDesc"></small></label></div><figure id="sk_default"></figure></div>
     <div class="opt"><div class="txt"><label><input type="radio" name="listStyle" value="soft"> <b id="listSoft"></b><br><small id="listSoftDesc"></small></label></div><figure id="sk_soft"></figure></div>
     <div class="opt"><div class="txt"><label><input type="radio" name="listStyle" value="clear"> <b id="listClear"></b><br><small id="listClearDesc"></small></label></div><figure id="sk_clear"></figure></div>
     <div class="opt"><div class="txt"><label><input type="radio" name="listStyle" value="thread"> <b id="listThread"></b><br><small id="listThreadDesc"></small></label></div><figure id="sk_thread"></figure></div>
+    </div>
+    <div>
     <h4 id="listDensityTitle"></h4>
     <div class="opt"><div class="txt"><label><input type="radio" name="listDensity" value="airy"> <b id="dAiry"></b><br><small id="dAiryDesc"></small></label></div><figure id="sd_airy"></figure></div>
     <div class="opt"><div class="txt"><label><input type="radio" name="listDensity" value="normal"> <b id="dNormal"></b><br><small id="dNormalDesc"></small></label></div><figure id="sd_normal"></figure></div>
     <div class="opt"><div class="txt"><label><input type="radio" name="listDensity" value="compact"> <b id="dCompact"></b><br><small id="dCompactDesc"></small></label></div><figure id="sd_compact"></figure></div>
+    </div>
+    <div>
     <h4 id="listAcctTitle"></h4>
     <div class="opt"><div class="txt"><label><input type="radio" name="listAcct" value="none"> <b id="aNone"></b><br><small id="aNoneDesc"></small></label></div><figure id="sa_none"></figure></div>
     <div class="opt"><div class="txt"><label><input type="radio" name="listAcct" value="bar"> <b id="aBar"></b><br><small id="aBarDesc"></small></label></div><figure id="sa_bar"></figure></div>
@@ -85,6 +97,8 @@
     <p id="listAcctColorsLabel" style="margin:10px 0 2px"></p>
     <div id="acctColors"></div>
     <p id="listAcctNote"></p>
+    </div>
+    </div>
     <h4 id="listDetailsTitle"></h4>
     <label><input type="checkbox" id="listPreview"> <span id="listPreviewLabel"></span></label>
     <label><input type="checkbox" id="listAvatars"> <span id="listAvatarsLabel"></span></label>
