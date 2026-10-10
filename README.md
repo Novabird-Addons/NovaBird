@@ -10,6 +10,7 @@ a real conversation view, undo-send and a calmer calendar and address book.</p>
 <a href="HANDBOOK.md">Handbook</a> ·
 <a href="#install">Install</a> ·
 <a href="#the-add-ons">Add-ons</a> ·
+<a href="#disclaimer">Disclaimer</a> ·
 <a href="README.de.md">Deutsch</a>
 </p>
 
@@ -99,3 +100,12 @@ Each add-on folder has a `build.sh` and a `CLAUDE.md` with architecture, tests a
 ## License
 
 MIT, see [LICENSE](LICENSE). The screenshots show invented demo data.
+
+## Disclaimer
+
+> [!WARNING]
+> **Unofficial and experimental.** NovaBird is an independent community project. It is not affiliated with, endorsed or supported by Betterbird, Thunderbird or the Mozilla Foundation, so please do not report NovaBird problems to their teams. The add-ons rely on unsupported *Experiment APIs* that can break with any Betterbird or Thunderbird update.
+>
+> They are mostly tested with Betterbird 153 ESR and Linux only, though some basic Windows testing turned up "ok" - mainly with test data. IMAP accounts and some features are not fully tested and can show bugs.
+>
+> Provided "as is", without warranty (see [LICENSE](LICENSE)) - hence **use at your own risk and back up your profile before installing.**

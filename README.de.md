@@ -1,6 +1,6 @@
 # NovaBird (Deutsch)
 
-[English version](README.md)
+[English version](README.md) · [Disclaimer](#disclaimer)
 
 Eine Familie von Add-ons für **Betterbird** (Thunderbird ESR, getestet mit Betterbird 153 ESR): schnelle Suche, Konversationsansicht, Sende-Hilfen, eine stilvolle Oberfläche und passende Themes. Die Add-ons arbeiten einzeln, ergänzen sich aber (siehe Tabelle).
 
@@ -31,3 +31,12 @@ Installieren: das `.xpi` im Add-ons-Manager („Add-on aus Datei installieren“
 Eine kurze Anleitung für Anwender: [HANDBUCH.md](HANDBUCH.md).
 
 Lizenz: MIT, siehe `LICENSE`.
+
+## Disclaimer
+
+> [!WARNING]
+> **Inoffiziell und experimentell.** NovaBird ist ein unabhängiges Community-Projekt und steht in keiner Verbindung zu Betterbird, Thunderbird oder der Mozilla Foundation (keine Unterstützung, keine Empfehlung); Probleme bitte nicht deren Teams melden. Die Add-ons nutzen nicht unterstützte *Experiment-APIs*, die mit jedem Betterbird- oder Thunderbird-Update brechen können.
+>
+> Getestet wurde überwiegend mit Betterbird 153 ESR unter Linux, dazu ein paar einfache Tests unter Windows, die „ok“ ergaben - hauptsächlich mit Testdaten. IMAP-Konten und manche Funktionen sind nicht vollständig geprüft und können Fehler zeigen.
+>
+> Bereitstellung „wie besehen“, ohne Gewähr (siehe [LICENSE](LICENSE)) - daher **Nutzung auf eigene Gefahr und vor der Installation das Profil sichern.**
