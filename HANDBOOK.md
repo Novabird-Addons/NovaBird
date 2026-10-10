@@ -17,6 +17,8 @@ NovaBird is a family of add-ons for **Betterbird** (and Thunderbird ESR, version
 
 ## 2. Install
 
+> **Please read the [disclaimer](README.md#disclaimer) first:** unofficial, experimental, use at your own risk, back up your profile.
+
 1. **Remove old add-ons** if present (Such-Pilot, DB-Pilot, Sende-Pilot, Conversation-Pilot, Stream Extension, Kalender-/Kontakt-Pilot, Stream themes). Never run an old and a new version of the same add-on together.
 2. Open the **add-ons manager** (menu → Add-ons and Themes), gear → **Install Add-on From File…**, choose the `.xpi`. Suggested order: **DB**, Search, Conversation, Send, Extension. Install themes under *Themes* and enable one.
 3. **Restart Betterbird.**

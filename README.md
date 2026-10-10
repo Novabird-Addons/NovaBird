@@ -81,6 +81,8 @@ They cooperate loosely: Search and Conversation use the DB if it is installed (a
 3. In the add-ons manager choose the gear → **Install Add-on From File…** for each file. Suggested order: **DB**, Search, Conversation, Send, Extension; themes under *Themes*. Restart Betterbird.
 4. On the first start NovaBird-DB builds its index once (about 6 minutes for 75,000 messages, with a progress indicator). Betterbird stays usable meanwhile.
 
+> **Please read the [disclaimer](#disclaimer) first:** unofficial, experimental, use at your own risk, back up your profile.
+>
 > These are unsigned builds. If you used the earlier "Pilot" or "Stream" add-ons, remove them first. Never run an old and a new version of the same add-on side by side.
 
 ## Privacy
