@@ -46,6 +46,7 @@ const CSS = `
 #kp-dlg label { display: flex; flex-direction: column; gap: 3px; font-size: .92em; }
 #kp-dlg .kp-clear { flex-direction: row; align-items: center; gap: 6px; opacity: .8; }
 #kp-dlg input[type=text] { padding: 5px 8px; }
+#kp-dlg .kp-hint { padding: 6px 9px; border-radius: 6px; font-size: .88em; line-height: 1.4; background: color-mix(in srgb, var(--layout-color-1, CanvasText) 10%, transparent); }
 #kp-dlg .kp-note { opacity: .7; font-size: .88em; }
 #kp-dlg .kp-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
 `;
@@ -95,14 +96,43 @@ function dirOf(card) {
 function nameOf(card) {
   return card.displayName || card.primaryEmail || card.vCardProperties?.getFirstValue("fn") || "?";
 }
-function tagsOf(card) {
+/* Online-Adressbücher (Google, CardDAV) verwerfen vCard-Kategorien: Tags liegen dort nur lokal (Profildatei), nicht im Kontakt. */
+const LOCAL_DIR_TYPE = 101;
+const tagStore = new Map(); // "<dirUID>|<UID>" -> [Tags]
+let tagStoreFile = null;
+function storeKey(card) { return card.directoryUID + "|" + card.UID; }
+function isStoreCard(card) { const d = dirOf(card); return !!d && d.dirType !== LOCAL_DIR_TYPE; }
+async function loadTagStore() {
+  try {
+    tagStoreFile = PathUtils.join(PathUtils.profileDir, "novabird-extension-tags.json");
+    tagStore.clear();
+    if (await IOUtils.exists(tagStoreFile)) for (const [k, v] of Object.entries(await IOUtils.readJSON(tagStoreFile))) tagStore.set(k, v);
+  } catch (e) { console.error("Nova-Contact Tag-Speicher:", e); }
+}
+function saveTagStore() {
+  if (!tagStoreFile) return;
+  IOUtils.writeJSON(tagStoreFile, Object.fromEntries(tagStore)).catch(e => console.error("Nova-Contact Tag-Speicher:", e));
+}
+function vcardTags(card) {
   const v = card.vCardProperties?.getFirstValue("categories");
   const arr = Array.isArray(v) ? v : v ? [v] : [];
   return arr.map(s => String(s).trim()).filter(Boolean);
 }
+function tagsOf(card) {
+  const own = vcardTags(card);
+  if (!isStoreCard(card)) return own;
+  const all = [...(tagStore.get(storeKey(card)) || [])];
+  for (const t of own) if (!all.some(a => a.toLowerCase() === t.toLowerCase())) all.push(t);
+  return all;
+}
 function setTags(card, tags) {
   const vp = card.vCardProperties;
   for (const e of vp.getAllEntries("categories")) vp.removeEntry(e);
+  if (isStoreCard(card)) {
+    if (tags.length) tagStore.set(storeKey(card), tags); else tagStore.delete(storeKey(card));
+    saveTagStore();
+    return;
+  }
   if (tags.length) vp.addEntry(new VCardPropertyEntry("categories", {}, "text", tags));
 }
 function setFirst(card, name, mapValue) {
@@ -161,6 +191,11 @@ function undoEntry(index) {
   suppress++;
   try {
     for (const it of entry.items) {
+      if (it.tagKey) {
+        if (it.tagsBefore.length) tagStore.set(it.tagKey, it.tagsBefore); else tagStore.delete(it.tagKey);
+        saveTagStore();
+        if (!it.vcard) continue;
+      }
       const dir = MailServices.ab.getDirectoryFromUID(it.dirUID);
       if (!dir) continue;
       const card = cardFromVCard(it.vcard, it.uid, it.dirUID);
@@ -243,6 +278,25 @@ function build(cw) {
     const si = cards.searchInput;
     si.blur();
     if (t) si.overrideSearchTerm(t); else si.reset();
+    if (t) cw.setTimeout(() => addStoredMatches(t), 400);
+  }
+  /* Kontakte aus Online-Adressbüchern, deren Tag nur lokal gespeichert ist, zur gefilterten Liste hinzufügen */
+  function addStoredMatches(t) {
+    try {
+      const view = cards.cardsList.view, want = t.toLowerCase();
+      const cur = (cards.searchInput.value || "").trim().toLowerCase();
+      if (cur !== want) return;
+      const bl = cw.booksList, row = bl && [...bl.querySelectorAll("li")][bl.selectedIndex];
+      const shown = MailServices.ab.directories.find(d => d.UID === row?.dataset?.uid) || null; // null = alle Adressbücher
+      for (const dir of MailServices.ab.directories) {
+        if (dir.dirType === LOCAL_DIR_TYPE || dir.isRemote) continue;
+        if (shown && shown.UID !== dir.UID) continue;
+        for (const card of dir.childCards) {
+          if (card.isMailList || !tagStore.get(storeKey(card))?.some(x => x.toLowerCase() === want)) continue;
+          if (view.getIndexForUID(card.UID) < 0) view.onSearchFoundCard(card);
+        }
+      }
+    } catch (e) { console.error("Nova-Contact Filter:", e); }
   }
 
   /* Auswahl bearbeiten */
@@ -288,6 +342,11 @@ function build(cw) {
     const title = el(doc, "input", { type: "text" });
     const titleClr = el(doc, "input", { type: "checkbox" });
     const note = el(doc, "div", { class: "kp-note" }, T("Leere Felder bleiben unverändert. Mehrere Tags mit Komma trennen.", "Empty fields stay unchanged. Separate several tags with commas.", "Les champs vides restent inchangés. Séparez les tags par des virgules.", "Los campos vacíos no se modifican. Separe las etiquetas con comas."));
+    const hint = sel.some(isStoreCard) ? el(doc, "div", { class: "kp-hint" }, "🖥 ",
+      T("Für Online-Adressbücher (Google, CardDAV) werden Tags nur auf diesem Rechner gespeichert und nicht mit dem Server abgeglichen.",
+        "For online address books (Google, CardDAV), tags are stored only on this computer and are not synced to the server.",
+        "Pour les carnets d’adresses en ligne (Google, CardDAV), les tags sont enregistrés uniquement sur cet ordinateur et ne sont pas synchronisés avec le serveur.",
+        "En las libretas de direcciones en línea (Google, CardDAV), las etiquetas se guardan solo en este equipo y no se sincronizan con el servidor.")) : null;
     const split = s => s.split(",").map(x => x.trim()).filter(Boolean);
     const apply = el(doc, "button", { class: "button button-primary", type: "button", onclick: () => {
       const add = split(inTags.value), rem = split(outTags.value).map(x => x.toLowerCase());
@@ -297,17 +356,23 @@ function build(cw) {
       try {
         for (const card of sel) {
           const before = card.vCardProperties.toVCard();
-          let tags = tagsOf(card);
+          const tagsBefore = tagsOf(card);
+          let tags = [...tagsBefore];
           const t0 = tags.join("\n");
           tags = tags.filter(t => !rem.includes(t.toLowerCase()));
           for (const a of add) if (!tags.some(t => t.toLowerCase() === a.toLowerCase())) tags.push(a);
           if (tags.join("\n") !== t0) setTags(card, tags);
           if (o || orgClr.checked) setFirst(card, "org", old => orgClr.checked ? null : [o, ...(Array.isArray(old) ? old.slice(1) : [])]);
           if (ti || titleClr.checked) setFirst(card, "title", () => titleClr.checked ? null : ti);
-          if (card.vCardProperties.toVCard() !== before) {
+          const tagsChanged = tagsOf(card).join("\n") !== tagsBefore.join("\n");
+          const store = isStoreCard(card);
+          const vcardChanged = card.vCardProperties.toVCard() !== before;
+          if (vcardChanged) {
             dirOf(card).modifyCard(card);
-            items.push({ dirUID: card.directoryUID, uid: card.UID, vcard: before });
             snapshot(card);
+          }
+          if (vcardChanged || (store && tagsChanged)) {
+            items.push({ dirUID: card.directoryUID, uid: card.UID, vcard: vcardChanged ? before : null, ...(store ? { tagKey: storeKey(card), tagsBefore } : {}) });
           }
         }
       } catch (e) {
@@ -329,7 +394,7 @@ function build(cw) {
       el(doc, "label", { class: "kp-clear" }, orgClr, T("Firma leeren", "Clear company", "Vider la société", "Vaciar empresa")),
       el(doc, "label", {}, T("Position setzen", "Set job title", "Définir la fonction", "Establecer cargo"), title),
       el(doc, "label", { class: "kp-clear" }, titleClr, T("Position leeren", "Clear job title", "Vider la fonction", "Vaciar cargo")),
-      note, dl,
+      hint, note, dl,
       el(doc, "div", { class: "kp-btns" },
         el(doc, "button", { class: "button", type: "button", onclick: closeDialog }, T("Abbrechen", "Cancel", "Annuler", "Cancelar")), apply)));
     back.hidden = false;
@@ -413,6 +478,7 @@ const API = class extends ExtensionCommon.ExtensionAPI {
 function startAll() {
   if (started) return;
   started = true;
+  loadTagStore();
   Services.obs.addObserver(observer, "addrbook-contact-updated");
   Services.obs.addObserver(observer, "addrbook-contact-deleted");
   ExtensionSupport.registerWindowListener(LISTENER, {
