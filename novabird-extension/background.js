@@ -15,6 +15,7 @@ const DEFAULTS = {
   listAvatars: true,
   listDensity: "airy",
   listAcct: "none",
+  listScroll: true,
   listAcctColors: {},
   colors: { bg: "#EEF2F8", fg: "#1B2433", border: "#D2DAE6", accent: "#2F6BD8" },
 };
@@ -34,7 +35,7 @@ async function accountColors(s) {
 async function applyList(s) {
   await messenger.messageList.setOptions(s.listStyle, s.listPreview !== false, s.listAvatars !== false,
     ["normal", "compact"].includes(s.listDensity) ? s.listDensity : "airy",
-    ["bar", "ring", "dot"].includes(s.listAcct) ? s.listAcct : "none", await accountColors(s));
+    ["bar", "ring", "dot"].includes(s.listAcct) ? s.listAcct : "none", await accountColors(s), s.listScroll !== false);
 }
 
 // Jeder Schritt einzeln abgesichert: ein Fehler im einen Teil darf den anderen nicht verhindern.

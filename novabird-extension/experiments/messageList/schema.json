@@ -6,14 +6,15 @@
         "name": "setOptions",
         "type": "function",
         "async": true,
-        "description": "Stil der Nachrichtenliste (Kartenansicht): default, soft oder clear; Vorschauzeile und Avatare (nur soft) ein/aus. Dichte airy|normal|compact, Kontofarbe none|bar|ring|dot, colors = JSON-Objekt Konto-ID zu Farbe (#rrggbb). Immer alle Argumente übergeben.",
+        "description": "Stil der Nachrichtenliste (Kartenansicht): default, soft oder clear; Vorschauzeile und Avatare (nur soft) ein/aus. Dichte airy|normal|compact, Kontofarbe none|bar|ring|dot, colors = JSON-Objekt Konto-ID zu Farbe (#rrggbb). scroll = breitere Scrollleisten (Standard an). Immer alle Argumente übergeben.",
         "parameters": [
           { "name": "style", "type": "string" },
           { "name": "preview", "type": "boolean" },
           { "name": "avatars", "type": "boolean" },
           { "name": "density", "type": "string" },
           { "name": "acct", "type": "string" },
-          { "name": "colors", "type": "string" }
+          { "name": "colors", "type": "string" },
+          { "name": "scroll", "type": "boolean", "optional": true }
         ]
       }
     ]

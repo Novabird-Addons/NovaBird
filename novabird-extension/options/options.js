@@ -21,6 +21,7 @@ const TEXTS = {
     aDot: "Punkt mit Kontoname",
     aDotDesc: "Farbiger Punkt und Kontoname vor dem Betreff (in Kompakt als Balken).",
     listAcctColorsLabel: "Farbe je Konto:",
+    listScrollLabel: "Breitere Scrollleisten (leichter zu treffen)",
     listAcctNote: "Die Farben werden automatisch vergeben und lassen sich hier ändern.",
     listDetailsTitle: "Weitere Optionen",
     listDensityNote: "Dichte und Kontofarbe gelten nicht für den Betterbird-Standard.",
@@ -92,6 +93,7 @@ const TEXTS = {
     aDot: "Dot with account name",
     aDotDesc: "Coloured dot and account name before the subject (a bar in Compact).",
     listAcctColorsLabel: "Colour per account:",
+    listScrollLabel: "Wider scrollbars (easier to hit)",
     listAcctNote: "Colours are assigned automatically and can be changed here.",
     listDetailsTitle: "More options",
     listDensityNote: "Density and account colour do not apply to the Betterbird default.",
@@ -163,6 +165,7 @@ const TEXTS = {
     aDot: "Point avec nom du compte",
     aDotDesc: "Point coloré et nom du compte avant l’objet (une barre en mode compact).",
     listAcctColorsLabel: "Couleur par compte :",
+    listScrollLabel: "Barres de défilement plus larges (plus faciles à atteindre)",
     listAcctNote: "Les couleurs sont attribuées automatiquement et modifiables ici.",
     listDetailsTitle: "Autres options",
     listDensityNote: "La densité et la couleur du compte ne s’appliquent pas au style par défaut de Betterbird.",
@@ -234,6 +237,7 @@ const TEXTS = {
     aDot: "Punto con nombre de cuenta",
     aDotDesc: "Punto de color y nombre de cuenta antes del asunto (una barra en modo compacto).",
     listAcctColorsLabel: "Color por cuenta:",
+    listScrollLabel: "Barras de desplazamiento más anchas (más fáciles de alcanzar)",
     listAcctNote: "Los colores se asignan automáticamente y se pueden cambiar aquí.",
     listDetailsTitle: "Más opciones",
     listDensityNote: "La densidad y el color de la cuenta no se aplican al estilo predeterminado de Betterbird.",
@@ -301,6 +305,7 @@ const DEFAULTS = {
   listAvatars: true,
   listDensity: "airy",
   listAcct: "none",
+  listScroll: true,
   listAcctColors: {},
   colors: { bg: "#EEF2F8", fg: "#1B2433", border: "#D2DAE6", accent: "#2F6BD8" },
 };
@@ -551,6 +556,9 @@ const save = patch => messenger.storage.local.set(patch);
   lp.checked = s.listPreview !== false;
   la.checked = s.listAvatars !== false;
   syncList();
+  const ls = document.getElementById("listScroll");
+  ls.checked = s.listScroll !== false;
+  ls.addEventListener("change", () => save({ listScroll: ls.checked }));
   lp.addEventListener("change", () => { if (lp.dataset.off) return revert(); save({ listPreview: lp.checked }); });
   la.addEventListener("change", () => { if (la.dataset.off) return revert(); syncList(); save({ listAvatars: la.checked }); });
 

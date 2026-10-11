@@ -17,7 +17,7 @@ const STYLE_ID = "nbx-ml-style";
 const SNIP_MAX = 160;
 const CACHE_MAX = 600;
 
-const opts = { style: "default", preview: true, avatars: true, density: "airy", acct: "none", colors: {} };
+const opts = { style: "default", preview: true, avatars: true, density: "airy", acct: "none", colors: {}, scroll: true };
 const acctCache = new Map(); // Server-Schlüssel -> { key, name }
 const snippets = new Map(); // messageId -> Text
 const wins = new Map();     // about:3pane-Fenster -> { orig, origDensity }
@@ -392,11 +392,23 @@ function rowHeight(cw, base) {
   return base;
 }
 
+const SB_ID = "nbx-sb-style";
+const SB_CSS = "*{scrollbar-width:auto!important;scrollbar-color:color-mix(in srgb,currentColor 55%,transparent) color-mix(in srgb,currentColor 9%,transparent)!important}";
+function applyScroll(doc) {
+  let el = doc.getElementById(SB_ID);
+  if (!opts.scroll) { el?.remove(); return; }
+  if (el) return;
+  el = doc.createElement("style");
+  el.id = SB_ID; el.textContent = SB_CSS;
+  doc.documentElement.append(el);
+}
+
 function applyWindow(cw) {
   const doc = cw.document;
   let st = wins.get(cw);
   const cardClass = cw.customElements.get("thread-card");
   if (!cardClass || !cw.threadPane || !cw.threadTree) return false;
+  applyScroll(doc);
   if (!st) {
     st = { baseDensity: cw.threadPane.densityChange, baseFill: cardClass.prototype.fillRow, cardClass };
     wins.set(cw, st);
@@ -510,13 +522,14 @@ const API = class extends ExtensionCommon.ExtensionAPI {
   getAPI() {
     return {
       messageList: {
-        async setOptions(style, preview, avatars, density, acct, colors) {
+        async setOptions(style, preview, avatars, density, acct, colors, scroll) {
           opts.style = ["soft", "clear", "thread"].includes(style) ? style : "default";
           opts.preview = !!preview;
           opts.avatars = !!avatars;
           opts.density = ["normal", "compact"].includes(density) ? density : "airy";
           opts.acct = ["bar", "ring", "dot"].includes(acct) ? acct : "none";
           try { opts.colors = JSON.parse(colors || "{}") || {}; } catch (e) { opts.colors = {}; }
+          opts.scroll = scroll !== false;
           acctCache.clear();
           if (!started) startAll();
           for (const win of Services.wm.getEnumerator("mail:3pane")) {
