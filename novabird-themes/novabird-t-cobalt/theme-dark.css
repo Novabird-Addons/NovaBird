@@ -218,8 +218,8 @@ li[item-id="write-message"] .button-icon { filter: brightness(0) invert(1) !impo
   --menuitem-border-radius: 6px;
   --menuitem-padding: 0.4em 0.8em;
   --panel-separator-color: #171f29;
-  --panel-box-shadow: 0 6px 22px rgba(30, 50, 90, 0.18);
-  --panel-box-shadow-margin: 12px;
+  --panel-box-shadow: none;
+  --panel-box-shadow-margin: 0px;
 }
 :root:root:root:root menupopup > :is(menuitem, menu)[_moz-menuactive]:not([disabled]) {
   background-color: #263a5c;
@@ -322,7 +322,7 @@ menupopup:not([type="arrow"])::part(content) {
   color: #dbe6f8 !important;
   border: 1px solid #202a33 !important;
   border-radius: 10px !important;
-  box-shadow: 0 6px 22px rgba(30, 50, 90, 0.18) !important;
+  box-shadow: none !important;
 }
 
 /* Mini-Kalender: Heute kräftig blau, angewählter Tag sanft gelb */
