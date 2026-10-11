@@ -74,7 +74,41 @@ export class Indexer {
     for (const a of accounts) {
       walk(a.rootFolder ? a.rootFolder.subFolders : a.folders);
     }
-    return out.filter((f) => !this.isExcluded(f));
+    return this.loadFolderInfo(out.filter((f) => !this.isExcluded(f)));
+  }
+
+  /**
+   * Virtuelle Ordner (Sammel-/Suchordner) auslassen: ihre Mails liegen schon in den echten Ordnern.
+   * Merkt außerdem je Ordner, ob Betterbird den Text lokal vorhält (this.folderInfo); ohne Experiment-Funktion
+   * bleibt alles beim alten Verhalten.
+   */
+  async loadFolderInfo(folders) {
+    this.folderInfo = new Map();
+    const fn = this.api.novabirdDb?.folderInfo;
+    if (!fn || !folders.length) return folders;
+    let infos;
+    try {
+      infos = await fn(folders.map((f) => ({ accountId: f.accountId, path: f.path })));
+    } catch (e) {
+      this.log.warn("[novabird-db] Ordner-Flags nicht lesbar", e);
+      return folders;
+    }
+    if (!Array.isArray(infos)) return folders;
+    const out = [];
+    folders.forEach((f, i) => {
+      const info = infos[i];
+      if (info) {
+        this.folderInfo.set(folderIdOf(f), info);
+        if (info.virtual) return;
+      }
+      out.push(f);
+    });
+    return out;
+  }
+
+  /** Ordner ohne Offline-Speicher: nur Kopfdaten, kein Nachrichtentext (wird nie lokal). */
+  onlineOnly(fid) {
+    return this.folderInfo?.get(fid)?.offline === false;
   }
 
   /** Alle Header einer MessageList (inkl. Folgeseiten). */
@@ -168,7 +202,20 @@ export class Indexer {
     await this.loadTagNames();
     const folders = await this.listFolders();
     const states = await repo.folderStates(this.db);
-    const todo = folders.filter((f) => force || !states.get(folderIdOf(f))?.done);
+    // Offline-Speicher eines Ordners umgestellt: einmal neu lesen (Texte holen bzw. nicht mehr erwarten)
+    const flags = await repo.loadFolderOffline(this.db);
+    const changed = new Set();
+    for (const f of folders) {
+      const fid = folderIdOf(f);
+      const info = this.folderInfo?.get(fid);
+      if (info && fid in flags && flags[fid] !== info.offline) {
+        changed.add(fid);
+        await repo.setFolderDone(this.db, fid, false);
+      }
+      if (info) flags[fid] = info.offline;
+    }
+    if (this.folderInfo?.size) await repo.saveFolderOffline(this.db, flags);
+    const todo = folders.filter((f) => force || changed.has(folderIdOf(f)) || !states.get(folderIdOf(f))?.done);
     this.progress = { done: 0, total: await this.countMessages(todo) };
     this.log.info(`[novabird-db] Erstlauf: ${todo.length} von ${folders.length} Ordnern, ${this.progress.total ?? "?"} Mails zu lesen`);
     for (const folder of todo) {
@@ -278,8 +325,9 @@ export class Indexer {
     if (stale.length) {
       await repo.deleteMessages(this.db, this.caps, stale.map((headerMessageId) => ({ headerMessageId, folderId: fid })));
     }
-    // Ordner mit Kopfdaten-Einträgen gelten nicht als fertig: der nächste Lauf holt den Text nach, sobald er lokal ist
-    await repo.setFolderDone(this.db, fid, noBody === 0 && !(await repo.hasHeadersOnly(this.db, fid)));
+    // Ordner ohne Offline-Speicher sind mit den Kopfdaten fertig. Sonst gelten Ordner mit Kopfdaten-Einträgen nicht als fertig:
+    // der nächste Lauf holt den Text nach, sobald er lokal ist
+    await repo.setFolderDone(this.db, fid, this.onlineOnly(fid) || (noBody === 0 && !(await repo.hasHeadersOnly(this.db, fid))));
     await this.noteTotal(folder);
     this.log.info(`[novabird-db] Ordner „${folder.name ?? fid}“ fertig: ${read} Mails gesehen, ${indexed} neu, ${skipped} übersprungen, ${stale.length} entfernt, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }
@@ -370,6 +418,8 @@ export class Indexer {
       if (this.stopped) break;
       if (this.isExcluded(folder)) continue;
       const fid = folderIdOf(folder);
+      // Online-only-Ordner nie komplett neu lesen: neue Mails kommen über Ereignisse und das Nachholen nach Datum
+      if (this.onlineOnly(fid)) continue;
       let total;
       try {
         total = (await f.getFolderInfo(folder.id ?? folder)).totalMessageCount;

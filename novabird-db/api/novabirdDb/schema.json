@@ -62,6 +62,15 @@
         ]
       },
       {
+        "name": "folderInfo",
+        "type": "function",
+        "async": true,
+        "description": "Pro Ordner ({accountId, path}): { virtual, offline } (virtueller Such-/Sammelordner; Nachrichten werden lokal vorgehalten) oder null, wenn der Ordner nicht gefunden wird.",
+        "parameters": [
+          { "name": "folders", "type": "array", "items": { "type": "object", "properties": { "accountId": { "type": "string" }, "path": { "type": "string" } } } }
+        ]
+      },
+      {
         "name": "references",
         "type": "function",
         "async": true,

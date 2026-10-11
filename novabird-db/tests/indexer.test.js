@@ -280,3 +280,67 @@ describe("Ordner abgleichen (rückwirkend einsortierte Mails)", () => {
     expect(await count("subject = 'Alt'")).toBe(0);
   });
 });
+
+describe("Ordner ohne Offline-Speicher und virtuelle Ordner", () => {
+  const withFlags = (fake, flags) => {
+    fake.api.novabirdDb = {
+      folderInfo: async (fs) => fs.map((f) => flags[f.path] ?? null),
+      offlineFlags: async (ids) => ids.map(() => false),
+    };
+    const listed = [];
+    const orig = fake.api.messages.list;
+    fake.api.messages.list = async (id) => {
+      listed.push(id);
+      return orig(id);
+    };
+    return listed;
+  };
+
+  it("Kopfdaten reichen: Ordner wird fertig, wird nicht neu gelesen; virtuelle Ordner entfallen", async () => {
+    const { fake, indexer, count, db } = await setup();
+    const flags = { "/INBOX": { virtual: false, offline: false }, "/Sent": { virtual: false, offline: true }, "/Trash": { virtual: true, offline: true }, "/INBOX/Projekt": { virtual: true, offline: true } };
+    const listed = withFlags(fake, flags);
+    fake.addMessage("inbox", { subject: "Online Mail", body: "Geheimtext" });
+    fake.addMessage("projekt", { subject: "Virtuell", body: "doppelt" });
+    fake.addMessage("trash", { subject: "Virtuell 2", body: "doppelt" });
+    await indexer.fullRun();
+    expect(await count()).toBe(1); // nur die Online-Mail, ohne Text
+    expect(fake.calls.listInlineTextParts).toBe(0);
+    expect(listed).not.toContain("account1://INBOX/Projekt");
+    const [st] = await db.select("SELECT done FROM index_state WHERE folder_id = ?", ["account1://INBOX"], ["done"]);
+    expect(st.done).toBe(1);
+
+    listed.length = 0;
+    await indexer.fullRun(); // zweiter Start: Online-Ordner ist fertig, wird nicht gelesen
+    expect(listed).not.toContain("account1://INBOX");
+  });
+
+  it("Abgleich und Tiefenabgleich lesen Online-Ordner bei neuer Mailzahl nicht komplett neu", async () => {
+    const { fake, indexer } = await setup();
+    const listed = withFlags(fake, { "/INBOX": { virtual: false, offline: false } });
+    fake.addMessage("inbox", { subject: "Eins", body: "x" });
+    await indexer.fullRun();
+    fake.addMessage("inbox", { subject: "Zwei", body: "y", date: new Date(2020, 1, 1) });
+    listed.length = 0;
+    expect(await indexer.reconcile()).toMatchObject({ rescanned: 0 });
+    await indexer.reconcile({ deep: true }); // übrige Ordner ohne Flags werden wie bisher gelesen
+    expect(listed).not.toContain("account1://INBOX");
+  });
+
+  it("Offline-Speicher wird eingeschaltet: Ordner wird einmal neu gelesen, Text kommt in den Index", async () => {
+    const { fake, indexer, db, caps } = await setup();
+    const flags = { "/INBOX": { virtual: false, offline: false } };
+    const listed = withFlags(fake, flags);
+    const local = new Set();
+    fake.api.novabirdDb.offlineFlags = async (ids) => ids.map((id) => local.has(id));
+    const m = fake.addMessage("inbox", { subject: "Servermail", body: "Wartungsfenster" });
+    await indexer.fullRun();
+    expect((await search(db, caps, "Wartungsfenster")).rows.length).toBe(0);
+    flags["/INBOX"] = { virtual: false, offline: true };
+    local.add(m.id);
+    listed.length = 0;
+    await indexer.fullRun();
+    expect(listed).toContain("account1://INBOX");
+    expect((await search(db, caps, "Wartungsfenster")).rows.length).toBe(1);
+  });
+});

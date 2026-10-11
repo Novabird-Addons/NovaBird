@@ -322,3 +322,17 @@ export async function loadFolderTotals(db) {
 export async function saveFolderTotals(db, totals) {
   await db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES ('folder_totals', ?)", [JSON.stringify(totals)]);
 }
+
+/** Offline-Speicher je Ordner beim letzten Lauf ({folderId: bool}); eine Änderung stößt ein erneutes Lesen an. */
+export async function loadFolderOffline(db) {
+  const rows = await db.select("SELECT value FROM meta WHERE key = 'folder_offline'", [], ["value"]);
+  try {
+    return rows.length ? JSON.parse(rows[0].value) : {};
+  } catch {
+    return {};
+  }
+}
+
+export async function saveFolderOffline(db, map) {
+  await db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES ('folder_offline', ?)", [JSON.stringify(map)]);
+}
