@@ -46,6 +46,7 @@ const CSS = `
 #kp-dlg label { display: flex; flex-direction: column; gap: 3px; font-size: .92em; }
 #kp-dlg .kp-clear { flex-direction: row; align-items: center; gap: 6px; opacity: .8; }
 #kp-dlg input[type=text] { padding: 5px 8px; }
+.kp-sync-note { font-size: .82em; margin-top: 4px; color: color-mix(in srgb, currentColor 60%, transparent); }
 #kp-dlg .kp-hint { padding: 6px 9px; border-radius: 6px; font-size: .88em; line-height: 1.4; background: color-mix(in srgb, var(--layout-color-1, CanvasText) 10%, transparent); }
 #kp-dlg .kp-note { opacity: .7; font-size: .88em; }
 #kp-dlg .kp-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
@@ -242,6 +243,42 @@ function refreshAll() {
   for (const v of views) { try { v.refresh(); } catch (e) { views.delete(v); } }
 }
 
+/* Detailansicht des Kontakts (about:addressbook): Betterbird zeigt dort nur vCard-CATEGORIES unter „Kategorien“.
+   Hier heißt der Block „Tags“ und zeigt bei Online-Adressbüchern auch die lokal gespeicherten Tags mit Hinweis. */
+function fixCategories(doc, card) {
+  const sec = doc.querySelector("#viewContact .details-categories");
+  if (!sec || !card) return;
+  const h = sec.querySelector("h2"), p = sec.querySelector("p");
+  if (!h || !p) return;
+  h.removeAttribute("data-l10n-id");
+  h.textContent = T("Tags", "Tags", "Tags", "Etiquetas");
+  sec.querySelector(".kp-sync-note")?.remove();
+  if (!isStoreCard(card)) return;
+  const tags = tagsOf(card);
+  p.textContent = tags.join(", ");
+  sec.hidden = !tags.length;
+  if (tags.length) {
+    sec.append(el(doc, "div", { class: "kp-sync-note" },
+      T("Nur auf diesem Rechner gespeichert, wird nicht synchronisiert.", "Stored only on this computer, not synchronised.",
+        "Enregistré uniquement sur cet ordinateur, non synchronisé.", "Guardado solo en este equipo, no se sincroniza.")));
+  }
+}
+function hookDetails(view) {
+  const dp = view.cw.detailsPane;
+  if (!dp || typeof dp.displayContact !== "function" || view.origDisplay) return;
+  view.origDisplay = dp.displayContact;
+  dp.displayContact = function (card, ...rest) {
+    const r = view.origDisplay.call(this, card, ...rest);
+    try { fixCategories(view.doc, this.currentCard); } catch (e) { console.error("Nova-Contact Details:", e); }
+    return r;
+  };
+}
+function unhookDetails(view) {
+  try { if (view.origDisplay) view.cw.detailsPane.displayContact = view.origDisplay; } catch (e) { /* Tab geschlossen */ }
+  view.doc.querySelector("#viewContact .details-categories h2")?.setAttribute("data-l10n-id", "about-addressbook-details-categories-header");
+  view.doc.querySelector(".kp-sync-note")?.remove();
+}
+
 function build(cw) {
   const doc = cw.document;
   if (doc.getElementById("kp-bar")) return;
@@ -402,6 +439,7 @@ function build(cw) {
   }
 
   const refresh = () => {
+    try { const cur = cw.detailsPane?.currentCard; if (cur) fixCategories(doc, cur); } catch (e) { /* ohne Detailansicht */ }
     const n = selection().length;
     btnEdit.disabled = n === 0;
     btnEdit.replaceChildren("✎ ", T("Bearbeiten", "Edit", "Modifier", "Editar") + (n > 1 ? " (" + n + ")" : ""));
@@ -411,6 +449,8 @@ function build(cw) {
   };
   const view = { cw, doc, refresh, bar, style, pop, back };
   views.add(view);
+  hookDetails(view);
+  { const cur = cw.detailsPane?.currentCard; if (cur) fixCategories(doc, cur); }
   cards.cardsList.addEventListener("select", () => {
     for (const c of cards.selectedCards.slice(0, 60)) if (c) snapshot(c);
     refresh();
@@ -419,6 +459,7 @@ function build(cw) {
 }
 
 function unbuild(view) {
+  unhookDetails(view);
   view.bar.remove(); view.style.remove(); view.pop.remove(); view.back.remove();
   view.doc.getElementById("kp-open")?.remove();
   views.delete(view);

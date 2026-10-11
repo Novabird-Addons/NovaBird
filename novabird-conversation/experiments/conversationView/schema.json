@@ -3,6 +3,13 @@
     "namespace": "conversationView",
     "functions": [
       {
+        "name": "startThreadHook",
+        "type": "function",
+        "async": true,
+        "description": "Zugeklappte Unterhaltung in der Nachrichtenliste zeigt die Nachricht (und damit die Konversationsansicht) statt Betterbirds Fadenübersicht.",
+        "parameters": []
+      },
+      {
         "name": "setHeaderHidden",
         "type": "function",
         "async": true,
@@ -54,6 +61,18 @@
           {
             "name": "url",
             "type": "string"
+          }
+        ]
+      },
+      {
+        "name": "getDisplayedMessage",
+        "type": "function",
+        "async": true,
+        "description": "Nachricht, die der Lesebereich des Tabs zeigt (auch bei zugeklapptem Faden mit mehreren ausgewählten Nachrichten); sonst null.",
+        "parameters": [
+          {
+            "name": "tabId",
+            "type": "integer"
           }
         ]
       },

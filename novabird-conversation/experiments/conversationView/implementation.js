@@ -6,6 +6,8 @@
 var { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/ExtensionCommon.sys.mjs");
 var { setTimeout, clearTimeout } = ChromeUtils.importESModule("resource://gre/modules/Timer.sys.mjs");
 
+var { ExtensionSupport } = ChromeUtils.importESModule("resource:///modules/ExtensionSupport.sys.mjs");
+
 const HTML_NS = "http://www.w3.org/1999/xhtml";
 const STYLE_ID = "novabird-conversation-style";
 const ATTR = "novabird-conversation-active";
@@ -47,10 +49,112 @@ function senderPrincipal(email) {
   return Services.scriptSecurityManager.createContentPrincipal(Services.io.newURI("chrome://messenger/content/email=" + email), {});
 }
 
+// Zugeklappte Unterhaltung in der Nachrichtenliste: Betterbird wählt dann alle Nachrichten des Fadens aus und zeigt seine
+// eigene Fadenübersicht (multimessage) statt der Nachricht, dort läuft unsere Ansicht nicht. Ist nur EINE Zeile gewählt,
+// zeigen wir stattdessen die Nachricht dieser Zeile an (wie bei aufgeklapptem Faden). Echte Mehrfachauswahl bleibt unverändert.
+const THREAD_LISTENER = "novabird-conversation-thread";
+const MAIN_URL = "chrome://messenger/content/messenger.xhtml";
+const MSG_VIEW_FLAG_DUMMY = 0x20000000;
+const hooked = new Map(); // about:3pane-Fenster -> { mp, orig }
+const winHooks = new Map(); // Hauptfenster -> { tm, onTab }
+
+function hookPane(cw) {
+  const mp = cw.messagePane;
+  if (!mp || typeof mp.displayMessages !== "function" || hooked.has(cw)) {
+    return;
+  }
+  const orig = mp.displayMessages;
+  mp.displayMessages = function (...args) {
+    try {
+      const tree = cw.threadTree;
+      if (tree && cw.gDBView && tree.selectedIndices.length === 1) {
+        const idx = tree.selectedIndex;
+        if (!(cw.gDBView.getFlagsAt(idx) & MSG_VIEW_FLAG_DUMMY)) {
+          return this.displayMessage(cw.gDBView.getURIForViewIndex(idx));
+        }
+      }
+    } catch (e) {
+      console.error("NovaBird-Conversation:", e);
+    }
+    return orig.apply(this, args);
+  };
+  hooked.set(cw, { mp, orig });
+}
+
+function scanThreads(win, tries = 0) {
+  let missing = false;
+  for (const info of win.document.getElementById("tabmail")?.tabInfo ?? []) {
+    const cw = info.chromeBrowser?.contentWindow;
+    try {
+      if (cw && cw.location.href === "about:3pane") {
+        if (cw.document.readyState === "complete" && cw.messagePane) {
+          hookPane(cw);
+        } else {
+          missing = true;
+        }
+      }
+    } catch (e) {
+      missing = true;
+    }
+  }
+  if (missing && tries < 30) {
+    win.setTimeout(() => scanThreads(win, tries + 1), 500);
+  }
+}
+
+function hookThreadWindow(win) {
+  const tm = win.document.getElementById("tabmail");
+  if (!tm || winHooks.has(win)) {
+    return;
+  }
+  const onTab = () => win.setTimeout(() => scanThreads(win), 300);
+  winHooks.set(win, { tm, onTab });
+  tm.tabContainer.addEventListener("TabOpen", onTab);
+  tm.tabContainer.addEventListener("TabSelect", onTab);
+  scanThreads(win);
+}
+
+function startThreadHook() {
+  ExtensionSupport.registerWindowListener(THREAD_LISTENER, {
+    chromeURLs: [MAIN_URL],
+    onLoadWindow(win) {
+      try {
+        hookThreadWindow(win);
+      } catch (e) {
+        console.error("NovaBird-Conversation:", e);
+      }
+    },
+  });
+}
+
+function stopThreadHook() {
+  ExtensionSupport.unregisterWindowListener(THREAD_LISTENER);
+  for (const [win, h] of winHooks) {
+    try {
+      h.tm.tabContainer.removeEventListener("TabOpen", h.onTab);
+      h.tm.tabContainer.removeEventListener("TabSelect", h.onTab);
+    } catch (e) {
+      /* Fenster schon geschlossen */
+    }
+  }
+  winHooks.clear();
+  for (const [, h] of hooked) {
+    try {
+      h.mp.displayMessages = h.orig;
+    } catch (e) {
+      /* Tab schon geschlossen */
+    }
+  }
+  hooked.clear();
+}
+
 this.conversationView = class extends ExtensionCommon.ExtensionAPI {
   getAPI(context) {
     return {
       conversationView: {
+        async startThreadHook() {
+          startThreadHook();
+        },
         async setHeaderHidden(tabId, hidden) {
           const tab = context.extension.tabManager.get(tabId);
           setHidden(messageDocument(tab?.nativeTab), !!hidden);
@@ -126,6 +230,17 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
             }
           }
           return out;
+        },
+        // Nachricht, die der Lesebereich wirklich zeigt (bei zugeklapptem Faden sind mehrere ausgewählt, dann liefert
+        // messageDisplay.getDisplayedMessage null).
+        async getDisplayedMessage(tabId) {
+          try {
+            const cw = context.extension.tabManager.get(tabId)?.nativeTab?.chromeBrowser?.contentWindow;
+            const hdr = cw?.location.href.startsWith("about:3pane") ? cw.messageBrowser?.contentWindow?.gMessage : null;
+            return hdr ? await context.extension.messageManager.convert(hdr) : null;
+          } catch (e) {
+            return null;
+          }
         },
         async getMessageId(headerMessageId, accountId, path) {
           try {
@@ -246,6 +361,7 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
     if (isAppShutdown) {
       return;
     }
+    stopThreadHook();
     for (const win of Services.wm.getEnumerator("mail:3pane")) {
       const tabmail = win.document.getElementById("tabmail");
       for (const info of tabmail?.tabInfo ?? []) {

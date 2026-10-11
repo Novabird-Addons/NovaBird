@@ -345,7 +345,11 @@ async function fetchBody(key) {
 
 async function hello(tabId) {
   const tStart = Date.now();
-  const shown = await messenger.messageDisplay.getDisplayedMessage(tabId);
+  let shown = await messenger.messageDisplay.getDisplayedMessage(tabId);
+  if (!shown) {
+    // zugeklappter Faden: mehrere Nachrichten ausgewählt, der Lesebereich zeigt aber genau eine
+    shown = await messenger.conversationView.getDisplayedMessage(tabId).catch(() => null);
+  }
   if (!shown) return null;
   const timing = { shownMs: Date.now() - tStart };
   let entry = convCache.get(shown.id);
@@ -537,4 +541,4 @@ async function registerScript() {
   });
 }
 
-loadSettings().then(registerScript).catch(e => console.error("NovaBird-Conversation: Start fehlgeschlagen", e));
+loadSettings().then(registerScript).then(() => messenger.conversationView.startThreadHook()).catch(e => console.error("NovaBird-Conversation: Start fehlgeschlagen", e));
