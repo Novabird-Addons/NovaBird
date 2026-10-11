@@ -13,3 +13,6 @@ Entries on `testing` are not released yet; releases are tagged `vX.Y.Z` on `main
 
 ### NovaBird-Extension 1.9.8
 - Option "Wider scrollbars" (message list and folder pane), on by default.
+
+### NovaBird-Extension 1.9.9
+- Fix: in the NovaBird settings page the embedded add-on pages stayed light with dark themes (Sand dark, Cobalt, Springlight). The dark/light detection could not read the colour format that newer Betterbird versions return.

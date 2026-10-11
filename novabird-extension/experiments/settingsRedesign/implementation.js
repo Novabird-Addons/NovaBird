@@ -57,9 +57,13 @@ function pick(cs, names) {
 }
 
 function isDark(color) {
-  const m = /(\d+)[ ,]+(\d+)[ ,]+(\d+)/.exec(color) || [];
-  if (m.length) {
-    return (0.299 * m[1] + 0.587 * m[2] + 0.114 * m[3]) < 128;
+  // Computed color-mix() liefert in neueren Gecko-Versionen "color(srgb 0.1 0.2 0.3)" (Werte 0..1), sonst "rgb(r, g, b)"
+  const n = (String(color).match(/-?\d*\.?\d+/g) || []).map(Number);
+  if (n.length >= 3 && /^\s*color\(/.test(color)) {
+    return (0.299 * n[0] + 0.587 * n[1] + 0.114 * n[2]) * 255 < 128;
+  }
+  if (n.length >= 3 && /^\s*rgba?\(/.test(color)) {
+    return (0.299 * n[0] + 0.587 * n[1] + 0.114 * n[2]) < 128;
   }
   const h = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(color);
   return h ? (0.299 * parseInt(h[1], 16) + 0.587 * parseInt(h[2], 16) + 0.114 * parseInt(h[3], 16)) < 128 : false;
