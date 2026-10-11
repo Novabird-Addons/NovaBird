@@ -17,7 +17,8 @@ Entries on `testing` are not released yet; releases are tagged `vX.Y.Z` on `main
 ### NovaBird-Extension 1.9.9
 - Fix: in the NovaBird settings page the embedded add-on pages stayed light with dark themes (Sand dark, Cobalt, Springlight). The dark/light detection could not read the colour format that newer Betterbird versions return.
 
-### NovaBird-Extension 1.9.10
+### NovaBird-Extension 1.9.10 / 1.9.11
+- Nova-Contact: an active tag filter is shown as a chip next to the Tags button (with ✕ to clear) instead of as text in the search field. Typing in the search field replaces the tag filter.
 - Nova-Contact: the contact detail view now says "Tags" instead of "Categories" and also shows tags that are stored only on this computer (Google/CardDAV address books), with a small note that they are not synchronised.
 
 ### NovaBird-Conversation 0.14.2

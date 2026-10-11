@@ -46,6 +46,11 @@ const CSS = `
 #kp-dlg label { display: flex; flex-direction: column; gap: 3px; font-size: .92em; }
 #kp-dlg .kp-clear { flex-direction: row; align-items: center; gap: 6px; opacity: .8; }
 #kp-dlg input[type=text] { padding: 5px 8px; }
+search-bar[kp-chip] { -webkit-text-fill-color: transparent; }
+#kp-chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 4px 1px 8px; border-radius: 999px; font-size: .92em; background: color-mix(in srgb, var(--selected-item-color, Highlight) 18%, transparent); border: 1px solid color-mix(in srgb, var(--selected-item-color, Highlight) 45%, transparent); }
+#kp-chip[hidden] { display: none; }
+#kp-chip .kp-chip-x { border: 0; background: none; padding: 0 4px; cursor: pointer; color: inherit; font: inherit; opacity: .7; }
+#kp-chip .kp-chip-x:hover { opacity: 1; }
 .kp-sync-note { font-size: .82em; margin-top: 4px; color: color-mix(in srgb, currentColor 60%, transparent); }
 #kp-dlg .kp-hint { padding: 6px 9px; border-radius: 6px; font-size: .88em; line-height: 1.4; background: color-mix(in srgb, var(--layout-color-1, CanvasText) 10%, transparent); }
 #kp-dlg .kp-note { opacity: .7; font-size: .88em; }
@@ -298,10 +303,26 @@ function build(cw) {
   doc.addEventListener("mousedown", e => { if (!pop.hidden && !pop.contains(e.target) && !e.target.closest?.("#kp-bar")) closePop(); }, true);
   doc.addEventListener("keydown", e => { if (e.key === "Escape") { closePop(); closeDialog(); } }, true);
 
+  /* Aktiver Tag-Filter als Chip (statt Text im Suchfeld) */
+  let activeTag = "";
+  const chipLabel = el(doc, "span", {});
+  const chip = el(doc, "span", { id: "kp-chip", hidden: true }, "🏷 ", chipLabel,
+    el(doc, "button", { class: "kp-chip-x", type: "button", title: T("Filter aufheben", "Clear filter", "Supprimer le filtre", "Quitar filtro"), onclick: () => applyFilter("") }, "✕"));
+  const syncChip = () => {
+    chip.hidden = !activeTag;
+    chipLabel.textContent = activeTag;
+    if (activeTag) cards.searchInput.setAttribute("kp-chip", ""); else cards.searchInput.removeAttribute("kp-chip");
+  };
+  // Eigene Eingabe im Suchfeld ersetzt den Tag-Filter
+  cards.searchInput.addEventListener("focusin", () => { if (activeTag) applyFilter(""); });
+  cards.searchInput.addEventListener("search", () => {
+    if (activeTag && (cards.searchInput.value || "").trim().toLowerCase() !== activeTag.toLowerCase()) { activeTag = ""; syncChip(); }
+  });
+
   /* Tags-Auswahl */
   const btnTags = el(doc, "button", { class: "button button-flat", type: "button", onclick: () => {
     const tags = allTags();
-    const cur = (cards.searchInput.value || "").trim().toLowerCase();
+    const cur = activeTag.toLowerCase();
     const items = [];
     if (cur) items.push(el(doc, "button", { class: "button button-flat", type: "button", onclick: () => { applyFilter(""); } }, T("Filter aufheben", "Clear filter", "Supprimer le filtre", "Quitar filtro")));
     if (!tags.length) items.push(el(doc, "div", { class: "kp-sub" }, T("Noch keine Tags vergeben.", "No tags yet.", "Aucun tag.", "Aún no hay etiquetas.")));
@@ -314,6 +335,8 @@ function build(cw) {
     closePop();
     const si = cards.searchInput;
     si.blur();
+    activeTag = t || "";
+    syncChip();
     if (t) si.overrideSearchTerm(t); else si.reset();
     if (t) cw.setTimeout(() => addStoredMatches(t), 400);
   }
@@ -347,7 +370,7 @@ function build(cw) {
         el(doc, "span", {}, u.label), el(doc, "span", { class: "kp-sub" }, new Date(u.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })))),
     ]);
   } });
-  const bar = el(doc, "div", { id: "kp-bar" }, btnTags, btnEdit, el(doc, "span", { class: "kp-grow" }), btnUndo);
+  const bar = el(doc, "div", { id: "kp-bar" }, btnTags, chip, btnEdit, el(doc, "span", { class: "kp-grow" }), btnUndo);
   doc.getElementById("cardsPaneHeader").after(bar);
   doc.body.append(pop);
 
@@ -459,6 +482,7 @@ function build(cw) {
 }
 
 function unbuild(view) {
+  view.cw.document.getElementById("searchInput")?.removeAttribute("kp-chip");
   unhookDetails(view);
   view.bar.remove(); view.style.remove(); view.pop.remove(); view.back.remove();
   view.doc.getElementById("kp-open")?.remove();
