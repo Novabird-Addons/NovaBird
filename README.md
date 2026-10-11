@@ -9,6 +9,7 @@ a real conversation view, undo-send and a calmer calendar and address book.</p>
 <p align="center">
 <a href="HANDBOOK.md">Handbook</a> ·
 <a href="#install">Install</a> ·
+<a href="#uninstall">Uninstall</a> ·
 <a href="#the-add-ons">Add-ons</a> ·
 <a href="#disclaimer">Disclaimer</a> ·
 <a href="README.de.md">Deutsch</a>
@@ -28,11 +29,13 @@ Folder pane, card-style message list, mail tab, settings, accounts and the add-o
 ![Sand, Cobalt and Springlight](docs/images/themes.png)
 
 ### One search bar, not two
-Global search and quick filter become **one field** at the top of the message list. Results appear while you type, strictly newest first. Powered by **NovaBird-DB**, an own SQLite/FTS5 index that replaces Gloda: it finds mail across all accounts and folders in a fraction of a second, even in a mailbox of 75,000 messages, and it understands sentences:
+Global search and quick filter become **one field** at the top of the message list. Results appear while you type, strictly newest first. Powered by **NovaBird-DB**, an own SQLite/FTS5 index that replaces\* Gloda for search results: it finds mail across all accounts and folders in a fraction of a second, even in a mailbox of 75,000 messages, and it understands sentences:
 
 > `invoices from Northwind last 2 weeks` · `unread mail with pdf since March` · `what did Maya send me`
 
 …in **English, German, French and Spanish**. Plus operators (`from:` `to:` `subject:` `since:`), "Did you mean…?", search history and an analysis page with timeline and filters.
+
+\*Thunderbird's own database (Gloda) keeps running and is not uninstalled or replaced as a whole.
 
 ![Unified search: natural language query and results](docs/images/search.png)
 
@@ -84,6 +87,10 @@ They cooperate loosely: Search and Conversation use the DB if it is installed (a
 > **Please read the [disclaimer](#disclaimer) first:** unofficial, experimental, use at your own risk, back up your profile.
 >
 > These are unsigned builds. If you used the earlier "Pilot" or "Stream" add-ons, remove them first. Never run an old and a new version of the same add-on side by side.
+
+## Uninstall
+
+Since NovaBird is just based on add-ons, you can simply remove NovaBird and go back to Thunderbird any time you want.
 
 ## Privacy
 
