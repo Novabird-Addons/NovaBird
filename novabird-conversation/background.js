@@ -7,7 +7,7 @@ const MAX_MESSAGES = 120;
 const STRING_KEYS = [
   "messagesCount", "toNames", "newBadge", "reply", "replyAll", "more", "forward", "forwardAsAttachment",
   "editAsNew", "expandAll", "collapseAll", "showFull", "showLess", "quoteToggle", "remoteBlocked", "remoteShow", "remoteThis", "remoteAll", "remoteCancel", "remoteAsk", "remoteSender",
-  "noText", "loading", "loadFailed", "history", "notDownloaded", "delete", "deleteTip", "originalBtn", "originalTip", "backToConversation", "spam", "spamTip", "notSpam", "notSpamTip",
+  "noText", "loading", "loadFailed", "history", "notDownloaded", "delete", "deleteTip", "originalBtn", "originalTip", "backToConversation", "spam", "spamTip", "notSpam", "notSpamTip", "copyAddress",
 ];
 
 let settings = sanitizeSettings(null);
@@ -500,6 +500,7 @@ messenger.runtime.onMessage.addListener((msg, sender) => {
         : hello(tabId).catch(e => { console.error("NovaBird-Conversation: Konversation", e); return null; }).then(data => applyHeader(tabId, data));
     case "body": return loadBody(msg.id);
     case "header": if (tabId != null) scheduleHeader(tabId, !!msg.hidden && settings.hideHeader); return Promise.resolve(true);
+    case "copyText": return typeof msg.text === "string" ? messenger.conversationView.copyText(msg.text) : false;
     case "allowSender": return typeof msg.email === "string" ? messenger.conversationView.allowSender(msg.email) : false;
     case "cidImage": return typeof msg.partName === "string" ? loadCidImage(msg.id, msg.partName) : null;
     case "image": return typeof msg.url === "string" ? messenger.conversationView.fetchImage(msg.url) : null;

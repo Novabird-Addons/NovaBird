@@ -3,6 +3,18 @@
     "namespace": "conversationView",
     "functions": [
       {
+        "name": "copyText",
+        "type": "function",
+        "async": true,
+        "description": "Legt einen Text (höchstens 500 Zeichen) in die Zwischenablage.",
+        "parameters": [
+          {
+            "name": "text",
+            "type": "string"
+          }
+        ]
+      },
+      {
         "name": "startThreadHook",
         "type": "function",
         "async": true,

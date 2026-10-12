@@ -338,5 +338,8 @@
   },
   "capAutoOpen": {
     "message": "Zeiger bleibt → Zeile klappt auf"
+  },
+  "copyAddress": {
+    "message": "Mailadresse kopieren"
   }
 }

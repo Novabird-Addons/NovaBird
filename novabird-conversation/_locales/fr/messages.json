@@ -338,5 +338,8 @@
   },
   "capAutoOpen": {
     "message": "Le pointeur s’arrête → la ligne s’ouvre"
+  },
+  "copyAddress": {
+    "message": "Copier l’adresse e-mail"
   }
 }

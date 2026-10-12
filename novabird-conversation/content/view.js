@@ -389,6 +389,27 @@
     return t("toNamesTemplate").replace("%NAMES%", names);
   }
 
+  // Rechtsklick auf den Absendernamen: eigenes kleines Menü „Mailadresse kopieren“
+  function showAddressMenu(event, address) {
+    document.querySelector(".nbc-ctx")?.remove();
+    const menu = el("div", "nbc-ctx");
+    const item = el("button", "nbc-ctx-item", t("copyAddress"));
+    item.type = "button";
+    const close = () => { menu.remove(); document.removeEventListener("mousedown", onDown, true); document.removeEventListener("keydown", onKey, true); };
+    const onDown = e => { if (!menu.contains(e.target)) close(); };
+    const onKey = e => { if (e.key === "Escape") close(); };
+    item.addEventListener("click", () => {
+      send({ type: "copyText", text: address }).catch(e => console.error("NovaBird-Conversation: Kopieren", e));
+      close();
+    });
+    menu.append(item);
+    document.body.append(menu);
+    menu.style.left = Math.max(4, Math.min(event.clientX, document.documentElement.clientWidth - menu.offsetWidth - 4)) + "px";
+    menu.style.top = Math.max(4, Math.min(event.clientY, document.documentElement.clientHeight - menu.offsetHeight - 4)) + "px";
+    document.addEventListener("mousedown", onDown, true);
+    document.addEventListener("keydown", onKey, true);
+  }
+
   function buildCard(msg, isPinned) {
     const card = el("section", "nbc-card");
     if (!msg.read) card.classList.add("unread");
@@ -399,6 +420,10 @@
     av.style.setProperty("--h", hue(msg.author));
     const who = el("div", "nbc-who");
     const name = el("div", "nbc-name", msg.author);
+    if (msg.email) {
+      name.title = msg.email; // Absenderadresse beim Überfahren
+      name.addEventListener("contextmenu", event => { event.preventDefault(); event.stopPropagation(); showAddressMenu(event, msg.email); });
+    }
     if (!msg.read) name.append(el("span", "nbc-badge", t("newBadge")));
     who.append(name);
     const sub = el("div", "nbc-sub", toLine(msg));

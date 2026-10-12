@@ -338,5 +338,8 @@
   },
   "capAutoOpen": {
     "message": "Pointer rests → row opens"
+  },
+  "copyAddress": {
+    "message": "Copy email address"
   }
 }

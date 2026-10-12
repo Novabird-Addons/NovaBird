@@ -21,5 +21,6 @@ Entries on `testing` are not released yet; releases are tagged `vX.Y.Z` on `main
 - Nova-Contact: an active tag filter is shown as a chip next to the Tags button (with ✕ to clear) instead of as text in the search field. Typing in the search field replaces the tag filter.
 - Nova-Contact: the contact detail view now says "Tags" instead of "Categories" and also shows tags that are stored only on this computer (Google/CardDAV address books), with a small note that they are not synchronised.
 
-### NovaBird-Conversation 0.14.2
+### NovaBird-Conversation 0.14.2 / 0.14.3
 - Fix: selecting a collapsed thread in the message list showed Betterbird's own thread summary instead of the conversation view. Now the message of the selected row is shown, so the conversation view works without expanding the thread first. Real multi-selection is unchanged.
+- 0.14.3: hovering the sender name shows the email address; right-click on the name offers "Copy email address".

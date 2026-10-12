@@ -152,6 +152,15 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
   getAPI(context) {
     return {
       conversationView: {
+        // Text in die Zwischenablage (Rechtsklick auf den Absender: Mailadresse kopieren); funktioniert ohne Benutzeraktion im Seitenskript
+        async copyText(text) {
+          try {
+            Cc["@mozilla.org/widget/clipboardhelper;1"].getService(Ci.nsIClipboardHelper).copyString(String(text).slice(0, 500));
+            return true;
+          } catch (e) {
+            return false;
+          }
+        },
         async startThreadHook() {
           startThreadHook();
         },

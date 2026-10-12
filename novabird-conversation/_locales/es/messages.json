@@ -338,5 +338,8 @@
   },
   "capAutoOpen": {
     "message": "El puntero se detiene → la fila se abre"
+  },
+  "copyAddress": {
+    "message": "Copiar dirección de correo"
   }
 }
