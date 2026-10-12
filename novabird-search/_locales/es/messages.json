@@ -340,5 +340,32 @@
   },
   "capGroup": {
     "message": "Plana o en conversaciones"
+  },
+  "selfTestTitle": {
+    "message": "No todas las funciones están disponibles"
+  },
+  "selfTestText": {
+    "message": "Esta versión no es totalmente compatible con $APP$. Por eso está desactivado lo siguiente:",
+    "placeholders": {
+      "app": {
+        "content": "$1",
+        "example": "Betterbird 153.0"
+      }
+    }
+  },
+  "selfTestHint": {
+    "message": "Todo lo demás funciona con normalidad. Una versión más reciente del complemento suele solucionarlo."
+  },
+  "selfTest_searchBar": {
+    "message": "Barra de búsqueda en pestañas y ventanas nuevas"
+  },
+  "selfTest_quickFilter": {
+    "message": "Ocultar la barra de filtro rápido de Betterbird (aparece además)"
+  },
+  "selfTest_threadDates": {
+    "message": "Fecha del mensaje más reciente en conversaciones contraídas"
+  },
+  "selfTest_sharedFolders": {
+    "message": "Carpetas comunes en la parte superior del panel de carpetas"
   }
 }

@@ -283,9 +283,36 @@ function fixCategories(doc, card) {
         "Enregistré uniquement sur cet ordinateur, non synchronisé.", "Guardado solo en este equipo, no se sincroniza.")));
   }
 }
+// Gemeinsamer Selbsttest (shared/selftest.js im Paket), geladen in getAPI; meldet, was beim Einhängen ins Adressbuch fehlt
+const nb = {};
+// Gemeinsamen Code aus dem Paket laden (shared/*.js). loadSubScript nimmt nur vertrauenswürdige Adressen
+// (nicht moz-extension:, jar:, file:), daher über eine eigene resource://-Adresse; ohne Cache, damit nach
+// einem Update nicht die alte Fassung kommt. Abmelden in onShutdown (nbUnloadShared).
+function nbSharedHost(extension) {
+  return extension.id.replace(/@.*/, "").replace(/[^a-z0-9-]/gi, "") + "-shared";
+}
+function nbLoadShared(extension, files, target) {
+  const res = Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler);
+  const host = nbSharedHost(extension);
+  res.setSubstitution(host, extension.rootURI);
+  for (const file of files) {
+    Services.scriptloader.loadSubScriptWithOptions(`resource://${host}/${file}`, { target, ignoreCache: true });
+  }
+}
+function nbUnloadShared(extension) {
+  try {
+    Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler).setSubstitution(nbSharedHost(extension), null);
+  } catch (e) {
+    /* schon abgemeldet */
+  }
+}
+
 function hookDetails(view) {
   const dp = view.cw.detailsPane;
-  if (!dp || typeof dp.displayContact !== "function" || view.origDisplay) return;
+  if (!dp || typeof dp.displayContact !== "function" || view.origDisplay) {
+    if (!view.origDisplay && typeof dp?.displayContact !== "function") nb.nbReportMissing?.("contactDetails", "detailsPane.displayContact");
+    return;
+  }
   view.origDisplay = dp.displayContact;
   dp.displayContact = function (card, ...rest) {
     const r = view.origDisplay.call(this, card, ...rest);
@@ -329,7 +356,8 @@ function build(cw) {
     chipLabel.textContent = activeTag;
   };
   const origGetQuery = cards.getQuery;
-  cards.getQuery = function () {
+  if (typeof origGetQuery !== "function") nb.nbReportMissing?.("contactTags", "cardsPane.getQuery");
+  else cards.getQuery = function () {
     if (!activeTag) return origGetQuery.call(this);
     const words = [...ABQueryUtils.getSearchTokens(this.searchInput.value || ""), ...ABQueryUtils.getSearchTokens(activeTag)];
     cw.setTimeout(() => addStoredMatches(), 600); // wird bei jeder neuen Suche aufgerufen: lokal gespeicherte Online-Treffer ergänzen
@@ -488,7 +516,7 @@ function build(cw) {
     btnUndo.disabled = !undoStack.length;
     btnUndo.replaceChildren("↶ ", T("Rückgängig", "Undo", "Annuler", "Deshacer"), undoStack.length ? " (" + undoStack.length + ")" : "");
   };
-  const view = { cw, doc, refresh, bar, style, pop, back, restoreQuery: () => { cards.getQuery = origGetQuery; } };
+  const view = { cw, doc, refresh, bar, style, pop, back, restoreQuery: () => { if (typeof origGetQuery === "function") cards.getQuery = origGetQuery; } };
   views.add(view);
   hookDetails(view);
   { const cur = cw.detailsPane?.currentCard; if (cur) fixCategories(doc, cur); }
@@ -541,13 +569,27 @@ function hookWindow(win) {
 
 const API = class extends ExtensionCommon.ExtensionAPI {
   onShutdown(isAppShutdown) {
-    if (!isAppShutdown) stopAll();
+    if (!isAppShutdown) {
+      stopAll();
+      nbUnloadShared(this.extension);
+    }
   }
 
   getAPI() {
     pilotUrl = this.extension.getURL("pilot/ui/ui.html");
+    if (!nb.nbRunSelfTest) {
+      try {
+        nbLoadShared(this.extension, ["shared/selftest.js"], nb);
+      } catch (e) {
+        console.error("NovaBird: gemeinsamer Code nicht geladen", e); // nur Selbsttest/Farbrechnung fehlen, Rest läuft
+      }
+    }
     return {
       novaContact: {
+        // Selbsttest: nur Meldungen beim Einhängen (Startprüfungen der Extension stehen in messageList)
+        async selfTest() {
+          return nb.nbRunSelfTest?.([]) ?? null;
+        },
         async setEnabled(on) { if (on) startAll(); else stopAll(); },
         async setLog(on) { logOn = !!on; if (logOn) plog("Protokoll eingeschaltet"); },
         async getLog() { return logEntries.slice(); },

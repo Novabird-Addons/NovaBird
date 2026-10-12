@@ -341,5 +341,32 @@
   },
   "copyAddress": {
     "message": "Mailadresse kopieren"
+  },
+  "selfTestTitle": {
+    "message": "Nicht alle Funktionen verfügbar"
+  },
+  "selfTestText": {
+    "message": "Diese Version passt nicht vollständig zu $APP$. Folgendes ist deshalb ausgeschaltet:",
+    "placeholders": {
+      "app": {
+        "content": "$1",
+        "example": "Betterbird 153.0"
+      }
+    }
+  },
+  "selfTestHint": {
+    "message": "Alles andere funktioniert normal. Eine neuere Version des Add-ons behebt das in der Regel."
+  },
+  "selfTest_threadHook": {
+    "message": "Konversation bei zugeklapptem Faden (es erscheint Betterbirds Fadenübersicht)"
+  },
+  "selfTest_hideHeader": {
+    "message": "Standard-Nachrichtenkopf ausblenden"
+  },
+  "selfTest_displayedMessage": {
+    "message": "Konversation bei mehreren ausgewählten Nachrichten"
+  },
+  "selfTest_gloda": {
+    "message": "Suche über den Gloda-Index (Rückfall ohne NovaBird-DB)"
   }
 }

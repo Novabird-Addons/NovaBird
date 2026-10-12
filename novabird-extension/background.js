@@ -92,7 +92,7 @@ messenger.storage.onChanged.addListener(async changes => {
   if (changes.resetTick) {
     safe("Teiler zurücksetzen", () => messenger.novaCalendar.resetAttachHeight());
   }
-  const keys = Object.keys(changes).filter(k => k !== "resetTick");
+  const keys = Object.keys(changes).filter(k => k !== "resetTick" && !k.startsWith("selfTest"));
   if (!keys.length) {
     return;
   }
@@ -127,3 +127,6 @@ messenger.storage.onChanged.addListener(async changes => {
     safe("Einstellungsfarben", () => messenger.settingsRedesign.setColors(colors));
   }
 });
+
+// Selbsttest der Betterbird-Interna (shared/selftest-bg.js); Ergebnis zeigt die Optionsseite
+nbStartSelfTest([() => messenger.messageList.selfTest(), () => messenger.novaContact.selfTest()]);

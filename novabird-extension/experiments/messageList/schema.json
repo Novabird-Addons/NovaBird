@@ -3,6 +3,13 @@
     "namespace": "messageList",
     "functions": [
       {
+        "name": "selfTest",
+        "type": "function",
+        "async": true,
+        "description": "Selbsttest der Betterbird-Interna: {app, version, missing:[Funktion …], pending}.",
+        "parameters": []
+      },
+      {
         "name": "setOptions",
         "type": "function",
         "async": true,

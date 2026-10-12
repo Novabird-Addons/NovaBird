@@ -4,6 +4,10 @@ Entries on `testing` are not released yet; releases are tagged `vX.Y.Z` on `main
 
 ## Unreleased (`testing`)
 
+### All add-ons: self-test after Betterbird updates, shared code
+- Search 1.2.6, Conversation 0.14.6, Send 1.0.4, Extension 1.9.14: each add-on checks at start and whenever its settings page is opened whether the Betterbird internals it relies on are still there. If something is missing after a Betterbird update, only the affected feature stays off and the add-on's settings page shows "Not all features available" with the list. Nothing is shown while everything is fine.
+- Shared code in `shared/` (packed into each add-on): reading the theme colours (Conversation, Send), colour maths (Send, Extension settings page), self-test, and one check for the language files in the tests.
+
 ### NovaBird-DB 1.2.1 to 1.2.3
 - 1.2.3: the default search languages are now English plus the language of Betterbird (if supported), so mixed English/own-language mailboxes work out of the box. A saved language choice is not changed.
 - 1.2.2: indexing no longer hangs on a single broken message or folder. A message that is not read within 5 s is stored with headers only, three in a row make the indexer give up that folder and continue with the next one (it is retried on the next run), and loading a folder list is limited to 60 s. A watchdog writes "No progress for N s" with the folder and step to the log, together with the hint to repair the folder first. New option "Detailed index log" (off by default).

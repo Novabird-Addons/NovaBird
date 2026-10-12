@@ -3,6 +3,13 @@
     "namespace": "undoOverlay",
     "functions": [
       {
+        "name": "selfTest",
+        "type": "function",
+        "async": true,
+        "description": "Prüft, ob die Betterbird-Interna da sind, auf die das Add-on angewiesen ist: {app, version, missing:[Funktion …], pending}.",
+        "parameters": []
+      },
+      {
         "name": "hideComposeWindow",
         "type": "function",
         "async": true,

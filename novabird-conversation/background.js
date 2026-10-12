@@ -566,3 +566,6 @@ async function registerScript() {
 }
 
 loadSettings().then(registerScript).then(() => messenger.conversationView.startThreadHook()).catch(e => console.error("NovaBird-Conversation: Start fehlgeschlagen", e));
+
+// Selbsttest der Betterbird-Interna (shared/selftest-bg.js); Ergebnis zeigt die Optionsseite
+nbStartSelfTest([() => messenger.conversationView.selfTest()]);

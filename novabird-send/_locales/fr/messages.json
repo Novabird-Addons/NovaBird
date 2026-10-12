@@ -181,5 +181,23 @@
   },
   "optDelayHint": {
     "message": "Après « Envoyer », le message est retenu pendant ce délai (3 à 60 secondes). Pendant ce temps, « Annuler » le récupère et la fenêtre de rédaction réapparaît comme avant. Quitter pendant l’attente enregistre le message comme brouillon."
+  },
+  "selfTestTitle": {
+    "message": "Certaines fonctions ne sont pas disponibles"
+  },
+  "selfTestText": {
+    "message": "Cette version n’est pas entièrement compatible avec $APP$. Les fonctions suivantes sont donc désactivées :",
+    "placeholders": {
+      "app": {
+        "content": "$1",
+        "example": "Betterbird 153.0"
+      }
+    }
+  },
+  "selfTestHint": {
+    "message": "Tout le reste fonctionne normalement. Une version plus récente du module corrige généralement ce problème."
+  },
+  "selfTest_sendLater": {
+    "message": "Détecter « Envoyer plus tard » (sinon traité comme un envoi différé normal)"
   }
 }

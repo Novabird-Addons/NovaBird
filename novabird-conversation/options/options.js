@@ -7,6 +7,9 @@ for (const node of document.querySelectorAll("[data-i18n]")) {
 }
 document.title = api.i18n.getMessage("optTitle");
 
+// Hinweis, wenn Funktionen wegen fehlender Betterbird-Interna aus sind (Selbsttest, shared/selftest-ui.js)
+nbShowSelfTest(document.getElementById("nb-selftest"), (key, subs) => api.i18n.getMessage(key, subs));
+
 const FIELDS = ["engine", "limit", "order", "pin", "maxHeight", "expand", "attachments", "collapseQuotes", "rowLines", "autoOriginal", "stickyHeader", "autoOpen", "autoOpenTrigger", "autoOpenDwell", "autoOpenDelay", "openMs", "fadeMs", "fallback", "fallbackDays", "fallbackPeople", "hideHeader", "debugTiming", "alwaysRender"];
 const field = id => document.getElementById(id);
 let hideTimer;

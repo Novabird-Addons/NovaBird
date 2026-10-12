@@ -11,6 +11,9 @@ const path = require("node:path");
 const vm = require("node:vm");
 
 const read = name => fs.readFileSync(path.join(__dirname, "..", name), "utf8");
+const shared = name => fs.readFileSync(path.join(__dirname, "..", "..", "shared", name), "utf8"); // im Paket unter shared/
+const COLOR_SOURCE = shared("color.js");
+const SELFTEST_SOURCE = shared("selftest-bg.js");
 const SETTINGS_SOURCE = read("settings.js");
 const SOURCE = read("background.js");
 
@@ -103,7 +106,10 @@ async function setup({ delay = 10, locale = "de" } = {}) {
 
   const messenger = {
     storage: {
-      local: { get: async defaults => ({ ...defaults, delay: mocks.delay, ...mocks.settings }) },
+      local: {
+        get: async defaults => ({ ...defaults, delay: mocks.delay, ...mocks.settings }),
+        set: async v => log.push(["storageSet", plain(v)]),
+      },
       onChanged: ev("storageChanged"),
     },
     runtime: { onMessage: ev("message") },
@@ -171,6 +177,7 @@ async function setup({ delay = 10, locale = "de" } = {}) {
       updateQueued: async n => log.push(["queued", n]),
       hideOverlay: async () => log.push(["hideOverlay"]),
       proceedShutdown: async k => log.push(["proceedShutdown", k]),
+      selfTest: async () => ({ app: "Betterbird", version: "153.0", missing: mocks.missing ?? [], pending: false }),
     },
   };
 
@@ -180,6 +187,8 @@ async function setup({ delay = 10, locale = "de" } = {}) {
     setTimeout: fakeSetTimeout,
     clearTimeout: fakeClearTimeout,
   });
+  vm.runInContext(COLOR_SOURCE, context, { filename: "shared/color.js" });
+  vm.runInContext(SELFTEST_SOURCE, context, { filename: "shared/selftest-bg.js" });
   vm.runInContext(SETTINGS_SOURCE, context, { filename: "settings.js" });
   vm.runInContext(SOURCE, context, { filename: "background.js" });
   await flush(); // Start-Aufrufe (Stil setzen) abwarten
@@ -608,6 +617,16 @@ test("Rückgängig, Fenster nicht zeigbar: nächste Mail startet trotzdem", asyn
   await t.clickSend(2, "Zwei");
   await t.fire("undo");
   assert.deepEqual(t.calls("overlay").at(-1), ["overlay", "Zwei", 10, 0]);
+});
+
+test("Selbsttest: nach 20 s und beim Öffnen der Optionsseite, gespeichert nur bei Änderung", async () => {
+  const t = await setup();
+  await t.advance(20_000);
+  t.mocks.missing = ["sendLater"]; // z. B. beim Öffnen eines Verfassen-Fensters festgestellt
+  await t.fire("storageChanged", { selfTestRequest: { newValue: 1 } }, "local");
+  await t.fire("storageChanged", { selfTestRequest: { newValue: 2 } }, "local");
+  assert.deepEqual(t.calls("storageSet").map(c => c[1].selfTest.missing), [[], ["sendLater"]]);
+  assert.equal(t.calls("style").length, 1, "Anfrage des Selbsttests setzt den Stil nicht neu");
 });
 
 test("Rückgängig und erfolgreicher Versand zeigen keinen Hinweis", async () => {

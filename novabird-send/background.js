@@ -274,12 +274,15 @@ messenger.undoOverlay.onShutdownRequested.addListener(async kind => {
 
 // 7) Einstellungen ändern sich → Aussehen sofort übernehmen
 messenger.storage.onChanged.addListener((changes, area) => {
-  if (area === "local") {
+  if (area === "local" && !(Object.keys(changes).length && Object.keys(changes).every(k => k.startsWith("selfTest")))) {
     applyStyle().catch(e => console.error("NovaBird-Send: Stil setzen fehlgeschlagen", e));
   }
 });
 applyStyle().catch(e => console.error("NovaBird-Send: Stil setzen fehlgeschlagen", e));
 applyStrings().catch(e => console.error("NovaBird-Send: Texte setzen fehlgeschlagen", e));
+
+// Selbsttest der Betterbird-Interna (shared/selftest-bg.js); Ergebnis zeigt die Optionsseite
+nbStartSelfTest([() => messenger.undoOverlay.selfTest()]);
 
 // 8) Vorschau aus der Optionsseite: Overlay kurz mit Beispieldaten zeigen
 const PREVIEW_SECONDS = 8;

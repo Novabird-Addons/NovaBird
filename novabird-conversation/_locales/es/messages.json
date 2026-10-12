@@ -341,5 +341,32 @@
   },
   "copyAddress": {
     "message": "Copiar dirección de correo"
+  },
+  "selfTestTitle": {
+    "message": "No todas las funciones están disponibles"
+  },
+  "selfTestText": {
+    "message": "Esta versión no es totalmente compatible con $APP$. Por eso está desactivado lo siguiente:",
+    "placeholders": {
+      "app": {
+        "content": "$1",
+        "example": "Betterbird 153.0"
+      }
+    }
+  },
+  "selfTestHint": {
+    "message": "Todo lo demás funciona con normalidad. Una versión más reciente del complemento suele solucionarlo."
+  },
+  "selfTest_threadHook": {
+    "message": "Conversación en hilos contraídos (se muestra el resumen del hilo de Betterbird)"
+  },
+  "selfTest_hideHeader": {
+    "message": "Ocultar el encabezado estándar del mensaje"
+  },
+  "selfTest_displayedMessage": {
+    "message": "Conversación con varios mensajes seleccionados"
+  },
+  "selfTest_gloda": {
+    "message": "Búsqueda mediante el índice Gloda (alternativa sin NovaBird-DB)"
   }
 }

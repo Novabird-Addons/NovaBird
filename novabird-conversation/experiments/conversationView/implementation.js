@@ -9,6 +9,45 @@ var { setTimeout, clearTimeout } = ChromeUtils.importESModule("resource://gre/mo
 var { ExtensionSupport } = ChromeUtils.importESModule("resource:///modules/ExtensionSupport.sys.mjs");
 
 const HTML_NS = "http://www.w3.org/1999/xhtml";
+
+// Gemeinsamer Code (shared/theme.js, shared/selftest.js im Paket), geladen in getAPI
+const nb = {};
+// Gemeinsamen Code aus dem Paket laden (shared/*.js). loadSubScript nimmt nur vertrauenswürdige Adressen
+// (nicht moz-extension:, jar:, file:), daher über eine eigene resource://-Adresse; ohne Cache, damit nach
+// einem Update nicht die alte Fassung kommt. Abmelden in onShutdown (nbUnloadShared).
+function nbSharedHost(extension) {
+  return extension.id.replace(/@.*/, "").replace(/[^a-z0-9-]/gi, "") + "-shared";
+}
+function nbLoadShared(extension, files, target) {
+  const res = Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler);
+  const host = nbSharedHost(extension);
+  res.setSubstitution(host, extension.rootURI);
+  for (const file of files) {
+    Services.scriptloader.loadSubScriptWithOptions(`resource://${host}/${file}`, { target, ignoreCache: true });
+  }
+}
+function nbUnloadShared(extension) {
+  try {
+    Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler).setSubstitution(nbSharedHost(extension), null);
+  } catch (e) {
+    /* schon abgemeldet */
+  }
+}
+
+// Selbsttest: Betterbird-Interna, auf die sich dieses Add-on verlässt (Namen = Schlüssel selfTest_<feature> in _locales)
+const SELF_TEST = [
+  { feature: "threadHook", needs: "3pane", test: ({ cw }) => typeof cw.messagePane?.displayMessages === "function" && !!cw.threadTree && "gDBView" in cw },
+  {
+    feature: "hideHeader",
+    needs: "3pane",
+    test: ({ cw }) => {
+      const doc = cw.messageBrowser?.contentDocument;
+      return !doc || doc.readyState !== "complete" || (!!doc.getElementById("messageHeader") && !!doc.getElementById("attachmentView"));
+    },
+  },
+  { feature: "displayedMessage", needs: "3pane", test: ({ cw }) => !cw.messageBrowser?.contentWindow || "gMessage" in cw.messageBrowser.contentWindow },
+  { feature: "gloda", needs: "none", test: ({ hasModule }) => hasModule("resource:///modules/gloda/GlodaPublic.sys.mjs") },
+];
 const STYLE_ID = "novabird-conversation-style";
 const ATTR = "novabird-conversation-active";
 const HIDE_SELECTORS = ["#messageHeader", "#attachmentView", "#mail-notification-top [value=remoteContent]"];
@@ -61,6 +100,7 @@ const winHooks = new Map(); // Hauptfenster -> { tm, onTab }
 function hookPane(cw) {
   const mp = cw.messagePane;
   if (!mp || typeof mp.displayMessages !== "function" || hooked.has(cw)) {
+    if (mp && typeof mp.displayMessages !== "function") nb.nbReportMissing?.("threadHook", "messagePane.displayMessages");
     return;
   }
   const orig = mp.displayMessages;
@@ -157,8 +197,19 @@ function stopThreadHook() {
 
 this.conversationView = class extends ExtensionCommon.ExtensionAPI {
   getAPI(context) {
+    if (!nb.nbRunSelfTest) {
+      try {
+        nbLoadShared(context.extension, ["shared/theme.js", "shared/selftest.js"], nb);
+      } catch (e) {
+        console.error("NovaBird: gemeinsamer Code nicht geladen", e); // nur Selbsttest/Theme-Farben fehlen, Rest läuft
+      }
+    }
     return {
       conversationView: {
+        // Selbsttest der Betterbird-Interna (siehe SELF_TEST); Ergebnis zeigt die Optionsseite
+        async selfTest() {
+          return nb.nbRunSelfTest?.(SELF_TEST) ?? null;
+        },
         // Text in die Zwischenablage (Rechtsklick auf den Absender: Mailadresse kopieren); funktioniert ohne Benutzeraktion im Seitenskript
         async copyText(text) {
           try {
@@ -343,31 +394,7 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
             win = null;
           }
           win ??= Services.wm.getMostRecentWindow("mail:3pane");
-          if (!win) {
-            return null;
-          }
-          const dark = win.matchMedia("(prefers-color-scheme: dark)").matches;
-          const fb = dark
-            ? { bg: "#1d1e22", border: "#2a2c31", accent: "#5b9dff" }
-            : { bg: "#e6ecf5", border: "#d2dae6", accent: "#2f6bd8" };
-          const chains = {
-            bg: `var(--sidebar-background-color, ${fb.bg})`,
-            border: `var(--sidebar-border-color, ${fb.border})`,
-            accent: `var(--lwt-toolbarbutton-icon-fill-attention, var(--lwt-tab-line-color, var(--color-accent-primary, ${fb.accent})))`,
-          };
-          const doc = win.document;
-          const probe = doc.createElementNS(HTML_NS, "span");
-          (doc.body || doc.documentElement).appendChild(probe);
-          try {
-            const result = { dark };
-            for (const [key, chain] of Object.entries(chains)) {
-              probe.style.color = chain;
-              result[key] = win.getComputedStyle(probe).color;
-            }
-            return result;
-          } finally {
-            probe.remove();
-          }
+          return nb.nbReadThemeColors?.(win);
         },
       },
     };
@@ -377,6 +404,7 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
     if (isAppShutdown) {
       return;
     }
+    nbUnloadShared(this.extension);
     stopThreadHook();
     for (const win of Services.wm.getEnumerator("mail:3pane")) {
       const tabmail = win.document.getElementById("tabmail");

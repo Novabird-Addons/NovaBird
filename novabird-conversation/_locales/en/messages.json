@@ -341,5 +341,32 @@
   },
   "copyAddress": {
     "message": "Copy email address"
+  },
+  "selfTestTitle": {
+    "message": "Not all features available"
+  },
+  "selfTestText": {
+    "message": "This version does not fully match $APP$. The following is therefore switched off:",
+    "placeholders": {
+      "app": {
+        "content": "$1",
+        "example": "Betterbird 153.0"
+      }
+    }
+  },
+  "selfTestHint": {
+    "message": "Everything else works normally. A newer version of the add-on usually fixes this."
+  },
+  "selfTest_threadHook": {
+    "message": "Conversation for collapsed threads (Betterbird’s thread summary is shown instead)"
+  },
+  "selfTest_hideHeader": {
+    "message": "Hiding the standard message header"
+  },
+  "selfTest_displayedMessage": {
+    "message": "Conversation when several messages are selected"
+  },
+  "selfTest_gloda": {
+    "message": "Lookup via the Gloda index (fallback without NovaBird-DB)"
   }
 }

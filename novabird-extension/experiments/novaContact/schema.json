@@ -3,6 +3,13 @@
     "namespace": "novaContact",
     "functions": [
       {
+        "name": "selfTest",
+        "type": "function",
+        "async": true,
+        "description": "Selbsttest der Betterbird-Interna: {app, version, missing:[Funktion …], pending}.",
+        "parameters": []
+      },
+      {
         "name": "setEnabled",
         "type": "function",
         "async": true,

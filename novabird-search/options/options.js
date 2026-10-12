@@ -5,6 +5,9 @@ for (const el of document.querySelectorAll("[data-i18n]")) {
 }
 document.getElementById("version").textContent = messenger.runtime.getManifest().version;
 
+// Hinweis, wenn Funktionen wegen fehlender Betterbird-Interna aus sind (Selbsttest, shared/selftest-ui.js)
+nbShowSelfTest(document.getElementById("nb-selftest"), (key, subs) => messenger.i18n.getMessage(key, subs));
+
 const fields = Object.keys(SETTINGS_DEFAULTS);
 const saved = document.getElementById("saved");
 let hideTimer = null;

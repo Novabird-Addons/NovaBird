@@ -56,17 +56,31 @@ function pick(cs, names) {
   return "";
 }
 
+// Gemeinsame Farbrechnung (shared/color.js, im Paket); geladen in getAPI, vor jedem Fensteraufbau
+const nb = {};
+// Gemeinsamen Code aus dem Paket laden (shared/*.js). loadSubScript nimmt nur vertrauenswürdige Adressen
+// (nicht moz-extension:, jar:, file:), daher über eine eigene resource://-Adresse; ohne Cache, damit nach
+// einem Update nicht die alte Fassung kommt. Abmelden in onShutdown (nbUnloadShared).
+function nbSharedHost(extension) {
+  return extension.id.replace(/@.*/, "").replace(/[^a-z0-9-]/gi, "") + "-shared";
+}
+function nbLoadShared(extension, files, target) {
+  const res = Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler);
+  const host = nbSharedHost(extension);
+  res.setSubstitution(host, extension.rootURI);
+  for (const file of files) {
+    Services.scriptloader.loadSubScriptWithOptions(`resource://${host}/${file}`, { target, ignoreCache: true });
+  }
+}
+function nbUnloadShared(extension) {
+  try {
+    Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler).setSubstitution(nbSharedHost(extension), null);
+  } catch (e) {
+    /* schon abgemeldet */
+  }
+}
 function isDark(color) {
-  // Computed color-mix() liefert in neueren Gecko-Versionen "color(srgb 0.1 0.2 0.3)" (Werte 0..1), sonst "rgb(r, g, b)"
-  const n = (String(color).match(/-?\d*\.?\d+/g) || []).map(Number);
-  if (n.length >= 3 && /^\s*color\(/.test(color)) {
-    return (0.299 * n[0] + 0.587 * n[1] + 0.114 * n[2]) * 255 < 128;
-  }
-  if (n.length >= 3 && /^\s*rgba?\(/.test(color)) {
-    return (0.299 * n[0] + 0.587 * n[1] + 0.114 * n[2]) < 128;
-  }
-  const h = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(color);
-  return h ? (0.299 * parseInt(h[1], 16) + 0.587 * parseInt(h[2], 16) + 0.114 * parseInt(h[3], 16)) < 128 : false;
+  return nb.nbIsDark ? nb.nbIsDark(color) : false;
 }
 
 /** NovaBird-Palette: Farben des laufenden Themes (oder eigene) als --tbsr-* Variablen. */
@@ -960,12 +974,20 @@ return class extends ExtensionCommon.ExtensionAPI {
     if (isAppShutdown) {
       return;
     }
+    nbUnloadShared(this.extension);
     ExtensionSupport.unregisterWindowListener(LISTENER_ID);
     teardown();
   }
 
   getAPI(context) {
     hubIcon = context.extension.getURL("icons/icon-48.png");
+    if (!nb.nbIsDark) {
+      try {
+        nbLoadShared(context.extension, ["shared/color.js"], nb);
+      } catch (e) {
+        console.error("NovaBird: gemeinsamer Code nicht geladen", e); // nur Selbsttest/Farbrechnung fehlen, Rest läuft
+      }
+    }
     return {
       settingsRedesign: {
         async setColors(colors) {

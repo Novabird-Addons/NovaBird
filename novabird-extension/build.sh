@@ -7,4 +7,6 @@ OUTDIR="$(cd "$PWD/../../Release/Kandidaten" && pwd)"
 OUT="$OUTDIR/novabird-extension-$VERSION.xpi"
 rm -f "$OUT"
 zip -r -q "$OUT" manifest.json background.js experiments css options pilot icons _locales
+# Gemeinsamer Code aus Source/shared (im Paket unter shared/)
+(cd .. && zip -q "$OUT" shared/color.js shared/selftest.js shared/selftest-bg.js shared/selftest-ui.js)
 echo "Gebaut: $OUT"

@@ -340,5 +340,32 @@
   },
   "capGroup": {
     "message": "Flat or as conversations"
+  },
+  "selfTestTitle": {
+    "message": "Not all features available"
+  },
+  "selfTestText": {
+    "message": "This version does not fully match $APP$. The following is therefore switched off:",
+    "placeholders": {
+      "app": {
+        "content": "$1",
+        "example": "Betterbird 153.0"
+      }
+    }
+  },
+  "selfTestHint": {
+    "message": "Everything else works normally. A newer version of the add-on usually fixes this."
+  },
+  "selfTest_searchBar": {
+    "message": "Search bar in new tabs and windows"
+  },
+  "selfTest_quickFilter": {
+    "message": "Hiding Betterbird’s quick filter bar (it appears in addition)"
+  },
+  "selfTest_threadDates": {
+    "message": "Date of the newest message for collapsed conversations"
+  },
+  "selfTest_sharedFolders": {
+    "message": "Shared folders at the top of the folder pane"
   }
 }

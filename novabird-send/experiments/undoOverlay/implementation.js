@@ -12,6 +12,32 @@ var { ExtensionSupport } = ChromeUtils.importESModule(
 );
 
 const HTML_NS = "http://www.w3.org/1999/xhtml";
+
+// Gemeinsamer Code (shared/theme.js, shared/selftest.js im Paket), geladen in getAPI
+const nb = {};
+// Gemeinsamen Code aus dem Paket laden (shared/*.js). loadSubScript nimmt nur vertrauenswürdige Adressen
+// (nicht moz-extension:, jar:, file:), daher über eine eigene resource://-Adresse; ohne Cache, damit nach
+// einem Update nicht die alte Fassung kommt. Abmelden in onShutdown (nbUnloadShared).
+function nbSharedHost(extension) {
+  return extension.id.replace(/@.*/, "").replace(/[^a-z0-9-]/gi, "") + "-shared";
+}
+function nbLoadShared(extension, files, target) {
+  const res = Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler);
+  const host = nbSharedHost(extension);
+  res.setSubstitution(host, extension.rootURI);
+  for (const file of files) {
+    Services.scriptloader.loadSubScriptWithOptions(`resource://${host}/${file}`, { target, ignoreCache: true });
+  }
+}
+function nbUnloadShared(extension) {
+  try {
+    Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler).setSubstitution(nbSharedHost(extension), null);
+  } catch (e) {
+    /* schon abgemeldet */
+  }
+}
+// Selbsttest: alles hier wird erst beim Einhängen ins Verfassen-Fenster geprüft (nbReportMissing in wrapCompose)
+const SELF_TEST = [];
 const OVERLAY_ID = "novabird-send-overlay";
 const STACK_ID = "novabird-send-stack";
 const NOTICES_ID = "novabird-send-notices";
@@ -199,6 +225,7 @@ var undoOverlay = class extends ExtensionCommon.ExtensionAPI {
     if (isAppShutdown) {
       return;
     }
+    nbUnloadShared(this.extension);
     ExtensionSupport.unregisterWindowListener(LISTENER_NAME);
     for (const win of Services.wm.getEnumerator("msgcompose")) {
       unwrapCompose(win);
@@ -216,6 +243,13 @@ var undoOverlay = class extends ExtensionCommon.ExtensionAPI {
 
   getAPI(context) {
     const self = this;
+    if (!nb.nbRunSelfTest) {
+      try {
+        nbLoadShared(context.extension, ["shared/theme.js", "shared/selftest.js"], nb);
+      } catch (e) {
+        console.error("NovaBird: gemeinsamer Code nicht geladen", e); // nur Selbsttest/Theme-Farben fehlen, Rest läuft
+      }
+    }
     const emitter = new ExtensionCommon.EventEmitter();
     let pendingCount = 0;
     let bypassClose = false;
@@ -461,34 +495,12 @@ var undoOverlay = class extends ExtensionCommon.ExtensionAPI {
         async showComposeWindow(windowId) {
           setVisible(getWindow(windowId), true);
         },
+        // Selbsttest der Betterbird-Interna; Ergebnis zeigt die Optionsseite
+        async selfTest() {
+          return nb.nbRunSelfTest?.(SELF_TEST) ?? null;
+        },
         async getThemeColors() {
-          const win = Services.wm.getMostRecentWindow("mail:3pane");
-          if (!win) {
-            return null;
-          }
-          const dark = win.matchMedia("(prefers-color-scheme: dark)").matches;
-          const fb = dark
-            ? { bg: "#1d1e22", fg: "#dadde3", border: "#2a2c31", accent: "#5b9dff" }
-            : { bg: "#e6ecf5", fg: "#1e2838", border: "#d2dae6", accent: "#2f6bd8" };
-          const chains = {
-            bg: `var(--sidebar-background-color, ${fb.bg})`,
-            fg: `var(--sidebar-text-color, ${fb.fg})`,
-            border: `var(--sidebar-border-color, ${fb.border})`,
-            accent: `var(--lwt-toolbarbutton-icon-fill-attention, var(--lwt-tab-line-color, var(--color-accent-primary, ${fb.accent})))`,
-          };
-          const doc = win.document;
-          const probe = doc.createElementNS(HTML_NS, "span");
-          (doc.body || doc.documentElement).appendChild(probe);
-          try {
-            const result = {};
-            for (const [key, chain] of Object.entries(chains)) {
-              probe.style.color = chain;
-              result[key] = win.getComputedStyle(probe).color;
-            }
-            return result;
-          } finally {
-            probe.remove();
-          }
+          return nb.nbReadThemeColors?.(Services.wm.getMostRecentWindow("mail:3pane"));
         },
         async setStrings(raw) {
           for (const key of Object.keys(DEFAULT_STRINGS)) {
@@ -577,6 +589,7 @@ function wrapCompose(win) {
   const original = win.GenericSendMessage;
   if (typeof original !== "function") {
     console.error("NovaBird-Send: GenericSendMessage nicht gefunden, Sendemodus unbekannt");
+    nb.nbReportMissing?.("sendLater", "GenericSendMessage");
     return;
   }
   if (original.novabirdSendWrapped) {

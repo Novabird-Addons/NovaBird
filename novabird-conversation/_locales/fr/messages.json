@@ -341,5 +341,32 @@
   },
   "copyAddress": {
     "message": "Copier l’adresse e-mail"
+  },
+  "selfTestTitle": {
+    "message": "Certaines fonctions ne sont pas disponibles"
+  },
+  "selfTestText": {
+    "message": "Cette version n’est pas entièrement compatible avec $APP$. Les fonctions suivantes sont donc désactivées :",
+    "placeholders": {
+      "app": {
+        "content": "$1",
+        "example": "Betterbird 153.0"
+      }
+    }
+  },
+  "selfTestHint": {
+    "message": "Tout le reste fonctionne normalement. Une version plus récente du module corrige généralement ce problème."
+  },
+  "selfTest_threadHook": {
+    "message": "Conversation pour les fils réduits (le résumé du fil de Betterbird s’affiche à la place)"
+  },
+  "selfTest_hideHeader": {
+    "message": "Masquer l’en-tête standard du message"
+  },
+  "selfTest_displayedMessage": {
+    "message": "Conversation lorsque plusieurs messages sont sélectionnés"
+  },
+  "selfTest_gloda": {
+    "message": "Recherche via l’index Gloda (solution de repli sans NovaBird-DB)"
   }
 }

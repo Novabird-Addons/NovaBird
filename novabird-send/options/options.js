@@ -5,6 +5,9 @@ for (const el of document.querySelectorAll("[data-i18n]")) {
   el.textContent = messenger.i18n.getMessage(el.dataset.i18n);
 }
 
+// Hinweis, wenn Funktionen wegen fehlender Betterbird-Interna aus sind (Selbsttest, shared/selftest-ui.js)
+nbShowSelfTest(document.getElementById("nb-selftest"), (key, subs) => messenger.i18n.getMessage(key, subs));
+
 document.getElementById("version").textContent = messenger.i18n.getMessage("optVersion", [
   messenger.runtime.getManifest().version,
 ]);

@@ -109,6 +109,7 @@ NovaBird-Sand (calm, warm), -Cobalt (compact, strong), -Springlight (light, fres
 | Search bar says "Gloda search" | NovaBird-DB is missing, still building or damaged: Settings → NovaBird → Database; "Rebuild index" keeps the old one until the end. |
 | "NovaBird" settings page missing or empty | NovaBird-Extension installed and Betterbird restarted? Tabs only appear for active add-ons. |
 | Indexing stalls or never finishes (log shows "No progress for … s" or "Mail skipped") | **Repair the affected folder first:** right-click the folder → Properties → **Repair Folder**; repair all local folders if unsure. Then use "Check index now" in Settings → NovaBird → Database. For more detail switch on the detailed index log there. |
+| Settings page of an add-on says "Not all features available" (usually after a Betterbird update) | The add-on found that Betterbird changed something it relies on; only the listed features are switched off, everything else works. Look for a newer NovaBird version. |
 | Nothing changes after an update | Restart Betterbird once. |
 | Quitting takes unusually long | Wait briefly (waiting mails in NovaBird-Send are saved as drafts first). If it hangs, open the error console and keep the messages containing "NovaBird" ready. |
 | Reporting a problem | **Error console** (Ctrl+Shift+J), copy messages containing "NovaBird"; say which add-on, what you expected, what happened. Do not attach mail or addresses. |

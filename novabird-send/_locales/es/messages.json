@@ -181,5 +181,23 @@
   },
   "optDelayHint": {
     "message": "Tras «Enviar», el mensaje se retiene este tiempo (3–60 segundos). Durante ese tiempo «Deshacer» lo recupera y la ventana de redacción reaparece como antes. Cerrar durante la espera guarda el mensaje como borrador."
+  },
+  "selfTestTitle": {
+    "message": "No todas las funciones están disponibles"
+  },
+  "selfTestText": {
+    "message": "Esta versión no es totalmente compatible con $APP$. Por eso está desactivado lo siguiente:",
+    "placeholders": {
+      "app": {
+        "content": "$1",
+        "example": "Betterbird 153.0"
+      }
+    }
+  },
+  "selfTestHint": {
+    "message": "Todo lo demás funciona con normalidad. Una versión más reciente del complemento suele solucionarlo."
+  },
+  "selfTest_sendLater": {
+    "message": "Detectar «Enviar más tarde» (si no, se retrasa como un envío normal)"
   }
 }
