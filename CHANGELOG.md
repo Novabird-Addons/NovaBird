@@ -1,8 +1,9 @@
 # Changelog
 
-Entries on `testing` are not released yet; releases are tagged `vX.Y.Z` on `main`.
+Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
-## Unreleased (`testing`)
+## 1.1.0 (2026-10-12)
+Search 1.2.6 · DB 1.2.4 · Conversation 0.14.7 · Send 1.0.4 · Extension 1.9.14 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 
 ### All add-ons: self-test after Betterbird updates, shared code
 - Search 1.2.6, Conversation 0.14.6, Send 1.0.4, Extension 1.9.14: each add-on checks at start and whenever its settings page is opened whether the Betterbird internals it relies on are still there. If something is missing after a Betterbird update, only the affected feature stays off and the add-on's settings page shows "Not all features available" with the list. Nothing is shown while everything is fine.
