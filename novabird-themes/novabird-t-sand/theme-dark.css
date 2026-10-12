@@ -133,8 +133,8 @@
   --menuitem-border-radius: 6px;
   --menuitem-padding: 0.4em 0.8em;
   --panel-separator-color: #302e2b;
-  --panel-box-shadow: 0 6px 22px rgba(0, 0, 0, 0.18);
-  --panel-box-shadow-margin: 12px;
+  --panel-box-shadow: none;
+  --panel-box-shadow-margin: 0px;
 }
 :root:root:root:root menupopup > :is(menuitem, menu)[_moz-menuactive]:not([disabled]) {
   background-color: #2D4A73;
@@ -237,7 +237,7 @@ menupopup:not([type="arrow"])::part(content) {
   color: #e8e4e1 !important;
   border: 1px solid #393634 !important;
   border-radius: 10px !important;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.18) !important;
+  box-shadow: none !important;
 }
 
 /* Mini-Kalender: Heute kräftig blau, angewählter Tag sanft gelb */

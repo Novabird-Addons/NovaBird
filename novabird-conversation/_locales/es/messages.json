@@ -338,5 +338,50 @@
   },
   "capAutoOpen": {
     "message": "El puntero se detiene → la fila se abre"
+  },
+  "copyAddress": {
+    "message": "Copiar dirección de correo"
+  },
+  "selfTestTitle": {
+    "message": "No todas las funciones están disponibles"
+  },
+  "selfTestText": {
+    "message": "Esta versión no es totalmente compatible con $APP$. Por eso está desactivado lo siguiente:",
+    "placeholders": {
+      "app": {
+        "content": "$1",
+        "example": "Betterbird 153.0"
+      }
+    }
+  },
+  "selfTestHint": {
+    "message": "Todo lo demás funciona con normalidad. Una versión más reciente del complemento suele solucionarlo."
+  },
+  "selfTest_threadHook": {
+    "message": "Conversación en hilos contraídos (se muestra el resumen del hilo de Betterbird)"
+  },
+  "selfTest_hideHeader": {
+    "message": "Ocultar el encabezado estándar del mensaje"
+  },
+  "selfTest_displayedMessage": {
+    "message": "Conversación con varios mensajes seleccionados"
+  },
+  "selfTest_gloda": {
+    "message": "Búsqueda mediante el índice Gloda (alternativa sin NovaBird-DB)"
+  },
+  "otherConvText": {
+    "message": "«Thunderbird Conversations» también está activo. Ambos complementos se integran en la vista de mensajes y se estorban; es mejor usar solo uno."
+  },
+  "otherConvDisable": {
+    "message": "Desactivar Thunderbird Conversations"
+  },
+  "otherConvLater": {
+    "message": "Más tarde"
+  },
+  "otherConvDone": {
+    "message": "Thunderbird Conversations está desactivado (se puede volver a activar en el administrador de complementos). Se recomienda reiniciar Betterbird."
+  },
+  "selfTest_noFlicker": {
+    "message": "Ocultar el panel de lectura al cambiar de mensaje (el original puede aparecer un instante)"
   }
 }

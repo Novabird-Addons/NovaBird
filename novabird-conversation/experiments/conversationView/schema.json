@@ -3,6 +3,53 @@
     "namespace": "conversationView",
     "functions": [
       {
+        "name": "selfTest",
+        "type": "function",
+        "async": true,
+        "description": "Prüft, ob die Betterbird-Interna da sind, auf die das Add-on angewiesen ist: {app, version, missing:[Funktion …], pending}.",
+        "parameters": []
+      },
+      {
+        "name": "copyText",
+        "type": "function",
+        "async": true,
+        "description": "Legt einen Text (höchstens 500 Zeichen) in die Zwischenablage.",
+        "parameters": [
+          {
+            "name": "text",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "name": "reveal",
+        "type": "function",
+        "async": true,
+        "description": "Lesebereich des Tabs wieder sichtbar machen (vor dem Laden einer anderen Mail versteckt, damit das Original nicht aufblitzt).",
+        "parameters": [{ "name": "tabId", "type": "integer" }]
+      },
+      {
+        "name": "getOtherConversations",
+        "type": "function",
+        "async": true,
+        "description": "Ist „Thunderbird Conversations“ installiert? {id, name, active} oder null.",
+        "parameters": []
+      },
+      {
+        "name": "disableOtherConversations",
+        "type": "function",
+        "async": true,
+        "description": "Deaktiviert „Thunderbird Conversations“ (nur dieses Add-on, nur auf Klick des Nutzers); true, wenn deaktiviert.",
+        "parameters": []
+      },
+      {
+        "name": "startThreadHook",
+        "type": "function",
+        "async": true,
+        "description": "Zugeklappte Unterhaltung in der Nachrichtenliste zeigt die Nachricht (und damit die Konversationsansicht) statt Betterbirds Fadenübersicht.",
+        "parameters": []
+      },
+      {
         "name": "setHeaderHidden",
         "type": "function",
         "async": true,
@@ -54,6 +101,18 @@
           {
             "name": "url",
             "type": "string"
+          }
+        ]
+      },
+      {
+        "name": "getDisplayedMessage",
+        "type": "function",
+        "async": true,
+        "description": "Nachricht, die der Lesebereich des Tabs zeigt (auch bei zugeklapptem Faden mit mehreren ausgewählten Nachrichten); sonst null.",
+        "parameters": [
+          {
+            "name": "tabId",
+            "type": "integer"
           }
         ]
       },

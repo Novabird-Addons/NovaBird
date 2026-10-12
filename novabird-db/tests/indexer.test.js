@@ -28,6 +28,25 @@ describe("Indexer (mit nachgebauter messenger-API)", () => {
     expect(r.rows[0].folder_name).toBe("Projekt");
   });
 
+  it("mit getFull: ein Abruf je Mail für Text und Anhänge", async () => {
+    const { fake, indexer, db, caps } = await setup();
+    let full = 0;
+    fake.api.messages.getFull = async (id) => {
+      full++;
+      return { contentType: "multipart/mixed", parts: [
+        { contentType: "text/plain", body: "Speiseplan der Woche" },
+        { contentType: "application/pdf", name: "Plan.pdf", size: 10 },
+      ] };
+    };
+    fake.addMessage("inbox", { subject: "Kantine" });
+    fake.addMessage("inbox", { subject: "Kantine 2" });
+    await indexer.fullRun();
+    expect(full).toBe(2);
+    expect(fake.calls.listInlineTextParts).toBe(0);
+    const r = await search(db, caps, "speiseplan anh:pdf");
+    expect(r.rows.length).toBe(2);
+  });
+
   it("Ausschlüsse greifen (z. B. Papierkorb)", async () => {
     const { fake, indexer, count } = await setup({ isExcluded: (f) => f.specialUse?.includes("trash") });
     fake.addMessage("trash", { subject: "Alt" });
@@ -278,5 +297,128 @@ describe("Ordner abgleichen (rückwirkend einsortierte Mails)", () => {
     expect(await indexer.reconcile({ deep: true })).toMatchObject({ rescanned: 4 }); // alle Ordner Mail für Mail geprüft: 1 neu, 1 entfernt
     expect(await count("subject = 'Neu einsortiert'")).toBe(1);
     expect(await count("subject = 'Alt'")).toBe(0);
+  });
+});
+
+describe("Ordner ohne Offline-Speicher und virtuelle Ordner", () => {
+  const withFlags = (fake, flags) => {
+    fake.api.novabirdDb = {
+      folderInfo: async (fs) => fs.map((f) => flags[f.path] ?? null),
+      offlineFlags: async (ids) => ids.map(() => false),
+    };
+    const listed = [];
+    const orig = fake.api.messages.list;
+    fake.api.messages.list = async (id) => {
+      listed.push(id);
+      return orig(id);
+    };
+    return listed;
+  };
+
+  it("Kopfdaten reichen: Ordner wird fertig, wird nicht neu gelesen; virtuelle Ordner entfallen", async () => {
+    const { fake, indexer, count, db } = await setup();
+    const flags = { "/INBOX": { virtual: false, offline: false }, "/Sent": { virtual: false, offline: true }, "/Trash": { virtual: true, offline: true }, "/INBOX/Projekt": { virtual: true, offline: true } };
+    const listed = withFlags(fake, flags);
+    fake.addMessage("inbox", { subject: "Online Mail", body: "Geheimtext" });
+    fake.addMessage("projekt", { subject: "Virtuell", body: "doppelt" });
+    fake.addMessage("trash", { subject: "Virtuell 2", body: "doppelt" });
+    await indexer.fullRun();
+    expect(await count()).toBe(1); // nur die Online-Mail, ohne Text
+    expect(fake.calls.listInlineTextParts).toBe(0);
+    expect(listed).not.toContain("account1://INBOX/Projekt");
+    const [st] = await db.select("SELECT done FROM index_state WHERE folder_id = ?", ["account1://INBOX"], ["done"]);
+    expect(st.done).toBe(1);
+
+    listed.length = 0;
+    await indexer.fullRun(); // zweiter Start: Online-Ordner ist fertig, wird nicht gelesen
+    expect(listed).not.toContain("account1://INBOX");
+  });
+
+  it("Abgleich und Tiefenabgleich lesen Online-Ordner bei neuer Mailzahl nicht komplett neu", async () => {
+    const { fake, indexer } = await setup();
+    const listed = withFlags(fake, { "/INBOX": { virtual: false, offline: false } });
+    fake.addMessage("inbox", { subject: "Eins", body: "x" });
+    await indexer.fullRun();
+    fake.addMessage("inbox", { subject: "Zwei", body: "y", date: new Date(2020, 1, 1) });
+    listed.length = 0;
+    expect(await indexer.reconcile()).toMatchObject({ rescanned: 0 });
+    await indexer.reconcile({ deep: true }); // übrige Ordner ohne Flags werden wie bisher gelesen
+    expect(listed).not.toContain("account1://INBOX");
+  });
+
+  it("Offline-Speicher wird eingeschaltet: Ordner wird einmal neu gelesen, Text kommt in den Index", async () => {
+    const { fake, indexer, db, caps } = await setup();
+    const flags = { "/INBOX": { virtual: false, offline: false } };
+    const listed = withFlags(fake, flags);
+    const local = new Set();
+    fake.api.novabirdDb.offlineFlags = async (ids) => ids.map((id) => local.has(id));
+    const m = fake.addMessage("inbox", { subject: "Servermail", body: "Wartungsfenster" });
+    await indexer.fullRun();
+    expect((await search(db, caps, "Wartungsfenster")).rows.length).toBe(0);
+    flags["/INBOX"] = { virtual: false, offline: true };
+    local.add(m.id);
+    listed.length = 0;
+    await indexer.fullRun();
+    expect(listed).toContain("account1://INBOX");
+    expect((await search(db, caps, "Wartungsfenster")).rows.length).toBe(1);
+  });
+});
+
+describe("Hänger: Zeitgrenzen und Wächter", () => {
+  const capture = () => {
+    const lines = [];
+    const log = { info: (...a) => lines.push(["info", a.join(" ")]), warn: (...a) => lines.push(["warn", a.join(" ")]), error: (...a) => lines.push(["error", a.join(" ")]) };
+    return { lines, log };
+  };
+  const never = () => new Promise(() => {});
+
+  it("eine hängende Mail wird nach der Zeitgrenze als Kopfdaten übernommen, der Lauf geht weiter", async () => {
+    const { lines, log } = capture();
+    const { fake, indexer, count } = await setup({ log, limits: { mail: 30, watch: 1000 } });
+    fake.addMessage("inbox", { subject: "gut eins", body: "Text" });
+    const bad = fake.addMessage("inbox", { subject: "hängt", body: "Text" });
+    fake.addMessage("inbox", { subject: "gut zwei", body: "Text" });
+    const orig = fake.api.messages.listInlineTextParts;
+    fake.api.messages.listInlineTextParts = (id) => (id === bad.id ? never() : orig(id));
+    await indexer.fullRun();
+    expect(await count()).toBe(3);
+    expect(await count("body_hash = 'headers-only'")).toBe(1);
+    expect(lines.some(([l, t]) => l === "warn" && t.includes("hängt"))).toBe(true);
+  });
+
+  it("mehrere Hänger nacheinander: Ordner wird aufgegeben, der nächste Ordner läuft", async () => {
+    const { lines, log } = capture();
+    const { fake, indexer, count, db } = await setup({ log, limits: { mail: 20, watch: 1000, stuck: 3 } });
+    const hung = new Set();
+    for (let i = 0; i < 6; i++) hung.add(fake.addMessage("inbox", { subject: `kaputt ${i}`, body: "x" }).id);
+    fake.addMessage("sent", { subject: "gesund", body: "Text" });
+    const orig = fake.api.messages.listInlineTextParts;
+    fake.api.messages.listInlineTextParts = (id) => (hung.has(id) ? never() : orig(id));
+    await indexer.fullRun();
+    expect(lines.some(([l, t]) => l === "error" && t.includes("Ordner fehlgeschlagen") && t.includes("reparieren"))).toBe(true);
+    expect((await db.select("SELECT COUNT(*) FROM messages WHERE subject = 'gesund'", [], ["n"]))[0].n).toBe(1);
+    const [st] = await db.select("SELECT done FROM index_state WHERE folder_id = ?", ["account1://INBOX"], ["done"]).catch(() => [undefined]);
+    expect(st?.done ?? 0).toBe(0); // nicht fertig: wird beim nächsten Lauf erneut versucht
+  });
+
+  it("hängende Ordnerliste: Zeitgrenze und Wächter melden sich im Protokoll", async () => {
+    const { lines, log } = capture();
+    const { fake, indexer } = await setup({ log, limits: { page: 120, stall: 40, watch: 20 } });
+    fake.addMessage("inbox", { subject: "a", body: "x" });
+    const orig = fake.api.messages.list;
+    fake.api.messages.list = async (folderId) => (folderId === "account1://INBOX" ? never() : orig(folderId));
+    await indexer.fullRun();
+    expect(lines.some(([l, t]) => l === "warn" && t.includes("Keine Fortschritte") && t.includes("reparieren"))).toBe(true);
+    expect(lines.some(([l, t]) => l === "error" && t.includes("Ordner fehlgeschlagen"))).toBe(true);
+  });
+
+  it("Debug-Protokoll nur auf Wunsch", async () => {
+    for (const debug of [false, true]) {
+      const { lines, log } = capture();
+      const { fake, indexer } = await setup({ log, debug });
+      fake.addMessage("inbox", { subject: "a", body: "x" });
+      await indexer.fullRun();
+      expect(lines.some(([, t]) => t.includes("Seite fertig"))).toBe(debug);
+    }
   });
 });

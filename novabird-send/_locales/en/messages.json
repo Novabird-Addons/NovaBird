@@ -184,5 +184,23 @@
   },
   "optDelayHint": {
     "message": "After “Send” the message is held back for this long (3–60 seconds). During that time “Undo” brings it back, and the compose window reappears as before. Quitting while waiting saves the message as a draft."
+  },
+  "selfTestTitle": {
+    "message": "Not all features available"
+  },
+  "selfTestText": {
+    "message": "This version does not fully match $APP$. The following is therefore switched off:",
+    "placeholders": {
+      "app": {
+        "content": "$1",
+        "example": "Betterbird 153.0"
+      }
+    }
+  },
+  "selfTestHint": {
+    "message": "Everything else works normally. A newer version of the add-on usually fixes this."
+  },
+  "selfTest_sendLater": {
+    "message": "Detecting “Send later” (it is otherwise delayed like a normal send)"
   }
 }

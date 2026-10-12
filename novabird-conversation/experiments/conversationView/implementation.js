@@ -6,7 +6,49 @@
 var { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/ExtensionCommon.sys.mjs");
 var { setTimeout, clearTimeout } = ChromeUtils.importESModule("resource://gre/modules/Timer.sys.mjs");
 
+var { ExtensionSupport } = ChromeUtils.importESModule("resource:///modules/ExtensionSupport.sys.mjs");
+
 const HTML_NS = "http://www.w3.org/1999/xhtml";
+
+// Gemeinsamer Code (shared/theme.js, shared/selftest.js im Paket), geladen in getAPI
+const nb = {};
+// Gemeinsamen Code aus dem Paket laden (shared/*.js). loadSubScript nimmt nur vertrauenswürdige Adressen
+// (nicht moz-extension:, jar:, file:), daher über eine eigene resource://-Adresse; ohne Cache, damit nach
+// einem Update nicht die alte Fassung kommt. Abmelden in onShutdown (nbUnloadShared).
+function nbSharedHost(extension) {
+  return extension.id.replace(/@.*/, "").replace(/[^a-z0-9-]/gi, "") + "-shared";
+}
+function nbLoadShared(extension, files, target) {
+  const res = Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler);
+  const host = nbSharedHost(extension);
+  res.setSubstitution(host, extension.rootURI);
+  for (const file of files) {
+    Services.scriptloader.loadSubScriptWithOptions(`resource://${host}/${file}`, { target, ignoreCache: true });
+  }
+}
+function nbUnloadShared(extension) {
+  try {
+    Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler).setSubstitution(nbSharedHost(extension), null);
+  } catch (e) {
+    /* schon abgemeldet */
+  }
+}
+
+// Selbsttest: Betterbird-Interna, auf die sich dieses Add-on verlässt (Namen = Schlüssel selfTest_<feature> in _locales)
+const SELF_TEST = [
+  { feature: "threadHook", needs: "3pane", test: ({ cw }) => typeof cw.messagePane?.displayMessages === "function" && !!cw.threadTree && "gDBView" in cw },
+  {
+    feature: "hideHeader",
+    needs: "3pane",
+    test: ({ cw }) => {
+      const doc = cw.messageBrowser?.contentDocument;
+      return !doc || doc.readyState !== "complete" || (!!doc.getElementById("messageHeader") && !!doc.getElementById("attachmentView"));
+    },
+  },
+  { feature: "noFlicker", needs: "3pane", test: ({ cw }) => typeof cw.messagePane?.displayMessage === "function" && !!cw.messageBrowser },
+  { feature: "displayedMessage", needs: "3pane", test: ({ cw }) => !cw.messageBrowser?.contentWindow || "gMessage" in cw.messageBrowser.contentWindow },
+  { feature: "gloda", needs: "none", test: ({ hasModule }) => hasModule("resource:///modules/gloda/GlodaPublic.sys.mjs") },
+];
 const STYLE_ID = "novabird-conversation-style";
 const ATTR = "novabird-conversation-active";
 const HIDE_SELECTORS = ["#messageHeader", "#attachmentView", "#mail-notification-top [value=remoteContent]"];
@@ -47,10 +89,207 @@ function senderPrincipal(email) {
   return Services.scriptSecurityManager.createContentPrincipal(Services.io.newURI("chrome://messenger/content/email=" + email), {});
 }
 
+// Zugeklappte Unterhaltung in der Nachrichtenliste: Betterbird wählt dann alle Nachrichten des Fadens aus und zeigt seine
+// eigene Fadenübersicht (multimessage) statt der Nachricht, dort läuft unsere Ansicht nicht. Ist nur EINE Zeile gewählt,
+// zeigen wir stattdessen die Nachricht dieser Zeile an (wie bei aufgeklapptem Faden). Echte Mehrfachauswahl bleibt unverändert.
+const THREAD_LISTENER = "novabird-conversation-thread";
+const MAIN_URL = "chrome://messenger/content/messenger.xhtml";
+const MSG_VIEW_FLAG_DUMMY = 0x20000000;
+const hooked = new Map(); // about:3pane-Fenster -> { mp, orig }
+const winHooks = new Map(); // Hauptfenster -> { tm, onTab }
+
+// Kein Aufblitzen des Originals (Stufe B, ab 0.14.7): Vor dem Laden einer ANDEREN Mail wird der Lesebereich unsichtbar
+// (opacity, damit weiter gezeichnet wird und requestAnimationFrame läuft); die Ansicht meldet „reveal“, sobald die
+// Konversation steht oder klar ist, dass das Original gezeigt wird. Sicherheitsfrist wie im Seitenskript (1,5 s).
+const REVEAL_MAX_MS = 1500;
+// „Thunderbird Conversations“ hängt sich an dieselben Stellen; beide zusammen stören sich (Hinweis mit Auswahl, nie ungefragt abschalten)
+const OTHER_CONVERSATIONS_IDS = ["gconversation@xulforum.org"];
+async function findOtherConversations() {
+  const { AddonManager } = ChromeUtils.importESModule("resource://gre/modules/AddonManager.sys.mjs");
+  const all = await AddonManager.getAddonsByTypes(["extension"]);
+  return all.find(a => OTHER_CONVERSATIONS_IDS.includes(a.id) || /^thunderbird conversations$/i.test(String(a.name).trim())) ?? null;
+}
+const veiled = new Map(); // about:3pane-Fenster -> Timer
+function veilPane(cw) {
+  const b = cw.messageBrowser;
+  if (!b) return;
+  cw.clearTimeout(veiled.get(cw));
+  b.style.opacity = "0";
+  veiled.set(cw, cw.setTimeout(() => revealPane(cw), REVEAL_MAX_MS));
+}
+function revealPane(cw) {
+  try {
+    cw.clearTimeout(veiled.get(cw));
+    veiled.delete(cw);
+    if (cw.messageBrowser) cw.messageBrowser.style.opacity = "";
+  } catch (e) {
+    veiled.delete(cw); // Fenster schon geschlossen
+  }
+}
+
+function hookPane(cw) {
+  const mp = cw.messagePane;
+  if (!mp || typeof mp.displayMessages !== "function" || hooked.has(cw)) {
+    if (mp && typeof mp.displayMessages !== "function") nb.nbReportMissing?.("threadHook", "messagePane.displayMessages");
+    return;
+  }
+  const orig = mp.displayMessages;
+  const origOne = typeof mp.displayMessage === "function" ? mp.displayMessage : null;
+  if (origOne) {
+    mp.displayMessage = function (uri, ...rest) {
+      try {
+        // dieselbe Mail erneut gewählt: Betterbird lädt nichts neu, also auch nichts verstecken
+        if (uri && uri !== cw.messageBrowser?.contentWindow?.gMessageURI) veilPane(cw);
+      } catch (e) {
+        console.error("NovaBird-Conversation:", e);
+      }
+      return origOne.call(this, uri, ...rest);
+    };
+  } else {
+    nb.nbReportMissing?.("noFlicker", "messagePane.displayMessage");
+  }
+  mp.displayMessages = function (...args) {
+    try {
+      const tree = cw.threadTree;
+      if (tree && cw.gDBView && tree.selectedIndices.length === 1) {
+        const idx = tree.selectedIndex;
+        if (!(cw.gDBView.getFlagsAt(idx) & MSG_VIEW_FLAG_DUMMY)) {
+          return this.displayMessage(cw.gDBView.getURIForViewIndex(idx));
+        }
+      }
+    } catch (e) {
+      console.error("NovaBird-Conversation:", e);
+    }
+    return orig.apply(this, args);
+  };
+  // Geschlossene Tabs austragen, sonst hielte die Liste ihre Fenster bis zum Neustart im Speicher
+  const onUnload = () => {
+    hooked.delete(cw);
+    veiled.delete(cw);
+  };
+  cw.addEventListener("unload", onUnload, { once: true });
+  hooked.set(cw, { mp, orig, origOne, onUnload });
+}
+
+function scanThreads(win, tries = 0) {
+  let missing = false;
+  for (const info of win.document.getElementById("tabmail")?.tabInfo ?? []) {
+    const cw = info.chromeBrowser?.contentWindow;
+    try {
+      if (cw && cw.location.href === "about:3pane") {
+        if (cw.document.readyState === "complete" && cw.messagePane) {
+          hookPane(cw);
+        } else {
+          missing = true;
+        }
+      }
+    } catch (e) {
+      missing = true;
+    }
+  }
+  if (missing && tries < 30) {
+    win.setTimeout(() => scanThreads(win, tries + 1), 500);
+  }
+}
+
+function hookThreadWindow(win) {
+  const tm = win.document.getElementById("tabmail");
+  if (!tm || winHooks.has(win)) {
+    return;
+  }
+  const onTab = () => win.setTimeout(() => scanThreads(win), 300);
+  const onUnload = () => winHooks.delete(win);
+  winHooks.set(win, { tm, onTab, onUnload });
+  win.addEventListener("unload", onUnload, { once: true });
+  tm.tabContainer.addEventListener("TabOpen", onTab);
+  tm.tabContainer.addEventListener("TabSelect", onTab);
+  scanThreads(win);
+}
+
+function startThreadHook() {
+  ExtensionSupport.registerWindowListener(THREAD_LISTENER, {
+    chromeURLs: [MAIN_URL],
+    onLoadWindow(win) {
+      try {
+        hookThreadWindow(win);
+      } catch (e) {
+        console.error("NovaBird-Conversation:", e);
+      }
+    },
+  });
+}
+
+function stopThreadHook() {
+  ExtensionSupport.unregisterWindowListener(THREAD_LISTENER);
+  for (const [win, h] of winHooks) {
+    try {
+      h.tm.tabContainer.removeEventListener("TabOpen", h.onTab);
+      h.tm.tabContainer.removeEventListener("TabSelect", h.onTab);
+      win.removeEventListener("unload", h.onUnload);
+    } catch (e) {
+      /* Fenster schon geschlossen */
+    }
+  }
+  winHooks.clear();
+  for (const [cw, h] of hooked) {
+    try {
+      cw.removeEventListener("unload", h.onUnload);
+      h.mp.displayMessages = h.orig;
+      if (h.origOne) h.mp.displayMessage = h.origOne;
+      revealPane(cw);
+    } catch (e) {
+      /* Tab schon geschlossen */
+    }
+  }
+  hooked.clear();
+}
+
 this.conversationView = class extends ExtensionCommon.ExtensionAPI {
   getAPI(context) {
+    if (!nb.nbRunSelfTest) {
+      try {
+        nbLoadShared(context.extension, ["shared/theme.js", "shared/selftest.js"], nb);
+      } catch (e) {
+        console.error("NovaBird: gemeinsamer Code nicht geladen", e); // nur Selbsttest/Theme-Farben fehlen, Rest läuft
+      }
+    }
     return {
       conversationView: {
+        // Selbsttest der Betterbird-Interna (siehe SELF_TEST); Ergebnis zeigt die Optionsseite
+        async selfTest() {
+          return nb.nbRunSelfTest?.(SELF_TEST) ?? null;
+        },
+        // Text in die Zwischenablage (Rechtsklick auf den Absender: Mailadresse kopieren); funktioniert ohne Benutzeraktion im Seitenskript
+        async copyText(text) {
+          try {
+            Cc["@mozilla.org/widget/clipboardhelper;1"].getService(Ci.nsIClipboardHelper).copyString(String(text).slice(0, 500));
+            return true;
+          } catch (e) {
+            return false;
+          }
+        },
+        async startThreadHook() {
+          startThreadHook();
+        },
+        // Ansicht steht (oder das Original wird gezeigt): Lesebereich dieses Tabs wieder sichtbar machen
+        async reveal(tabId) {
+          try {
+            const cw = context.extension.tabManager.get(tabId)?.nativeTab?.chromeBrowser?.contentWindow;
+            if (cw && veiled.has(cw)) revealPane(cw);
+          } catch (e) {
+            /* Tab weg */
+          }
+        },
+        async getOtherConversations() {
+          const a = await findOtherConversations();
+          return a ? { id: a.id, name: a.name, active: a.isActive } : null;
+        },
+        async disableOtherConversations() {
+          const a = await findOtherConversations();
+          if (!a || !a.isActive) return false;
+          await a.disable();
+          return true;
+        },
         async setHeaderHidden(tabId, hidden) {
           const tab = context.extension.tabManager.get(tabId);
           setHidden(messageDocument(tab?.nativeTab), !!hidden);
@@ -126,6 +365,17 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
             }
           }
           return out;
+        },
+        // Nachricht, die der Lesebereich wirklich zeigt (bei zugeklapptem Faden sind mehrere ausgewählt, dann liefert
+        // messageDisplay.getDisplayedMessage null).
+        async getDisplayedMessage(tabId) {
+          try {
+            const cw = context.extension.tabManager.get(tabId)?.nativeTab?.chromeBrowser?.contentWindow;
+            const hdr = cw?.location.href.startsWith("about:3pane") ? cw.messageBrowser?.contentWindow?.gMessage : null;
+            return hdr ? await context.extension.messageManager.convert(hdr) : null;
+          } catch (e) {
+            return null;
+          }
         },
         async getMessageId(headerMessageId, accountId, path) {
           try {
@@ -212,31 +462,7 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
             win = null;
           }
           win ??= Services.wm.getMostRecentWindow("mail:3pane");
-          if (!win) {
-            return null;
-          }
-          const dark = win.matchMedia("(prefers-color-scheme: dark)").matches;
-          const fb = dark
-            ? { bg: "#1d1e22", border: "#2a2c31", accent: "#5b9dff" }
-            : { bg: "#e6ecf5", border: "#d2dae6", accent: "#2f6bd8" };
-          const chains = {
-            bg: `var(--sidebar-background-color, ${fb.bg})`,
-            border: `var(--sidebar-border-color, ${fb.border})`,
-            accent: `var(--lwt-toolbarbutton-icon-fill-attention, var(--lwt-tab-line-color, var(--color-accent-primary, ${fb.accent})))`,
-          };
-          const doc = win.document;
-          const probe = doc.createElementNS(HTML_NS, "span");
-          (doc.body || doc.documentElement).appendChild(probe);
-          try {
-            const result = { dark };
-            for (const [key, chain] of Object.entries(chains)) {
-              probe.style.color = chain;
-              result[key] = win.getComputedStyle(probe).color;
-            }
-            return result;
-          } finally {
-            probe.remove();
-          }
+          return nb.nbReadThemeColors?.(win);
         },
       },
     };
@@ -246,6 +472,8 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
     if (isAppShutdown) {
       return;
     }
+    nbUnloadShared(this.extension);
+    stopThreadHook();
     for (const win of Services.wm.getEnumerator("mail:3pane")) {
       const tabmail = win.document.getElementById("tabmail");
       for (const info of tabmail?.tabInfo ?? []) {

@@ -7,7 +7,7 @@ const MAX_MESSAGES = 120;
 const STRING_KEYS = [
   "messagesCount", "toNames", "newBadge", "reply", "replyAll", "more", "forward", "forwardAsAttachment",
   "editAsNew", "expandAll", "collapseAll", "showFull", "showLess", "quoteToggle", "remoteBlocked", "remoteShow", "remoteThis", "remoteAll", "remoteCancel", "remoteAsk", "remoteSender",
-  "noText", "loading", "loadFailed", "history", "notDownloaded", "delete", "deleteTip", "originalBtn", "originalTip", "backToConversation", "spam", "spamTip", "notSpam", "notSpamTip",
+  "noText", "loading", "loadFailed", "history", "notDownloaded", "delete", "deleteTip", "originalBtn", "originalTip", "backToConversation", "spam", "spamTip", "notSpam", "notSpamTip", "copyAddress",
 ];
 
 let settings = sanitizeSettings(null);
@@ -343,28 +343,55 @@ async function fetchBody(key) {
   return { html: html ?? null, text: text ?? null, attachments };
 }
 
-async function hello(tabId) {
-  const tStart = Date.now();
-  const shown = await messenger.messageDisplay.getDisplayedMessage(tabId);
-  if (!shown) return null;
-  const timing = { shownMs: Date.now() - tStart };
+// Konversation einer Nachricht suchen (mit Zwischenspeicher); laufende Suchen werden geteilt, damit das Vorabholen und `hello` nicht doppelt rechnen
+const lookups = new Map(); // Nachrichten-ID → Promise<entry>
+async function lookup(shown, timing = {}) {
   let entry = convCache.get(shown.id);
   if (entry && Date.now() - entry.at < CONV_TTL) {
     timing.cached = true;
-  } else {
-    const viaIndex = (await findViaDb(shown, timing)) ?? (await findViaGloda(shown, timing));
-    if (viaIndex) {
-      entry = { at: Date.now(), messages: viaIndex.messages, selectedKey: viaIndex.selectedKey };
-      idCache.set(viaIndex.selectedKey, shown.id); // die gewählte Nachricht kennen wir schon
-      for (const m of viaIndex.messages) convCache.set(m.id, entry);
-    } else {
-      const messages = await findConversation(shown, timing);
-      timing.source = "query";
-      entry = { at: Date.now(), messages, selectedKey: shown.id };
-      for (const m of messages) convCache.set(m.id, entry);
-    }
-    convCache.set(shown.id, entry);
+    return entry;
   }
+  let pending = lookups.get(shown.id);
+  if (!pending) {
+    pending = (async () => {
+      const viaIndex = (await findViaDb(shown, timing)) ?? (await findViaGloda(shown, timing));
+      let e;
+      if (viaIndex) {
+        e = { at: Date.now(), messages: viaIndex.messages, selectedKey: viaIndex.selectedKey };
+        idCache.set(viaIndex.selectedKey, shown.id); // die gewählte Nachricht kennen wir schon
+        for (const m of viaIndex.messages) convCache.set(m.id, e);
+      } else {
+        const messages = await findConversation(shown, timing);
+        timing.source = "query";
+        e = { at: Date.now(), messages, selectedKey: shown.id };
+        for (const m of messages) convCache.set(m.id, e);
+      }
+      convCache.set(shown.id, e);
+      return e;
+    })().finally(() => lookups.delete(shown.id));
+    lookups.set(shown.id, pending);
+  } else {
+    timing.shared = true;
+  }
+  return pending;
+}
+
+// Schon beim Anzeigen der Nachricht mit der Suche beginnen (noch bevor das Anzeigeskript im Dokument läuft): auf langsamen Rechnern
+// ist die Konversation dann fertig, wenn `hello` kommt.
+messenger.messageDisplay.onMessageDisplayed.addListener((tab, message) => {
+  if (message?.id != null) lookup(message).catch(() => {});
+});
+
+async function hello(tabId) {
+  const tStart = Date.now();
+  let shown = await messenger.messageDisplay.getDisplayedMessage(tabId);
+  if (!shown) {
+    // zugeklappter Faden: mehrere Nachrichten ausgewählt, der Lesebereich zeigt aber genau eine
+    shown = await messenger.conversationView.getDisplayedMessage(tabId).catch(() => null);
+  }
+  if (!shown) return null;
+  const timing = { shownMs: Date.now() - tStart };
+  const entry = await lookup(shown, timing);
   const { messages, selectedKey } = entry;
   timing.candidates = messages.length;
   if (messages.length < 2 && !settings.alwaysRender) return null;
@@ -495,7 +522,9 @@ messenger.runtime.onMessage.addListener((msg, sender) => {
       return tabId == null ? Promise.resolve(null)
         : hello(tabId).catch(e => { console.error("NovaBird-Conversation: Konversation", e); return null; }).then(data => applyHeader(tabId, data));
     case "body": return loadBody(msg.id);
+    case "reveal": if (tabId != null) messenger.conversationView.reveal(tabId).catch(() => {}); return Promise.resolve(true);
     case "header": if (tabId != null) scheduleHeader(tabId, !!msg.hidden && settings.hideHeader); return Promise.resolve(true);
+    case "copyText": return typeof msg.text === "string" ? messenger.conversationView.copyText(msg.text) : false;
     case "allowSender": return typeof msg.email === "string" ? messenger.conversationView.allowSender(msg.email) : false;
     case "cidImage": return typeof msg.partName === "string" ? loadCidImage(msg.id, msg.partName) : null;
     case "image": return typeof msg.url === "string" ? messenger.conversationView.fetchImage(msg.url) : null;
@@ -537,4 +566,24 @@ async function registerScript() {
   });
 }
 
-loadSettings().then(registerScript).catch(e => console.error("NovaBird-Conversation: Start fehlgeschlagen", e));
+loadSettings().then(registerScript).then(() => messenger.conversationView.startThreadHook()).catch(e => console.error("NovaBird-Conversation: Start fehlgeschlagen", e));
+
+// „Thunderbird Conversations“ ebenfalls aktiv? Dann einmal die Optionsseite mit Hinweis und Auswahl öffnen (nie ungefragt abschalten).
+// Ist es nicht mehr aktiv, wird die Merke zurückgesetzt, damit der Hinweis bei erneutem Einschalten wieder kommt.
+setTimeout(async () => {
+  try {
+    const other = await messenger.conversationView.getOtherConversations();
+    const { otherConvAsked } = await messenger.storage.local.get("otherConvAsked");
+    if (other?.active && !otherConvAsked) {
+      await messenger.storage.local.set({ otherConvAsked: true });
+      await messenger.runtime.openOptionsPage();
+    } else if (!other?.active && otherConvAsked) {
+      await messenger.storage.local.set({ otherConvAsked: false });
+    }
+  } catch (e) {
+    console.error("NovaBird-Conversation: Prüfung auf Thunderbird Conversations", e);
+  }
+}, 5000);
+
+// Selbsttest der Betterbird-Interna (shared/selftest-bg.js); Ergebnis zeigt die Optionsseite
+nbStartSelfTest([() => messenger.conversationView.selfTest()]);

@@ -53,57 +53,19 @@ function sanitizeSettings(raw) {
 
 // ---------- Farben ----------
 
-// Versteht #rrggbb, rgb()/rgba() und color(srgb r g b) (so liefert Gecko berechnete Farben).
-function parseColor(input) {
-  const s = String(input ?? "").trim().toLowerCase();
-  let m = s.match(/^#([0-9a-f]{6})$/);
-  if (m) {
-    return [0, 2, 4].map(i => parseInt(m[1].slice(i, i + 2), 16));
-  }
-  m = s.match(/^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/);
-  if (m) {
-    return [m[1], m[2], m[3]].map(v => Math.round(Number(v)));
-  }
-  m = s.match(/^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/);
-  if (m) {
-    return [m[1], m[2], m[3]].map(v => Math.round(Number(v) * 255));
-  }
-  return null;
-}
-
-function toHex(rgb) {
-  return "#" + rgb.map(v => Math.min(255, Math.max(0, Math.round(v))).toString(16).padStart(2, "0")).join("");
-}
-
-function luminance(rgb) {
-  const [r, g, b] = rgb.map(v => {
-    const c = v / 255;
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-  });
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-
-function contrast(a, b) {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-  return (hi + 0.05) / (lo + 0.05);
-}
-
-// Anteil t der Farbe a über Farbe b
-function mix(a, b, t) {
-  return a.map((v, i) => v * t + b[i] * (1 - t));
-}
+// Farbfunktionen (nbParseColor, nbContrast, nbMix …) aus shared/color.js (vorher geladen)
 
 const LIGHT_TEXT = [255, 255, 255];
 const DARK_TEXT = [16, 21, 31];
 
 // Text auf einem Untergrund: die beste von Weiß oder Fast-Schwarz
 function textOn(bg) {
-  return contrast(LIGHT_TEXT, bg) >= contrast(DARK_TEXT, bg) ? LIGHT_TEXT : DARK_TEXT;
+  return nbContrast(LIGHT_TEXT, bg) >= nbContrast(DARK_TEXT, bg) ? LIGHT_TEXT : DARK_TEXT;
 }
 
 // Gewünschte Schriftfarbe behalten, wenn sie gut lesbar ist, sonst auf Hell/Dunkel wechseln
 function readable(fg, bg, minRatio = 4.5) {
-  return contrast(fg, bg) >= minRatio ? fg : textOn(bg);
+  return nbContrast(fg, bg) >= minRatio ? fg : textOn(bg);
 }
 
 /**
@@ -114,40 +76,40 @@ function resolvePalette(theme, settings) {
   const s = sanitizeSettings(settings);
   const light = FALLBACK_THEME.light;
   const t = theme || {};
-  const pick = (value, fallback) => parseColor(value) || parseColor(fallback);
+  const pick = (value, fallback) => nbParseColor(value) || nbParseColor(fallback);
 
   const custom = s.colorMode === "custom";
-  const bg = custom ? parseColor(s.colorBg) : pick(t.bg, light.bg);
-  const accent = custom ? parseColor(s.colorAccent) : pick(t.accent, light.accent);
-  const fg = readable(custom ? parseColor(s.colorFg) : pick(t.fg, light.fg), bg);
+  const bg = custom ? nbParseColor(s.colorBg) : pick(t.bg, light.bg);
+  const accent = custom ? nbParseColor(s.colorAccent) : pick(t.accent, light.accent);
+  const fg = readable(custom ? nbParseColor(s.colorFg) : pick(t.fg, light.fg), bg);
   // Rahmen: eigene Farben → aus Text/Hintergrund gemischt; Theme → dessen Rahmenfarbe;
   // Theme ohne Rahmenfarbe → gemischt; gar kein Theme → Rückfallwert
   let border;
   if (custom) {
-    border = mix(fg, bg, 0.18);
-  } else if (parseColor(t.border)) {
-    border = parseColor(t.border);
-  } else if (parseColor(t.bg)) {
-    border = mix(fg, bg, 0.18);
+    border = nbMix(fg, bg, 0.18);
+  } else if (nbParseColor(t.border)) {
+    border = nbParseColor(t.border);
+  } else if (nbParseColor(t.bg)) {
+    border = nbMix(fg, bg, 0.18);
   } else {
-    border = parseColor(light.border);
+    border = nbParseColor(light.border);
   }
 
-  const dark = luminance(bg) < 0.35;
+  const dark = nbLuminance(bg) < 0.35;
   let undo = accent;
   if (s.undoTone === "red") {
-    undo = parseColor(custom ? s.colorUndo : dark ? "#f27b7b" : "#c9403d");
+    undo = nbParseColor(custom ? s.colorUndo : dark ? "#f27b7b" : "#c9403d");
   }
 
   return {
-    bg: toHex(bg),
-    fg: toHex(fg),
-    muted: toHex(mix(fg, bg, 0.62)),
-    border: toHex(border),
-    accent: toHex(accent),
-    track: toHex(mix(accent, bg, 0.18)),
-    undo: toHex(undo),
-    onAccent: toHex(textOn(accent)),
-    onUndo: toHex(textOn(undo)),
+    bg: nbToHex(bg),
+    fg: nbToHex(fg),
+    muted: nbToHex(nbMix(fg, bg, 0.62)),
+    border: nbToHex(border),
+    accent: nbToHex(accent),
+    track: nbToHex(nbMix(accent, bg, 0.18)),
+    undo: nbToHex(undo),
+    onAccent: nbToHex(textOn(accent)),
+    onUndo: nbToHex(textOn(undo)),
   };
 }

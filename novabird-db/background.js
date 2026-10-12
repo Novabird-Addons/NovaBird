@@ -45,15 +45,19 @@ let initialDone = false; // Erstlauf einmal vollständig durchgelaufen (erst dan
 let startedAt = 0;
 let lastProgress = { done: 0, total: null, folder: null }; // zuletzt gemeldeter Stand (auch nach Anhalten)
 let lastLogged = 0;
+let debugLog = false; // ausführliches Indexprotokoll (Seiten, langsame Mails), Standard aus
 let logSearches = true; // Suchprotokoll (nur lokal), Auswertung später für den Parser
 const LOG_MAX = 2000;
 
 // Zusammensetzungen: "query" = Wortlisten-Erweiterung bei der Suche (Standard), "index" = Zerlegung beim Indexieren (terms_de)
 let compoundMode = "query";
-// Sprachen des Parsers für Freitext („Rechnungen von Jonas letzte Woche“): Standard = Sprache der Oberfläche, einstellbar
+// Sprachen des Parsers für Freitext („Rechnungen von Jonas letzte Woche“): Standard = Sprache der Oberfläche plus Englisch, einstellbar
 const PARSER_LANGS = ["de", "en", "fr", "es"];
 const uiLang = () => (messenger.i18n.getUILanguage() || "en").toLowerCase();
-const defaultParserLangs = () => [PARSER_LANGS.find((l) => uiLang().startsWith(l)) ?? "en"];
+const defaultParserLangs = () => {
+  const ui = PARSER_LANGS.find((l) => uiLang().startsWith(l)) ?? "en";
+  return ui === "en" ? ["en"] : [ui, "en"]; // Hauptsprache (Wortstämme) = Oberfläche, Englisch immer dazu
+};
 let parserLangs = defaultParserLangs();
 let termsVocab = null; // Set der Saatwörter (nur im Modus "index")
 let seedPassRunning = false;
@@ -66,8 +70,9 @@ function sanitizeLangs(list) {
 }
 
 async function loadSettings() {
-  const s = await messenger.storage.local.get({ includeFolders: null, includeAccounts, logSearches, compoundMode: "query", parserLangs: null });
+  const s = await messenger.storage.local.get({ includeFolders: null, includeAccounts, logSearches, debugLog, compoundMode: "query", parserLangs: null });
   logSearches = s.logSearches;
+  debugLog = Boolean(s.debugLog);
   parserLangs = sanitizeLangs(s.parserLangs) ?? defaultParserLangs();
   compoundMode = s.compoundMode === "index" ? "index" : "query";
   includeAccounts = s.includeAccounts;
@@ -262,6 +267,7 @@ async function init() {
     caps,
     log: dlog,
     termsVocab: () => (compoundMode === "index" ? termsVocab : null),
+    debug: debugLog,
     isExcluded,
     onProgress: (p) => {
       const phaseBefore = status.phase;
@@ -567,6 +573,7 @@ async function fullStatus() {
     termsFts: Boolean(caps?.termsFts),
     termsVocab: termsVocab?.size ?? 0,
     logSearches,
+    debugLog,
     lastCatchUp,
     paused: status.phase === "stopped",
     status,
@@ -710,6 +717,11 @@ messenger.runtime.onMessage.addListener((msg) => {
         logSearches = Boolean(msg.on);
         await messenger.storage.local.set({ logSearches });
         return { logSearches };
+      case "novabird-db:setDebug":
+        debugLog = Boolean(msg.on);
+        if (indexer) indexer.debug = debugLog;
+        await messenger.storage.local.set({ debugLog });
+        return { debugLog };
       default:
         return undefined;
     }
@@ -718,7 +730,9 @@ messenger.runtime.onMessage.addListener((msg) => {
   return run().catch((e) => ({ error: String(e?.message ?? e) }));
 });
 
-// Schnittstelle für andere Add-ons. Nur Absender aus ALLOWED_EXTERNAL; nur lesende Funktionen.
+// Schnittstelle für andere Add-ons. Nur Absender aus ALLOWED_EXTERNAL (je Absender erlaubte Befehle); lesend außer stop/resume
+// (Indexlauf anhalten/fortsetzen, ändert keine Daten). Die Absender-ID gibt ein Add-on selbst an: ein fremdes Add-on mit
+// derselben ID ginge nur, wenn das echte nicht installiert ist (bewusst hingenommen, ein solches Add-on könnte ohnehin mehr).
 //   {type:"ping"}                                   -> Status (siehe externalStatus)
 //   {type:"progress"}                               -> {indexing, paused, done, total, percent, folder}
 //   {type:"stop"} / {type:"resume"}                 -> Indexlauf anhalten bzw. fortsetzen

@@ -758,3 +758,6 @@ async function leaveStaleSearchFolder() {
 }
 
 init().then(syncSharedFolders).then(leaveStaleSearchFolder).catch(e => console.error("NovaBird-Search: Start fehlgeschlagen", e));
+
+// Selbsttest der Betterbird-Interna (shared/selftest-bg.js); Ergebnis zeigt die Optionsseite
+nbStartSelfTest([() => messenger.searchBar.selfTest()]);

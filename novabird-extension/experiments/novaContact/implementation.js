@@ -10,6 +10,7 @@ this.novaContact = (() => {
 const { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/ExtensionCommon.sys.mjs");
 const { ExtensionSupport } = ChromeUtils.importESModule("resource:///modules/ExtensionSupport.sys.mjs");
 const { MailServices } = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
+const ABQueryUtils = ChromeUtils.importESModule("resource:///modules/ABQueryUtils.sys.mjs");
 const { AddrBookCard } = ChromeUtils.importESModule("resource:///modules/AddrBookCard.sys.mjs");
 const { VCardProperties, VCardPropertyEntry } = ChromeUtils.importESModule("resource:///modules/VCardUtils.sys.mjs");
 
@@ -46,6 +47,11 @@ const CSS = `
 #kp-dlg label { display: flex; flex-direction: column; gap: 3px; font-size: .92em; }
 #kp-dlg .kp-clear { flex-direction: row; align-items: center; gap: 6px; opacity: .8; }
 #kp-dlg input[type=text] { padding: 5px 8px; }
+#kp-chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 4px 1px 8px; border-radius: 999px; font-size: .92em; background: color-mix(in srgb, var(--selected-item-color, Highlight) 18%, transparent); border: 1px solid color-mix(in srgb, var(--selected-item-color, Highlight) 45%, transparent); }
+#kp-chip[hidden] { display: none; }
+#kp-chip .kp-chip-x { border: 0; background: none; padding: 0 4px; cursor: pointer; color: inherit; font: inherit; opacity: .7; }
+#kp-chip .kp-chip-x:hover { opacity: 1; }
+.kp-sync-note { font-size: .82em; margin-top: 4px; color: color-mix(in srgb, currentColor 60%, transparent); }
 #kp-dlg .kp-hint { padding: 6px 9px; border-radius: 6px; font-size: .88em; line-height: 1.4; background: color-mix(in srgb, var(--layout-color-1, CanvasText) 10%, transparent); }
 #kp-dlg .kp-note { opacity: .7; font-size: .88em; }
 #kp-dlg .kp-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
@@ -100,18 +106,33 @@ function nameOf(card) {
 const LOCAL_DIR_TYPE = 101;
 const tagStore = new Map(); // "<dirUID>|<UID>" -> [Tags]
 let tagStoreFile = null;
+let tagStoreSaving = null; // Lade-/Schreibkette: Schreiben erst nach dem Laden, nie zwei Schreibvorgänge gleichzeitig
 function storeKey(card) { return card.directoryUID + "|" + card.UID; }
 function isStoreCard(card) { const d = dirOf(card); return !!d && d.dirType !== LOCAL_DIR_TYPE; }
+async function readTagFile(path) {
+  return (await IOUtils.exists(path)) ? IOUtils.readJSON(path) : null;
+}
+/* Die Tags gibt es nur in dieser Datei. Ist sie unlesbar, wird sie als .defekt beiseitegelegt und die Sicherung (.bak,
+   vom letzten Schreiben) geladen – nie mit leerem Speicher weiterarbeiten und die Datei beim nächsten Speichern überschreiben. */
 async function loadTagStore() {
+  tagStoreFile = PathUtils.join(PathUtils.profileDir, "novabird-extension-tags.json");
+  tagStore.clear();
+  let data = null;
   try {
-    tagStoreFile = PathUtils.join(PathUtils.profileDir, "novabird-extension-tags.json");
-    tagStore.clear();
-    if (await IOUtils.exists(tagStoreFile)) for (const [k, v] of Object.entries(await IOUtils.readJSON(tagStoreFile))) tagStore.set(k, v);
-  } catch (e) { console.error("Nova-Contact Tag-Speicher:", e); }
+    data = await readTagFile(tagStoreFile);
+  } catch (e) {
+    console.error("Nova-Contact Tag-Speicher unlesbar, lade Sicherung:", e);
+    try { await IOUtils.copy(tagStoreFile, tagStoreFile + ".defekt"); } catch (e2) { console.error("Nova-Contact Tag-Speicher:", e2); }
+    try { data = await readTagFile(tagStoreFile + ".bak"); } catch (e2) { console.error("Nova-Contact Tag-Sicherung unlesbar:", e2); }
+  }
+  if (data && typeof data === "object") for (const [k, v] of Object.entries(data)) if (Array.isArray(v)) tagStore.set(k, v);
 }
 function saveTagStore() {
-  if (!tagStoreFile) return;
-  IOUtils.writeJSON(tagStoreFile, Object.fromEntries(tagStore)).catch(e => console.error("Nova-Contact Tag-Speicher:", e));
+  if (!tagStoreSaving) return;
+  // Atomar (Zwischendatei, dann umbenennen); der vorige Stand bleibt als .bak
+  tagStoreSaving = tagStoreSaving
+    .then(() => IOUtils.writeJSON(tagStoreFile, Object.fromEntries(tagStore), { tmpPath: tagStoreFile + ".tmp", backupFile: tagStoreFile + ".bak" }))
+    .catch(e => console.error("Nova-Contact Tag-Speicher:", e));
 }
 function vcardTags(card) {
   const v = card.vCardProperties?.getFirstValue("categories");
@@ -242,6 +263,69 @@ function refreshAll() {
   for (const v of views) { try { v.refresh(); } catch (e) { views.delete(v); } }
 }
 
+/* Detailansicht des Kontakts (about:addressbook): Betterbird zeigt dort nur vCard-CATEGORIES unter „Kategorien“.
+   Hier heißt der Block „Tags“ und zeigt bei Online-Adressbüchern auch die lokal gespeicherten Tags mit Hinweis. */
+function fixCategories(doc, card) {
+  const sec = doc.querySelector("#viewContact .details-categories");
+  if (!sec || !card) return;
+  const h = sec.querySelector("h2"), p = sec.querySelector("p");
+  if (!h || !p) return;
+  h.removeAttribute("data-l10n-id");
+  h.textContent = T("Tags", "Tags", "Tags", "Etiquetas");
+  sec.querySelector(".kp-sync-note")?.remove();
+  if (!isStoreCard(card)) return;
+  const tags = tagsOf(card);
+  p.textContent = tags.join(", ");
+  sec.hidden = !tags.length;
+  if (tags.length) {
+    sec.append(el(doc, "div", { class: "kp-sync-note" },
+      T("Nur auf diesem Rechner gespeichert, wird nicht synchronisiert.", "Stored only on this computer, not synchronised.",
+        "Enregistré uniquement sur cet ordinateur, non synchronisé.", "Guardado solo en este equipo, no se sincroniza.")));
+  }
+}
+// Gemeinsamer Selbsttest (shared/selftest.js im Paket), geladen in getAPI; meldet, was beim Einhängen ins Adressbuch fehlt
+const nb = {};
+// Gemeinsamen Code aus dem Paket laden (shared/*.js). loadSubScript nimmt nur vertrauenswürdige Adressen
+// (nicht moz-extension:, jar:, file:), daher über eine eigene resource://-Adresse; ohne Cache, damit nach
+// einem Update nicht die alte Fassung kommt. Abmelden in onShutdown (nbUnloadShared).
+function nbSharedHost(extension) {
+  return extension.id.replace(/@.*/, "").replace(/[^a-z0-9-]/gi, "") + "-shared";
+}
+function nbLoadShared(extension, files, target) {
+  const res = Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler);
+  const host = nbSharedHost(extension);
+  res.setSubstitution(host, extension.rootURI);
+  for (const file of files) {
+    Services.scriptloader.loadSubScriptWithOptions(`resource://${host}/${file}`, { target, ignoreCache: true });
+  }
+}
+function nbUnloadShared(extension) {
+  try {
+    Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler).setSubstitution(nbSharedHost(extension), null);
+  } catch (e) {
+    /* schon abgemeldet */
+  }
+}
+
+function hookDetails(view) {
+  const dp = view.cw.detailsPane;
+  if (!dp || typeof dp.displayContact !== "function" || view.origDisplay) {
+    if (!view.origDisplay && typeof dp?.displayContact !== "function") nb.nbReportMissing?.("contactDetails", "detailsPane.displayContact");
+    return;
+  }
+  view.origDisplay = dp.displayContact;
+  dp.displayContact = function (card, ...rest) {
+    const r = view.origDisplay.call(this, card, ...rest);
+    try { fixCategories(view.doc, this.currentCard); } catch (e) { console.error("Nova-Contact Details:", e); }
+    return r;
+  };
+}
+function unhookDetails(view) {
+  try { if (view.origDisplay) view.cw.detailsPane.displayContact = view.origDisplay; } catch (e) { /* Tab geschlossen */ }
+  view.doc.querySelector("#viewContact .details-categories h2")?.setAttribute("data-l10n-id", "about-addressbook-details-categories-header");
+  view.doc.querySelector(".kp-sync-note")?.remove();
+}
+
 function build(cw) {
   const doc = cw.document;
   if (doc.getElementById("kp-bar")) return;
@@ -261,10 +345,29 @@ function build(cw) {
   doc.addEventListener("mousedown", e => { if (!pop.hidden && !pop.contains(e.target) && !e.target.closest?.("#kp-bar")) closePop(); }, true);
   doc.addEventListener("keydown", e => { if (e.key === "Escape") { closePop(); closeDialog(); } }, true);
 
+  /* Aktiver Tag-Filter als Chip. Das Suchfeld bleibt frei für Namen/Adressen: cardsPane.getQuery wird so umhüllt, dass der Tag
+     als zusätzliches Suchwort (UND) in jede Suche des Adressbuchs eingeht (Wechsel des Buchs, Tippen im Suchfeld). */
+  let activeTag = "";
+  const chipLabel = el(doc, "span", {});
+  const chip = el(doc, "span", { id: "kp-chip", hidden: true }, "🏷 ", chipLabel,
+    el(doc, "button", { class: "kp-chip-x", type: "button", title: T("Filter aufheben", "Clear filter", "Supprimer le filtre", "Quitar filtro"), onclick: () => applyFilter("") }, "✕"));
+  const syncChip = () => {
+    chip.hidden = !activeTag;
+    chipLabel.textContent = activeTag;
+  };
+  const origGetQuery = cards.getQuery;
+  if (typeof origGetQuery !== "function") nb.nbReportMissing?.("contactTags", "cardsPane.getQuery");
+  else cards.getQuery = function () {
+    if (!activeTag) return origGetQuery.call(this);
+    const words = [...ABQueryUtils.getSearchTokens(this.searchInput.value || ""), ...ABQueryUtils.getSearchTokens(activeTag)];
+    cw.setTimeout(() => addStoredMatches(), 600); // wird bei jeder neuen Suche aufgerufen: lokal gespeicherte Online-Treffer ergänzen
+    return ABQueryUtils.generateQueryURI(ABQueryUtils.getModelQuery("mail.addr_book.quicksearchquery.format"), words);
+  };
+
   /* Tags-Auswahl */
   const btnTags = el(doc, "button", { class: "button button-flat", type: "button", onclick: () => {
     const tags = allTags();
-    const cur = (cards.searchInput.value || "").trim().toLowerCase();
+    const cur = activeTag.toLowerCase();
     const items = [];
     if (cur) items.push(el(doc, "button", { class: "button button-flat", type: "button", onclick: () => { applyFilter(""); } }, T("Filter aufheben", "Clear filter", "Supprimer le filtre", "Quitar filtro")));
     if (!tags.length) items.push(el(doc, "div", { class: "kp-sub" }, T("Noch keine Tags vergeben.", "No tags yet.", "Aucun tag.", "Aún no hay etiquetas.")));
@@ -275,17 +378,16 @@ function build(cw) {
   } }, "🏷 ", T("Tags", "Tags", "Tags", "Etiquetas"), " ▾");
   function applyFilter(t) {
     closePop();
-    const si = cards.searchInput;
-    si.blur();
-    if (t) si.overrideSearchTerm(t); else si.reset();
-    if (t) cw.setTimeout(() => addStoredMatches(t), 400);
+    activeTag = t || "";
+    syncChip();
+    cards._onAutocomplete(); // Ansicht mit der neuen Anfrage neu aufbauen
   }
   /* Kontakte aus Online-Adressbüchern, deren Tag nur lokal gespeichert ist, zur gefilterten Liste hinzufügen */
-  function addStoredMatches(t) {
+  function addStoredMatches() {
     try {
-      const view = cards.cardsList.view, want = t.toLowerCase();
-      const cur = (cards.searchInput.value || "").trim().toLowerCase();
-      if (cur !== want) return;
+      if (!activeTag) return;
+      const view = cards.cardsList.view, want = activeTag.toLowerCase();
+      const typed = ABQueryUtils.getSearchTokens(cards.searchInput.value || "").map(x => x.toLowerCase());
       const bl = cw.booksList, row = bl && [...bl.querySelectorAll("li")][bl.selectedIndex];
       const shown = MailServices.ab.directories.find(d => d.UID === row?.dataset?.uid) || null; // null = alle Adressbücher
       for (const dir of MailServices.ab.directories) {
@@ -293,6 +395,10 @@ function build(cw) {
         if (shown && shown.UID !== dir.UID) continue;
         for (const card of dir.childCards) {
           if (card.isMailList || !tagStore.get(storeKey(card))?.some(x => x.toLowerCase() === want)) continue;
+          if (typed.length) {
+            const text = (card.vCardProperties.toVCard() + " " + card.displayName).toLowerCase();
+            if (!typed.every(w => text.includes(w))) continue;
+          }
           if (view.getIndexForUID(card.UID) < 0) view.onSearchFoundCard(card);
         }
       }
@@ -310,7 +416,7 @@ function build(cw) {
         el(doc, "span", {}, u.label), el(doc, "span", { class: "kp-sub" }, new Date(u.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })))),
     ]);
   } });
-  const bar = el(doc, "div", { id: "kp-bar" }, btnTags, btnEdit, el(doc, "span", { class: "kp-grow" }), btnUndo);
+  const bar = el(doc, "div", { id: "kp-bar" }, btnTags, chip, btnEdit, el(doc, "span", { class: "kp-grow" }), btnUndo);
   doc.getElementById("cardsPaneHeader").after(bar);
   doc.body.append(pop);
 
@@ -402,6 +508,7 @@ function build(cw) {
   }
 
   const refresh = () => {
+    try { const cur = cw.detailsPane?.currentCard; if (cur) fixCategories(doc, cur); } catch (e) { /* ohne Detailansicht */ }
     const n = selection().length;
     btnEdit.disabled = n === 0;
     btnEdit.replaceChildren("✎ ", T("Bearbeiten", "Edit", "Modifier", "Editar") + (n > 1 ? " (" + n + ")" : ""));
@@ -409,8 +516,10 @@ function build(cw) {
     btnUndo.disabled = !undoStack.length;
     btnUndo.replaceChildren("↶ ", T("Rückgängig", "Undo", "Annuler", "Deshacer"), undoStack.length ? " (" + undoStack.length + ")" : "");
   };
-  const view = { cw, doc, refresh, bar, style, pop, back };
+  const view = { cw, doc, refresh, bar, style, pop, back, restoreQuery: () => { if (typeof origGetQuery === "function") cards.getQuery = origGetQuery; } };
   views.add(view);
+  hookDetails(view);
+  { const cur = cw.detailsPane?.currentCard; if (cur) fixCategories(doc, cur); }
   cards.cardsList.addEventListener("select", () => {
     for (const c of cards.selectedCards.slice(0, 60)) if (c) snapshot(c);
     refresh();
@@ -419,6 +528,8 @@ function build(cw) {
 }
 
 function unbuild(view) {
+  try { view.restoreQuery(); } catch (e) { /* Tab geschlossen */ }
+  unhookDetails(view);
   view.bar.remove(); view.style.remove(); view.pop.remove(); view.back.remove();
   view.doc.getElementById("kp-open")?.remove();
   views.delete(view);
@@ -458,13 +569,27 @@ function hookWindow(win) {
 
 const API = class extends ExtensionCommon.ExtensionAPI {
   onShutdown(isAppShutdown) {
-    if (!isAppShutdown) stopAll();
+    if (!isAppShutdown) {
+      stopAll();
+      nbUnloadShared(this.extension);
+    }
   }
 
   getAPI() {
     pilotUrl = this.extension.getURL("pilot/ui/ui.html");
+    if (!nb.nbRunSelfTest) {
+      try {
+        nbLoadShared(this.extension, ["shared/selftest.js"], nb);
+      } catch (e) {
+        console.error("NovaBird: gemeinsamer Code nicht geladen", e); // nur Selbsttest/Farbrechnung fehlen, Rest läuft
+      }
+    }
     return {
       novaContact: {
+        // Selbsttest: nur Meldungen beim Einhängen (Startprüfungen der Extension stehen in messageList)
+        async selfTest() {
+          return nb.nbRunSelfTest?.([]) ?? null;
+        },
         async setEnabled(on) { if (on) startAll(); else stopAll(); },
         async setLog(on) { logOn = !!on; if (logOn) plog("Protokoll eingeschaltet"); },
         async getLog() { return logEntries.slice(); },
@@ -478,7 +603,7 @@ const API = class extends ExtensionCommon.ExtensionAPI {
 function startAll() {
   if (started) return;
   started = true;
-  loadTagStore();
+  tagStoreSaving = loadTagStore().catch(e => console.error("Nova-Contact Tag-Speicher:", e));
   Services.obs.addObserver(observer, "addrbook-contact-updated");
   Services.obs.addObserver(observer, "addrbook-contact-deleted");
   ExtensionSupport.registerWindowListener(LISTENER, {

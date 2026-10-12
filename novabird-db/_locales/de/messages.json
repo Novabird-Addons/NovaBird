@@ -239,6 +239,15 @@
     "message": "Suchsprachen"
   },
   "optLangsHint": {
-    "message": "In diesen Sprachen werden Suchanfragen als Satz verstanden, z. B. „Rechnungen von Jonas letzte Woche“. Standard ist die Sprache von Betterbird. Mehrere Sprachen sind für gemischte Postfächer gedacht; kurze Wörter mit mehreren Bedeutungen (etwa „an“ auf Deutsch und auf Englisch) können dann falsch gedeutet werden. Die Kurzschreibweise (von:, from:, an:, to: …) geht immer."
+    "message": "In diesen Sprachen werden Suchanfragen als Satz verstanden, z. B. „Rechnungen von Jonas letzte Woche“. Standard sind Englisch und die Sprache von Betterbird. Mehrere Sprachen sind für gemischte Postfächer gedacht; kurze Wörter mit mehreren Bedeutungen (etwa „an“ auf Deutsch und auf Englisch) können dann falsch gedeutet werden. Die Kurzschreibweise (von:, from:, an:, to: …) geht immer."
+  },
+  "optHDebug": {
+    "message": "Ausführliches Indexprotokoll"
+  },
+  "optDebug": {
+    "message": "Ausführliches Protokoll beim Indexieren"
+  },
+  "optDebugHint": {
+    "message": "Schreibt zusätzlich pro Seite und bei langsamen Mails ins Protokoll (Dauer, Betreff). Nur zur Fehlersuche einschalten, es macht das Protokoll länger. Hängt der Index, meldet sich der Wächter auch ohne diese Option. Bei Problemen zuerst den betroffenen Ordner reparieren (Rechtsklick → Eigenschaften → Ordner reparieren)."
   }
 }

@@ -254,6 +254,29 @@ var novabirdDb = class extends ExtensionCommon.ExtensionAPI {
           }
         },
 
+        // Liest je Ordner ({accountId, path}) nur zwei Betterbird-Flags: virtuell (Such-/Sammelordner) und Offline-Speicher.
+        // Keine Mail-Logik: der Aufrufer entscheidet. null, wenn der Ordner nicht aufgelöst werden kann.
+        async folderInfo(folders) {
+          try {
+            const fm = context.extension.folderManager;
+            return folders.map((f) => {
+              try {
+                const folder = fm.get(f.accountId, f.path);
+                if (!folder) return null;
+                const type = folder.server?.type;
+                const virtual = Boolean(folder.flags & 0x20);
+                // Lokale Ordner haben das Flag nicht, ihre Mails liegen aber immer lokal vor.
+                const offline = Boolean(folder.flags & 0x08000000) || (Boolean(type) && type !== "imap" && type !== "nntp");
+                return { virtual, offline };
+              } catch {
+                return null;
+              }
+            });
+          } catch (e) {
+            return fail(e);
+          }
+        },
+
         // Verweise (References, ersatzweise In-Reply-To) je Nachricht aus der Kopfdatenbank von Betterbird (nsIMsgDBHdr).
         // Kein Mailtext, kein Netz: geht auch für IMAP-Mails ohne lokale Kopie. Liefert je ID eine Liste von Message-IDs
         // (ohne spitze Klammern) oder null, wenn die Nachricht nicht gefunden wurde.

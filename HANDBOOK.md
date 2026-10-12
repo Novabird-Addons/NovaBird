@@ -64,7 +64,7 @@ These work equally in English, German, French and Spanish:
 
 Understood: people (from, to, "from me"), periods (yesterday, last week, in May 2025, between …), attachments (with PDF, without attachment), status, folders, "or" and negation ("without"). German compound words are found ("Speiseplan" finds "Wochenspeiseplan").
 
-**Search language:** the default is the language of Betterbird. For mixed mailboxes you can enable several languages in the NovaBird-DB settings (short ambiguous words such as "an" may then be misread). French and Spanish are not yet reviewed by native speakers.
+**Search language:** the default is English plus the language of Betterbird (German Betterbird: German and English). You can change this in the NovaBird-DB settings; with several languages, short ambiguous words such as "an" may be misread. French and Spanish are not yet reviewed by native speakers.
 
 ## 5. Reading conversations (NovaBird-Conversation)
 
@@ -108,6 +108,8 @@ NovaBird-Sand (calm, warm), -Cobalt (compact, strong), -Springlight (light, fres
 | Add-on shown as "corrupt" or "incompatible" | Are you running Betterbird / Thunderbird **ESR**? The add-ons need experiment APIs and do not work in the release channel. |
 | Search bar says "Gloda search" | NovaBird-DB is missing, still building or damaged: Settings → NovaBird → Database; "Rebuild index" keeps the old one until the end. |
 | "NovaBird" settings page missing or empty | NovaBird-Extension installed and Betterbird restarted? Tabs only appear for active add-ons. |
+| Indexing stalls or never finishes (log shows "No progress for … s" or "Mail skipped") | **Repair the affected folder first:** right-click the folder → Properties → **Repair Folder**; repair all local folders if unsure. Then use "Check index now" in Settings → NovaBird → Database. For more detail switch on the detailed index log there. |
+| Settings page of an add-on says "Not all features available" (usually after a Betterbird update) | The add-on found that Betterbird changed something it relies on; only the listed features are switched off, everything else works. Look for a newer NovaBird version. |
 | Nothing changes after an update | Restart Betterbird once. |
 | Quitting takes unusually long | Wait briefly (waiting mails in NovaBird-Send are saved as drafts first). If it hangs, open the error console and keep the messages containing "NovaBird" ready. |
 | Reporting a problem | **Error console** (Ctrl+Shift+J), copy messages containing "NovaBird"; say which add-on, what you expected, what happened. Do not attach mail or addresses. |

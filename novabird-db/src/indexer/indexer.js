@@ -15,10 +15,11 @@
 //   zwischen Erstlauf und Events).
 
 import * as repo from "../db/repository.js";
-import { folderIdOf, folderTypeOf, textFromParts, toRecord } from "./record.js";
+import { attachmentsFromParts, folderIdOf, folderTypeOf, textFromParts, toRecord } from "./record.js";
 import { termsDeFor } from "./terms.js";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const REPAIR_HINT = "Tipp: Zuerst den Ordner reparieren (Rechtsklick auf den Ordner → Eigenschaften → Ordner reparieren), dann den Index neu prüfen lassen.";
 
 export class Indexer {
   /**
@@ -33,8 +34,13 @@ export class Indexer {
    * @param o.onProgress     ({ phase, folder, indexed, skipped, total }) => void
    * @param o.log            Logger (Standard: console)
    */
-  constructor({ db, caps, api = globalThis.messenger, batchSize = 200, pauseMs = 50, concurrency = 1, isExcluded = () => false, onProgress = () => {}, log = console, termsVocab = () => null }) {
+  constructor({ db, caps, api = globalThis.messenger, batchSize = 200, pauseMs = 50, concurrency = 1, isExcluded = () => false, onProgress = () => {}, log = console, termsVocab = () => null, limits = {}, debug = false }) {
     Object.assign(this, { termsVocab, db, caps, api, batchSize, pauseMs, concurrency: Math.max(1, Math.min(16, Math.round(concurrency) || 1)), isExcluded, onProgress, log });
+    // Zeitgrenzen (ms): eine Mail ist normalerweise in unter 1 s gelesen; hängt etwas, geht es ohne die Mail weiter
+    this.limits = { mail: 5000, step: 30_000, page: 60_000, stall: 30_000, watch: 10_000, stuck: 3, ...limits };
+    this.debug = debug; // ausführliches Protokoll (Seiten, langsame Mails)
+    this.cur = null; // aktueller Schritt für den Wächter
+    this.timeoutsInRow = 0;
     this.queue = Promise.resolve();
     this.progress = { done: 0, total: null };
     this.stopped = false;
@@ -74,16 +80,93 @@ export class Indexer {
     for (const a of accounts) {
       walk(a.rootFolder ? a.rootFolder.subFolders : a.folders);
     }
-    return out.filter((f) => !this.isExcluded(f));
+    return this.loadFolderInfo(out.filter((f) => !this.isExcluded(f)));
+  }
+
+  /**
+   * Virtuelle Ordner (Sammel-/Suchordner) auslassen: ihre Mails liegen schon in den echten Ordnern.
+   * Merkt außerdem je Ordner, ob Betterbird den Text lokal vorhält (this.folderInfo); ohne Experiment-Funktion
+   * bleibt alles beim alten Verhalten.
+   */
+  async loadFolderInfo(folders) {
+    this.folderInfo = new Map();
+    const fn = this.api.novabirdDb?.folderInfo;
+    if (!fn || !folders.length) return folders;
+    let infos;
+    try {
+      infos = await fn(folders.map((f) => ({ accountId: f.accountId, path: f.path })));
+    } catch (e) {
+      this.log.warn("[novabird-db] Ordner-Flags nicht lesbar", e);
+      return folders;
+    }
+    if (!Array.isArray(infos)) return folders;
+    const out = [];
+    folders.forEach((f, i) => {
+      const info = infos[i];
+      if (info) {
+        this.folderInfo.set(folderIdOf(f), info);
+        if (info.virtual) return;
+      }
+      out.push(f);
+    });
+    return out;
+  }
+
+  /** Ordner ohne Offline-Speicher: nur Kopfdaten, kein Nachrichtentext (wird nie lokal). */
+  onlineOnly(fid) {
+    return this.folderInfo?.get(fid)?.offline === false;
+  }
+
+
+  // ---------------------------------------------------------------- Zeitgrenzen und Wächter
+
+  /** Promise mit Zeitgrenze; bei Überschreitung Fehler `timeout`. Der hängende Aufruf selbst lässt sich nicht abbrechen, sein Ergebnis wird ignoriert. */
+  withTimeout(promise, ms, what) {
+    let timer;
+    const limit = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(Object.assign(new Error(`Zeitgrenze (${ms} ms): ${what}`), { timeout: true })), ms);
+    });
+    return Promise.race([promise, limit]).finally(() => clearTimeout(timer));
+  }
+
+  dbg(...a) {
+    if (this.debug) this.log.info("[novabird-db] ·", ...a);
+  }
+
+  /** Aktuellen Schritt für den Wächter merken (und im Debug-Protokoll zeigen). */
+  mark(step, extra = {}) {
+    this.cur = { ...(this.cur ?? {}), step, since: Date.now(), ...extra };
+  }
+
+  /** Wächter für einen Ordner: meldet im Protokoll, wenn sich lange nichts bewegt (auch ohne Debug-Option). */
+  watch(name) {
+    this.cur = { folder: name, step: "Start", since: Date.now(), seen: 0 };
+    let lastReport = 0;
+    const timer = setInterval(() => {
+      const c = this.cur;
+      if (!c || this.stopped) return;
+      const idle = Date.now() - c.since;
+      if (idle >= this.limits.stall && Date.now() - lastReport >= this.limits.stall) {
+        lastReport = Date.now();
+        this.log.warn(`[novabird-db] Keine Fortschritte seit ${Math.round(idle / 1000)} s: Ordner „${c.folder}“, Schritt „${c.step}“, ${c.seen ?? 0} Mails gesehen. ${REPAIR_HINT}`);
+      }
+    }, this.limits.watch);
+    return () => {
+      clearInterval(timer);
+      this.cur = null;
+    };
   }
 
   /** Alle Header einer MessageList (inkl. Folgeseiten). */
   async *pages(list) {
-    let page = await list;
+    this.mark("Liste laden");
+    let page = await this.withTimeout(Promise.resolve(list), this.limits.page, "Nachrichtenliste laden");
+    let n = 0;
     while (page) {
       yield page.messages ?? [];
       if (!page.id) break;
-      page = await this.api.messages.continueList(page.id);
+      this.mark(`Seite ${++n + 1} laden`);
+      page = await this.withTimeout(this.api.messages.continueList(page.id), this.limits.page, "nächste Seite der Nachrichtenliste");
     }
   }
 
@@ -100,6 +183,19 @@ export class Indexer {
       return out;
     }
     return textFromParts(await m.getFull(id));
+  }
+
+  /**
+   * Text und Anhänge einer Mail. Mit messages.getFull EIN Abruf (Betterbird zerlegt die Mail nur einmal, gemessen
+   * ≈ 20 % weniger Lesezeit als Textteile + Anhangsliste einzeln); ohne getFull (ältere Tests/APIs) wie bisher getrennt.
+   */
+  async readMail(id) {
+    const m = this.api.messages;
+    if (typeof m.getFull === "function") {
+      const full = await m.getFull(id);
+      return [textFromParts(full), attachmentsFromParts(full)];
+    }
+    return Promise.all([this.readContent(id), this.readAttachments(id)]);
   }
 
   async readAttachments(id) {
@@ -154,7 +250,21 @@ export class Indexer {
       if (vocab) rec.termsDe = termsDeFor(rec, vocab);
       return rec;
     }
-    const [content, attachments] = await Promise.all([this.readContent(header.id), this.readAttachments(header.id)]);
+    let content, attachments;
+    const t0 = Date.now();
+    try {
+      [content, attachments] = await this.withTimeout(this.readMail(header.id), this.limits.mail, "Mail lesen");
+      this.timeoutsInRow = 0;
+      if (Date.now() - t0 > 1000) this.dbg(`langsame Mail (${Date.now() - t0} ms): „${String(header.subject ?? "").slice(0, 60)}“`);
+    } catch (e) {
+      if (!e.timeout) throw e;
+      // Mail hängt: nur Kopfdaten übernehmen, damit der Lauf weitergeht
+      this.timeoutsInRow++;
+      this.log.warn(`[novabird-db] Mail nach ${this.limits.mail} ms übersprungen (nur Kopfdaten): „${String(header.subject ?? "").slice(0, 60)}“ (${header.headerMessageId ?? header.id})`);
+      const rec = { ...toRecord(header, { tagNames: this.tagNames, refs }), bodyHash: repo.HEADERS_ONLY };
+      if (vocab) rec.termsDe = termsDeFor(rec, vocab);
+      return rec;
+    }
     const rec = toRecord(header, { content, attachments, tagNames: this.tagNames, refs });
     if (vocab) rec.termsDe = termsDeFor(rec, vocab);
     return rec;
@@ -168,7 +278,20 @@ export class Indexer {
     await this.loadTagNames();
     const folders = await this.listFolders();
     const states = await repo.folderStates(this.db);
-    const todo = folders.filter((f) => force || !states.get(folderIdOf(f))?.done);
+    // Offline-Speicher eines Ordners umgestellt: einmal neu lesen (Texte holen bzw. nicht mehr erwarten)
+    const flags = await repo.loadFolderOffline(this.db);
+    const changed = new Set();
+    for (const f of folders) {
+      const fid = folderIdOf(f);
+      const info = this.folderInfo?.get(fid);
+      if (info && fid in flags && flags[fid] !== info.offline) {
+        changed.add(fid);
+        await repo.setFolderDone(this.db, fid, false);
+      }
+      if (info) flags[fid] = info.offline;
+    }
+    if (this.folderInfo?.size) await repo.saveFolderOffline(this.db, flags);
+    const todo = folders.filter((f) => force || changed.has(folderIdOf(f)) || !states.get(folderIdOf(f))?.done);
     this.progress = { done: 0, total: await this.countMessages(todo) };
     this.log.info(`[novabird-db] Erstlauf: ${todo.length} von ${folders.length} Ordnern, ${this.progress.total ?? "?"} Mails zu lesen`);
     for (const folder of todo) {
@@ -177,7 +300,7 @@ export class Indexer {
       try {
         await this.enqueue(() => this.indexFolder(folder));
       } catch (e) {
-        this.log.error("[novabird-db] Ordner fehlgeschlagen", folder.name, e); // nächster Ordner
+        this.log.error("[novabird-db] Ordner fehlgeschlagen", folder.name, e, e?.timeout ? REPAIR_HINT : ""); // nächster Ordner
       }
     }
     this.log.info(`[novabird-db] Erstlauf ${this.stopped ? "angehalten" : "fertig"}`);
@@ -202,8 +325,18 @@ export class Indexer {
   async indexFolder(folder, { quiet = false } = {}) {
     const fid = folderIdOf(folder);
     const t0 = Date.now();
-    let read = 0;
     this.log.info(`[novabird-db] ${quiet ? "Abgleich: lese" : "Lese"} Ordner „${folder.name ?? fid}“ …`);
+    const stopWatch = this.watch(folder.name ?? fid);
+    this.timeoutsInRow = 0;
+    try {
+      await this.indexFolderBody(folder, fid, t0, quiet);
+    } finally {
+      stopWatch();
+    }
+  }
+
+  async indexFolderBody(folder, fid, t0, quiet) {
+    let read = 0;
     const seen = new Set();
     let indexed = 0;
     let skipped = 0;
@@ -231,10 +364,13 @@ export class Indexer {
       ids.forEach((id) => seen.add(id));
       const before = Math.floor(read / 5000);
       read += headers.length;
+      if (this.cur) this.cur.seen = read;
       if (Math.floor(read / 5000) > before) this.log.info(`[novabird-db]   „${folder.name ?? fid}“: ${read} Mails gesehen, ${indexed} neu, ${skipped} übersprungen`);
-      const known = await repo.knownState(this.db, fid, ids);
-      const offline = await this.offlineMap(headers);
-      const refs = await this.refsMap(headers);
+      this.mark(`Seite mit ${headers.length} Mails prüfen`);
+      const tPage = Date.now();
+      const known = await this.withTimeout(repo.knownState(this.db, fid, ids), this.limits.step, "Index abfragen");
+      const offline = await this.withTimeout(this.offlineMap(headers), this.limits.step, "Offline-Flags lesen");
+      const refs = await this.withTimeout(this.refsMap(headers), this.limits.step, "Verweise lesen");
       const work = [];
       for (const h of headers) {
         const isOffline = offline.get(h.id) ?? true;
@@ -263,6 +399,10 @@ export class Indexer {
             }
           }),
         );
+        if (this.timeoutsInRow >= this.limits.stuck) {
+          await flush();
+          throw new Error(`Ordner „${folder.name ?? fid}“ hängt: ${this.timeoutsInRow} Mails nacheinander nicht lesbar. ${REPAIR_HINT}`);
+        }
         records.forEach((r, k) => {
           if (!r) return;
           if (!group[k].isOffline) noBody++;
@@ -270,7 +410,9 @@ export class Indexer {
         });
         if (batch.length >= this.batchSize) await flush();
       }
+      this.dbg(`Seite fertig: ${headers.length} Mails, ${work.length} zu lesen, ${Date.now() - tPage} ms (Ordner „${folder.name ?? fid}“, ${read} gesehen)`);
     }
+    this.mark("Abschluss");
     await flush();
 
     // Abgleich: Einträge, die es im Ordner nicht mehr gibt, entfernen
@@ -278,8 +420,9 @@ export class Indexer {
     if (stale.length) {
       await repo.deleteMessages(this.db, this.caps, stale.map((headerMessageId) => ({ headerMessageId, folderId: fid })));
     }
-    // Ordner mit Kopfdaten-Einträgen gelten nicht als fertig: der nächste Lauf holt den Text nach, sobald er lokal ist
-    await repo.setFolderDone(this.db, fid, noBody === 0 && !(await repo.hasHeadersOnly(this.db, fid)));
+    // Ordner ohne Offline-Speicher sind mit den Kopfdaten fertig. Sonst gelten Ordner mit Kopfdaten-Einträgen nicht als fertig:
+    // der nächste Lauf holt den Text nach, sobald er lokal ist
+    await repo.setFolderDone(this.db, fid, this.onlineOnly(fid) || (noBody === 0 && !(await repo.hasHeadersOnly(this.db, fid))));
     await this.noteTotal(folder);
     this.log.info(`[novabird-db] Ordner „${folder.name ?? fid}“ fertig: ${read} Mails gesehen, ${indexed} neu, ${skipped} übersprungen, ${stale.length} entfernt, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }
@@ -370,6 +513,8 @@ export class Indexer {
       if (this.stopped) break;
       if (this.isExcluded(folder)) continue;
       const fid = folderIdOf(folder);
+      // Online-only-Ordner nie komplett neu lesen: neue Mails kommen über Ereignisse und das Nachholen nach Datum
+      if (this.onlineOnly(fid)) continue;
       let total;
       try {
         total = (await f.getFolderInfo(folder.id ?? folder)).totalMessageCount;

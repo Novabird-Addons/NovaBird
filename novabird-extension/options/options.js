@@ -3,6 +3,15 @@
 // Texte: Deutsch, Englisch, Französisch, Spanisch (Sprache der Betterbird-Oberfläche, sonst Englisch)
 const TEXTS = {
   de: {
+    // Selbsttest (Hinweis oben, shared/selftest-ui.js)
+    selfTestTitle: "Nicht alle Funktionen verfügbar",
+    selfTestText: "Diese Version passt nicht vollständig zu $1. Folgendes ist deshalb ausgeschaltet:",
+    selfTestHint: "Alles andere funktioniert normal. Eine neuere Version des Add-ons behebt das in der Regel.",
+    selfTest_listCards: "Nachrichtenliste: Stile, Vorschau und Avatare",
+    selfTest_calendarLayout: "Kalender-Layout der rechten Leiste",
+    selfTest_contacts: "Nova-Contact (Kontakte, Tags)",
+    selfTest_contactDetails: "Tags in der Kontakt-Detailansicht",
+    selfTest_contactTags: "Tag-Filter im Adressbuch",
     listStyleTitle: "Stil",
     listDensityTitle: "Dichte",
     dAiry: "Luftig",
@@ -21,6 +30,7 @@ const TEXTS = {
     aDot: "Punkt mit Kontoname",
     aDotDesc: "Farbiger Punkt und Kontoname vor dem Betreff (in Kompakt als Balken).",
     listAcctColorsLabel: "Farbe je Konto:",
+    listScrollLabel: "Breitere Scrollleisten (leichter zu treffen)",
     listAcctNote: "Die Farben werden automatisch vergeben und lassen sich hier ändern.",
     listDetailsTitle: "Weitere Optionen",
     listDensityNote: "Dichte und Kontofarbe gelten nicht für den Betterbird-Standard.",
@@ -74,6 +84,15 @@ const TEXTS = {
     hint: "Änderungen wirken sofort; offene Fenster übernehmen sie beim nächsten Öffnen.",
   },
   en: {
+    // Selbsttest (Hinweis oben, shared/selftest-ui.js)
+    selfTestTitle: "Not all features available",
+    selfTestText: "This version does not fully match $1. The following is therefore switched off:",
+    selfTestHint: "Everything else works normally. A newer version of the add-on usually fixes this.",
+    selfTest_listCards: "Message list: styles, preview and avatars",
+    selfTest_calendarLayout: "Calendar layout of the right sidebar",
+    selfTest_contacts: "Nova-Contact (contacts, tags)",
+    selfTest_contactDetails: "Tags in the contact detail view",
+    selfTest_contactTags: "Tag filter in the address book",
     listStyleTitle: "Style",
     listDensityTitle: "Density",
     dAiry: "Airy",
@@ -92,6 +111,7 @@ const TEXTS = {
     aDot: "Dot with account name",
     aDotDesc: "Coloured dot and account name before the subject (a bar in Compact).",
     listAcctColorsLabel: "Colour per account:",
+    listScrollLabel: "Wider scrollbars (easier to hit)",
     listAcctNote: "Colours are assigned automatically and can be changed here.",
     listDetailsTitle: "More options",
     listDensityNote: "Density and account colour do not apply to the Betterbird default.",
@@ -145,6 +165,15 @@ const TEXTS = {
     hint: "Changes apply immediately; open windows pick them up the next time they open.",
   },
   fr: {
+    // Selbsttest (Hinweis oben, shared/selftest-ui.js)
+    selfTestTitle: "Certaines fonctions ne sont pas disponibles",
+    selfTestText: "Cette version n’est pas entièrement compatible avec $1. Les fonctions suivantes sont donc désactivées :",
+    selfTestHint: "Tout le reste fonctionne normalement. Une version plus récente du module corrige généralement ce problème.",
+    selfTest_listCards: "Liste des messages : styles, aperçu et avatars",
+    selfTest_calendarLayout: "Disposition du calendrier dans la barre de droite",
+    selfTest_contacts: "Nova-Contact (contacts, tags)",
+    selfTest_contactDetails: "Tags dans la vue détaillée du contact",
+    selfTest_contactTags: "Filtre par tag dans le carnet d’adresses",
     listStyleTitle: "Style",
     listDensityTitle: "Densité",
     dAiry: "Aérée",
@@ -163,6 +192,7 @@ const TEXTS = {
     aDot: "Point avec nom du compte",
     aDotDesc: "Point coloré et nom du compte avant l’objet (une barre en mode compact).",
     listAcctColorsLabel: "Couleur par compte :",
+    listScrollLabel: "Barres de défilement plus larges (plus faciles à atteindre)",
     listAcctNote: "Les couleurs sont attribuées automatiquement et modifiables ici.",
     listDetailsTitle: "Autres options",
     listDensityNote: "La densité et la couleur du compte ne s’appliquent pas au style par défaut de Betterbird.",
@@ -216,6 +246,15 @@ const TEXTS = {
     hint: "Les modifications s'appliquent immédiatement ; les fenêtres ouvertes les prennent en compte à la prochaine ouverture.",
   },
   es: {
+    // Selbsttest (Hinweis oben, shared/selftest-ui.js)
+    selfTestTitle: "No todas las funciones están disponibles",
+    selfTestText: "Esta versión no es totalmente compatible con $1. Por eso está desactivado lo siguiente:",
+    selfTestHint: "Todo lo demás funciona con normalidad. Una versión más reciente del complemento suele solucionarlo.",
+    selfTest_listCards: "Lista de mensajes: estilos, vista previa y avatares",
+    selfTest_calendarLayout: "Diseño del calendario en la barra derecha",
+    selfTest_contacts: "Nova-Contact (contactos, etiquetas)",
+    selfTest_contactDetails: "Etiquetas en la vista detallada del contacto",
+    selfTest_contactTags: "Filtro por etiqueta en la libreta de direcciones",
     listStyleTitle: "Estilo",
     listDensityTitle: "Densidad",
     dAiry: "Amplia",
@@ -234,6 +273,7 @@ const TEXTS = {
     aDot: "Punto con nombre de cuenta",
     aDotDesc: "Punto de color y nombre de cuenta antes del asunto (una barra en modo compacto).",
     listAcctColorsLabel: "Color por cuenta:",
+    listScrollLabel: "Barras de desplazamiento más anchas (más fáciles de alcanzar)",
     listAcctNote: "Los colores se asignan automáticamente y se pueden cambiar aquí.",
     listDetailsTitle: "Más opciones",
     listDensityNote: "La densidad y el color de la cuenta no se aplican al estilo predeterminado de Betterbird.",
@@ -301,6 +341,7 @@ const DEFAULTS = {
   listAvatars: true,
   listDensity: "airy",
   listAcct: "none",
+  listScroll: true,
   listAcctColors: {},
   colors: { bg: "#EEF2F8", fg: "#1B2433", border: "#D2DAE6", accent: "#2F6BD8" },
 };
@@ -310,6 +351,9 @@ const forcedLang = new URLSearchParams(location.search).get("lang"); // nur zum 
 const lang = (forcedLang || messenger.i18n.getUILanguage() || "en").slice(0, 2).toLowerCase();
 const t = TEXTS[lang] || TEXTS.en;
 document.documentElement.lang = TEXTS[lang] ? lang : "en";
+
+// Hinweis, wenn Funktionen wegen fehlender Betterbird-Interna aus sind (Selbsttest, shared/selftest-ui.js)
+nbShowSelfTest(document.getElementById("nb-selftest"), (key, subs) => (t[key] ?? TEXTS.en[key] ?? "").replace("$1", subs?.[0] ?? ""));
 for (const [id, text] of Object.entries(t)) {
   const el = document.getElementById(id);
   if (el) {
@@ -551,6 +595,9 @@ const save = patch => messenger.storage.local.set(patch);
   lp.checked = s.listPreview !== false;
   la.checked = s.listAvatars !== false;
   syncList();
+  const ls = document.getElementById("listScroll");
+  ls.checked = s.listScroll !== false;
+  ls.addEventListener("change", () => save({ listScroll: ls.checked }));
   lp.addEventListener("change", () => { if (lp.dataset.off) return revert(); save({ listPreview: lp.checked }); });
   la.addEventListener("change", () => { if (la.dataset.off) return revert(); syncList(); save({ listAvatars: la.checked }); });
 

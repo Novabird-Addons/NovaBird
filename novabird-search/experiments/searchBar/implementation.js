@@ -28,6 +28,41 @@ var { GlodaSyntheticView } = ChromeUtils.importESModule("resource:///modules/glo
 const GLODA_LIMIT = 1000; // Treffer, die Gloda höchstens liefert (nach Relevanz+Aktualität ausgewählt)
 
 const HTML_NS = "http://www.w3.org/1999/xhtml";
+
+// Gemeinsamer Code (shared/selftest.js im Paket), geladen in getAPI
+const nb = {};
+// Gemeinsamen Code aus dem Paket laden (shared/*.js). loadSubScript nimmt nur vertrauenswürdige Adressen
+// (nicht moz-extension:, jar:, file:), daher über eine eigene resource://-Adresse; ohne Cache, damit nach
+// einem Update nicht die alte Fassung kommt. Abmelden in onShutdown (nbUnloadShared).
+function nbSharedHost(extension) {
+  return extension.id.replace(/@.*/, "").replace(/[^a-z0-9-]/gi, "") + "-shared";
+}
+function nbLoadShared(extension, files, target) {
+  const res = Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler);
+  const host = nbSharedHost(extension);
+  res.setSubstitution(host, extension.rootURI);
+  for (const file of files) {
+    Services.scriptloader.loadSubScriptWithOptions(`resource://${host}/${file}`, { target, ignoreCache: true });
+  }
+}
+function nbUnloadShared(extension) {
+  try {
+    Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler).setSubstitution(nbSharedHost(extension), null);
+  } catch (e) {
+    /* schon abgemeldet */
+  }
+}
+// Selbsttest: Betterbird-Interna, auf die sich dieses Add-on verlässt (Namen = Schlüssel selfTest_<feature> in _locales)
+const SELF_TEST = [
+  { feature: "searchBar", needs: "main", test: ({ win }) => typeof win.document.getElementById("tabmail")?.registerTabMonitor === "function" },
+  { feature: "quickFilter", needs: "3pane", test: ({ cw }) => typeof cw.quickFilterBar?._showFilterBar === "function" },
+  { feature: "threadDates", needs: "3pane", test: ({ cw }) => typeof cw.customElements.get("thread-row")?.prototype.fillRow === "function" },
+  {
+    feature: "sharedFolders",
+    needs: "3pane",
+    test: ({ cw }) => typeof cw.folderPane?._modes?.smart?.init === "function" && typeof cw.folderPane._onSelect === "function",
+  },
+];
 const LISTENER_NAME = "novabird-search-windows";
 const MAIN_URL = "chrome://messenger/content/messenger.xhtml";
 const ROOT_ID = "novabird-search";
@@ -352,7 +387,8 @@ function leaveSyntheticView(cw) {
 // - aufgeklappt: die neueste Nachricht bekommt die Klasse "nbs-newest".
 function patchThreadRows(cw) {
   const Row = cw.customElements.get("thread-row");
-  if (!Row || Row.prototype._nbsOriginalFillRow) {
+  if (!Row || typeof Row.prototype.fillRow !== "function" || Row.prototype._nbsOriginalFillRow) {
+    if (!Row || typeof Row.prototype.fillRow !== "function") nb.nbReportMissing?.("threadDates", "thread-row.fillRow");
     return;
   }
   const original = Row.prototype.fillRow;
@@ -651,6 +687,7 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
     if (isAppShutdown) {
       return;
     }
+    nbUnloadShared(this.extension);
     ExtensionSupport.unregisterWindowListener(LISTENER_NAME);
     for (const win of Services.wm.getEnumerator("mail:3pane")) {
       const tabmail = win.document.getElementById("tabmail");
@@ -691,6 +728,13 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
     const self = this;
     const emitter = new ExtensionCommon.EventEmitter();
     let strings = { ...DEFAULT_STRINGS };
+    if (!nb.nbRunSelfTest) {
+      try {
+        nbLoadShared(context.extension, ["shared/selftest.js"], nb);
+      } catch (e) {
+        console.error("NovaBird: gemeinsamer Code nicht geladen", e); // nur Selbsttest/Farbrechnung fehlen, Rest läuft
+      }
+    }
     // Jede Suchleiste (je about:3pane-Tab, auch in weiteren Hauptfenstern) hat eine feste ID und einen eigenen Zustand
     // (Haken, Bereich, Filter). Alle Ereignisse tragen die ID, alle Antworten des Hintergrunds gehen an genau diese Leiste.
     let barSeq = 0;
@@ -1769,6 +1813,10 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
 
     return {
       searchBar: {
+        // Selbsttest der Betterbird-Interna (siehe SELF_TEST); Ergebnis zeigt die Optionsseite
+        async selfTest() {
+          return nb.nbRunSelfTest?.(SELF_TEST) ?? null;
+        },
         async setStrings(newStrings) {
           strings = { ...DEFAULT_STRINGS, ...newStrings };
           refreshAll();

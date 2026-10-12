@@ -41,6 +41,7 @@
   </style>
 </head>
 <body>
+  <div id="nb-selftest" hidden></div>
   <h2 id="title"></h2>
   <nav>
     <button type="button" data-tab="list" id="tabList"></button>
@@ -102,6 +103,7 @@
     <h4 id="listDetailsTitle"></h4>
     <label><input type="checkbox" id="listPreview"> <span id="listPreviewLabel"></span></label>
     <label><input type="checkbox" id="listAvatars"> <span id="listAvatarsLabel"></span></label>
+    <label><input type="checkbox" id="listScroll"> <span id="listScrollLabel"></span></label>
     <p id="listNote"></p>
     <p id="listDensityNote"></p>
   </section>
@@ -145,6 +147,7 @@
     <pre id="diagOut" style="white-space:pre-wrap;user-select:text"></pre>
   </section>
   <p id="hint"></p>
+  <script src="../shared/selftest-ui.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

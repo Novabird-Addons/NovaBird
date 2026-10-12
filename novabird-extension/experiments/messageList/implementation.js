@@ -12,12 +12,54 @@ const { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/E
 const { ExtensionSupport } = ChromeUtils.importESModule("resource:///modules/ExtensionSupport.sys.mjs");
 
 const LISTENER = "novabird-extension-messagelist";
+
+// Gemeinsamer Selbsttest (shared/selftest.js im Paket), geladen in getAPI. Die Startprüfungen der ganzen Extension
+// stehen hier (sie prüfen nur Fenster/Module); was erst beim Einhängen auffällt, meldet novaContact selbst.
+const nb = {};
+// Gemeinsamen Code aus dem Paket laden (shared/*.js). loadSubScript nimmt nur vertrauenswürdige Adressen
+// (nicht moz-extension:, jar:, file:), daher über eine eigene resource://-Adresse; ohne Cache, damit nach
+// einem Update nicht die alte Fassung kommt. Abmelden in onShutdown (nbUnloadShared).
+function nbSharedHost(extension) {
+  return extension.id.replace(/@.*/, "").replace(/[^a-z0-9-]/gi, "") + "-shared";
+}
+function nbLoadShared(extension, files, target) {
+  const res = Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler);
+  const host = nbSharedHost(extension);
+  res.setSubstitution(host, extension.rootURI);
+  for (const file of files) {
+    Services.scriptloader.loadSubScriptWithOptions(`resource://${host}/${file}`, { target, ignoreCache: true });
+  }
+}
+function nbUnloadShared(extension) {
+  try {
+    Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler).setSubstitution(nbSharedHost(extension), null);
+  } catch (e) {
+    /* schon abgemeldet */
+  }
+}
+const SELF_TEST = [
+  {
+    feature: "listCards",
+    needs: "3pane",
+    test: ({ cw }) => typeof cw.customElements.get("thread-card")?.prototype.fillRow === "function" && !!cw.threadPane && "densityChange" in cw.threadPane,
+  },
+  {
+    feature: "calendarLayout",
+    needs: "main",
+    test: ({ win }) => !!win.TodayPane && !!win.document.getElementById("today-pane-panel") && !!win.document.getElementById("agenda-panel"),
+  },
+  {
+    feature: "contacts",
+    needs: "none",
+    test: ({ hasModule }) => hasModule("resource:///modules/ABQueryUtils.sys.mjs") && hasModule("resource:///modules/VCardUtils.sys.mjs"),
+  },
+];
 const MAIN_URL = "chrome://messenger/content/messenger.xhtml";
 const STYLE_ID = "nbx-ml-style";
 const SNIP_MAX = 160;
 const CACHE_MAX = 600;
 
-const opts = { style: "default", preview: true, avatars: true, density: "airy", acct: "none", colors: {} };
+const opts = { style: "default", preview: true, avatars: true, density: "airy", acct: "none", colors: {}, scroll: true };
 const acctCache = new Map(); // Server-Schlüssel -> { key, name }
 const snippets = new Map(); // messageId -> Text
 const wins = new Map();     // about:3pane-Fenster -> { orig, origDensity }
@@ -392,11 +434,23 @@ function rowHeight(cw, base) {
   return base;
 }
 
+const SB_ID = "nbx-sb-style";
+const SB_CSS = "*{scrollbar-width:auto!important;scrollbar-color:color-mix(in srgb,currentColor 55%,transparent) color-mix(in srgb,currentColor 9%,transparent)!important}";
+function applyScroll(doc) {
+  let el = doc.getElementById(SB_ID);
+  if (!opts.scroll) { el?.remove(); return; }
+  if (el) return;
+  el = doc.createElement("style");
+  el.id = SB_ID; el.textContent = SB_CSS;
+  doc.documentElement.append(el);
+}
+
 function applyWindow(cw) {
   const doc = cw.document;
   let st = wins.get(cw);
   const cardClass = cw.customElements.get("thread-card");
   if (!cardClass || !cw.threadPane || !cw.threadTree) return false;
+  applyScroll(doc);
   if (!st) {
     st = { baseDensity: cw.threadPane.densityChange, baseFill: cardClass.prototype.fillRow, cardClass };
     wins.set(cw, st);
@@ -505,18 +559,33 @@ function stopAll() {
 
 const API = class extends ExtensionCommon.ExtensionAPI {
   onShutdown(isAppShutdown) {
-    if (!isAppShutdown) stopAll();
+    if (!isAppShutdown) {
+      stopAll();
+      nbUnloadShared(this.extension);
+    }
   }
   getAPI() {
+    if (!nb.nbRunSelfTest) {
+      try {
+        nbLoadShared(this.extension, ["shared/selftest.js"], nb);
+      } catch (e) {
+        console.error("NovaBird: gemeinsamer Code nicht geladen", e); // nur Selbsttest/Farbrechnung fehlen, Rest läuft
+      }
+    }
     return {
       messageList: {
-        async setOptions(style, preview, avatars, density, acct, colors) {
+        // Selbsttest der Betterbird-Interna (siehe SELF_TEST); Ergebnis zeigt die Optionsseite
+        async selfTest() {
+          return nb.nbRunSelfTest?.(SELF_TEST) ?? null;
+        },
+        async setOptions(style, preview, avatars, density, acct, colors, scroll) {
           opts.style = ["soft", "clear", "thread"].includes(style) ? style : "default";
           opts.preview = !!preview;
           opts.avatars = !!avatars;
           opts.density = ["normal", "compact"].includes(density) ? density : "airy";
           opts.acct = ["bar", "ring", "dot"].includes(acct) ? acct : "none";
           try { opts.colors = JSON.parse(colors || "{}") || {}; } catch (e) { opts.colors = {}; }
+          opts.scroll = scroll !== false;
           acctCache.clear();
           if (!started) startAll();
           for (const win of Services.wm.getEnumerator("mail:3pane")) {

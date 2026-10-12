@@ -338,5 +338,50 @@
   },
   "capAutoOpen": {
     "message": "Le pointeur s’arrête → la ligne s’ouvre"
+  },
+  "copyAddress": {
+    "message": "Copier l’adresse e-mail"
+  },
+  "selfTestTitle": {
+    "message": "Certaines fonctions ne sont pas disponibles"
+  },
+  "selfTestText": {
+    "message": "Cette version n’est pas entièrement compatible avec $APP$. Les fonctions suivantes sont donc désactivées :",
+    "placeholders": {
+      "app": {
+        "content": "$1",
+        "example": "Betterbird 153.0"
+      }
+    }
+  },
+  "selfTestHint": {
+    "message": "Tout le reste fonctionne normalement. Une version plus récente du module corrige généralement ce problème."
+  },
+  "selfTest_threadHook": {
+    "message": "Conversation pour les fils réduits (le résumé du fil de Betterbird s’affiche à la place)"
+  },
+  "selfTest_hideHeader": {
+    "message": "Masquer l’en-tête standard du message"
+  },
+  "selfTest_displayedMessage": {
+    "message": "Conversation lorsque plusieurs messages sont sélectionnés"
+  },
+  "selfTest_gloda": {
+    "message": "Recherche via l’index Gloda (solution de repli sans NovaBird-DB)"
+  },
+  "otherConvText": {
+    "message": "« Thunderbird Conversations » est également actif. Les deux modules s’insèrent dans l’affichage des messages et se gênent mutuellement ; mieux vaut n’en utiliser qu’un."
+  },
+  "otherConvDisable": {
+    "message": "Désactiver Thunderbird Conversations"
+  },
+  "otherConvLater": {
+    "message": "Plus tard"
+  },
+  "otherConvDone": {
+    "message": "Thunderbird Conversations est désactivé (réactivable à tout moment dans le gestionnaire de modules). Un redémarrage de Betterbird est recommandé."
+  },
+  "selfTest_noFlicker": {
+    "message": "Masquer le volet de lecture lors du changement de message (l’original peut apparaître brièvement)"
   }
 }

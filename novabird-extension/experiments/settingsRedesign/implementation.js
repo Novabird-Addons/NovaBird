@@ -56,13 +56,31 @@ function pick(cs, names) {
   return "";
 }
 
-function isDark(color) {
-  const m = /(\d+)[ ,]+(\d+)[ ,]+(\d+)/.exec(color) || [];
-  if (m.length) {
-    return (0.299 * m[1] + 0.587 * m[2] + 0.114 * m[3]) < 128;
+// Gemeinsame Farbrechnung (shared/color.js, im Paket); geladen in getAPI, vor jedem Fensteraufbau
+const nb = {};
+// Gemeinsamen Code aus dem Paket laden (shared/*.js). loadSubScript nimmt nur vertrauenswürdige Adressen
+// (nicht moz-extension:, jar:, file:), daher über eine eigene resource://-Adresse; ohne Cache, damit nach
+// einem Update nicht die alte Fassung kommt. Abmelden in onShutdown (nbUnloadShared).
+function nbSharedHost(extension) {
+  return extension.id.replace(/@.*/, "").replace(/[^a-z0-9-]/gi, "") + "-shared";
+}
+function nbLoadShared(extension, files, target) {
+  const res = Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler);
+  const host = nbSharedHost(extension);
+  res.setSubstitution(host, extension.rootURI);
+  for (const file of files) {
+    Services.scriptloader.loadSubScriptWithOptions(`resource://${host}/${file}`, { target, ignoreCache: true });
   }
-  const h = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(color);
-  return h ? (0.299 * parseInt(h[1], 16) + 0.587 * parseInt(h[2], 16) + 0.114 * parseInt(h[3], 16)) < 128 : false;
+}
+function nbUnloadShared(extension) {
+  try {
+    Services.io.getProtocolHandler("resource").QueryInterface(Ci.nsIResProtocolHandler).setSubstitution(nbSharedHost(extension), null);
+  } catch (e) {
+    /* schon abgemeldet */
+  }
+}
+function isDark(color) {
+  return nb.nbIsDark ? nb.nbIsDark(color) : false;
 }
 
 /** NovaBird-Palette: Farben des laufenden Themes (oder eigene) als --tbsr-* Variablen. */
@@ -956,12 +974,20 @@ return class extends ExtensionCommon.ExtensionAPI {
     if (isAppShutdown) {
       return;
     }
+    nbUnloadShared(this.extension);
     ExtensionSupport.unregisterWindowListener(LISTENER_ID);
     teardown();
   }
 
   getAPI(context) {
     hubIcon = context.extension.getURL("icons/icon-48.png");
+    if (!nb.nbIsDark) {
+      try {
+        nbLoadShared(context.extension, ["shared/color.js"], nb);
+      } catch (e) {
+        console.error("NovaBird: gemeinsamer Code nicht geladen", e); // nur Selbsttest/Farbrechnung fehlen, Rest läuft
+      }
+    }
     return {
       settingsRedesign: {
         async setColors(colors) {

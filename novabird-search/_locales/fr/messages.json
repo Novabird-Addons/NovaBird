@@ -340,5 +340,32 @@
   },
   "capGroup": {
     "message": "À plat ou en conversations"
+  },
+  "selfTestTitle": {
+    "message": "Certaines fonctions ne sont pas disponibles"
+  },
+  "selfTestText": {
+    "message": "Cette version n’est pas entièrement compatible avec $APP$. Les fonctions suivantes sont donc désactivées :",
+    "placeholders": {
+      "app": {
+        "content": "$1",
+        "example": "Betterbird 153.0"
+      }
+    }
+  },
+  "selfTestHint": {
+    "message": "Tout le reste fonctionne normalement. Une version plus récente du module corrige généralement ce problème."
+  },
+  "selfTest_searchBar": {
+    "message": "Barre de recherche dans les nouveaux onglets et fenêtres"
+  },
+  "selfTest_quickFilter": {
+    "message": "Masquer la barre de filtre rapide de Betterbird (elle s’affiche en plus)"
+  },
+  "selfTest_threadDates": {
+    "message": "Date du message le plus récent pour les conversations réduites"
+  },
+  "selfTest_sharedFolders": {
+    "message": "Dossiers communs en haut du volet des dossiers"
   }
 }

@@ -222,5 +222,23 @@
   },
   "optDelayHint": {
     "message": "Nach „Senden“ bleibt die Mail so lange zurückgehalten (3–60 Sekunden). In dieser Zeit kannst du sie mit „Rückgängig“ zurückholen; das Verfassen-Fenster erscheint dann wie vorher. Beenden während der Wartezeit speichert die Mail als Entwurf."
+  },
+  "selfTestTitle": {
+    "message": "Nicht alle Funktionen verfügbar"
+  },
+  "selfTestText": {
+    "message": "Diese Version passt nicht vollständig zu $APP$. Folgendes ist deshalb ausgeschaltet:",
+    "placeholders": {
+      "app": {
+        "content": "$1",
+        "example": "Betterbird 153.0"
+      }
+    }
+  },
+  "selfTestHint": {
+    "message": "Alles andere funktioniert normal. Eine neuere Version des Add-ons behebt das in der Regel."
+  },
+  "selfTest_sendLater": {
+    "message": "„Später senden“ erkennen (wird sonst ebenfalls verzögert gesendet)"
   }
 }

@@ -64,7 +64,7 @@ Beispiele, die gleichwertig in Deutsch, Englisch, Französisch und Spanisch funk
 
 Verstanden werden Personen (von, an, „von mir“), Zeiträume (gestern, letzte Woche, im Mai 2025, zwischen …), Anhänge (mit PDF, ohne Anhang), Status, Ordner, „oder“ und Verneinung („ohne“). Zusammengesetzte deutsche Wörter werden gefunden („Speiseplan“ findet „Wochenspeiseplan“).
 
-**Suchsprache:** Standard ist die Sprache von Betterbird. Für gemischte Postfächer lassen sich in den NovaBird-DB-Einstellungen mehrere Sprachen aktivieren (dann können kurze mehrdeutige Wörter wie „an“ falsch gedeutet werden). Französisch und Spanisch sind noch nicht von Muttersprachlern geprüft.
+**Suchsprache:** Standard sind Englisch und die Sprache von Betterbird (bei Deutsch also Deutsch und Englisch). In den NovaBird-DB-Einstellungen lässt sich das ändern; mit mehreren Sprachen können kurze mehrdeutige Wörter wie „an“ falsch gedeutet werden. Französisch und Spanisch sind noch nicht von Muttersprachlern geprüft.
 
 ## 5. Konversationen lesen (NovaBird-Conversation)
 
@@ -108,6 +108,8 @@ NovaBird-Sand (ruhig, warm), -Cobalt (kompakt, kräftig), -Springlight (hell, fr
 | Add-on als „beschädigt“ oder „nicht kompatibel“ | Läuft Betterbird / Thunderbird **ESR**? Die Add-ons brauchen Experiment-APIs; im Release-Kanal gehen sie nicht. |
 | Suchleiste zeigt „Gloda-Suche“ | NovaBird-DB fehlt, baut den Index noch auf oder ist beschädigt: Einstellungen → NovaBird → Datenbank. Dort „Index neu aufbauen“ (der alte bleibt bis zum Ende erhalten). |
 | Einstellungsseite „NovaBird“ fehlt oder ist leer | NovaBird-Extension installiert und Betterbird neu gestartet? Reiter erscheinen nur für aktive Add-ons. |
+| Indexaufbau hängt oder wird nie fertig (Protokoll: „Keine Fortschritte seit … s“ oder „Mail übersprungen“) | **Zuerst den betroffenen Ordner reparieren:** Rechtsklick auf den Ordner → Eigenschaften → **Ordner reparieren**; im Zweifel alle lokalen Ordner reparieren. Danach unter Einstellungen → NovaBird → Datenbank „Index jetzt prüfen“. Mehr Details liefert dort das ausführliche Indexprotokoll. |
+| Einstellungsseite eines Add-ons zeigt „Nicht alle Funktionen verfügbar“ (meist nach einem Betterbird-Update) | Das Add-on hat festgestellt, dass sich in Betterbird etwas geändert hat, worauf es angewiesen ist; nur die aufgeführten Funktionen sind aus, alles andere läuft. Nach einer neueren NovaBird-Version schauen. |
 | Nichts verändert sich nach einem Update | Betterbird einmal neu starten. |
 | Beenden dauert ungewöhnlich lange | Kurz warten (wartende Mails in NovaBird-Send werden erst als Entwurf gespeichert). Hängt es weiter, danach die Fehlerkonsole öffnen und die Meldungen mit „NovaBird“ bereithalten. |
 | Fehler melden | **Fehlerkonsole** (Strg+Umschalt+J), Meldungen mit „NovaBird“ kopieren; dazu: welches Add-on, was erwartet, was passiert. Keine Mails oder Adressen mitschicken. |

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { attachmentTypeOf, folderIdOf, folderTypeOf, parseAddress, textFromParts, toRecord } from "../src/indexer/record.js";
+import { attachmentsFromParts, attachmentTypeOf, folderIdOf, folderTypeOf, parseAddress, textFromParts, toRecord } from "../src/indexer/record.js";
 
 describe("Datensatz-Abbildung", () => {
   it("Adressen", () => {
@@ -35,6 +35,24 @@ describe("Datensatz-Abbildung", () => {
       ],
     };
     expect(textFromParts(part)).toEqual({ plain: "Hallo", html: "<p>Hallo</p>" });
+  });
+
+  it("Anhänge aus getFull wie listAttachments (Dateiname/disposition, nicht in Anhänge hinein)", () => {
+    const part = {
+      contentType: "message/rfc822",
+      parts: [{ contentType: "multipart/mixed", parts: [
+        { contentType: "text/plain", body: "Hallo" },
+        { contentType: "application/pdf", name: "Rechnung.pdf", size: 1200 },
+        { contentType: "image/png", headers: { "content-disposition": ["attachment"] }, size: 5 },
+        { contentType: "message/rfc822", name: "Weitergeleitet.eml", size: 900, parts: [{ contentType: "image/jpeg", name: "innen.jpg" }] },
+      ] }],
+    };
+    expect(attachmentsFromParts(part)).toEqual([
+      { name: "Rechnung.pdf", contentType: "application/pdf", size: 1200 },
+      { name: "", contentType: "image/png", size: 5 },
+      { name: "Weitergeleitet.eml", contentType: "message/rfc822", size: 900 },
+    ]);
+    expect(attachmentsFromParts({ contentType: "text/plain", body: "nur Text" })).toEqual([]);
   });
 
   it("toRecord", () => {
