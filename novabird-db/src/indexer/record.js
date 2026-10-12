@@ -144,6 +144,26 @@ export function toRecord(header, { content = {}, attachments = [], tagNames = ne
 }
 
 /**
+ * Anhänge aus einem MessagePart-Baum (messages.getFull), wie messages.listAttachments sie liefert: Teile mit Dateiname
+ * oder disposition attachment; in einen Anhang (z. B. angehängte Mail) wird nicht weiter hineingesehen.
+ * So reicht ein Abruf je Mail für Text und Anhänge (Betterbird zerlegt die Mail nur einmal).
+ */
+export function attachmentsFromParts(part) {
+  const out = [];
+  const walk = (p, top) => {
+    if (!p) return;
+    const isAttachment = !top && (Boolean(p.name) || /attachment/i.test(p.headers?.["content-disposition"]?.[0] ?? ""));
+    if (isAttachment) {
+      out.push({ name: p.name ?? "", contentType: p.contentType ?? "", size: p.size ?? 0 });
+      return;
+    }
+    (p.parts ?? []).forEach((c) => walk(c, false));
+  };
+  walk(part, true);
+  return out;
+}
+
+/**
  * Textteile aus einem MessagePart-Baum (messages.getFull) sammeln.
  * Anhänge (mit Dateiname / disposition attachment) werden übersprungen.
  */

@@ -28,6 +28,25 @@ describe("Indexer (mit nachgebauter messenger-API)", () => {
     expect(r.rows[0].folder_name).toBe("Projekt");
   });
 
+  it("mit getFull: ein Abruf je Mail für Text und Anhänge", async () => {
+    const { fake, indexer, db, caps } = await setup();
+    let full = 0;
+    fake.api.messages.getFull = async (id) => {
+      full++;
+      return { contentType: "multipart/mixed", parts: [
+        { contentType: "text/plain", body: "Speiseplan der Woche" },
+        { contentType: "application/pdf", name: "Plan.pdf", size: 10 },
+      ] };
+    };
+    fake.addMessage("inbox", { subject: "Kantine" });
+    fake.addMessage("inbox", { subject: "Kantine 2" });
+    await indexer.fullRun();
+    expect(full).toBe(2);
+    expect(fake.calls.listInlineTextParts).toBe(0);
+    const r = await search(db, caps, "speiseplan anh:pdf");
+    expect(r.rows.length).toBe(2);
+  });
+
   it("Ausschlüsse greifen (z. B. Papierkorb)", async () => {
     const { fake, indexer, count } = await setup({ isExcluded: (f) => f.specialUse?.includes("trash") });
     fake.addMessage("trash", { subject: "Alt" });
