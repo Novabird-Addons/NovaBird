@@ -10,6 +10,25 @@ document.title = api.i18n.getMessage("optTitle");
 // Hinweis, wenn Funktionen wegen fehlender Betterbird-Interna aus sind (Selbsttest, shared/selftest-ui.js)
 nbShowSelfTest(document.getElementById("nb-selftest"), (key, subs) => api.i18n.getMessage(key, subs));
 
+// „Thunderbird Conversations“ ebenfalls aktiv: Hinweis mit Auswahl (deaktivieren nur auf Klick)
+(async () => {
+  const box = document.getElementById("nbc-other");
+  try {
+    const other = await api.conversationView.getOtherConversations();
+    if (!other?.active) return;
+    box.hidden = false;
+    document.getElementById("nbc-other-later").addEventListener("click", () => { box.hidden = true; });
+    document.getElementById("nbc-other-off").addEventListener("click", async () => {
+      const done = await api.conversationView.disableOtherConversations().catch(() => false);
+      if (!done) return;
+      document.getElementById("nbc-other-text").textContent = api.i18n.getMessage("otherConvDone");
+      for (const b of box.querySelectorAll("button")) b.hidden = true;
+    });
+  } catch (e) {
+    // Experiment in eingebetteter Seite nicht erreichbar: kein Hinweis
+  }
+})();
+
 const FIELDS = ["engine", "limit", "order", "pin", "maxHeight", "expand", "attachments", "collapseQuotes", "rowLines", "autoOriginal", "stickyHeader", "autoOpen", "autoOpenTrigger", "autoOpenDwell", "autoOpenDelay", "openMs", "fadeMs", "fallback", "fallbackDays", "fallbackPeople", "hideHeader", "debugTiming", "alwaysRender"];
 const field = id => document.getElementById(id);
 let hideTimer;

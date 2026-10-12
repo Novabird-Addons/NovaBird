@@ -45,6 +45,7 @@ const SELF_TEST = [
       return !doc || doc.readyState !== "complete" || (!!doc.getElementById("messageHeader") && !!doc.getElementById("attachmentView"));
     },
   },
+  { feature: "noFlicker", needs: "3pane", test: ({ cw }) => typeof cw.messagePane?.displayMessage === "function" && !!cw.messageBrowser },
   { feature: "displayedMessage", needs: "3pane", test: ({ cw }) => !cw.messageBrowser?.contentWindow || "gMessage" in cw.messageBrowser.contentWindow },
   { feature: "gloda", needs: "none", test: ({ hasModule }) => hasModule("resource:///modules/gloda/GlodaPublic.sys.mjs") },
 ];
@@ -97,6 +98,35 @@ const MSG_VIEW_FLAG_DUMMY = 0x20000000;
 const hooked = new Map(); // about:3pane-Fenster -> { mp, orig }
 const winHooks = new Map(); // Hauptfenster -> { tm, onTab }
 
+// Kein Aufblitzen des Originals (Stufe B, ab 0.14.7): Vor dem Laden einer ANDEREN Mail wird der Lesebereich unsichtbar
+// (opacity, damit weiter gezeichnet wird und requestAnimationFrame läuft); die Ansicht meldet „reveal“, sobald die
+// Konversation steht oder klar ist, dass das Original gezeigt wird. Sicherheitsfrist wie im Seitenskript (1,5 s).
+const REVEAL_MAX_MS = 1500;
+// „Thunderbird Conversations“ hängt sich an dieselben Stellen; beide zusammen stören sich (Hinweis mit Auswahl, nie ungefragt abschalten)
+const OTHER_CONVERSATIONS_IDS = ["gconversation@xulforum.org"];
+async function findOtherConversations() {
+  const { AddonManager } = ChromeUtils.importESModule("resource://gre/modules/AddonManager.sys.mjs");
+  const all = await AddonManager.getAddonsByTypes(["extension"]);
+  return all.find(a => OTHER_CONVERSATIONS_IDS.includes(a.id) || /^thunderbird conversations$/i.test(String(a.name).trim())) ?? null;
+}
+const veiled = new Map(); // about:3pane-Fenster -> Timer
+function veilPane(cw) {
+  const b = cw.messageBrowser;
+  if (!b) return;
+  cw.clearTimeout(veiled.get(cw));
+  b.style.opacity = "0";
+  veiled.set(cw, cw.setTimeout(() => revealPane(cw), REVEAL_MAX_MS));
+}
+function revealPane(cw) {
+  try {
+    cw.clearTimeout(veiled.get(cw));
+    veiled.delete(cw);
+    if (cw.messageBrowser) cw.messageBrowser.style.opacity = "";
+  } catch (e) {
+    veiled.delete(cw); // Fenster schon geschlossen
+  }
+}
+
 function hookPane(cw) {
   const mp = cw.messagePane;
   if (!mp || typeof mp.displayMessages !== "function" || hooked.has(cw)) {
@@ -104,6 +134,20 @@ function hookPane(cw) {
     return;
   }
   const orig = mp.displayMessages;
+  const origOne = typeof mp.displayMessage === "function" ? mp.displayMessage : null;
+  if (origOne) {
+    mp.displayMessage = function (uri, ...rest) {
+      try {
+        // dieselbe Mail erneut gewählt: Betterbird lädt nichts neu, also auch nichts verstecken
+        if (uri && uri !== cw.messageBrowser?.contentWindow?.gMessageURI) veilPane(cw);
+      } catch (e) {
+        console.error("NovaBird-Conversation:", e);
+      }
+      return origOne.call(this, uri, ...rest);
+    };
+  } else {
+    nb.nbReportMissing?.("noFlicker", "messagePane.displayMessage");
+  }
   mp.displayMessages = function (...args) {
     try {
       const tree = cw.threadTree;
@@ -119,9 +163,12 @@ function hookPane(cw) {
     return orig.apply(this, args);
   };
   // Geschlossene Tabs austragen, sonst hielte die Liste ihre Fenster bis zum Neustart im Speicher
-  const onUnload = () => hooked.delete(cw);
+  const onUnload = () => {
+    hooked.delete(cw);
+    veiled.delete(cw);
+  };
   cw.addEventListener("unload", onUnload, { once: true });
-  hooked.set(cw, { mp, orig, onUnload });
+  hooked.set(cw, { mp, orig, origOne, onUnload });
 }
 
 function scanThreads(win, tries = 0) {
@@ -188,6 +235,8 @@ function stopThreadHook() {
     try {
       cw.removeEventListener("unload", h.onUnload);
       h.mp.displayMessages = h.orig;
+      if (h.origOne) h.mp.displayMessage = h.origOne;
+      revealPane(cw);
     } catch (e) {
       /* Tab schon geschlossen */
     }
@@ -221,6 +270,25 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
         },
         async startThreadHook() {
           startThreadHook();
+        },
+        // Ansicht steht (oder das Original wird gezeigt): Lesebereich dieses Tabs wieder sichtbar machen
+        async reveal(tabId) {
+          try {
+            const cw = context.extension.tabManager.get(tabId)?.nativeTab?.chromeBrowser?.contentWindow;
+            if (cw && veiled.has(cw)) revealPane(cw);
+          } catch (e) {
+            /* Tab weg */
+          }
+        },
+        async getOtherConversations() {
+          const a = await findOtherConversations();
+          return a ? { id: a.id, name: a.name, active: a.isActive } : null;
+        },
+        async disableOtherConversations() {
+          const a = await findOtherConversations();
+          if (!a || !a.isActive) return false;
+          await a.disable();
+          return true;
         },
         async setHeaderHidden(tabId, hidden) {
           const tab = context.extension.tabManager.get(tabId);

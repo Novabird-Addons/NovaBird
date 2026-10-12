@@ -368,5 +368,20 @@
   },
   "selfTest_gloda": {
     "message": "Lookup via the Gloda index (fallback without NovaBird-DB)"
+  },
+  "otherConvText": {
+    "message": "“Thunderbird Conversations” is also active. Both add-ons hook into the message display and get in each other’s way; it is better to use only one of them."
+  },
+  "otherConvDisable": {
+    "message": "Disable Thunderbird Conversations"
+  },
+  "otherConvLater": {
+    "message": "Later"
+  },
+  "otherConvDone": {
+    "message": "Thunderbird Conversations is disabled (you can enable it again in the add-ons manager at any time). Restarting Betterbird is recommended."
+  },
+  "selfTest_noFlicker": {
+    "message": "Hiding the reading pane while switching messages (the original may flash briefly)"
   }
 }

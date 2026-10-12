@@ -522,6 +522,7 @@ messenger.runtime.onMessage.addListener((msg, sender) => {
       return tabId == null ? Promise.resolve(null)
         : hello(tabId).catch(e => { console.error("NovaBird-Conversation: Konversation", e); return null; }).then(data => applyHeader(tabId, data));
     case "body": return loadBody(msg.id);
+    case "reveal": if (tabId != null) messenger.conversationView.reveal(tabId).catch(() => {}); return Promise.resolve(true);
     case "header": if (tabId != null) scheduleHeader(tabId, !!msg.hidden && settings.hideHeader); return Promise.resolve(true);
     case "copyText": return typeof msg.text === "string" ? messenger.conversationView.copyText(msg.text) : false;
     case "allowSender": return typeof msg.email === "string" ? messenger.conversationView.allowSender(msg.email) : false;
@@ -566,6 +567,23 @@ async function registerScript() {
 }
 
 loadSettings().then(registerScript).then(() => messenger.conversationView.startThreadHook()).catch(e => console.error("NovaBird-Conversation: Start fehlgeschlagen", e));
+
+// „Thunderbird Conversations“ ebenfalls aktiv? Dann einmal die Optionsseite mit Hinweis und Auswahl öffnen (nie ungefragt abschalten).
+// Ist es nicht mehr aktiv, wird die Merke zurückgesetzt, damit der Hinweis bei erneutem Einschalten wieder kommt.
+setTimeout(async () => {
+  try {
+    const other = await messenger.conversationView.getOtherConversations();
+    const { otherConvAsked } = await messenger.storage.local.get("otherConvAsked");
+    if (other?.active && !otherConvAsked) {
+      await messenger.storage.local.set({ otherConvAsked: true });
+      await messenger.runtime.openOptionsPage();
+    } else if (!other?.active && otherConvAsked) {
+      await messenger.storage.local.set({ otherConvAsked: false });
+    }
+  } catch (e) {
+    console.error("NovaBird-Conversation: Prüfung auf Thunderbird Conversations", e);
+  }
+}, 5000);
 
 // Selbsttest der Betterbird-Interna (shared/selftest-bg.js); Ergebnis zeigt die Optionsseite
 nbStartSelfTest([() => messenger.conversationView.selfTest()]);

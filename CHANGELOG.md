@@ -34,6 +34,10 @@ Entries on `testing` are not released yet; releases are tagged `vX.Y.Z` on `main
 - Nova-Contact: an active tag filter is shown as a chip next to the Tags button (with ✕ to clear) instead of as text in the search field. The chip can be combined with search text (e.g. a name within a tag), also for tags stored only on this computer.
 - Nova-Contact: the contact detail view now says "Tags" instead of "Categories" and also shows tags that are stored only on this computer (Google/CardDAV address books), with a small note that they are not synchronised.
 
+### NovaBird-Conversation 0.14.7
+- No more flash of Betterbird's own message view before the conversation (confirmed on a slow and a fast PC): the reading pane is hidden while a different message loads and shown as soon as the conversation (or the normal view) is ready, at the latest after 1.5 s. Selecting the same message again is not affected. Lab: conversation visible after 35–110 ms, normal view of a single message after about 40 ms.
+- If "Thunderbird Conversations" is also active, the settings page says so once (opened automatically) and offers to disable it; nothing is switched off without a click.
+
 ### NovaBird-Conversation 0.14.2 to 0.14.5
 - 0.14.5: closed tabs and windows are released from memory (the thread hook kept them until restart).
 - Fix: selecting a collapsed thread in the message list showed Betterbird's own thread summary instead of the conversation view. Now the message of the selected row is shown, so the conversation view works without expanding the thread first. Real multi-selection is unchanged.

@@ -368,5 +368,20 @@
   },
   "selfTest_gloda": {
     "message": "Suche über den Gloda-Index (Rückfall ohne NovaBird-DB)"
+  },
+  "otherConvText": {
+    "message": "„Thunderbird Conversations“ ist ebenfalls aktiv. Beide Add-ons hängen sich in die Nachrichtenanzeige ein und stören sich gegenseitig; besser ist nur eines davon."
+  },
+  "otherConvDisable": {
+    "message": "Thunderbird Conversations deaktivieren"
+  },
+  "otherConvLater": {
+    "message": "Später"
+  },
+  "otherConvDone": {
+    "message": "Thunderbird Conversations ist deaktiviert (im Add-ons-Manager jederzeit wieder einschaltbar). Ein Neustart von Betterbird wird empfohlen."
+  },
+  "selfTest_noFlicker": {
+    "message": "Lesebereich beim Wechsel der Nachricht verbergen (das Original kann kurz aufblitzen)"
   }
 }

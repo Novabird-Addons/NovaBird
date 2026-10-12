@@ -22,6 +22,27 @@
         ]
       },
       {
+        "name": "reveal",
+        "type": "function",
+        "async": true,
+        "description": "Lesebereich des Tabs wieder sichtbar machen (vor dem Laden einer anderen Mail versteckt, damit das Original nicht aufblitzt).",
+        "parameters": [{ "name": "tabId", "type": "integer" }]
+      },
+      {
+        "name": "getOtherConversations",
+        "type": "function",
+        "async": true,
+        "description": "Ist „Thunderbird Conversations“ installiert? {id, name, active} oder null.",
+        "parameters": []
+      },
+      {
+        "name": "disableOtherConversations",
+        "type": "function",
+        "async": true,
+        "description": "Deaktiviert „Thunderbird Conversations“ (nur dieses Add-on, nur auf Klick des Nutzers); true, wenn deaktiviert.",
+        "parameters": []
+      },
+      {
         "name": "startThreadHook",
         "type": "function",
         "async": true,

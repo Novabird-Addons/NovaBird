@@ -15,6 +15,9 @@
     .row > label:first-child { flex: 0 0 280px; }
     input[type="number"] { width: 5em; }
     .hint { color: GrayText; font-size: 12px; margin: 2px 0 8px 0; }
+    #nbc-other { margin: 0 0 16px; padding: 10px 14px; border-radius: 8px; border-left: 4px solid #d9822b; background: color-mix(in srgb, #d9822b 14%, transparent); }
+    #nbc-other p { margin: 0 0 8px; }
+    #nbc-other button { margin-right: 8px; }
     #saved { color: AccentColor; visibility: hidden; margin-top: 12px; }
     .styles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 6px 0 16px; }
     .style { display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 2px solid color-mix(in srgb, CanvasText 18%, transparent); border-radius: 10px; cursor: pointer; }
@@ -38,6 +41,11 @@
 </head>
 <body>
   <div id="nb-selftest" hidden></div>
+  <div id="nbc-other" hidden>
+    <p id="nbc-other-text" data-i18n="otherConvText"></p>
+    <button type="button" id="nbc-other-off" data-i18n="otherConvDisable"></button>
+    <button type="button" id="nbc-other-later" data-i18n="otherConvLater"></button>
+  </div>
   <div class="tabs" role="tablist">
     <button type="button" role="tab" id="tab-settings" aria-selected="true" aria-controls="panel-settings" data-i18n="optTabSettings"></button>
     <button type="button" role="tab" id="tab-look" aria-selected="false" aria-controls="panel-look" data-i18n="optTabLook"></button>

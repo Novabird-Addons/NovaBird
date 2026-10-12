@@ -16,10 +16,13 @@
   // Standardtext kurz unsichtbar halten, bis die Konversation da ist (kein Aufblitzen und Ersetzen); nach 1,5 s wird er in jedem Fall gezeigt
   const rootEl = document.documentElement;
   // (das Verstecken selbst macht view.css von Anfang an, ohne Aufblitzen; hier wird nur wieder gezeigt)
+  // Lesebereich wieder sichtbar machen: das Experiment versteckt ihn vor dem Laden einer anderen Mail (kein Aufblitzen des Originals)
+  const revealPane = () => api.runtime.sendMessage({ type: "reveal" }).catch(() => {});
   const unpend = () => {
     if (rootEl.classList.contains("nbc-shown")) return;
     if (document.body) document.body.style.transition = "opacity 90ms";
     rootEl.classList.add("nbc-shown");
+    revealPane();
   };
   setTimeout(unpend, 1500);
   // kleiner Hinweis, solange die Konversation gesucht wird (der normale Text bleibt sichtbar)
@@ -743,6 +746,8 @@
   }
   document.body.append(root);
   rootEl.classList.add("nbc-shown");
+  // erst aufdecken, wenn die Ansicht einmal gezeichnet ist (der Bereich ist nur durchsichtig, gezeichnet wird weiter)
+  requestAnimationFrame(() => revealPane());
   // Einblenden: Kopf und Karten steigen kurz auf und blenden ein, die ersten leicht versetzt (nur wenn eingestellt und vom System nicht unerwünscht).
   // Start erst, wenn das Dokument wirklich gezeichnet wird (requestAnimationFrame läuft nicht, solange der Lesebereich nicht sichtbar ist),
   // sonst ist die Animation vorbei, bevor Betterbird den Bereich zeigt.

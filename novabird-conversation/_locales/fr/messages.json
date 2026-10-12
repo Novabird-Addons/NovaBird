@@ -368,5 +368,20 @@
   },
   "selfTest_gloda": {
     "message": "Recherche via l’index Gloda (solution de repli sans NovaBird-DB)"
+  },
+  "otherConvText": {
+    "message": "« Thunderbird Conversations » est également actif. Les deux modules s’insèrent dans l’affichage des messages et se gênent mutuellement ; mieux vaut n’en utiliser qu’un."
+  },
+  "otherConvDisable": {
+    "message": "Désactiver Thunderbird Conversations"
+  },
+  "otherConvLater": {
+    "message": "Plus tard"
+  },
+  "otherConvDone": {
+    "message": "Thunderbird Conversations est désactivé (réactivable à tout moment dans le gestionnaire de modules). Un redémarrage de Betterbird est recommandé."
+  },
+  "selfTest_noFlicker": {
+    "message": "Masquer le volet de lecture lors du changement de message (l’original peut apparaître brièvement)"
   }
 }
