@@ -64,7 +64,7 @@ These work equally in English, German, French and Spanish:
 
 Understood: people (from, to, "from me"), periods (yesterday, last week, in May 2025, between …), attachments (with PDF, without attachment), status, folders, "or" and negation ("without"). German compound words are found ("Speiseplan" finds "Wochenspeiseplan").
 
-**Search language:** the default is the language of Betterbird. For mixed mailboxes you can enable several languages in the NovaBird-DB settings (short ambiguous words such as "an" may then be misread). French and Spanish are not yet reviewed by native speakers.
+**Search language:** the default is English plus the language of Betterbird (German Betterbird: German and English). You can change this in the NovaBird-DB settings; with several languages, short ambiguous words such as "an" may be misread. French and Spanish are not yet reviewed by native speakers.
 
 ## 5. Reading conversations (NovaBird-Conversation)
 

@@ -4,7 +4,8 @@ Entries on `testing` are not released yet; releases are tagged `vX.Y.Z` on `main
 
 ## Unreleased (`testing`)
 
-### NovaBird-DB 1.2.1 / 1.2.2
+### NovaBird-DB 1.2.1 to 1.2.3
+- 1.2.3: the default search languages are now English plus the language of Betterbird (if supported), so mixed English/own-language mailboxes work out of the box. A saved language choice is not changed.
 - 1.2.2: indexing no longer hangs on a single broken message or folder. A message that is not read within 5 s is stored with headers only, three in a row make the indexer give up that folder and continue with the next one (it is retried on the next run), and loading a folder list is limited to 60 s. A watchdog writes "No progress for N s" with the folder and step to the log, together with the hint to repair the folder first. New option "Detailed index log" (off by default).
 - Folders without offline storage (IMAP "always online", e.g. Gmail) are indexed with headers only and are done after one pass. They are no longer read again on every start, and neither the folder reconcile nor the weekly deep check re-reads them when the message count changes (new mail arrives through events and the date-based catch-up). Fixes [#1](https://github.com/Novabird-Addons/NovaBird/issues/1).
 - If the offline-storage setting of a folder changes, the folder is read once more so the message texts reach the index.

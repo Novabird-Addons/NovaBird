@@ -64,7 +64,7 @@ Beispiele, die gleichwertig in Deutsch, Englisch, Französisch und Spanisch funk
 
 Verstanden werden Personen (von, an, „von mir“), Zeiträume (gestern, letzte Woche, im Mai 2025, zwischen …), Anhänge (mit PDF, ohne Anhang), Status, Ordner, „oder“ und Verneinung („ohne“). Zusammengesetzte deutsche Wörter werden gefunden („Speiseplan“ findet „Wochenspeiseplan“).
 
-**Suchsprache:** Standard ist die Sprache von Betterbird. Für gemischte Postfächer lassen sich in den NovaBird-DB-Einstellungen mehrere Sprachen aktivieren (dann können kurze mehrdeutige Wörter wie „an“ falsch gedeutet werden). Französisch und Spanisch sind noch nicht von Muttersprachlern geprüft.
+**Suchsprache:** Standard sind Englisch und die Sprache von Betterbird (bei Deutsch also Deutsch und Englisch). In den NovaBird-DB-Einstellungen lässt sich das ändern; mit mehreren Sprachen können kurze mehrdeutige Wörter wie „an“ falsch gedeutet werden. Französisch und Spanisch sind noch nicht von Muttersprachlern geprüft.
 
 ## 5. Konversationen lesen (NovaBird-Conversation)
 

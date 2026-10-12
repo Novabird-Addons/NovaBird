@@ -239,7 +239,7 @@
     "message": "Search languages"
   },
   "optLangsHint": {
-    "message": "Search queries are understood as sentences in these languages, e.g. “invoices from Jonas last week”. The default is the language of Betterbird. Several languages are meant for mixed mailboxes; short words with several meanings (such as “an” in German and in English) may then be misread. The short syntax (from:, to:, von:, an: …) always works."
+    "message": "Search queries are understood as sentences in these languages, e.g. “invoices from Jonas last week”. The default is English plus the language of Betterbird (if supported). Several languages are meant for mixed mailboxes; short words with several meanings (such as “an” in German and in English) may then be misread. The short syntax (from:, to:, von:, an: …) always works."
   },
   "optHDebug": {
     "message": "Detailed index log"

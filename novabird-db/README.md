@@ -1,6 +1,6 @@
 # NovaBird-DB
 
-Eigener **SQLite-/FTS5-Suchindex** für **Betterbird** / Thunderbird ESR (ab 128), als Ersatz bzw. Verbesserung für Gloda. Version 1.2.2 · Deutsch, English, Français, Español. Arbeitet im Hintergrund; die Oberfläche liefern [NovaBird-Search](../novabird-search/) (Suche) und [NovaBird-Conversation](../novabird-conversation/) (Konversationen).
+Eigener **SQLite-/FTS5-Suchindex** für **Betterbird** / Thunderbird ESR (ab 128), als Ersatz bzw. Verbesserung für Gloda. Version 1.2.3 · Deutsch, English, Français, Español. Arbeitet im Hintergrund; die Oberfläche liefern [NovaBird-Search](../novabird-search/) (Suche) und [NovaBird-Conversation](../novabird-conversation/) (Konversationen).
 
 ## Funktionen
 - **Index** im Profil (`<Profil>/novabird-db/index.sqlite`) über **alle Konten und Ordner**; Erstaufbau mit Fortschrittsanzeige (75.000 Mails ≈ 6 Minuten), danach halten Ereignisse und ein sanfter Abgleich ihn aktuell. Nur lokal gespeicherte Mails werden mit Text gelesen (IMAP ohne Offline-Kopie nur Kopfdaten); keine Änderung am Mailbestand, kein Netzwerk.

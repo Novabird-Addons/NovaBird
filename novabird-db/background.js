@@ -51,10 +51,13 @@ const LOG_MAX = 2000;
 
 // Zusammensetzungen: "query" = Wortlisten-Erweiterung bei der Suche (Standard), "index" = Zerlegung beim Indexieren (terms_de)
 let compoundMode = "query";
-// Sprachen des Parsers für Freitext („Rechnungen von Jonas letzte Woche“): Standard = Sprache der Oberfläche, einstellbar
+// Sprachen des Parsers für Freitext („Rechnungen von Jonas letzte Woche“): Standard = Sprache der Oberfläche plus Englisch, einstellbar
 const PARSER_LANGS = ["de", "en", "fr", "es"];
 const uiLang = () => (messenger.i18n.getUILanguage() || "en").toLowerCase();
-const defaultParserLangs = () => [PARSER_LANGS.find((l) => uiLang().startsWith(l)) ?? "en"];
+const defaultParserLangs = () => {
+  const ui = PARSER_LANGS.find((l) => uiLang().startsWith(l)) ?? "en";
+  return ui === "en" ? ["en"] : [ui, "en"]; // Hauptsprache (Wortstämme) = Oberfläche, Englisch immer dazu
+};
 let parserLangs = defaultParserLangs();
 let termsVocab = null; // Set der Saatwörter (nur im Modus "index")
 let seedPassRunning = false;

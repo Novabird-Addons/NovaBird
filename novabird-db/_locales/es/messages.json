@@ -239,7 +239,7 @@
     "message": "Idiomas de búsqueda"
   },
   "optLangsHint": {
-    "message": "Las búsquedas se entienden como frases en estos idiomas, p. ej. «facturas de Jonas la semana pasada». Por defecto es el idioma de Betterbird. Varios idiomas son para buzones mixtos; las palabras cortas con varios significados (como «an» en alemán y en inglés) pueden entenderse mal. La sintaxis corta (de:, from:, para:, to: …) siempre funciona."
+    "message": "Las búsquedas se entienden como frases en estos idiomas, p. ej. «facturas de Jonas la semana pasada». Por defecto: inglés y el idioma de Betterbird (si es compatible). Varios idiomas son para buzones mixtos; las palabras cortas con varios significados (como «an» en alemán y en inglés) pueden entenderse mal. La sintaxis corta (de:, from:, para:, to: …) siempre funciona."
   },
   "optHDebug": {
     "message": "Registro de indexación detallado"

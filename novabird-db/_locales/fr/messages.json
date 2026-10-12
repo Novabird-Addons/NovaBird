@@ -239,7 +239,7 @@
     "message": "Langues de recherche"
   },
   "optLangsHint": {
-    "message": "Les recherches sont comprises comme des phrases dans ces langues, par ex. « factures de Jonas la semaine dernière ». Par défaut, c’est la langue de Betterbird. Plusieurs langues sont prévues pour les boîtes mixtes ; les mots courts à plusieurs sens (comme « an » en allemand et en anglais) peuvent alors être mal interprétés. La syntaxe courte (de:, from:, à:, to: …) fonctionne toujours."
+    "message": "Les recherches sont comprises comme des phrases dans ces langues, par ex. « factures de Jonas la semaine dernière ». Par défaut : l’anglais et la langue de Betterbird (si elle est prise en charge). Plusieurs langues sont prévues pour les boîtes mixtes ; les mots courts à plusieurs sens (comme « an » en allemand et en anglais) peuvent alors être mal interprétés. La syntaxe courte (de:, from:, à:, to: …) fonctionne toujours."
   },
   "optHDebug": {
     "message": "Journal d’indexation détaillé"
