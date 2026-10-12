@@ -343,6 +343,45 @@ async function fetchBody(key) {
   return { html: html ?? null, text: text ?? null, attachments };
 }
 
+// Konversation einer Nachricht suchen (mit Zwischenspeicher); laufende Suchen werden geteilt, damit das Vorabholen und `hello` nicht doppelt rechnen
+const lookups = new Map(); // Nachrichten-ID → Promise<entry>
+async function lookup(shown, timing = {}) {
+  let entry = convCache.get(shown.id);
+  if (entry && Date.now() - entry.at < CONV_TTL) {
+    timing.cached = true;
+    return entry;
+  }
+  let pending = lookups.get(shown.id);
+  if (!pending) {
+    pending = (async () => {
+      const viaIndex = (await findViaDb(shown, timing)) ?? (await findViaGloda(shown, timing));
+      let e;
+      if (viaIndex) {
+        e = { at: Date.now(), messages: viaIndex.messages, selectedKey: viaIndex.selectedKey };
+        idCache.set(viaIndex.selectedKey, shown.id); // die gewählte Nachricht kennen wir schon
+        for (const m of viaIndex.messages) convCache.set(m.id, e);
+      } else {
+        const messages = await findConversation(shown, timing);
+        timing.source = "query";
+        e = { at: Date.now(), messages, selectedKey: shown.id };
+        for (const m of messages) convCache.set(m.id, e);
+      }
+      convCache.set(shown.id, e);
+      return e;
+    })().finally(() => lookups.delete(shown.id));
+    lookups.set(shown.id, pending);
+  } else {
+    timing.shared = true;
+  }
+  return pending;
+}
+
+// Schon beim Anzeigen der Nachricht mit der Suche beginnen (noch bevor das Anzeigeskript im Dokument läuft): auf langsamen Rechnern
+// ist die Konversation dann fertig, wenn `hello` kommt.
+messenger.messageDisplay.onMessageDisplayed.addListener((tab, message) => {
+  if (message?.id != null) lookup(message).catch(() => {});
+});
+
 async function hello(tabId) {
   const tStart = Date.now();
   let shown = await messenger.messageDisplay.getDisplayedMessage(tabId);
@@ -352,23 +391,7 @@ async function hello(tabId) {
   }
   if (!shown) return null;
   const timing = { shownMs: Date.now() - tStart };
-  let entry = convCache.get(shown.id);
-  if (entry && Date.now() - entry.at < CONV_TTL) {
-    timing.cached = true;
-  } else {
-    const viaIndex = (await findViaDb(shown, timing)) ?? (await findViaGloda(shown, timing));
-    if (viaIndex) {
-      entry = { at: Date.now(), messages: viaIndex.messages, selectedKey: viaIndex.selectedKey };
-      idCache.set(viaIndex.selectedKey, shown.id); // die gewählte Nachricht kennen wir schon
-      for (const m of viaIndex.messages) convCache.set(m.id, entry);
-    } else {
-      const messages = await findConversation(shown, timing);
-      timing.source = "query";
-      entry = { at: Date.now(), messages, selectedKey: shown.id };
-      for (const m of messages) convCache.set(m.id, entry);
-    }
-    convCache.set(shown.id, entry);
-  }
+  const entry = await lookup(shown, timing);
   const { messages, selectedKey } = entry;
   timing.candidates = messages.length;
   if (messages.length < 2 && !settings.alwaysRender) return null;

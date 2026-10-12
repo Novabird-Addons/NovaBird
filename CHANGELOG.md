@@ -4,7 +4,8 @@ Entries on `testing` are not released yet; releases are tagged `vX.Y.Z` on `main
 
 ## Unreleased (`testing`)
 
-### NovaBird-DB 1.2.1
+### NovaBird-DB 1.2.1 / 1.2.2
+- 1.2.2: indexing no longer hangs on a single broken message or folder. A message that is not read within 5 s is stored with headers only, three in a row make the indexer give up that folder and continue with the next one (it is retried on the next run), and loading a folder list is limited to 60 s. A watchdog writes "No progress for N s" with the folder and step to the log, together with the hint to repair the folder first. New option "Detailed index log" (off by default).
 - Folders without offline storage (IMAP "always online", e.g. Gmail) are indexed with headers only and are done after one pass. They are no longer read again on every start, and neither the folder reconcile nor the weekly deep check re-reads them when the message count changes (new mail arrives through events and the date-based catch-up). Fixes [#1](https://github.com/Novabird-Addons/NovaBird/issues/1).
 - If the offline-storage setting of a folder changes, the folder is read once more so the message texts reach the index.
 - Virtual folders (saved searches, unified folders such as "All inboxes") are no longer indexed; their mails are already indexed in their real folders.
@@ -21,6 +22,7 @@ Entries on `testing` are not released yet; releases are tagged `vX.Y.Z` on `main
 - Nova-Contact: an active tag filter is shown as a chip next to the Tags button (with ✕ to clear) instead of as text in the search field. Typing in the search field replaces the tag filter.
 - Nova-Contact: the contact detail view now says "Tags" instead of "Categories" and also shows tags that are stored only on this computer (Google/CardDAV address books), with a small note that they are not synchronised.
 
-### NovaBird-Conversation 0.14.2 / 0.14.3
+### NovaBird-Conversation 0.14.2 to 0.14.4
 - Fix: selecting a collapsed thread in the message list showed Betterbird's own thread summary instead of the conversation view. Now the message of the selected row is shown, so the conversation view works without expanding the thread first. Real multi-selection is unchanged.
 - 0.14.3: hovering the sender name shows the email address; right-click on the name offers "Copy email address".
+- 0.14.4: less flicker when switching messages on slow computers. The conversation lookup now starts as soon as the message is displayed (before the view script runs), and the original text stays hidden for up to 1.5 s (was 0.45 s) so Betterbird's own message view no longer flashes up before the conversation.

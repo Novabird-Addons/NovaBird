@@ -13,7 +13,7 @@
   if (document.getElementById("nbc-root")) return;
 
   const T0 = performance.now();
-  // Standardtext kurz unsichtbar halten, bis die Konversation da ist (kein Aufblitzen und Ersetzen); nach 250 ms wird er in jedem Fall gezeigt
+  // Standardtext kurz unsichtbar halten, bis die Konversation da ist (kein Aufblitzen und Ersetzen); nach 1,5 s wird er in jedem Fall gezeigt
   const rootEl = document.documentElement;
   // (das Verstecken selbst macht view.css von Anfang an, ohne Aufblitzen; hier wird nur wieder gezeigt)
   const unpend = () => {
@@ -21,7 +21,7 @@
     if (document.body) document.body.style.transition = "opacity 90ms";
     rootEl.classList.add("nbc-shown");
   };
-  setTimeout(unpend, 450);
+  setTimeout(unpend, 1500);
   // kleiner Hinweis, solange die Konversation gesucht wird (der normale Text bleibt sichtbar)
   const hint = document.createElement("div");
   hint.id = "nbc-hint";

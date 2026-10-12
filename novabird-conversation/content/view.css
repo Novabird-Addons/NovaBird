@@ -86,8 +86,8 @@ body.nbc-on { overflow: hidden; font: message-box; font-size: 13px; line-height:
 .nbc-style-thread .nbc-sep { margin-left: 100px; border-top-style: dashed; }
 
 @keyframes nbc-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-/* Standardtext von Anfang an unsichtbar (kein Aufblitzen); zeigt die Ansicht nichts an, erscheint er spätestens nach 450 ms von selbst */
-html:not(.nbc-shown) body:not(.nbc-on) { opacity: 0; animation: nbc-reveal 1ms 450ms forwards; }
+/* Standardtext von Anfang an unsichtbar (kein Aufblitzen); zeigt die Ansicht nichts an, erscheint er spätestens nach 1,5 s von selbst (langsame Rechner brauchen für die Suche länger) */
+html:not(.nbc-shown) body:not(.nbc-on) { opacity: 0; animation: nbc-reveal 1ms 1500ms forwards; }
 @keyframes nbc-reveal { to { opacity: 1; } }
 
 /* Hinweis „externe Inhalte blockiert“ (gelb) mit Optionen-Menü */

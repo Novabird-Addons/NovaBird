@@ -344,3 +344,62 @@ describe("Ordner ohne Offline-Speicher und virtuelle Ordner", () => {
     expect((await search(db, caps, "Wartungsfenster")).rows.length).toBe(1);
   });
 });
+
+describe("Hänger: Zeitgrenzen und Wächter", () => {
+  const capture = () => {
+    const lines = [];
+    const log = { info: (...a) => lines.push(["info", a.join(" ")]), warn: (...a) => lines.push(["warn", a.join(" ")]), error: (...a) => lines.push(["error", a.join(" ")]) };
+    return { lines, log };
+  };
+  const never = () => new Promise(() => {});
+
+  it("eine hängende Mail wird nach der Zeitgrenze als Kopfdaten übernommen, der Lauf geht weiter", async () => {
+    const { lines, log } = capture();
+    const { fake, indexer, count } = await setup({ log, limits: { mail: 30, watch: 1000 } });
+    fake.addMessage("inbox", { subject: "gut eins", body: "Text" });
+    const bad = fake.addMessage("inbox", { subject: "hängt", body: "Text" });
+    fake.addMessage("inbox", { subject: "gut zwei", body: "Text" });
+    const orig = fake.api.messages.listInlineTextParts;
+    fake.api.messages.listInlineTextParts = (id) => (id === bad.id ? never() : orig(id));
+    await indexer.fullRun();
+    expect(await count()).toBe(3);
+    expect(await count("body_hash = 'headers-only'")).toBe(1);
+    expect(lines.some(([l, t]) => l === "warn" && t.includes("hängt"))).toBe(true);
+  });
+
+  it("mehrere Hänger nacheinander: Ordner wird aufgegeben, der nächste Ordner läuft", async () => {
+    const { lines, log } = capture();
+    const { fake, indexer, count, db } = await setup({ log, limits: { mail: 20, watch: 1000, stuck: 3 } });
+    const hung = new Set();
+    for (let i = 0; i < 6; i++) hung.add(fake.addMessage("inbox", { subject: `kaputt ${i}`, body: "x" }).id);
+    fake.addMessage("sent", { subject: "gesund", body: "Text" });
+    const orig = fake.api.messages.listInlineTextParts;
+    fake.api.messages.listInlineTextParts = (id) => (hung.has(id) ? never() : orig(id));
+    await indexer.fullRun();
+    expect(lines.some(([l, t]) => l === "error" && t.includes("Ordner fehlgeschlagen") && t.includes("reparieren"))).toBe(true);
+    expect((await db.select("SELECT COUNT(*) FROM messages WHERE subject = 'gesund'", [], ["n"]))[0].n).toBe(1);
+    const [st] = await db.select("SELECT done FROM index_state WHERE folder_id = ?", ["account1://INBOX"], ["done"]).catch(() => [undefined]);
+    expect(st?.done ?? 0).toBe(0); // nicht fertig: wird beim nächsten Lauf erneut versucht
+  });
+
+  it("hängende Ordnerliste: Zeitgrenze und Wächter melden sich im Protokoll", async () => {
+    const { lines, log } = capture();
+    const { fake, indexer } = await setup({ log, limits: { page: 120, stall: 40, watch: 20 } });
+    fake.addMessage("inbox", { subject: "a", body: "x" });
+    const orig = fake.api.messages.list;
+    fake.api.messages.list = async (folderId) => (folderId === "account1://INBOX" ? never() : orig(folderId));
+    await indexer.fullRun();
+    expect(lines.some(([l, t]) => l === "warn" && t.includes("Keine Fortschritte") && t.includes("reparieren"))).toBe(true);
+    expect(lines.some(([l, t]) => l === "error" && t.includes("Ordner fehlgeschlagen"))).toBe(true);
+  });
+
+  it("Debug-Protokoll nur auf Wunsch", async () => {
+    for (const debug of [false, true]) {
+      const { lines, log } = capture();
+      const { fake, indexer } = await setup({ log, debug });
+      fake.addMessage("inbox", { subject: "a", body: "x" });
+      await indexer.fullRun();
+      expect(lines.some(([, t]) => t.includes("Seite fertig"))).toBe(debug);
+    }
+  });
+});

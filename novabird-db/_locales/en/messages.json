@@ -240,5 +240,14 @@
   },
   "optLangsHint": {
     "message": "Search queries are understood as sentences in these languages, e.g. “invoices from Jonas last week”. The default is the language of Betterbird. Several languages are meant for mixed mailboxes; short words with several meanings (such as “an” in German and in English) may then be misread. The short syntax (from:, to:, von:, an: …) always works."
+  },
+  "optHDebug": {
+    "message": "Detailed index log"
+  },
+  "optDebug": {
+    "message": "Detailed log while indexing"
+  },
+  "optDebugHint": {
+    "message": "Also logs every page and slow messages (duration, subject). Turn on only for troubleshooting, it makes the log longer. If indexing stalls, the watchdog reports it even without this option. For problems, first repair the affected folder (right-click → Properties → Repair Folder)."
   }
 }

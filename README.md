@@ -2,7 +2,7 @@
 
 <h1 align="center">NovaBird</h1>
 
-<p align="center"><b>A modern face and a much improved featureset for Betterbird.</b><br>
+<p align="center"><b>A modern face and a much improved featureset for Thunderbird/Betterbird.</b><br>
 A redesigned interface, one unified search bar on top of an upgraded database,<br>
 a real conversation view, undo-send and a calmer calendar and address book.</p>
 

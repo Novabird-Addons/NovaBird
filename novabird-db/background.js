@@ -45,6 +45,7 @@ let initialDone = false; // Erstlauf einmal vollständig durchgelaufen (erst dan
 let startedAt = 0;
 let lastProgress = { done: 0, total: null, folder: null }; // zuletzt gemeldeter Stand (auch nach Anhalten)
 let lastLogged = 0;
+let debugLog = false; // ausführliches Indexprotokoll (Seiten, langsame Mails), Standard aus
 let logSearches = true; // Suchprotokoll (nur lokal), Auswertung später für den Parser
 const LOG_MAX = 2000;
 
@@ -66,8 +67,9 @@ function sanitizeLangs(list) {
 }
 
 async function loadSettings() {
-  const s = await messenger.storage.local.get({ includeFolders: null, includeAccounts, logSearches, compoundMode: "query", parserLangs: null });
+  const s = await messenger.storage.local.get({ includeFolders: null, includeAccounts, logSearches, debugLog, compoundMode: "query", parserLangs: null });
   logSearches = s.logSearches;
+  debugLog = Boolean(s.debugLog);
   parserLangs = sanitizeLangs(s.parserLangs) ?? defaultParserLangs();
   compoundMode = s.compoundMode === "index" ? "index" : "query";
   includeAccounts = s.includeAccounts;
@@ -262,6 +264,7 @@ async function init() {
     caps,
     log: dlog,
     termsVocab: () => (compoundMode === "index" ? termsVocab : null),
+    debug: debugLog,
     isExcluded,
     onProgress: (p) => {
       const phaseBefore = status.phase;
@@ -567,6 +570,7 @@ async function fullStatus() {
     termsFts: Boolean(caps?.termsFts),
     termsVocab: termsVocab?.size ?? 0,
     logSearches,
+    debugLog,
     lastCatchUp,
     paused: status.phase === "stopped",
     status,
@@ -710,6 +714,11 @@ messenger.runtime.onMessage.addListener((msg) => {
         logSearches = Boolean(msg.on);
         await messenger.storage.local.set({ logSearches });
         return { logSearches };
+      case "novabird-db:setDebug":
+        debugLog = Boolean(msg.on);
+        if (indexer) indexer.debug = debugLog;
+        await messenger.storage.local.set({ debugLog });
+        return { debugLog };
       default:
         return undefined;
     }

@@ -29,6 +29,7 @@ async function refresh() {
     }),
   );
   $("logging").checked = Boolean(s.logSearches);
+  $("debugLog").checked = Boolean(s.debugLog);
   const cm = $("compoundMode");
   if (document.activeElement !== cm) cm.value = s.compoundMode === "index" ? "index" : "query";
   cm.disabled = !s.termsFts;
@@ -85,6 +86,7 @@ $("langs").addEventListener("change", async () => {
   refresh();
 });
 $("logging").addEventListener("change", () => send({ type: "novabird-db:setLogging", on: $("logging").checked }));
+$("debugLog").addEventListener("change", () => send({ type: "novabird-db:setDebug", on: $("debugLog").checked }));
 $("clearLog").addEventListener("click", async () => {
   if (!confirm(t("optConfirmClearLog"))) return;
   await send({ type: "novabird-db:clearLog" });
