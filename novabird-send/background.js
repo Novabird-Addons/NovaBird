@@ -54,6 +54,15 @@ async function syncPending() {
   await messenger.undoOverlay.setPendingCount(count);
 }
 
+// Verfassen-Fenster wieder zeigen; darf selbst nie werfen (sonst bleibt die Warteschlange stehen)
+async function showWindow(windowId) {
+  try {
+    await messenger.undoOverlay.showComposeWindow(windowId);
+  } catch (e) {
+    console.error("NovaBird-Send: Fenster konnte nicht gezeigt werden", e);
+  }
+}
+
 function clearTimer() {
   if (timer) {
     clearTimeout(timer);
@@ -65,7 +74,6 @@ console.log("NovaBird-Send: Hintergrundskript gestartet, undoOverlay =", typeof 
 
 // 1) Senden abfangen
 messenger.compose.onBeforeSend.addListener(async (tab, details) => {
-  console.log("NovaBird-Send: onBeforeSend", tab.id, details.subject);
   try {
     return await onBeforeSend(tab, details);
   } catch (e) {
@@ -89,12 +97,13 @@ async function onBeforeSend(tab, details) {
     return {};
   }
 
+  // Erst verstecken, dann einreihen: scheitert das Verstecken, sendet Betterbird normal und nichts bleibt in der Warteschlange
+  await messenger.undoOverlay.hideComposeWindow(tab.windowId);
   queue.push({
     tabId: tab.id,
     windowId: tab.windowId,
     subject: details.subject?.trim() || i18n("noSubject"),
   });
-  await messenger.undoOverlay.hideComposeWindow(tab.windowId);
   await syncPending();
 
   if (!active) {
@@ -111,20 +120,33 @@ async function startNext() {
   if (shuttingDown) {
     return;
   }
-  active = queue.shift() || null;
-  await syncPending();
-  if (!active) {
-    await messenger.undoOverlay.hideOverlay();
-    return;
+  const item = (active = queue.shift() || null);
+  try {
+    await syncPending();
+    if (!item) {
+      await messenger.undoOverlay.hideOverlay();
+      return;
+    }
+    const { delay: seconds } = await getSettings();
+    await applyStyle().catch(e => console.error("NovaBird-Send: Stil setzen fehlgeschlagen", e));
+    await messenger.undoOverlay.showOverlay({
+      subject: item.subject,
+      seconds,
+      queued: queue.length,
+    });
+    // Inzwischen anders erledigt (Fenster geschlossen): keinen zweiten Timer setzen
+    if (active === item) {
+      timer = setTimeout(sendActive, seconds * 1000);
+    }
+  } catch (e) {
+    // Ohne Countdown bliebe die Mail unsichtbar: Fenster zurückgeben, mit der nächsten weitermachen
+    console.error("NovaBird-Send: Countdown konnte nicht starten", e);
+    if (item && active === item) {
+      active = null;
+      await showWindow(item.windowId);
+      await startNext();
+    }
   }
-  const { delay: seconds } = await getSettings();
-  await applyStyle().catch(e => console.error("NovaBird-Send: Stil setzen fehlgeschlagen", e));
-  await messenger.undoOverlay.showOverlay({
-    subject: active.subject,
-    seconds,
-    queued: queue.length,
-  });
-  timer = setTimeout(sendActive, seconds * 1000);
 }
 
 // Rückmeldung mit OK-Button, wenn eine Mail nicht gesendet werden konnte
@@ -157,10 +179,10 @@ async function sendActive() {
   let finished;
   sendPromise = new Promise(resolve => (finished = resolve));
   const item = active;
-  await messenger.undoOverlay.setSending();
   approved.add(item.tabId);
   let watchdog = null;
   try {
+    await messenger.undoOverlay.setSending().catch(e => console.error("NovaBird-Send: Overlay-Status", e));
     // Offline geworden, seit der Countdown läuft: Fenster zurückholen statt zu senden.
     const info = await messenger.undoOverlay.getSendInfo(item.windowId);
     if (info.offline) {
@@ -179,14 +201,15 @@ async function sendActive() {
     console.error("NovaBird-Send: Versand fehlgeschlagen", e);
     approved.delete(item.tabId);
     // Fenster zurückholen, damit Fehlermeldung und Mail sichtbar sind
-    await messenger.undoOverlay.showComposeWindow(item.windowId);
-    await notify(item, e);
+    await showWindow(item.windowId);
+    await notify(item, e).catch(err => console.error("NovaBird-Send: Hinweis", err));
   } finally {
+    // Immer aufräumen: sonst blieben Warteschlange und Beenden (wartet auf sendPromise) hängen
     clearTimeout(watchdog);
+    sending = false;
+    active = null;
+    finished();
   }
-  sending = false;
-  active = null;
-  finished();
   await startNext();
 }
 
@@ -198,7 +221,7 @@ async function undoActive() {
   clearTimer();
   const item = active;
   active = null;
-  await messenger.undoOverlay.showComposeWindow(item.windowId);
+  await showWindow(item.windowId);
   await startNext();
 }
 
@@ -232,7 +255,8 @@ messenger.undoOverlay.onShutdownRequested.addListener(async kind => {
   const items = [...(active ? [active] : []), ...queue];
   active = null;
   queue = [];
-  await messenger.undoOverlay.hideOverlay();
+  // Nichts davon darf werfen: proceedShutdown muss immer erreicht werden
+  await messenger.undoOverlay.hideOverlay().catch(e => console.error("NovaBird-Send: Overlay", e));
 
   for (const item of items) {
     try {
@@ -240,10 +264,10 @@ messenger.undoOverlay.onShutdownRequested.addListener(async kind => {
       await messenger.windows.remove(item.windowId);
     } catch (e) {
       console.error("NovaBird-Send: Entwurf speichern fehlgeschlagen", e);
-      await messenger.undoOverlay.showComposeWindow(item.windowId);
+      await showWindow(item.windowId);
     }
   }
-  await syncPending();
+  await syncPending().catch(e => console.error("NovaBird-Send: Zähler", e));
   shuttingDown = false;
   await messenger.undoOverlay.proceedShutdown(kind);
 });

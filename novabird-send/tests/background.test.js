@@ -140,8 +140,18 @@ async function setup({ delay = 10, locale = "de" } = {}) {
       onShutdownRequested: ev("shutdown"),
       setPendingCount: async n => log.push(["pending", n]),
       getSendInfo: async () => ({ ...mocks.sendInfo }),
-      hideComposeWindow: async w => log.push(["hide", w]),
-      showComposeWindow: async w => log.push(["show", w]),
+      hideComposeWindow: async w => {
+        log.push(["hide", w]);
+        if (mocks.hideFails) {
+          throw new Error("verstecken geht nicht");
+        }
+      },
+      showComposeWindow: async w => {
+        log.push(["show", w]);
+        if (mocks.showFails) {
+          throw new Error("Fenster weg");
+        }
+      },
       getThemeColors: async () => mocks.theme,
       setStyle: async s => log.push(["style", plain(s)]),
       setStrings: async s => log.push(["strings", plain(s)]),
@@ -151,7 +161,12 @@ async function setup({ delay = 10, locale = "de" } = {}) {
           throw new Error("kein Fenster");
         }
       },
-      showOverlay: async d => log.push(["overlay", d.subject, d.seconds, d.queued]),
+      showOverlay: async d => {
+        log.push(["overlay", d.subject, d.seconds, d.queued]);
+        if (mocks.overlayFails?.(d.subject)) {
+          throw new Error("Overlay kaputt");
+        }
+      },
       setSending: async () => log.push(["setSending"]),
       updateQueued: async n => log.push(["queued", n]),
       hideOverlay: async () => log.push(["hideOverlay"]),
@@ -534,6 +549,64 @@ test("Fehlgeschlagener Hinweis blockiert die Warteschlange nicht", async () => {
   await t.clickSend(1, "Eins");
   await t.clickSend(2, "Zwei");
   await t.advance(10_000);
+  assert.deepEqual(t.calls("overlay").at(-1), ["overlay", "Zwei", 10, 0]);
+});
+
+test("Versandfehler und Fenster nicht zeigbar: Warteschlange läuft weiter", async () => {
+  const t = await setup();
+  t.mocks.showFails = true;
+  t.mocks.sendBehavior = async () => ({ error: "weg" });
+  await t.clickSend(1, "Eins");
+  await t.clickSend(2, "Zwei");
+  await t.advance(10_000);
+  assert.deepEqual(t.calls("overlay").at(-1), ["overlay", "Zwei", 10, 0]);
+  t.mocks.sendBehavior = async () => ({ messages: [], mode: "sendNow" });
+  await t.advance(10_000);
+  assert.deepEqual(t.calls("sendMessage").map(c => c[1]), [1, 2]);
+});
+
+test("Versandfehler und Fenster nicht zeigbar: Beenden hängt nicht", async () => {
+  const t = await setup();
+  t.mocks.showFails = true;
+  let release;
+  t.mocks.sendBehavior = () => new Promise(resolve => (release = () => resolve({ error: "weg" })));
+  await t.clickSend(1, "Eins");
+  await t.clickSend(2, "Zwei");
+  await t.advance(10_000); // Versand von "Eins" läuft
+  const shutdown = t.fire("shutdown", "quit");
+  release();
+  await shutdown;
+  assert.deepEqual(t.calls("proceedShutdown"), [["proceedShutdown", "quit"]]);
+  assert.deepEqual(t.calls("saveMessage"), [["saveMessage", 2, "draft"]]);
+});
+
+test("Overlay lässt sich nicht zeigen: Fenster kommt zurück, nächste Mail läuft", async () => {
+  const t = await setup();
+  t.mocks.overlayFails = subject => subject === "Eins";
+  const result = await t.clickSend(1, "Eins");
+  assert.deepEqual(plain(result), { cancel: true });
+  assert.deepEqual(t.calls("show"), [["show", 100]]);
+  await t.clickSend(2, "Zwei");
+  await t.advance(10_000);
+  assert.deepEqual(t.calls("sendMessage").map(c => c[1]), [2]);
+});
+
+test("Verstecken scheitert: Betterbird sendet normal, nichts bleibt in der Warteschlange", async () => {
+  const t = await setup();
+  t.mocks.hideFails = true;
+  const result = await t.clickSend(1, "Eins");
+  assert.deepEqual(plain(result), {});
+  assert.equal(t.calls("overlay").length, 0);
+  await t.advance(30_000);
+  assert.equal(t.calls("sendMessage").length, 0);
+});
+
+test("Rückgängig, Fenster nicht zeigbar: nächste Mail startet trotzdem", async () => {
+  const t = await setup();
+  t.mocks.showFails = true;
+  await t.clickSend(1, "Eins");
+  await t.clickSend(2, "Zwei");
+  await t.fire("undo");
   assert.deepEqual(t.calls("overlay").at(-1), ["overlay", "Zwei", 10, 0]);
 });
 

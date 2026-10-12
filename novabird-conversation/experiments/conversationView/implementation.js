@@ -78,7 +78,10 @@ function hookPane(cw) {
     }
     return orig.apply(this, args);
   };
-  hooked.set(cw, { mp, orig });
+  // Geschlossene Tabs austragen, sonst hielte die Liste ihre Fenster bis zum Neustart im Speicher
+  const onUnload = () => hooked.delete(cw);
+  cw.addEventListener("unload", onUnload, { once: true });
+  hooked.set(cw, { mp, orig, onUnload });
 }
 
 function scanThreads(win, tries = 0) {
@@ -108,7 +111,9 @@ function hookThreadWindow(win) {
     return;
   }
   const onTab = () => win.setTimeout(() => scanThreads(win), 300);
-  winHooks.set(win, { tm, onTab });
+  const onUnload = () => winHooks.delete(win);
+  winHooks.set(win, { tm, onTab, onUnload });
+  win.addEventListener("unload", onUnload, { once: true });
   tm.tabContainer.addEventListener("TabOpen", onTab);
   tm.tabContainer.addEventListener("TabSelect", onTab);
   scanThreads(win);
@@ -133,13 +138,15 @@ function stopThreadHook() {
     try {
       h.tm.tabContainer.removeEventListener("TabOpen", h.onTab);
       h.tm.tabContainer.removeEventListener("TabSelect", h.onTab);
+      win.removeEventListener("unload", h.onUnload);
     } catch (e) {
       /* Fenster schon geschlossen */
     }
   }
   winHooks.clear();
-  for (const [, h] of hooked) {
+  for (const [cw, h] of hooked) {
     try {
+      cw.removeEventListener("unload", h.onUnload);
       h.mp.displayMessages = h.orig;
     } catch (e) {
       /* Tab schon geschlossen */

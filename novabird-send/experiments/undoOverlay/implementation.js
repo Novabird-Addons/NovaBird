@@ -572,8 +572,7 @@ var undoOverlay = class extends ExtensionCommon.ExtensionAPI {
 };
 
 // onBeforeSend liefert den Sendemodus nicht mit. Deshalb merkt sich das Verfassen-Fenster
-// den Modus des letzten GenericSendMessage-Aufrufs (0 = jetzt, 1 = später senden).
-// PRÜFEN: Gibt es GenericSendMessage in Betterbird 153 noch als globale Funktion?
+// den Modus des letzten GenericSendMessage-Aufrufs (0 = jetzt, 1 = später senden; in Betterbird 153 vorhanden).
 function wrapCompose(win) {
   const original = win.GenericSendMessage;
   if (typeof original !== "function") {

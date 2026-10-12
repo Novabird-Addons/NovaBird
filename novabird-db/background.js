@@ -730,7 +730,9 @@ messenger.runtime.onMessage.addListener((msg) => {
   return run().catch((e) => ({ error: String(e?.message ?? e) }));
 });
 
-// Schnittstelle für andere Add-ons. Nur Absender aus ALLOWED_EXTERNAL; nur lesende Funktionen.
+// Schnittstelle für andere Add-ons. Nur Absender aus ALLOWED_EXTERNAL (je Absender erlaubte Befehle); lesend außer stop/resume
+// (Indexlauf anhalten/fortsetzen, ändert keine Daten). Die Absender-ID gibt ein Add-on selbst an: ein fremdes Add-on mit
+// derselben ID ginge nur, wenn das echte nicht installiert ist (bewusst hingenommen, ein solches Add-on könnte ohnehin mehr).
 //   {type:"ping"}                                   -> Status (siehe externalStatus)
 //   {type:"progress"}                               -> {indexing, paused, done, total, percent, folder}
 //   {type:"stop"} / {type:"resume"}                 -> Indexlauf anhalten bzw. fortsetzen

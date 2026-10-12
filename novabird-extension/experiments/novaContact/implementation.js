@@ -10,6 +10,7 @@ this.novaContact = (() => {
 const { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/ExtensionCommon.sys.mjs");
 const { ExtensionSupport } = ChromeUtils.importESModule("resource:///modules/ExtensionSupport.sys.mjs");
 const { MailServices } = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
+const ABQueryUtils = ChromeUtils.importESModule("resource:///modules/ABQueryUtils.sys.mjs");
 const { AddrBookCard } = ChromeUtils.importESModule("resource:///modules/AddrBookCard.sys.mjs");
 const { VCardProperties, VCardPropertyEntry } = ChromeUtils.importESModule("resource:///modules/VCardUtils.sys.mjs");
 
@@ -46,7 +47,6 @@ const CSS = `
 #kp-dlg label { display: flex; flex-direction: column; gap: 3px; font-size: .92em; }
 #kp-dlg .kp-clear { flex-direction: row; align-items: center; gap: 6px; opacity: .8; }
 #kp-dlg input[type=text] { padding: 5px 8px; }
-search-bar[kp-chip] { -webkit-text-fill-color: transparent; }
 #kp-chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 4px 1px 8px; border-radius: 999px; font-size: .92em; background: color-mix(in srgb, var(--selected-item-color, Highlight) 18%, transparent); border: 1px solid color-mix(in srgb, var(--selected-item-color, Highlight) 45%, transparent); }
 #kp-chip[hidden] { display: none; }
 #kp-chip .kp-chip-x { border: 0; background: none; padding: 0 4px; cursor: pointer; color: inherit; font: inherit; opacity: .7; }
@@ -106,18 +106,33 @@ function nameOf(card) {
 const LOCAL_DIR_TYPE = 101;
 const tagStore = new Map(); // "<dirUID>|<UID>" -> [Tags]
 let tagStoreFile = null;
+let tagStoreSaving = null; // Lade-/Schreibkette: Schreiben erst nach dem Laden, nie zwei Schreibvorgänge gleichzeitig
 function storeKey(card) { return card.directoryUID + "|" + card.UID; }
 function isStoreCard(card) { const d = dirOf(card); return !!d && d.dirType !== LOCAL_DIR_TYPE; }
+async function readTagFile(path) {
+  return (await IOUtils.exists(path)) ? IOUtils.readJSON(path) : null;
+}
+/* Die Tags gibt es nur in dieser Datei. Ist sie unlesbar, wird sie als .defekt beiseitegelegt und die Sicherung (.bak,
+   vom letzten Schreiben) geladen – nie mit leerem Speicher weiterarbeiten und die Datei beim nächsten Speichern überschreiben. */
 async function loadTagStore() {
+  tagStoreFile = PathUtils.join(PathUtils.profileDir, "novabird-extension-tags.json");
+  tagStore.clear();
+  let data = null;
   try {
-    tagStoreFile = PathUtils.join(PathUtils.profileDir, "novabird-extension-tags.json");
-    tagStore.clear();
-    if (await IOUtils.exists(tagStoreFile)) for (const [k, v] of Object.entries(await IOUtils.readJSON(tagStoreFile))) tagStore.set(k, v);
-  } catch (e) { console.error("Nova-Contact Tag-Speicher:", e); }
+    data = await readTagFile(tagStoreFile);
+  } catch (e) {
+    console.error("Nova-Contact Tag-Speicher unlesbar, lade Sicherung:", e);
+    try { await IOUtils.copy(tagStoreFile, tagStoreFile + ".defekt"); } catch (e2) { console.error("Nova-Contact Tag-Speicher:", e2); }
+    try { data = await readTagFile(tagStoreFile + ".bak"); } catch (e2) { console.error("Nova-Contact Tag-Sicherung unlesbar:", e2); }
+  }
+  if (data && typeof data === "object") for (const [k, v] of Object.entries(data)) if (Array.isArray(v)) tagStore.set(k, v);
 }
 function saveTagStore() {
-  if (!tagStoreFile) return;
-  IOUtils.writeJSON(tagStoreFile, Object.fromEntries(tagStore)).catch(e => console.error("Nova-Contact Tag-Speicher:", e));
+  if (!tagStoreSaving) return;
+  // Atomar (Zwischendatei, dann umbenennen); der vorige Stand bleibt als .bak
+  tagStoreSaving = tagStoreSaving
+    .then(() => IOUtils.writeJSON(tagStoreFile, Object.fromEntries(tagStore), { tmpPath: tagStoreFile + ".tmp", backupFile: tagStoreFile + ".bak" }))
+    .catch(e => console.error("Nova-Contact Tag-Speicher:", e));
 }
 function vcardTags(card) {
   const v = card.vCardProperties?.getFirstValue("categories");
@@ -303,7 +318,8 @@ function build(cw) {
   doc.addEventListener("mousedown", e => { if (!pop.hidden && !pop.contains(e.target) && !e.target.closest?.("#kp-bar")) closePop(); }, true);
   doc.addEventListener("keydown", e => { if (e.key === "Escape") { closePop(); closeDialog(); } }, true);
 
-  /* Aktiver Tag-Filter als Chip (statt Text im Suchfeld) */
+  /* Aktiver Tag-Filter als Chip. Das Suchfeld bleibt frei für Namen/Adressen: cardsPane.getQuery wird so umhüllt, dass der Tag
+     als zusätzliches Suchwort (UND) in jede Suche des Adressbuchs eingeht (Wechsel des Buchs, Tippen im Suchfeld). */
   let activeTag = "";
   const chipLabel = el(doc, "span", {});
   const chip = el(doc, "span", { id: "kp-chip", hidden: true }, "🏷 ", chipLabel,
@@ -311,13 +327,14 @@ function build(cw) {
   const syncChip = () => {
     chip.hidden = !activeTag;
     chipLabel.textContent = activeTag;
-    if (activeTag) cards.searchInput.setAttribute("kp-chip", ""); else cards.searchInput.removeAttribute("kp-chip");
   };
-  // Eigene Eingabe im Suchfeld ersetzt den Tag-Filter
-  cards.searchInput.addEventListener("focusin", () => { if (activeTag) applyFilter(""); });
-  cards.searchInput.addEventListener("search", () => {
-    if (activeTag && (cards.searchInput.value || "").trim().toLowerCase() !== activeTag.toLowerCase()) { activeTag = ""; syncChip(); }
-  });
+  const origGetQuery = cards.getQuery;
+  cards.getQuery = function () {
+    if (!activeTag) return origGetQuery.call(this);
+    const words = [...ABQueryUtils.getSearchTokens(this.searchInput.value || ""), ...ABQueryUtils.getSearchTokens(activeTag)];
+    cw.setTimeout(() => addStoredMatches(), 600); // wird bei jeder neuen Suche aufgerufen: lokal gespeicherte Online-Treffer ergänzen
+    return ABQueryUtils.generateQueryURI(ABQueryUtils.getModelQuery("mail.addr_book.quicksearchquery.format"), words);
+  };
 
   /* Tags-Auswahl */
   const btnTags = el(doc, "button", { class: "button button-flat", type: "button", onclick: () => {
@@ -333,19 +350,16 @@ function build(cw) {
   } }, "🏷 ", T("Tags", "Tags", "Tags", "Etiquetas"), " ▾");
   function applyFilter(t) {
     closePop();
-    const si = cards.searchInput;
-    si.blur();
     activeTag = t || "";
     syncChip();
-    if (t) si.overrideSearchTerm(t); else si.reset();
-    if (t) cw.setTimeout(() => addStoredMatches(t), 400);
+    cards._onAutocomplete(); // Ansicht mit der neuen Anfrage neu aufbauen
   }
   /* Kontakte aus Online-Adressbüchern, deren Tag nur lokal gespeichert ist, zur gefilterten Liste hinzufügen */
-  function addStoredMatches(t) {
+  function addStoredMatches() {
     try {
-      const view = cards.cardsList.view, want = t.toLowerCase();
-      const cur = (cards.searchInput.value || "").trim().toLowerCase();
-      if (cur !== want) return;
+      if (!activeTag) return;
+      const view = cards.cardsList.view, want = activeTag.toLowerCase();
+      const typed = ABQueryUtils.getSearchTokens(cards.searchInput.value || "").map(x => x.toLowerCase());
       const bl = cw.booksList, row = bl && [...bl.querySelectorAll("li")][bl.selectedIndex];
       const shown = MailServices.ab.directories.find(d => d.UID === row?.dataset?.uid) || null; // null = alle Adressbücher
       for (const dir of MailServices.ab.directories) {
@@ -353,6 +367,10 @@ function build(cw) {
         if (shown && shown.UID !== dir.UID) continue;
         for (const card of dir.childCards) {
           if (card.isMailList || !tagStore.get(storeKey(card))?.some(x => x.toLowerCase() === want)) continue;
+          if (typed.length) {
+            const text = (card.vCardProperties.toVCard() + " " + card.displayName).toLowerCase();
+            if (!typed.every(w => text.includes(w))) continue;
+          }
           if (view.getIndexForUID(card.UID) < 0) view.onSearchFoundCard(card);
         }
       }
@@ -470,7 +488,7 @@ function build(cw) {
     btnUndo.disabled = !undoStack.length;
     btnUndo.replaceChildren("↶ ", T("Rückgängig", "Undo", "Annuler", "Deshacer"), undoStack.length ? " (" + undoStack.length + ")" : "");
   };
-  const view = { cw, doc, refresh, bar, style, pop, back };
+  const view = { cw, doc, refresh, bar, style, pop, back, restoreQuery: () => { cards.getQuery = origGetQuery; } };
   views.add(view);
   hookDetails(view);
   { const cur = cw.detailsPane?.currentCard; if (cur) fixCategories(doc, cur); }
@@ -482,7 +500,7 @@ function build(cw) {
 }
 
 function unbuild(view) {
-  view.cw.document.getElementById("searchInput")?.removeAttribute("kp-chip");
+  try { view.restoreQuery(); } catch (e) { /* Tab geschlossen */ }
   unhookDetails(view);
   view.bar.remove(); view.style.remove(); view.pop.remove(); view.back.remove();
   view.doc.getElementById("kp-open")?.remove();
@@ -543,7 +561,7 @@ const API = class extends ExtensionCommon.ExtensionAPI {
 function startAll() {
   if (started) return;
   started = true;
-  loadTagStore();
+  tagStoreSaving = loadTagStore().catch(e => console.error("Nova-Contact Tag-Speicher:", e));
   Services.obs.addObserver(observer, "addrbook-contact-updated");
   Services.obs.addObserver(observer, "addrbook-contact-deleted");
   ExtensionSupport.registerWindowListener(LISTENER, {
