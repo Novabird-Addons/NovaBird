@@ -18,6 +18,9 @@ Entries on `testing` are not released yet; releases are tagged `vX.Y.Z` on `main
 - Messages in an online-only folder that are downloaded individually still get their text.
 - Mails filed into an online-only folder with an old date (server rules, moves on another device) are only picked up by "Rebuild index" / a full run.
 
+### Themes: Sand 1.0.1, Cobalt 1.0.3, Springlight 1.7.3
+- Windows: no more wide border/shadow around menus and context menus (the shadow did not fit into the space Windows reserves for it and was cut off). Menus keep their 1 px frame and rounded corners. Background: `docs/windows-menue-rand.md`.
+
 ### NovaBird-Send 1.0.3
 - Fix: if showing the compose window again failed after a send error (or on undo), the queue stopped and Betterbird could not quit (it waited for the send forever). The queue now always continues and quitting is never blocked; if the undo bar cannot be shown, the compose window comes back instead of staying hidden.
 - The compose window is hidden before the mail is queued, so a failure there lets Betterbird send normally without a second attempt later.
