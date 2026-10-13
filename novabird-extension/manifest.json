@@ -90,6 +90,20 @@
         ],
         "script": "experiments/messageList/implementation.js"
       }
+    },
+    "mailRules": {
+      "schema": "experiments/mailRules/schema.json",
+      "parent": {
+        "scopes": [
+          "addon_parent"
+        ],
+        "paths": [
+          [
+            "mailRules"
+          ]
+        ],
+        "script": "experiments/mailRules/implementation.js"
+      }
     }
   },
   "permissions": [

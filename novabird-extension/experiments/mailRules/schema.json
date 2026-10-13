@@ -1,0 +1,16 @@
+[
+  {
+    "namespace": "mailRules",
+    "functions": [
+      { "name": "selfTest", "type": "function", "async": true, "description": "Selbsttest: {app, version, missing:[…], pending}.", "parameters": [] },
+      { "name": "listAccounts", "type": "function", "async": true, "description": "Konten mit Filtern: [{key, name, type, hasInbox}].", "parameters": [] },
+      { "name": "listFolders", "type": "function", "async": true, "description": "Ordner, in die verschoben werden kann: [{uri, name, path, account, accountName, special}].", "parameters": [] },
+      { "name": "listTags", "type": "function", "async": true, "description": "Schlagwörter: [{key, name, color}].", "parameters": [] },
+      { "name": "listRules", "type": "function", "async": true, "description": "Alle Filter aller Konten, lesbar zerlegt.", "parameters": [] },
+      { "name": "preview", "type": "function", "async": true, "description": "Treffer der Bedingungen in den Posteingängen: {count, scanned, samples, partial}.",
+        "parameters": [ { "name": "spec", "type": "string" }, { "name": "limit", "type": "integer", "optional": true } ] },
+      { "name": "create", "type": "function", "async": true, "description": "Legt den Filter je Konto am Ende an (vorher Sicherung), optional sofort auf den Posteingang anwenden.",
+        "parameters": [ { "name": "spec", "type": "string" } ] }
+    ]
+  }
+]
