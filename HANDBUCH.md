@@ -12,7 +12,7 @@ NovaBird ist eine Familie von Add-ons für **Betterbird** (und Thunderbird ESR, 
 | **NovaBird-DB** | Eigener Suchindex (schnell, findet auch Wortteile und Sätze), Grundlage für Search und Conversation |
 | **NovaBird-Conversation** | Alle Nachrichten einer Konversation im Lesebereich |
 | **NovaBird-Send** | Senden mit Rückgängig-Fenster und Warteschlange |
-| **NovaBird-Extension** | Rechte Leiste (Termine, Aufgaben, Anhänge), Anhang-Vorschau, Nova-Contact, Einstellungen im neuen Stil |
+| **NovaBird-Extension** | Rechte Leiste (Termine, Aufgaben, Anhänge), Anhang-Vorschau, Nova-Contact, Regel-Assistent (Beta), Einstellungen im neuen Stil |
 | **NovaBird-Sand / -Cobalt / -Springlight** | Themes (hell und dunkel) |
 
 ## 2. Installieren
@@ -70,7 +70,7 @@ Verstanden werden Personen (von, an, „von mir“), Zeiträume (gestern, letzte
 
 Beim Öffnen einer Nachricht erscheinen **alle Nachrichten der Konversation** (über alle Ordner, auch Gesendet): die neueste oben fixiert, ältere darunter als Zeile mit Vorschau, ungelesene und die letzten aufgeklappt. Ein Klick klappt auf oder zu.
 
-- **Je Nachricht:** Antworten, Allen antworten, Weiterleiten, Als neu bearbeiten, Löschen, Spam. **Original** zeigt Betterbirds eigene Ansicht.
+- **Je Nachricht:** Antworten, Allen antworten, Weiterleiten, Als neu bearbeiten, Löschen, Spam. **Originalansicht** zeigt Betterbirds eigene Ansicht.
 - **Aufklappen beim Scrollen** (Option): die Zeile unter dem Mauszeiger klappt auf, wenn der Zeiger kurz stehen bleibt (50–200 ms).
 - **Stile:** Sanft, Klar, Faden. Externe Bilder erst nach Klick.
 - Ohne NovaBird-DB funktioniert es ebenfalls (über Gloda), nur etwas langsamer.
@@ -88,6 +88,7 @@ Nach **Senden** verschwindet das Verfassen-Fenster, unten im Hauptfenster läuft
 
 - **Rechte Leiste** in Mail, Kalender und Aufgaben: Tagesplan, Aufgaben und ein **Anhänge-Bereich** (Anhänge der gewählten Mail oder der Unterhaltung; Klick springt zur Mail). Wahlweise Betterbird-Standard.
 - **Anhang-Vorschau:** Maus über einen PDF- oder Bild-Anhang halten (in der rechten Leiste, im Nachrichtenkopf, an den Conversation-Chips): ein scrollbares Vorschaufenster öffnet sich.
+- **Regel-Assistent (Beta, standardmäßig aus):** in den Einstellungen der Extension unter „Regeln (Beta)“ einschalten. Rechtsklick auf eine Mail in der Liste → „Regel aus dieser Mail erstellen …“: Bedingung wählen (dieser Absender, diese Domain, Betreff, Empfänger), sehen, welche Mails im Posteingang passen, Aktionen wählen (verschieben, Schlagwort, gelesen, Stern, Papierkorb) und speichern. Es entsteht ein normaler Betterbird-Filter (Extras → Nachrichtenfilter); bestehende Filter bleiben unverändert und werden vorher gesichert.
 - **Nova-Contact** (Kontakte-Tab): Tags als Filter, mehrere Kontakte gemeinsam bearbeiten, letzte Änderungen rückgängig, Knopf „✦ Nova-Contact“ zum Sammeln, Zusammenführen und Aufräumen (mit Wiederherstellungspunkt).
 - Einstellungen, Konten und Add-ons-Manager im einheitlichen Stil; Farben vom Theme.
 
@@ -117,7 +118,7 @@ NovaBird-Sand (ruhig, warm), -Cobalt (kompakt, kräftig), -Springlight (hell, fr
 ## 11. Bekannte Grenzen
 
 - Der Parser für Sätze ist regelbasiert. Seltene Formulierungen werden nicht erkannt; die Kurzschreibweise geht immer.
-- Bunte Newsletter erscheinen in der Konversationsansicht bewusst schlicht („Original“ zeigt sie wie gewohnt).
+- Bunte Newsletter erscheinen in der Konversationsansicht bewusst schlicht („Originalansicht“ zeigt sie wie gewohnt).
 - Vorschau gibt es nur für PDF und Bilder.
 - Nicht lokal gespeicherte IMAP-Mails sind nur mit Kopfdaten im Index.
 

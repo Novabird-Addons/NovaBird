@@ -2,7 +2,11 @@
 
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
-## Unreleased (testing)
+## 1.2.0 (2026-10-13)
+Conversation 0.14.10 · Extension 1.9.15 · unchanged: Search 1.2.6 · DB 1.2.4 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+
+### Docs
+- Install several add-ons at once: select all `.xpi` files in the file dialog (Ctrl+A) or drag them onto the add-ons manager.
 
 ### NovaBird-Conversation 0.14.8 to 0.14.10
 - Mails that draw their logo or text as pixel graphics from thousands of tiny table cells (common in spam, sometimes in newsletters) were shown as a long empty area, with the text pushed far to the side. Line breaks and spaces inside `font-size:0` are now dropped like in the original, and tables left without text or images are left out.
