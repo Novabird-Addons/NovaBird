@@ -9,6 +9,9 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 - The button "Original" in each message header is now called "Original view" (0.14.9).
 - A single message is always shown in full; the height limit with "Show all" only applies when more messages follow below (0.14.10).
 
+### NovaBird-Extension 1.9.15
+- The "New Message" button above the folder list was cut off ("New Mess…") already at the default width. Slightly tighter spacing in that header; if the text still does not fit, the "+" icon is dropped before the text gets shortened.
+
 ## 1.1.0 (2026-10-12)
 Search 1.2.6 · DB 1.2.4 · Conversation 0.14.7 · Send 1.0.4 · Extension 1.9.14 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 
