@@ -20,7 +20,7 @@ NovaBird is a family of add-ons for **Betterbird** (and Thunderbird ESR, version
 > **Please read the [disclaimer](README.md#disclaimer) first:** unofficial, experimental, use at your own risk, back up your profile.
 
 1. **Remove old add-ons** if present (Such-Pilot, DB-Pilot, Sende-Pilot, Conversation-Pilot, Stream Extension, Kalender-/Kontakt-Pilot, Stream themes). Never run an old and a new version of the same add-on together.
-2. Open the **add-ons manager** (menu → Add-ons and Themes), gear → **Install Add-on From File…**, choose the `.xpi`. Suggested order: **DB**, Search, Conversation, Send, Extension. Install themes under *Themes* and enable one.
+2. Open the **add-ons manager** (menu → Add-ons and Themes), gear → **Install Add-on From File…**, choose the `.xpi`. Suggested order: **DB**, Search, Conversation, Send, Extension. Install themes under *Themes* and enable one. **Faster:** select all `.xpi` files at once in the file dialog (Ctrl+A) or drag them all onto the add-ons manager; Betterbird then asks once per add-on (order does not matter).
 3. **Restart Betterbird.**
 4. **First start with NovaBird-DB:** the search index is built once (about 6 minutes for 75,000 messages). A progress window shows the state. Betterbird stays usable; search uses Betterbird's own index meanwhile (a hint appears in the bar). You can pause and resume at any time.
 

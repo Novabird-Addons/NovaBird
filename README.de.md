@@ -21,7 +21,7 @@ Eine Familie von Add-ons für **Betterbird** (Thunderbird ESR, getestet mit Bett
 
 ## Bauen und Testen
 Jedes Add-on hat einen `build.sh` (erzeugt `novabird-<name>-<Version>.xpi`). Unit-Tests: `novabird-db` (`npm install && npm test`), `novabird-search`/`-send`/`-conversation` (`node --test tests/*.test.js`). Tests im echten Betterbird laufen headless per Marionette in einem lokalen Labor (nicht Teil dieses Repos).
-Installieren: das `.xpi` im Add-ons-Manager („Add-on aus Datei installieren“).
+Installieren: das `.xpi` im Add-ons-Manager („Add-on aus Datei installieren“); mehrere Pakete lassen sich im Dateifenster auf einmal markieren (Strg+A) oder zusammen auf den Add-ons-Manager ziehen.
 
 ## Hinweise
 - Alle Add-ons sind unsignierte Entwicklerbuilds (noch ohne Signatur und ohne Store-Veröffentlichung).
