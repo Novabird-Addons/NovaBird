@@ -54,6 +54,12 @@ const TEXTS = {
     previewEnableLabel: "Vorschau beim Überfahren anzeigen",
     previewDesc: "Zeigt beim Überfahren eines Anhangs mit der Maus – in der Anhangsliste der Mail, im Anhänge-Bereich der rechten Leiste und (falls installiert) in der Konversationsansicht – das PDF oder Bild in einem scrollbaren Fenster neben dem Anhang. „Öffnen“ im Fenster öffnet den Anhang in einem eigenen Tab. Es wird nichts heruntergeladen oder verändert.",
     previewDelayLabel: "Verzögerung bis zur Vorschau:",
+    tabRules: "Regeln (Beta)",
+    rulesTitle: "Regel-Assistent (Beta)",
+    rulesEnableLabel: "Regel-Assistent verwenden",
+    rulesDesc: "Legt Nachrichtenfilter Schritt für Schritt an, mit Erklärungen und einer Vorschau, welche Mails im Posteingang passen würden. Eingeschaltet erscheint im Kontextmenü der Nachrichtenliste „Regel aus dieser Mail erstellen …“. Gespeichert wird ein normaler Betterbird-Filter (Extras → Nachrichtenfilter), der auch ohne NovaBird weiterläuft; bestehende Filter bleiben unverändert, vorher wird die Filterdatei gesichert.",
+    rulesOpen: "Regel-Assistent öffnen",
+    selfTest_rules: "Regel-Assistent (Nachrichtenfilter)",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact im Kontakte-Tab",
     pilotEnableLabel: "Nova-Contact verwenden",
@@ -135,6 +141,12 @@ const TEXTS = {
     previewEnableLabel: "Show preview on hover",
     previewDesc: "When you hover an attachment – in the message’s attachment list, in the right-hand attachments area and (if installed) in the conversation view – the PDF or image appears in a scrollable window next to it. “Open” in the window opens the attachment in its own tab. Nothing is downloaded or changed.",
     previewDelayLabel: "Delay before the preview:",
+    tabRules: "Rules (beta)",
+    rulesTitle: "Rule assistant (beta)",
+    rulesEnableLabel: "Use the rule assistant",
+    rulesDesc: "Creates message filters step by step, with explanations and a preview of which mails in the inbox would match. When enabled, the message list context menu offers \"Create rule from this mail …\". It saves a normal Betterbird filter (Tools → Message Filters) that keeps working without NovaBird; existing filters stay unchanged and the filter file is backed up first.",
+    rulesOpen: "Open rule assistant",
+    selfTest_rules: "Rule assistant (message filters)",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact in the Contacts tab",
     pilotEnableLabel: "Use Nova-Contact",
@@ -216,6 +228,12 @@ const TEXTS = {
     previewEnableLabel: "Afficher l’aperçu au survol",
     previewDesc: "Au survol d’une pièce jointe – dans la liste des pièces jointes du message, dans la zone des pièces jointes à droite et (si installée) dans la vue des conversations – le PDF ou l’image s’affiche dans une fenêtre défilante à côté. « Ouvrir » ouvre la pièce jointe dans un onglet. Rien n’est téléchargé ni modifié.",
     previewDelayLabel: "Délai avant l’aperçu :",
+    tabRules: "Règles (bêta)",
+    rulesTitle: "Assistant de règles (bêta)",
+    rulesEnableLabel: "Utiliser l’assistant de règles",
+    rulesDesc: "Crée des filtres de messages pas à pas, avec des explications et un aperçu des messages de la boîte de réception qui correspondraient. Une fois activé, le menu contextuel de la liste des messages propose « Créer une règle à partir de ce message … ». Il enregistre un filtre Betterbird normal (Outils → Filtres de messages) qui fonctionne aussi sans NovaBird ; les filtres existants restent inchangés et le fichier de filtres est sauvegardé avant.",
+    rulesOpen: "Ouvrir l’assistant de règles",
+    selfTest_rules: "Assistant de règles (filtres de messages)",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact dans l’onglet Contacts",
     pilotEnableLabel: "Utiliser Nova-Contact",
@@ -297,6 +315,12 @@ const TEXTS = {
     previewEnableLabel: "Mostrar vista previa al pasar el ratón",
     previewDesc: "Al pasar el ratón sobre un adjunto – en la lista de adjuntos del mensaje, en el área de adjuntos de la derecha y (si está instalado) en la vista de conversaciones – el PDF o la imagen aparece en una ventana desplazable junto a él. «Abrir» abre el adjunto en una pestaña propia. No se descarga ni se modifica nada.",
     previewDelayLabel: "Retraso antes de la vista previa:",
+    tabRules: "Reglas (beta)",
+    rulesTitle: "Asistente de reglas (beta)",
+    rulesEnableLabel: "Usar el asistente de reglas",
+    rulesDesc: "Crea filtros de mensajes paso a paso, con explicaciones y una vista previa de qué correos de la bandeja de entrada coincidirían. Activado, el menú contextual de la lista de mensajes ofrece «Crear regla a partir de este correo …». Guarda un filtro normal de Betterbird (Herramientas → Filtros de mensajes) que funciona también sin NovaBird; los filtros existentes no cambian y antes se hace una copia del archivo de filtros.",
+    rulesOpen: "Abrir el asistente de reglas",
+    selfTest_rules: "Asistente de reglas (filtros de mensajes)",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact en la pestaña Contactos",
     pilotEnableLabel: "Usar Nova-Contact",
@@ -334,6 +358,7 @@ const DEFAULTS = {
   colorMode: "theme",
   pilotEnabled: true,
   pilotLog: false,
+  rulesEnabled: false,
   previewEnabled: true,
   previewDelay: 400,
   listStyle: "default",
@@ -434,6 +459,7 @@ for (const b of document.querySelectorAll("nav button")) {
     document.getElementById("previewTab").hidden = b.dataset.tab !== "preview";
     document.getElementById("listTab").hidden = b.dataset.tab !== "list";
     document.getElementById("pilotTab").hidden = b.dataset.tab !== "pilot";
+    document.getElementById("rulesTab").hidden = b.dataset.tab !== "rules";
   });
 }
 document.getElementById("tabList").setAttribute("aria-selected", "true");
@@ -615,6 +641,12 @@ const save = patch => messenger.storage.local.set(patch);
   pl.disabled = !pe.checked;
   pe.addEventListener("change", () => { pl.disabled = !pe.checked; save({ pilotEnabled: pe.checked }); });
   pl.addEventListener("change", () => save({ pilotLog: pl.checked }));
+  // Regel-Assistent (Beta, Opt-in)
+  const re = document.getElementById("rulesEnabled"), ro = document.getElementById("rulesOpen");
+  re.checked = s.rulesEnabled === true;
+  ro.disabled = !re.checked;
+  re.addEventListener("change", () => { ro.disabled = !re.checked; save({ rulesEnabled: re.checked }); });
+  ro.addEventListener("click", () => messenger.runtime.sendMessage({ type: "openRules" }));
 
   const colors = { ...DEFAULTS.colors, ...s.colors };
   for (const key of KEYS) {

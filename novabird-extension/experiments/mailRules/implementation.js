@@ -244,10 +244,133 @@ const SELF_TEST = [
   },
 ];
 
+// Kontextmenü der Nachrichtenliste: „Regel aus dieser Mail erstellen…“ (nur wenn der Assistent eingeschaltet ist)
+const { ExtensionSupport } = ChromeUtils.importESModule("resource:///modules/ExtensionSupport.sys.mjs");
+const LISTENER = "novabird-extension-rules";
+const MENU_ID = "nbx-rule-from-message";
+const menu = { enabled: false, label: "", started: false };
+const fires = new Set();
+
+function messageInfo(hdr) {
+  const server = hdr.folder?.server;
+  const account = server ? MailServices.accounts.findAccountForServer(server) : null;
+  return {
+    author: hdr.mime2DecodedAuthor || hdr.author || "",
+    subject: hdr.mime2DecodedSubject || hdr.subject || "",
+    recipients: hdr.mime2DecodedRecipients || hdr.recipients || "",
+    account: account?.key ?? "",
+    folder: hdr.folder?.URI ?? "",
+  };
+}
+
+function hookPane(cw) {
+  const doc = cw.document;
+  const popup = doc.getElementById("mailContext");
+  if (!popup || doc.getElementById(MENU_ID)) return;
+  const item = doc.createXULElement("menuitem");
+  item.id = MENU_ID;
+  item.setAttribute("label", menu.label);
+  item.addEventListener("command", () => {
+    const hdr = cw.gDBView?.hdrForFirstSelectedMessage;
+    if (!hdr) return;
+    const info = messageInfo(hdr);
+    for (const fire of fires) fire.async(info);
+  });
+  const onShow = event => {
+    if (event.target !== popup) return;
+    // nur bei genau einer gewählten Nachricht
+    item.hidden = !menu.enabled || (cw.gDBView?.numSelected ?? 0) !== 1;
+  };
+  popup.addEventListener("popupshowing", onShow);
+  const anchor = doc.getElementById("mailContext-tags");
+  popup.insertBefore(item, anchor?.nextSibling ?? null);
+  cw._nbxRules = { item, popup, onShow };
+}
+
+function unhookPane(cw) {
+  const h = cw._nbxRules;
+  if (!h) return;
+  h.popup.removeEventListener("popupshowing", h.onShow);
+  h.item.remove();
+  delete cw._nbxRules;
+}
+
+function threePanes(win) {
+  const out = [];
+  for (const info of win.document.getElementById("tabmail")?.tabInfo ?? []) {
+    const cw = info.chromeBrowser?.contentWindow;
+    if (cw?.location?.href === "about:3pane" && cw.document.readyState === "complete") out.push(cw);
+  }
+  return out;
+}
+
+function scan(win, tries = 0) {
+  let missing = false;
+  for (const cw of threePanes(win)) {
+    if (cw.document.getElementById("mailContext")) hookPane(cw);
+    else missing = true;
+  }
+  if ((missing || !threePanes(win).length) && tries < 30) win.setTimeout(() => scan(win, tries + 1), 500);
+}
+
+function hookWindow(win) {
+  const tm = win.document.getElementById("tabmail");
+  if (!tm || win._nbxRulesWin) return;
+  const onTab = () => win.setTimeout(() => scan(win), 300);
+  win._nbxRulesWin = { tm, onTab };
+  tm.tabContainer.addEventListener("TabOpen", onTab);
+  scan(win);
+}
+
+function startMenu() {
+  if (menu.started) return;
+  menu.started = true;
+  ExtensionSupport.registerWindowListener(LISTENER, {
+    chromeURLs: ["chrome://messenger/content/messenger.xhtml"],
+    onLoadWindow(win) { try { hookWindow(win); } catch (e) { console.error("Regel-Assistent:", e); } },
+  });
+}
+
+function stopMenu() {
+  if (!menu.started) return;
+  menu.started = false;
+  ExtensionSupport.unregisterWindowListener(LISTENER);
+  for (const win of Services.wm.getEnumerator("mail:3pane")) {
+    const h = win._nbxRulesWin;
+    if (h) {
+      h.tm.tabContainer.removeEventListener("TabOpen", h.onTab);
+      delete win._nbxRulesWin;
+    }
+    for (const cw of threePanes(win)) unhookPane(cw);
+  }
+}
+
 const API = class extends ExtensionCommon.ExtensionAPI {
-  getAPI() {
+  onShutdown(isAppShutdown) {
+    if (!isAppShutdown) stopMenu();
+  }
+  getAPI(context) {
     return {
       mailRules: {
+        // Assistent ein/aus (Opt-in); label = Text des Menüeintrags in der Sprache der Oberfläche
+        async setEnabled(enabled, label) {
+          menu.enabled = !!enabled;
+          menu.label = String(label || "");
+          if (!menu.enabled) return stopMenu();
+          startMenu();
+          for (const win of Services.wm.getEnumerator("mail:3pane")) {
+            hookWindow(win);
+            for (const cw of threePanes(win)) cw._nbxRules?.item.setAttribute("label", menu.label);
+          }
+        },
+        onCreateFromMessage: new ExtensionCommon.EventManager({
+          context,
+          name: "mailRules.onCreateFromMessage",
+          register: fire => {
+            fires.add(fire);
+            return () => fires.delete(fire);
+          },
+        }).api(),
         async selfTest() {
           const missing = [];
           for (const c of SELF_TEST) {

@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title id="docTitle">NovaBird</title>
+  <link rel="stylesheet" href="wizard.css">
+</head>
+<body>
+  <main id="form">
+    <header>
+      <h1><span id="title"></span> <span class="badge" id="beta"></span></h1>
+      <p class="intro" id="intro"></p>
+    </header>
+
+    <section class="step">
+      <h2><span class="num">1</span> <span id="s1Title"></span></h2>
+      <p class="help" id="s1Help"></p>
+      <div id="conds"></div>
+      <div class="preview" id="preview" aria-live="polite">
+        <div class="phead" id="pHead"></div>
+        <ul id="pList"></ul>
+      </div>
+    </section>
+
+    <section class="step">
+      <h2><span class="num">2</span> <span id="s2Title"></span></h2>
+      <p class="help" id="s2Help"></p>
+      <label class="act"><input type="checkbox" id="aMove"> <span id="aMoveL"></span> <select id="aMoveF"></select></label>
+      <label class="act"><input type="checkbox" id="aTag"> <span id="aTagL"></span> <select id="aTagV"></select></label>
+      <label class="act"><input type="checkbox" id="aRead"> <span id="aReadL"></span></label>
+      <label class="act"><input type="checkbox" id="aStar"> <span id="aStarL"></span></label>
+      <label class="act"><input type="checkbox" id="aDelete"> <span id="aDeleteL"></span></label>
+    </section>
+
+    <section class="step">
+      <h2><span class="num">3</span> <span id="s3Title"></span></h2>
+      <div id="acctBox">
+        <label><input type="radio" name="acct" value="one" id="acctOne" checked> <span id="acctOneL"></span> <select id="acctSel"></select></label>
+        <label><input type="radio" name="acct" value="all" id="acctAll"> <span id="acctAllL"></span></label>
+        <p class="help" id="acctHelp"></p>
+      </div>
+      <label><input type="checkbox" id="onNew" checked> <span id="onNewL"></span></label>
+      <label><input type="checkbox" id="applyNow"> <span id="applyNowL"></span></label>
+    </section>
+
+    <section class="summary">
+      <h2 id="sumTitle"></h2>
+      <p id="sumText"></p>
+      <label class="name"><span id="nameL"></span> <input type="text" id="name" maxlength="120"></label>
+      <p class="error" id="error" hidden></p>
+    </section>
+
+    <footer>
+      <button type="button" id="cancel"></button>
+      <button type="button" id="save" class="primary" disabled></button>
+    </footer>
+  </main>
+
+  <main id="done" hidden>
+    <h1 id="doneTitle"></h1>
+    <p id="doneText"></p>
+    <p class="help" id="doneHelp"></p>
+    <footer><button type="button" id="close" class="primary"></button></footer>
+  </main>
+  <script src="wizard.js"></script>
+</body>
+</html>

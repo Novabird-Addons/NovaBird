@@ -10,6 +10,7 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 - A single message is always shown in full; the height limit with "Show all" only applies when more messages follow below (0.14.10).
 
 ### NovaBird-Extension 1.9.15
+- New, opt-in: **Rule assistant (beta)** – off by default, switch it on under Settings → NovaBird → Extension → "Rules (beta)". The message list context menu then offers "Create rule from this mail …": a guided page with ready-made conditions taken from the mail (this sender, this domain, subject, recipient, or a custom one), a live preview of the matching mails in the inbox, actions (move, tag, mark read, star, trash), accounts and timing, and a plain-language summary. It saves a normal Betterbird message filter that keeps working without NovaBird; existing filters are never changed and the filter file is backed up first.
 - The "New Message" button above the folder list was cut off ("New Mess…") already at the default width. Slightly tighter spacing in that header; if the text still does not fit, the "+" icon is dropped before the text gets shortened.
 
 ## 1.1.0 (2026-10-12)

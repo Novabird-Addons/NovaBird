@@ -17,6 +17,7 @@ const DEFAULTS = {
   listAcct: "none",
   listScroll: true,
   listAcctColors: {},
+  rulesEnabled: false,
   colors: { bg: "#EEF2F8", fg: "#1B2433", border: "#D2DAE6", accent: "#2F6BD8" },
 };
 
@@ -47,6 +48,20 @@ async function safe(label, fn) {
   }
 }
 
+// Regel-Assistent (Beta, Opt-in): Menüeintrag in der Nachrichtenliste und Fenster rules/wizard.html
+const RULE_MENU = {
+  de: "Regel aus dieser Mail erstellen …",
+  en: "Create rule from this mail …",
+  fr: "Créer une règle à partir de ce message …",
+  es: "Crear regla a partir de este correo …",
+};
+const ruleMenuLabel = () => RULE_MENU[(messenger.i18n.getUILanguage() || "en").slice(0, 2).toLowerCase()] ?? RULE_MENU.en;
+
+async function openRuleWizard(info) {
+  const query = info ? `?m=${encodeURIComponent(JSON.stringify(info))}` : "";
+  await messenger.windows.create({ url: messenger.runtime.getURL(`rules/wizard.html${query}`), type: "popup", width: 780, height: 860 });
+}
+
 async function applySettings() {
   const s = await messenger.storage.local.get(DEFAULTS);
   const colors = s.colorMode === "custom" ? s.colors : null;
@@ -60,6 +75,7 @@ async function applySettings() {
   await safe("Vorschau Verzögerung", () => messenger.attachPreview.setDelay(s.previewDelay));
   await safe("Vorschau", () => messenger.attachPreview.setEnabled(s.previewEnabled !== false));
   await safe("Nachrichtenliste", () => applyList(s));
+  await safe("Regel-Assistent", () => messenger.mailRules.setEnabled(s.rulesEnabled === true, ruleMenuLabel()));
 }
 
 (async () => {
@@ -78,6 +94,10 @@ async function applySettings() {
 
 // Diagnose für die Optionsseite
 messenger.runtime.onMessage.addListener(async message => {
+  if (message?.type === "openRules") {
+    await safe("Regel-Assistent öffnen", () => openRuleWizard(null));
+    return true;
+  }
   if (message?.type === "status") {
     try {
       return await messenger.novaCalendar.getStatus();
@@ -119,6 +139,9 @@ messenger.storage.onChanged.addListener(async changes => {
   if (keys.includes("previewEnabled")) {
     safe("Vorschau", () => messenger.attachPreview.setEnabled(s.previewEnabled !== false));
   }
+  if (keys.includes("rulesEnabled")) {
+    safe("Regel-Assistent", () => messenger.mailRules.setEnabled(s.rulesEnabled === true, ruleMenuLabel()));
+  }
   if (keys.some(k => k.startsWith("list"))) {
     safe("Nachrichtenliste", () => applyList(s));
   }
@@ -129,4 +152,6 @@ messenger.storage.onChanged.addListener(async changes => {
 });
 
 // Selbsttest der Betterbird-Interna (shared/selftest-bg.js); Ergebnis zeigt die Optionsseite
-nbStartSelfTest([() => messenger.messageList.selfTest(), () => messenger.novaContact.selfTest()]);
+nbStartSelfTest([() => messenger.messageList.selfTest(), () => messenger.novaContact.selfTest(), () => messenger.mailRules.selfTest()]);
+
+messenger.mailRules.onCreateFromMessage.addListener(info => safe("Regel-Assistent öffnen", () => openRuleWizard(info)));
