@@ -532,7 +532,8 @@
       return;
     }
     autoChecked = true;
-    if (e.isPinned) {
+    // Höchsthöhe nur, wenn darunter weitere Nachrichten folgen; eine einzelne Nachricht steht immer ganz da
+    if (e.isPinned && asc.length > 1) {
       bodyBox.classList.add("limited");
       const more = el("div", "nbc-more");
       // „Ganz anzeigen“ bleibt erhalten, wenn die Nachricht neu aufgebaut wird (z. B. nach dem Laden der Bilder)
