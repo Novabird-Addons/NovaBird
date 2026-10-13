@@ -2,6 +2,21 @@
 
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
+## 1.2.0 (2026-10-13)
+Conversation 0.14.10 · Extension 1.9.15 · unchanged: Search 1.2.6 · DB 1.2.4 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+
+### Docs
+- Install several add-ons at once: select all `.xpi` files in the file dialog (Ctrl+A) or drag them onto the add-ons manager.
+
+### NovaBird-Conversation 0.14.8 to 0.14.10
+- Mails that draw their logo or text as pixel graphics from thousands of tiny table cells (common in spam, sometimes in newsletters) were shown as a long empty area, with the text pushed far to the side. Line breaks and spaces inside `font-size:0` are now dropped like in the original, and tables left without text or images are left out.
+- The button "Original" in each message header is now called "Original view" (0.14.9).
+- A single message is always shown in full; the height limit with "Show all" only applies when more messages follow below (0.14.10).
+
+### NovaBird-Extension 1.9.15
+- New, opt-in: **Rule assistant (beta)** – off by default, switch it on under Settings → NovaBird → Extension → "Rules (beta)". The message list context menu then offers "Create rule from this mail …": a guided page with ready-made conditions taken from the mail (this sender, this domain, subject, recipient, or a custom one), a live preview of the matching mails in the inbox, actions (move, tag, mark read, star, trash), accounts and timing, and a plain-language summary. It saves a normal Betterbird message filter that keeps working without NovaBird; existing filters are never changed and the filter file is backed up first.
+- The "New Message" button above the folder list was cut off ("New Mess…") already at the default width. Slightly tighter spacing in that header; if the text still does not fit, the "+" icon is dropped before the text gets shortened.
+
 ## 1.1.0 (2026-10-12)
 Search 1.2.6 · DB 1.2.4 · Conversation 0.14.7 · Send 1.0.4 · Extension 1.9.14 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 

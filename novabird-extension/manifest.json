@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "default_locale": "en",
   "name": "__MSG_name__",
-  "version": "1.9.14",
+  "version": "1.9.15",
   "description": "__MSG_description__",
   "browser_specific_settings": {
     "gecko": {
@@ -89,6 +89,20 @@
           ]
         ],
         "script": "experiments/messageList/implementation.js"
+      }
+    },
+    "mailRules": {
+      "schema": "experiments/mailRules/schema.json",
+      "parent": {
+        "scopes": [
+          "addon_parent"
+        ],
+        "paths": [
+          [
+            "mailRules"
+          ]
+        ],
+        "script": "experiments/mailRules/implementation.js"
       }
     }
   },

@@ -12,7 +12,7 @@ NovaBird is a family of add-ons for **Betterbird** (and Thunderbird ESR, version
 | **NovaBird-DB** | Own search index (fast, finds word parts and sentences); the base for Search and Conversation |
 | **NovaBird-Conversation** | All messages of a conversation in the reading pane |
 | **NovaBird-Send** | Sending with an undo window and a queue |
-| **NovaBird-Extension** | Right pane (agenda, tasks, attachments), attachment preview, Nova-Contact, settings in the new style |
+| **NovaBird-Extension** | Right pane (agenda, tasks, attachments), attachment preview, Nova-Contact, rule assistant (beta), settings in the new style |
 | **NovaBird-Sand / -Cobalt / -Springlight** | Themes (light and dark) |
 
 ## 2. Install
@@ -20,7 +20,7 @@ NovaBird is a family of add-ons for **Betterbird** (and Thunderbird ESR, version
 > **Please read the [disclaimer](README.md#disclaimer) first:** unofficial, experimental, use at your own risk, back up your profile.
 
 1. **Remove old add-ons** if present (Such-Pilot, DB-Pilot, Sende-Pilot, Conversation-Pilot, Stream Extension, Kalender-/Kontakt-Pilot, Stream themes). Never run an old and a new version of the same add-on together.
-2. Open the **add-ons manager** (menu → Add-ons and Themes), gear → **Install Add-on From File…**, choose the `.xpi`. Suggested order: **DB**, Search, Conversation, Send, Extension. Install themes under *Themes* and enable one.
+2. Open the **add-ons manager** (menu → Add-ons and Themes), gear → **Install Add-on From File…**, choose the `.xpi`. Suggested order: **DB**, Search, Conversation, Send, Extension. Install themes under *Themes* and enable one. **Faster:** select all `.xpi` files at once in the file dialog (Ctrl+A) or drag them all onto the add-ons manager; Betterbird then asks once per add-on (order does not matter).
 3. **Restart Betterbird.**
 4. **First start with NovaBird-DB:** the search index is built once (about 6 minutes for 75,000 messages). A progress window shows the state. Betterbird stays usable; search uses Betterbird's own index meanwhile (a hint appears in the bar). You can pause and resume at any time.
 
@@ -70,7 +70,7 @@ Understood: people (from, to, "from me"), periods (yesterday, last week, in May 
 
 When you open a message, **all messages of the conversation** appear (across folders, including Sent): the newest pinned on top, older ones as a row with a preview, unread and the latest ones expanded. A click expands or collapses.
 
-- **Per message:** Reply, Reply all, Forward, Edit as new, Delete, Spam. **Original** shows Betterbird's own view.
+- **Per message:** Reply, Reply all, Forward, Edit as new, Delete, Spam. **Original view** shows Betterbird's own view.
 - **Expand while scrolling** (option): the row under the pointer opens when the pointer rests for a moment (50–200 ms).
 - **Styles:** Soft, Clear, Thread. External images load only after your click.
 - It also works without NovaBird-DB (via Gloda), just a bit slower.
@@ -88,6 +88,7 @@ After **Send** the compose window disappears and a countdown runs at the bottom 
 
 - **Right pane** in mail, calendar and tasks: agenda, tasks and an **attachments panel** (attachments of the selected message or of the thread; a click jumps to the message). Optionally the Betterbird default.
 - **Attachment preview:** hold the mouse over a PDF or image attachment (right pane, message header, Conversation chips) and a scrollable preview opens.
+- **Rule assistant (beta, off by default):** switch it on in the Extension settings under "Rules (beta)". Right-click a mail in the list → "Create rule from this mail …": choose a condition (this sender, this domain, subject, recipient), see which inbox mails match, pick actions (move, tag, mark read, star, trash) and save. It creates a normal Betterbird filter (Tools → Message Filters); existing filters are left untouched and backed up first.
 - **Nova-Contact** (address book tab): tags as filters, edit several contacts at once, undo recent changes, and a "✦ Nova-Contact" button to collect, merge and clean up (with a restore point).
 - Settings, accounts and the add-ons manager in the unified style; colors from the theme.
 
@@ -117,7 +118,7 @@ NovaBird-Sand (calm, warm), -Cobalt (compact, strong), -Springlight (light, fres
 ## 11. Known limits
 
 - The sentence parser is rule-based. Rare phrasings are not recognised; the short syntax always works.
-- Colourful newsletters look deliberately plain in the conversation view ("Original" shows them as usual).
+- Colourful newsletters look deliberately plain in the conversation view ("Original view" shows them as usual).
 - Preview exists only for PDF and images.
 - IMAP messages that are not stored locally are indexed with headers only.
 

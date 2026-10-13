@@ -445,12 +445,50 @@ function applyScroll(doc) {
   doc.documentElement.append(el);
 }
 
+// Knopf „Neue Nachricht“ im Ordnerbereich: Betterbird kürzt den Text schon bei Standardbreite („Neue Nachri…“).
+// Engere Abstände in der Kopfleiste; reicht der Platz trotzdem nicht, fällt das „+“ weg (Attribut data-nbx-tight).
+const HDR_ID = "nbx-hdr-style";
+const HDR_CSS = `#folderPaneHeaderBar { gap: 5px; padding-inline: 6px; }
+#folderPaneWriteMessage { padding-inline-end: 8px; }
+#folderPaneWriteMessage[data-nbx-tight] { background-image: none; padding-inline: 6px; }`;
+const hdrObservers = new Map();
+function fitWriteButton(doc) {
+  const b = doc.getElementById("folderPaneWriteMessage");
+  if (!b) return;
+  // ohne Kürzung messen (gleiche Aufgabe, kein Zwischenbild)
+  b.removeAttribute("data-nbx-tight");
+  if (b.scrollWidth > b.clientWidth + 1) b.setAttribute("data-nbx-tight", "");
+}
+function applyHeader(cw) {
+  const doc = cw.document;
+  if (doc.getElementById(HDR_ID)) return;
+  const bar = doc.getElementById("folderPaneHeaderBar");
+  if (!bar) return;
+  const el = doc.createElement("style");
+  el.id = HDR_ID; el.textContent = HDR_CSS;
+  doc.documentElement.append(el);
+  fitWriteButton(doc);
+  // die Leiste beobachten, nicht den Knopf (seine Breite ändert sich durch das eigene Umschalten)
+  if (cw.ResizeObserver) {
+    const ro = new cw.ResizeObserver(() => fitWriteButton(doc));
+    ro.observe(bar);
+    hdrObservers.set(cw, ro);
+  }
+}
+function undoHeader(cw) {
+  hdrObservers.get(cw)?.disconnect();
+  hdrObservers.delete(cw);
+  cw.document.getElementById(HDR_ID)?.remove();
+  cw.document.getElementById("folderPaneWriteMessage")?.removeAttribute("data-nbx-tight");
+}
+
 function applyWindow(cw) {
   const doc = cw.document;
   let st = wins.get(cw);
   const cardClass = cw.customElements.get("thread-card");
   if (!cardClass || !cw.threadPane || !cw.threadTree) return false;
   applyScroll(doc);
+  try { applyHeader(cw); } catch (e) { console.error("Ordnerkopf:", e); }
   if (!st) {
     st = { baseDensity: cw.threadPane.densityChange, baseFill: cardClass.prototype.fillRow, cardClass };
     wins.set(cw, st);
@@ -496,6 +534,7 @@ function undoWindow(cw) {
   const st = wins.get(cw);
   if (!st) return;
   const doc = cw.document;
+  try { undoHeader(cw); } catch (e) { /* Fenster schon weg */ }
   st.cardClass.prototype.fillRow = st.baseFill;
   cw.threadPane.densityChange = st.baseDensity;
   doc.getElementById(STYLE_ID)?.remove();

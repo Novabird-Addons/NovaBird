@@ -10,7 +10,7 @@ Eine Familie von Add-ons für **Betterbird** (Thunderbird ESR, getestet mit Bett
 | **NovaBird-DB** | [`novabird-db/`](novabird-db/README.md) | `novabird-db@novabird` | eigener SQLite-/FTS5-Index im Profil: schnelle Volltextsuche, Konversationsabfrage; Schnittstelle für andere Add-ons |
 | **NovaBird-Conversation** | [`novabird-conversation/`](novabird-conversation/README.md) | `novabird-conversation@novabird` | alle Nachrichten einer Konversation im Lesebereich; nutzt optional NovaBird-DB |
 | **NovaBird-Send** | [`novabird-send/`](novabird-send/README.md) | `novabird-send@novabird` | Senden mit Rückgängig-Fenster und Warteschlange |
-| **NovaBird-Extension** | [`novabird-extension/`](novabird-extension/README.md) | `novabird-extension@novabird` | rechte Leiste (Termine, Aufgaben, Anhänge), Einstellungen im neuen Stil, Nova-Calendar, Nova-Contact, Anhang-Vorschau |
+| **NovaBird-Extension** | [`novabird-extension/`](novabird-extension/README.md) | `novabird-extension@novabird` | rechte Leiste (Termine, Aufgaben, Anhänge), Einstellungen im neuen Stil, Nova-Calendar, Nova-Contact, Anhang-Vorschau, Regel-Assistent (Beta) |
 | **NovaBird-Sand / -Cobalt / -Springlight** | [`novabird-themes/`](novabird-themes/README.md) | `novabird-t-<name>@novabird` | Themes (hell und dunkel); die Extension übernimmt ihre Farben |
 
 ## Zusammenspiel
@@ -21,7 +21,7 @@ Eine Familie von Add-ons für **Betterbird** (Thunderbird ESR, getestet mit Bett
 
 ## Bauen und Testen
 Jedes Add-on hat einen `build.sh` (erzeugt `novabird-<name>-<Version>.xpi`). Unit-Tests: `novabird-db` (`npm install && npm test`), `novabird-search`/`-send`/`-conversation` (`node --test tests/*.test.js`). Tests im echten Betterbird laufen headless per Marionette in einem lokalen Labor (nicht Teil dieses Repos).
-Installieren: das `.xpi` im Add-ons-Manager („Add-on aus Datei installieren“).
+Installieren: das `.xpi` im Add-ons-Manager („Add-on aus Datei installieren“); mehrere Pakete lassen sich im Dateifenster auf einmal markieren (Strg+A) oder zusammen auf den Add-ons-Manager ziehen.
 
 ## Hinweise
 - Alle Add-ons sind unsignierte Entwicklerbuilds (noch ohne Signatur und ohne Store-Veröffentlichung).

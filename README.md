@@ -72,7 +72,7 @@ Calendar dialogs and views pick up your theme. **Nova-Contact** adds tag filters
 | **[NovaBird-DB](novabird-db/README.md)** | Fast full-text index and the sentence parser (DE, EN, FR, ES) |
 | **[NovaBird-Conversation](novabird-conversation/README.md)** | Whole threads in the reading pane |
 | **[NovaBird-Send](novabird-send/README.md)** | Undo send with queue |
-| **[NovaBird-Extension](novabird-extension/README.md)** | Message list (Soft, Clear, Thread; three densities and per-account colours), right pane, attachment preview, Nova-Contact, new-style settings, the NovaBird settings page |
+| **[NovaBird-Extension](novabird-extension/README.md)** | Message list (Soft, Clear, Thread; three densities and per-account colours), right pane, attachment preview, Nova-Contact, rule assistant (beta, opt-in), new-style settings, the NovaBird settings page |
 | **[NovaBird-Sand / -Cobalt / -Springlight](novabird-themes/README.md)** | The themes |
 
 They cooperate loosely: Search and Conversation use the DB if it is installed (and fall back to Betterbird's own index if not); the Extension takes its colors from the active theme. None of them requires another.
@@ -81,7 +81,7 @@ They cooperate loosely: Search and Conversation use the DB if it is installed (a
 
 1. **Requirements:** Betterbird or Thunderbird **ESR** 128 or newer. The add-ons use experiment APIs, which do not run in the monthly Thunderbird release.
 2. Download the `.xpi` files from the [latest release](../../releases/latest).
-3. In the add-ons manager choose the gear → **Install Add-on From File…** for each file. Suggested order: **DB**, Search, Conversation, Send, Extension; themes under *Themes*. Restart Betterbird.
+3. In the add-ons manager choose the gear → **Install Add-on From File…** for each file. Suggested order: **DB**, Search, Conversation, Send, Extension; themes under *Themes*. Tip: you can select all files at once (Ctrl+A in the file dialog) or drag them onto the add-ons manager. Restart Betterbird.
 4. On the first start NovaBird-DB builds its index once (about 6 minutes for 75,000 messages, with a progress indicator). Betterbird stays usable meanwhile.
 
 > **Please read the [disclaimer](#disclaimer) first:** unofficial, experimental, use at your own risk, back up your profile.

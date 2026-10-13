@@ -10,8 +10,9 @@ Ergänzt **Betterbird** / Thunderbird ESR (ab 128) um Oberfläche und Werkzeuge,
 - **Nova-Contact:** im Kontakte-Tab Tags als Filter, mehrere Kontakte gemeinsam bearbeiten (Tags, Firma, Position), letzte 3 Änderungen rückgängig; Knopf „✦ Nova-Contact“ zum Sammeln, Zusammenführen und **Aufräumen** (Kontakte nach Mailverkehr und Qualität filtern, Löschen mit Wiederherstellungspunkt und .vcf-Sicherung).
 - **Einstellungen, Konten und Add-ons-Manager** im einheitlichen neuen Stil; dazu die Seite **Einstellungen → NovaBird** mit einem Reiter für die Einstellungen jedes installierten NovaBird-Add-ons.
 - Farben kommen vom aktiven Theme (oder eigene Farben auf der Optionsseite).
+- **Regel-Assistent (Beta, Opt-in):** Reiter „Regeln (Beta)“ einschalten, dann Rechtsklick auf eine Mail → „Regel aus dieser Mail erstellen …“. Geführt in drei Schritten mit Vorschau der passenden Mails im Posteingang und einer Zusammenfassung als Satz; gespeichert wird ein normaler Betterbird-Filter (Extras → Nachrichtenfilter), bestehende Filter bleiben unverändert und werden vorher gesichert.
 
 ## Installation und Einstellungen
-`novabird-extension-<Version>.xpi` im Add-ons-Manager („Add-on aus Datei installieren“); Betterbird danach neu starten. Nur Betterbird / Thunderbird ESR (Experiment-API). Einstellungen (Add-ons-Manager → NovaBird-Extension): Rechte Leiste (Layout, Tage voraus, Anhänge, Miniaturen), Nachrichtenliste, Farben, Anhang-Vorschau, Nova-Contact.
+`novabird-extension-<Version>.xpi` im Add-ons-Manager („Add-on aus Datei installieren“); Betterbird danach neu starten. Nur Betterbird / Thunderbird ESR (Experiment-API). Einstellungen (Add-ons-Manager → NovaBird-Extension): Rechte Leiste (Layout, Tage voraus, Anhänge, Miniaturen), Nachrichtenliste, Farben, Anhang-Vorschau, Nova-Contact, Regeln (Beta).
 Nicht gleichzeitig mit der früheren „Stream Extension“, dem Kalender-Pilot oder Kontakt-Pilot installieren.
 

@@ -24,7 +24,7 @@
     .color span { min-width: 12em; }
     #colors[disabled] { opacity: 0.45; }
     #hint { opacity: .65; margin-top: 16px; }
-    #pilotDesc, #previewDesc, #listIntro, #listNote, #listAcctNote, #listDensityNote { line-height: 1.5; margin: 10px 0 14px 0; color: color-mix(in srgb, currentColor 78%, transparent); }
+    #pilotDesc, #rulesDesc, #previewDesc, #listIntro, #listNote, #listAcctNote, #listDensityNote { line-height: 1.5; margin: 10px 0 14px 0; color: color-mix(in srgb, currentColor 78%, transparent); }
     #reset { margin-top: 10px; }
     .opt { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
     .opt .txt { flex: 1 1 18em; min-width: 0; }
@@ -49,6 +49,7 @@
     <button type="button" data-tab="colors" id="tabColors"></button>
     <button type="button" data-tab="preview" id="tabPreview"></button>
     <button type="button" data-tab="pilot" id="tabPilot"></button>
+    <button type="button" data-tab="rules" id="tabRules"></button>
   </nav>
 
   <section id="calendar" hidden>
@@ -139,6 +140,13 @@
     <label><input type="checkbox" id="pilotEnabled"> <span id="pilotEnableLabel"></span></label>
     <p id="pilotDesc"></p>
     <label><input type="checkbox" id="pilotLog"> <span id="pilotLogLabel"></span></label>
+  </section>
+
+  <section id="rulesTab" hidden>
+    <h3 id="rulesTitle"></h3>
+    <label><input type="checkbox" id="rulesEnabled"> <span id="rulesEnableLabel"></span></label>
+    <p id="rulesDesc"></p>
+    <button type="button" id="rulesOpen"></button>
   </section>
 
   <section id="diag">
