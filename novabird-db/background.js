@@ -4,7 +4,7 @@ import { createExperimentAdapter } from "./src/db/adapter.js";
 import { migrate, resetTermsTables } from "./src/db/schema.js";
 import * as repo from "./src/db/repository.js";
 import { Indexer } from "./src/indexer/indexer.js";
-import { search, clearCompoundCache } from "./src/search.js";
+import { search, clearCompoundCache, refreshVocabWords, vocabWordsBuiltAt } from "./src/search.js";
 import { removeChip } from "./src/parser/chips.js";
 import { TEXT_NORM_VERSION } from "./src/util/normalize.js";
 import { CONV_DATA_VERSION } from "./src/db/schema.js";
@@ -256,6 +256,7 @@ async function init() {
     await db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES ('conv_data', ?)", [String(CONV_DATA_VERSION)]);
   }
   await syncCompoundMode();
+  caps.vocabWords = caps.ftsMode !== "fts4" && (await vocabWordsBuiltAt(db).catch(() => 0)) > 0;
   myEmails = await loadMyEmails();
   initialDone = (await db.select("SELECT value FROM meta WHERE key = 'initial_done'", [], ["value"])).length > 0;
   // Aufräumen: eine alte Indexdatei von einem früheren Neuaufbau ist nur nötig, solange der neue Index unvollständig ist
@@ -458,8 +459,49 @@ async function catchUpNow() {
   // Der wöchentliche Tiefenabgleich läuft getrennt im Leerlauf (deepTick)
   lastCatchUp = { at: Date.now(), ...r, reconcile: rec };
   if (r.added || rec.added || rec.rescanned) console.info("[novabird-db] Nachgeholt:", lastCatchUp);
+  if (r.added || rec.added || rec.rescanned) refreshVocab("Nachholen").catch(() => {});
   return lastCatchUp;
 }
+
+// ---- Eigene Wortliste für die Zusammensetzungen (vocab_words) ------------------------------------------
+// Ersetzt bei der Suche die fts5vocab-Sicht, die für jeden neuen Suchbegriff den ganzen Volltextindex durchgehen muss
+// (in großen echten Postfächern weit über eine Sekunde). Aufgefrischt nur, wenn sich der Index geändert hat: nach Indexläufen,
+// nach dem Nachholen und alle 10 Min im Leerlauf (≥ 60 s). Bis zum ersten Bauen sucht die DB wie bisher in der Sicht.
+let vocabBusy = false;
+async function indexMark() {
+  const [r] = await db.select("SELECT max(id) AS m, count(*) AS c FROM messages", [], ["m", "c"]);
+  return `${r?.m ?? 0}/${r?.c ?? 0}`;
+}
+async function refreshVocab(reason, { needIdle = false } = {}) {
+  if (!caps || caps.ftsMode === "fts4" || !indexer || brokenInfo || !initialDone || vocabBusy) return false;
+  if (status.phase === "folder" || status.phase === "stopped") return false;
+  vocabBusy = true;
+  try {
+    const mark = await indexMark();
+    if (caps.vocabWords && mark === String((await metaGet("vocab_words_mark")) ?? "")) return false; // nichts geändert
+    if (needIdle) {
+      let idle = null;
+      try {
+        idle = await db.idleSeconds();
+      } catch {
+        /* ohne Leerlauferkennung: nicht im Hintergrund auffrischen */
+      }
+      if (!(typeof idle === "number" && idle >= 60)) return false;
+    }
+    const t0 = performance.now();
+    await indexer.enqueue(() => refreshVocabWords(db)); // seriell mit dem Schreiben des Indexers
+    await metaSet("vocab_words_mark", mark);
+    caps.vocabWords = true;
+    dlog.info(`[novabird-db] Wortliste aufgefrischt (${reason}) in ${Math.round(performance.now() - t0)} ms`);
+    return true;
+  } catch (e) {
+    dlog.error("[novabird-db] Wortliste", e);
+    return false;
+  } finally {
+    vocabBusy = false;
+  }
+}
+setInterval(() => refreshVocab("Leerlauf", { needIdle: true }).catch(() => {}), 10 * 60_000);
 
 async function runIndex(force = false) {
   if (brokenInfo || !indexer) return; // unbrauchbarer Index: erst nach dem Neuaufbau
@@ -478,6 +520,7 @@ async function runIndex(force = false) {
   }
   pushStatus();
   clearCompoundCache();
+  if (status.phase === "done") refreshVocab("Indexlauf").catch(() => {});
   if (status.phase === "done" && (await ensureSeedPass().catch((e) => (dlog.error("[novabird-db] Saatliste", e), false)))) return { ...(await repo.stats(db)), status };
   // Nachholen/Abgleich erst eine Minute nach dem Lauf, damit Betterbird beim Start nicht zusätzlich belastet wird
   if (status.phase === "done") setTimeout(() => catchUpNow().catch((e) => dlog.error("[novabird-db] Nachholen", e)), 60_000);
@@ -572,6 +615,7 @@ async function fullStatus() {
     parserLangs,
     termsFts: Boolean(caps?.termsFts),
     termsVocab: termsVocab?.size ?? 0,
+    vocabWords: Boolean(caps?.vocabWords),
     logSearches,
     debugLog,
     lastCatchUp,
