@@ -2,6 +2,11 @@
 
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
+## Unreleased (testing)
+
+### NovaBird-Conversation 0.14.8
+- Mails that draw their logo or text as pixel graphics from thousands of tiny table cells (common in spam, sometimes in newsletters) were shown as a long empty area, with the text pushed far to the side. Line breaks and spaces inside `font-size:0` are now dropped like in the original, and tables left without text or images are left out.
+
 ## 1.1.0 (2026-10-12)
 Search 1.2.6 · DB 1.2.4 · Conversation 0.14.7 · Send 1.0.4 · Extension 1.9.14 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 

@@ -237,6 +237,14 @@
     if (!style) return false;
     return HIDDEN_ANY.test(style) || (node.childElementCount === 0 && HIDDEN_LEAF.test(style));
   };
+  // Schriftgröße 0 vererbt sich: Leerraum und <br> darin sind im Original unsichtbar. Ohne Stile würden sie bei uns
+  // eine Zeile hoch (Pixelbilder aus Tausenden 1-px-Zellen mit <br> werden sonst seitenlange leere Tabellen).
+  // Echter Text bleibt (seine Größe kann aus einem Stilblatt kommen, das wir nicht übernehmen).
+  const zeroFontOf = (node, inherited) => {
+    if (node.localName === "font" && node.hasAttribute("size")) return false;
+    const m = /(?<![\w-])font-size\s*:\s*([\d.]+)/i.exec(node.getAttribute("style") ?? "");
+    return m ? Number(m[1]) === 0 : inherited;
+  };
   const cssPx = (style, prop) => {
     const m = String(style ?? "").match(new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*(\\d+(?:\\.\\d+)?)px`, "i"));
     return m ? Number(m[1]) : null;
@@ -260,17 +268,20 @@
     const state = { blocked: false };
     const out = el("div");
 
-    const copy = (src, into, inQuote) => {
+    const copy = (src, into, inQuote, zero) => {
       for (const child of src.childNodes) {
         if (child.nodeType === 3) {
+          if (zero && !/\S/.test(child.nodeValue)) continue;
           into.append(document.createTextNode(child.nodeValue));
         } else if (child.nodeType === 1) {
           const tag = child.localName;
           if (DROP.has(tag) || isHidden(child)) continue;
+          const childZero = zeroFontOf(child, zero);
           if (!KEEP.has(tag)) {
-            copy(child, into, inQuote);
+            copy(child, into, inQuote, childZero);
             continue;
           }
+          if (tag === "br" && zero) continue;
           if (tag === "img") {
             const src2 = child.getAttribute("src") ?? "";
             const cidMatch = /^cid:(.+)$/i.exec(src2.trim());
@@ -320,16 +331,20 @@
             if (/^\d{1,3}$/.test(child.getAttribute(attr) ?? "")) node.setAttribute(attr, child.getAttribute(attr));
           }
           if (tag === "blockquote" && settings.collapseQuotes && !inQuote) {
-            copy(child, node, true);
+            copy(child, node, true, childZero);
             into.append(quoteBox(node));
           } else {
-            copy(child, node, inQuote || tag === "blockquote");
+            copy(child, node, inQuote || tag === "blockquote", childZero);
             into.append(node);
           }
         }
       }
     };
-    copy(doc.body ?? doc.documentElement, out, false);
+    copy(doc.body ?? doc.documentElement, out, false, false);
+    // Tabellen ohne Text und Bild zeigen bei uns nichts (Farben/Größen sind weg), kosten aber Platz: weglassen
+    for (const table of [...out.querySelectorAll("table")].reverse()) {
+      if (!/\S/.test(table.textContent) && !table.querySelector("img, hr")) table.remove();
+    }
     if (state.blocked) out.prepend(remoteNotice(id));
     loadRemoteImages(out);
     return out;
