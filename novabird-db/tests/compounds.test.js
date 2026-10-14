@@ -73,3 +73,83 @@ describe("FTS4-Rückfall", async () => {
     expect(r.rows.map((x) => x.header_msg_id)).toEqual(["m3@x"]);
   });
 });
+
+describe("Eigene Wortliste (vocab_words) und Weitertippen: gleiche Ergebnisse, weniger Abfragen", async () => {
+  const { refreshVocabWords, vocabWordsBuiltAt, clearCompoundCache, VOCAB_TABLE } = await import("../src/search.js");
+  const ctx = await setup();
+  const TERMS = ["speiseplan", "meldung", "plan", "speise", "woche", "fehlermeldung", "nichts", "notspeiseplan"];
+  // Zählt Abfragen an die Wortliste (LIKE-Suche) über ein umhüllendes Datenbankobjekt
+  const counting = () => {
+    const db = { ...ctx.db, likes: 0, select(sql, ...a) { if (/LIKE/.test(sql)) this.likes++; return ctx.db.select(sql, ...a); } };
+    return db;
+  };
+
+  it("vor dem Bauen: kein Zeitstempel; danach gesetzt", async () => {
+    expect(await vocabWordsBuiltAt(ctx.db)).toBe(0);
+    await refreshVocabWords(ctx.db);
+    expect(await vocabWordsBuiltAt(ctx.db)).toBeGreaterThan(0);
+  });
+
+  it("Tabelle liefert für jeden Begriff dieselben Zusammensetzungen wie die Sicht", async () => {
+    for (const t of TERMS) {
+      clearCompoundCache();
+      const view = await compoundsOf(ctx.db, t);
+      clearCompoundCache();
+      const table = await compoundsOf(ctx.db, t, { table: VOCAB_TABLE });
+      expect(table, t).toEqual(view);
+    }
+  });
+
+  it("Suche mit caps.vocabWords findet dieselben Mails wie ohne", async () => {
+    for (const t of ["speiseplan", "meldung", "plan"]) {
+      clearCompoundCache();
+      const a = await search(ctx.db, ctx.caps, t, { now: NOW });
+      clearCompoundCache();
+      const b = await search(ctx.db, { ...ctx.caps, vocabWords: true }, t, { now: NOW });
+      expect(b.rows.map((x) => x.header_msg_id), t).toEqual(a.rows.map((x) => x.header_msg_id));
+    }
+  });
+
+  it("Weitertippen: jeder Tippstand gleich wie frisch abgefragt, aber nur EINE Suche in der Wortliste", async () => {
+    clearCompoundCache();
+    const db = counting();
+    const steps = ["spei", "speis", "speise", "speisep", "speisepl", "speisepla", "speiseplan"];
+    const typed = [];
+    for (const s of steps) typed.push(await compoundsOf(db, s, { table: VOCAB_TABLE }));
+    expect(db.likes).toBe(1);
+    for (const [i, s] of steps.entries()) {
+      clearCompoundCache();
+      expect(typed[i], s).toEqual(await compoundsOf(ctx.db, s, { table: VOCAB_TABLE }));
+    }
+  });
+
+  it("anderer Begriff (kein Weitertippen) fragt neu ab", async () => {
+    clearCompoundCache();
+    const db = counting();
+    await compoundsOf(db, "speise", { table: VOCAB_TABLE });
+    await compoundsOf(db, "meldung", { table: VOCAB_TABLE });
+    expect(db.likes).toBe(2);
+  });
+
+  it("neue Mails erscheinen in der Tabelle erst nach dem Auffrischen (die Sicht sofort)", async () => {
+    await repository.upsertMessages(ctx.db, ctx.caps, [
+      mk("m11", "Info", "Der Sommerspeiseplan kommt"),
+      mk("m12", "Info", "Sommerspeiseplan und Sommer"),
+      mk("m13", "Info", "Sommer ist schön, Sommer bleibt"),
+    ], +NOW);
+    clearCompoundCache();
+    expect(await compoundsOf(ctx.db, "speiseplan")).toContain("sommerspeiseplan");
+    clearCompoundCache();
+    expect(await compoundsOf(ctx.db, "speiseplan", { table: VOCAB_TABLE })).not.toContain("sommerspeiseplan");
+    await refreshVocabWords(ctx.db);
+    expect(await compoundsOf(ctx.db, "speiseplan", { table: VOCAB_TABLE })).toContain("sommerspeiseplan");
+  });
+
+  it("Auffrischen ist wiederholbar (keine doppelten Wörter)", async () => {
+    await refreshVocabWords(ctx.db);
+    await refreshVocabWords(ctx.db);
+    const [a] = await ctx.db.select(`SELECT count(*) AS n FROM ${VOCAB_TABLE}`, [], ["n"]);
+    const [b] = await ctx.db.select("SELECT count(*) AS n FROM messages_vocab WHERE doc >= 2", [], ["n"]);
+    expect(a.n).toBe(b.n);
+  });
+});

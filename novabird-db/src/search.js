@@ -53,7 +53,7 @@ export { toChips, removeChip } from "./parser/chips.js";
 export { buildSearchSql } from "./query/buildSql.js";
 export { rerank, recencyWeight } from "./query/rank.js";
 export { suggestForQuery, editDistance, similarWords } from "./query/suggest.js";
-export { compoundsOf, expandCompounds, clearCompoundCache } from "./query/compounds.js";
+export { compoundsOf, expandCompounds, clearCompoundCache, refreshVocabWords, vocabWordsBuiltAt, VOCAB_TABLE, VOCAB_VIEW } from "./query/compounds.js";
 export { resolvePeople } from "./query/resolvePeople.js";
 export { migrate } from "./db/schema.js";
 export * as repository from "./db/repository.js";

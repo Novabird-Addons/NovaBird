@@ -1,7 +1,7 @@
 // Komposita im Mailtext finden („speiseplan“ findet „Wochenspeiseplan“ im Text), ohne zusätzliche Indexspalte:
-// Zur Suchzeit werden aus der Wortliste des Index (fts5vocab) Wörter ergänzt, die den Suchbegriff
+// Zur Suchzeit werden aus der Wortliste des Index Wörter ergänzt, die den Suchbegriff
 // MITTEN oder AM ENDE enthalten (Wörter mit dem Begriff am Anfang findet die Präfixsuche ohnehin).
-// Lernt automatisch aus den eigenen Mails: neue Wörter stehen sofort in der Wortliste. Nur FTS5.
+// Lernt automatisch aus den eigenen Mails (Wortliste = Wörter des Index). Nur FTS5.
 
 import { norm } from "../util/normalize.js";
 
@@ -21,36 +21,80 @@ function prefixForms(pre) {
   return out;
 }
 
-// Zwischenspeicher: Die Suche in der Wortliste kostet bei großen Postfächern (300.000 Wörter) 150–400 ms je Begriff.
-// Treffer je Begriff merken; verworfen nach TTL oder wenn der Index sich ändert (clearCompoundCache).
+// Wortliste: eigene Tabelle vocab_words (abgeleitet aus der fts5vocab-Sicht messages_vocab, nur doc ≥ 2 – genau die Wörter,
+// die hier gebraucht werden), solange sie nicht gebaut ist die Sicht selbst. Die Sicht muss für jede Abfrage den ganzen
+// Volltextindex durchgehen (in großen echten Postfächern weit über eine Sekunde); die Tabelle ist eine einfache Liste.
+// Inhalt gleich, nur aufgefrischt statt live (refreshVocabWords, nach Indexläufen und im Leerlauf).
+export const VOCAB_VIEW = "messages_vocab";
+export const VOCAB_TABLE = "vocab_words";
+const sourceOf = (table) => (table === VOCAB_TABLE ? VOCAB_TABLE : VOCAB_VIEW);
+
+// Zwischenspeicher in zwei Stufen:
+// 1. Ergebnis je Begriff (Liste der Zusammensetzungen).
+// 2. Wörter je Tippstand: Was „galaxu“ enthält, enthält auch „galax“ – beim Weitertippen wird der längere Stand im Speicher
+//    aus den Wörtern des kürzeren gefiltert statt neu gesucht (gleiches Ergebnis).
+// Verworfen nach TTL oder wenn sich Index bzw. Wortliste ändern (clearCompoundCache).
 export const CACHE_TTL_MS = 10 * 60_000;
-let caches = new WeakMap(); // je Datenbankobjekt
+export const SCAN_MAX = 20_000; // so viele Wörter je Tippstand im Speicher; mehr = nicht zwischenspeichern, gezielt abfragen
+let caches = new WeakMap(); // je Datenbankobjekt: Ergebnisse
+let scans = new WeakMap(); // je Datenbankobjekt: Wörter je Tippstand
 export function clearCompoundCache() {
   caches = new WeakMap();
+  scans = new WeakMap();
 }
 
-export async function compoundsOf(db, term, { max = MAX_EXPANSIONS, now = Date.now() } = {}) {
+export async function compoundsOf(db, term, { max = MAX_EXPANSIONS, now = Date.now(), table = VOCAB_VIEW } = {}) {
   const t = norm(term);
   if (t.length < MIN_LEN || !/^[\p{L}\p{N}]+$/u.test(t)) return [];
-  const key = `${t}|${max}`;
+  const src = sourceOf(table);
+  const key = `${src}|${t}|${max}`;
   let cache = caches.get(db);
   if (!cache) caches.set(db, (cache = new Map()));
   const hit = cache.get(key);
   if (hit && now - hit.at < CACHE_TTL_MS) return hit.list;
-  const list = await computeCompounds(db, t, max);
+  const list = await computeCompounds(db, src, t, max, now);
   cache.set(key, { at: now, list });
   if (cache.size > 500) cache.delete(cache.keys().next().value);
   return list;
 }
 
-async function computeCompounds(db, t, max) {
-  const rows = await db.select(
-    `SELECT term, doc FROM messages_vocab
-     WHERE term LIKE ? AND substr(term, 1, ?) <> ? AND doc >= 2
-     ORDER BY doc DESC LIMIT ?`,
-    [`%${t}%`, t.length, t, max * 4],
-    ["term", "doc"],
-  );
+/**
+ * Wörter der Wortliste (doc ≥ 2), die t enthalten und NICHT mit t beginnen, häufigste zuerst (bei Gleichstand alphabetisch),
+ * höchstens limit. Nutzt die Wörter eines kürzeren, zwischengespeicherten Tippstands, wenn es einen gibt.
+ */
+async function candidates(db, src, t, limit, now) {
+  let store = scans.get(db);
+  if (!store) scans.set(db, (store = new Map()));
+  let base = null;
+  for (const v of store.values()) {
+    if (v.src === src && now - v.at < CACHE_TTL_MS && t.includes(v.t) && (!base || v.t.length > base.t.length)) base = v;
+  }
+  let words;
+  if (base) {
+    words = base.rows.filter((r) => r.term.includes(t));
+  } else {
+    const rows = await db.select(
+      `SELECT term, doc FROM ${src} WHERE term LIKE ? AND doc >= 2 ORDER BY doc DESC, term LIMIT ?`,
+      [`%${t}%`, SCAN_MAX + 1],
+      ["term", "doc"],
+    );
+    if (rows.length > SCAN_MAX) {
+      // sehr viele Wörter (kurzer, häufiger Begriff): nicht zwischenspeichern, gezielt abfragen
+      return db.select(
+        `SELECT term, doc FROM ${src} WHERE term LIKE ? AND substr(term, 1, ?) <> ? AND doc >= 2 ORDER BY doc DESC, term LIMIT ?`,
+        [`%${t}%`, t.length, t, limit],
+        ["term", "doc"],
+      );
+    }
+    words = rows;
+    store.set(`${src}|${t}`, { src, t, at: now, rows });
+    if (store.size > 50) store.delete(store.keys().next().value);
+  }
+  return words.filter((r) => !r.term.startsWith(t)).slice(0, limit);
+}
+
+async function computeCompounds(db, src, t, max, now) {
+  const rows = await candidates(db, src, t, max * 4, now);
   // Nur echte Zusammensetzungen: Der Vorsatz (Teil vor dem Suchbegriff) muss selbst ein Wort der Wortliste sein.
   // Das blendet Zufallstreffer aus („meldung“ → anmeldung), ohne ein Wörterbuch zu brauchen.
   const cand = rows.map((r) => ({ term: r.term, pres: new Set() }));
@@ -75,7 +119,7 @@ async function computeCompounds(db, t, max) {
   const known = new Set();
   for (let i = 0; i < all.length; i += 400) {
     const part = all.slice(i, i + 400);
-    const rows = await db.select(`SELECT term FROM messages_vocab WHERE term IN (${part.map(() => "?").join(",")}) AND doc >= 2`, part, ["term"]);
+    const rows = await db.select(`SELECT term FROM ${src} WHERE term IN (${part.map(() => "?").join(",")}) AND doc >= 2`, part, ["term"]);
     rows.forEach((r) => known.add(r.term));
   }
   const isWord = (w, depth = 0) => {
@@ -95,15 +139,37 @@ async function computeCompounds(db, t, max) {
 /** Kopie der Anfrage, bei der jede ODER-Gruppe der Suchbegriffe um passende Komposita erweitert ist. */
 export async function expandCompounds(db, caps, query) {
   if (caps.ftsMode === "fts4" || !query.terms?.length) return query;
+  const table = caps.vocabWords ? VOCAB_TABLE : VOCAB_VIEW;
   const terms = [];
   let changed = false;
   for (const group of query.terms) {
     const extra = new Set();
-    for (const t of group) for (const c of await compoundsOf(db, t)) extra.add(c);
+    for (const t of group) for (const c of await compoundsOf(db, t, { table })) extra.add(c);
     const have = new Set(group.map((x) => norm(x)));
     const add = [...extra].filter((c) => !have.has(c));
     if (add.length) changed = true;
     terms.push([...group, ...add]);
   }
   return changed ? { ...query, terms } : query;
+}
+
+/**
+ * Eigene Wortliste (vocab_words) aus dem Volltextindex neu füllen. Kostet etwa so viel wie EINE Suche in der Sicht,
+ * daher selten (nach Indexläufen, im Leerlauf). Kein Schema-Schritt: reine abgeleitete Tabelle, die ältere Versionen
+ * ignorieren (Rückweg auf eine ältere Version ohne Neuaufbau möglich). Nur FTS5.
+ */
+export async function refreshVocabWords(db) {
+  await db.batch([
+    { sql: `CREATE TABLE IF NOT EXISTS ${VOCAB_TABLE} (term TEXT PRIMARY KEY, doc INTEGER NOT NULL) WITHOUT ROWID`, params: [] },
+    { sql: `DELETE FROM ${VOCAB_TABLE}`, params: [] },
+    { sql: `INSERT INTO ${VOCAB_TABLE}(term, doc) SELECT term, doc FROM ${VOCAB_VIEW} WHERE doc >= 2`, params: [] },
+    { sql: "INSERT OR REPLACE INTO meta(key, value) VALUES ('vocab_words_at', ?)", params: [String(Date.now())] },
+  ]);
+  clearCompoundCache();
+}
+
+/** Zeitpunkt des letzten Auffrischens der eigenen Wortliste (0 = noch nicht gebaut). */
+export async function vocabWordsBuiltAt(db) {
+  const rows = await db.select("SELECT value FROM meta WHERE key = 'vocab_words_at'", [], ["value"]);
+  return rows.length ? Number(rows[0].value) || 0 : 0;
 }

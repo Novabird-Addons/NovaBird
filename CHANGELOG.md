@@ -2,6 +2,12 @@
 
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
+## 1.2.1 (2026-10-14)
+Hotfix: DB 1.2.5 · unchanged: Search 1.2.6 · Conversation 0.14.10 · Send 1.0.4 · Extension 1.9.15 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+
+### NovaBird-DB 1.2.5
+- Faster search in large mailboxes. Finding compound words ("plan" also finds "Speiseplan") looked up every new search term in a view of the whole full-text index, which took over a second per term in large real mailboxes. The words are now kept in a small table of their own (only words that occur in at least two mails, exactly the ones used before), refreshed after indexing and when idle. While typing, the words found for "galax" are reused for "galaxu" instead of being searched again. Same results as before; a lab test with 1.78 million index words: 148 ms → 1 ms per term.
+
 ## 1.2.0 (2026-10-13)
 Conversation 0.14.10 · Extension 1.9.15 · unchanged: Search 1.2.6 · DB 1.2.4 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 
