@@ -860,6 +860,257 @@ function moveRecipientToggles(win, undo) {
   undo.push(() => home.insertBefore(area, next));
 }
 
+
+const FMT_OPEN_PREF = "extensions.novabird-extension.composeFormatOpen";
+const FMT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 36, 48, 72];
+const FMT_T = {
+  toggle: tr("Formatierung ein-/ausklappen", "Expand/collapse formatting", "Afficher/masquer la mise en forme", "Mostrar/ocultar formato"),
+  size: tr("Schriftgröße", "Font size", "Taille de police", "Tamaño de fuente"),
+  sample: tr(
+    "Guten Tag, anbei finden Sie unser Angebot. 0123456789",
+    "Hello, please find our offer attached. 0123456789",
+    "Bonjour, veuillez trouver notre offre ci-jointe. 0123456789",
+    "Hola, adjunto encontrará nuestra oferta. 0123456789"
+  ),
+};
+
+/**
+ * Compose: formatting bar. Expandable second row with a font preview, font size as a number,
+ * the font list as a scrollable panel (hover = preview) and extension buttons (LanguageTool) in the bar.
+ * Everything is added next to the original controls (hidden by CSS only while class "nb-fmt" is set), so a
+ * failure leaves the stock bar usable.
+ */
+function setupFormatBar(win, undo) {
+  const doc = win.document;
+  const toolbox = doc.getElementById("FormatToolbox");
+  const bar = doc.getElementById("FormatToolbar");
+  const fontMenu = doc.getElementById("FontFaceSelect");
+  const fontPopup = doc.getElementById("FontFacePopup");
+  const anchorBtn = doc.getElementById("AbsoluteFontSizeButton");
+  if (!toolbox || !bar || !fontMenu || !fontPopup || !anchorBtn) {
+    return;
+  }
+  let open = false;
+  try {
+    open = Services.prefs.getBoolPref(FMT_OPEN_PREF, false);
+  } catch (e) {}
+
+  // 1. toggle button (first item of the bar)
+  const toggle = doc.createXULElement("toolbarbutton");
+  toggle.id = "nb-fmt-toggle";
+  toggle.className = "formatting-button";
+  toggle.setAttribute("tooltiptext", FMT_T.toggle);
+  bar.insertBefore(toggle, bar.firstChild);
+  // the font menu moves to the front (right behind the arrow), as in the mockup
+  const fontHome = { parent: fontMenu.parentNode, next: fontMenu.nextSibling };
+  toggle.after(fontMenu);
+
+  // 2. font size as a number (replaces the three size buttons while "nb-fmt" is set)
+  const sizeMenu = doc.createXULElement("menulist");
+  sizeMenu.id = "nb-fmt-size";
+  sizeMenu.setAttribute("tooltiptext", FMT_T.size);
+  const sizePopup = doc.createXULElement("menupopup");
+  for (const n of FMT_SIZES) {
+    const item = doc.createXULElement("menuitem");
+    item.setAttribute("label", String(n));
+    item.setAttribute("value", String(n));
+    sizePopup.append(item);
+  }
+  sizeMenu.append(sizePopup);
+  anchorBtn.before(sizeMenu);
+
+  // 3. second row: sample text
+  const sample = el(doc, "div", { id: "nb-fmt-sample", textContent: FMT_T.sample });
+  const row = el(doc, "div", { id: "nb-fmt-row" }, sample);
+  toolbox.append(row);
+
+  // 4. font panel
+  const panel = doc.createXULElement("panel");
+  panel.id = "nb-fmt-fonts";
+  panel.setAttribute("noautofocus", "true");
+  panel.setAttribute("norolluponanchor", "true");
+  const list = el(doc, "div", { id: "nb-fmt-fontlist" });
+  panel.append(list);
+  toolbox.append(panel);
+
+  const setPreview = family => {
+    sample.style.fontFamily = family || "";
+  };
+  const currentFamily = () => fontMenu.value || "";
+  // while the list is open the sample text moves to the right of it, so scrolling through the fonts shows the preview
+  panel.addEventListener("popupshown", () => {
+    row.style.paddingInlineStart = Math.round(fontMenu.getBoundingClientRect().left - row.getBoundingClientRect().left + list.getBoundingClientRect().width + 20) + "px";
+  });
+  panel.addEventListener("popuphidden", () => {
+    setPreview(currentFamily());
+    row.style.paddingInlineStart = "";
+  });
+  const buildList = () => {
+    try {
+      win.initLocalFontFaceMenu?.(fontPopup);
+    } catch (e) {}
+    list.replaceChildren();
+    for (const node of fontPopup.children) {
+      if (node.localName == "menuseparator") {
+        if (!node.hidden) {
+          list.append(el(doc, "div", { className: "nb-fmt-sep" }));
+        }
+        continue;
+      }
+      if (node.localName != "menuitem" || node.hidden) {
+        continue;
+      }
+      const value = node.getAttribute("value") ?? "";
+      const item = el(doc, "div", { className: "nb-fmt-font", textContent: node.getAttribute("label") || value });
+      item.style.fontFamily = value;
+      if (value == currentFamily()) {
+        item.classList.add("cur");
+      }
+      item.addEventListener("mouseenter", () => setPreview(value));
+      item.addEventListener("click", () => {
+        panel.hidePopup();
+        try {
+          win.doStatefulCommand("cmd_fontFace", value);
+        } catch (e) {
+          console.error(e);
+        }
+        win.gContentWindow?.focus();
+      });
+      list.append(item);
+    }
+  };
+  // The menulist keeps showing the current font; its own popup is replaced by the panel.
+  const onFontPopup = event => {
+    event.preventDefault();
+    buildList();
+    panel.openPopup(fontMenu, "after_start");
+    list.querySelector(".cur")?.scrollIntoView({ block: "center" });
+  };
+  fontPopup.addEventListener("popupshowing", onFontPopup);
+
+  // 5. editor: size from the selection, size changes
+  let editorDoc = null;
+  let pendingPt = 12;
+  const editorDocument = () => {
+    try {
+      return win.GetCurrentEditor?.()?.document || null;
+    } catch (e) {
+      return null;
+    }
+  };
+  const convertMarkers = d => {
+    // execCommand("fontSize", 7) marks the text; 7 is not offered anywhere else, so it only means "our size"
+    for (const f of d.querySelectorAll('font[size="7"]')) {
+      f.removeAttribute("size");
+      f.style.fontSize = pendingPt + "pt";
+    }
+  };
+  const refresh = () => {
+    const d = editorDocument();
+    if (!d) {
+      return;
+    }
+    try {
+      const sel = d.getSelection();
+      const node = sel?.focusNode;
+      const e = node && (node.nodeType == 1 ? node : node.parentElement);
+      if (!e) {
+        return;
+      }
+      const px = parseFloat(d.defaultView.getComputedStyle(e).fontSize);
+      if (!px) {
+        return;
+      }
+      const pt = Math.round(px * 0.75 * 2) / 2;
+      const idx = FMT_SIZES.indexOf(pt);
+      if (idx >= 0) {
+        sizeMenu.selectedIndex = idx;
+      } else {
+        sizeMenu.selectedIndex = -1;
+        sizeMenu.setAttribute("label", String(pt));
+      }
+      sample.style.fontSize = Math.min(34, Math.max(13, Math.round(px))) + "px";
+    } catch (e) {}
+  };
+  const hookEditor = () => {
+    const d = editorDocument();
+    if (!d || d === editorDoc) {
+      return;
+    }
+    editorDoc = d;
+    d.addEventListener("selectionchange", refresh);
+    d.addEventListener("input", () => convertMarkers(d));
+    refresh();
+  };
+  sizeMenu.addEventListener("command", () => {
+    const d = editorDocument();
+    const pt = parseFloat(sizeMenu.value);
+    if (!d || !pt) {
+      return;
+    }
+    pendingPt = pt;
+    d.execCommand("fontSize", false, "7");
+    convertMarkers(d);
+    win.gContentWindow?.focus();
+    refresh();
+  });
+  const timers = [0, 400, 1500, 4000].map(ms => win.setTimeout(hookEditor, ms));
+  win.addEventListener("focus", hookEditor, true);
+
+  // 6. extension buttons (LanguageTool etc.) from the command bar into the formatting bar
+  const cmdBar = doc.getElementById("composeToolbar2");
+  const actions = doc.createXULElement("hbox");
+  actions.id = "nb-fmt-actions";
+  actions.setAttribute("align", "center");
+  bar.append(actions);
+  const moved = [];
+  const isExt = n => n.localName == "toolbarbutton" && n.classList.contains("webextension-compose-action") && !/novabird/i.test(n.id);
+  const collect = () => {
+    for (const n of cmdBar ? [...cmdBar.children] : []) {
+      if (isExt(n)) {
+        moved.push({ node: n, next: n.nextSibling });
+        actions.append(n);
+      }
+    }
+  };
+  collect();
+  const mo = cmdBar ? new win.MutationObserver(collect) : null;
+  mo?.observe(cmdBar, { childList: true });
+
+  // 7. open/close
+  const apply = () => {
+    toolbox.toggleAttribute("nb-open", open);
+    toggle.setAttribute("aria-expanded", String(open));
+  };
+  toggle.addEventListener("command", () => {
+    open = !open;
+    try {
+      Services.prefs.setBoolPref(FMT_OPEN_PREF, open);
+    } catch (e) {}
+    apply();
+  });
+  apply();
+  bar.classList.add("nb-fmt");
+
+  undo.push(() => {
+    bar.classList.remove("nb-fmt");
+    mo?.disconnect();
+    for (const t of timers) {
+      win.clearTimeout(t);
+    }
+    win.removeEventListener("focus", hookEditor, true);
+    fontPopup.removeEventListener("popupshowing", onFontPopup);
+    for (const { node, next } of moved.reverse()) {
+      cmdBar?.insertBefore(node, next && next.parentNode == cmdBar ? next : null);
+    }
+    fontHome.parent?.insertBefore(fontMenu, fontHome.next && fontHome.next.parentNode == fontHome.parent ? fontHome.next : null);
+    for (const n of [toggle, sizeMenu, row, panel, actions]) {
+      n.remove();
+    }
+    toolbox.removeAttribute("nb-open");
+  });
+}
+
 function setupWindow(win, isMain) {
   const undo = [];
   perWindow.set(win, undo);
@@ -872,6 +1123,11 @@ function setupWindow(win, isMain) {
   if (win.location.href.endsWith("messengercompose.xhtml")) {
     addStyle(win.document, shellCss() + CSS.compose, undo);
     moveRecipientToggles(win, undo);
+    try {
+      setupFormatBar(win, undo);
+    } catch (e) {
+      console.error("NovaBird: Formatierungsleiste", e);
+    }
   }
 
   const orig = win.MsgAccountManager;

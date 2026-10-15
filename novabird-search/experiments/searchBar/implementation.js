@@ -156,7 +156,7 @@ tr.nbs-newest td:first-of-type {
 #folderTree li.nbs-shared-first { padding-top: 4px; }
 #folderTree li.nbs-shared-last { border-bottom: 1px solid var(--layout-border-0, color-mix(in srgb, currentColor 25%, transparent)); box-shadow: 0 2px 3px -2px rgba(0, 0, 0, 0.35); }
 /* Titelbereich links (Ordnername + Anzahl) hat eine feste Mindestbreite: sonst wird die Leiste beim Wechsel von „Posteingang“ zu „Suchergebnisse“ verdrängt und springt. */
-.list-header-bar-container-start { min-width: 200px; max-width: 35%; }
+.list-header-bar-container-start { min-width: 10.5em; max-width: 35%; } /* em: wächst mit der Schrift (feste px ließen unter Windows eine große Lücke zum Suchfeld) */
 /* langer Ordnername: mit „…“ kürzen, das Suchfeld behält seine Mindestbreite */
 .list-header-bar-container-start #threadPaneFolderName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 #${ROOT_ID} {
@@ -180,7 +180,13 @@ tr.nbs-newest td:first-of-type {
   align-items: center;
   min-width: 0;
   font: menu;
+  font-size: inherit; /* Schriftart des Systems, Größe wie Thunderbird: folgt der eingestellten Schriftgröße */
   color: var(--nbs-menu-fg);
+}
+/* Windows: Systemschrift (Segoe UI) wirkt kleiner als unter Linux, Suchfeld und Zeitfenster etwas größer */
+@media (-moz-platform: windows) {
+  #${ROOT_ID} { font-size: 1.1em; }
+  #${ROOT_ID} .nbs-chip { font-size: 0.9em; }
 }
 #${ROOT_ID} .nbs-field {
   flex: none; /* die Leiste ist eine Spalte: sonst schrumpft das Feld auf die Resthöhe der Kopfzeile */
@@ -234,7 +240,7 @@ tr.nbs-newest td:first-of-type {
   border-color: var(--nbs-accent);
   color: var(--nbs-on-accent);
 }
-#${ROOT_ID} .nbs-clear { display: none; padding: 0 8px; font-size: 14px; }
+#${ROOT_ID} .nbs-clear { display: none; padding: 0 8px; font-size: 1.1em; }
 #${ROOT_ID}[data-has-text] .nbs-clear { display: flex; }
 #${ROOT_ID} .nbs-spin {
   display: none;

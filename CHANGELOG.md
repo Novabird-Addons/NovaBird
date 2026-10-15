@@ -2,6 +2,22 @@
 
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
+## Unreleased (branch `testing`)
+Search 1.2.7 · Extension 1.9.17 · unchanged: DB 1.2.5 · Conversation 0.14.10 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+
+### NovaBird-Search 1.2.7
+- The title block in the list header (folder name and count) had a fixed minimum width of 200 px. With the smaller system font on Windows this left a wide gap before the search field. It is now `10.5em` and scales with the font.
+- The search bar followed the system menu font size instead of the font size set in Thunderbird, so it did not change with the setting. The font family is still the system one, the size is now inherited.
+- Windows only (`@media (-moz-platform: windows)`): search field and the time-range chips are slightly larger so they match the rest of the window.
+
+### NovaBird-Extension 1.9.17
+- **Compose window, formatting bar:** one tinted surface that stands out from the message text. An arrow at the left expands a second row with a sample text (the state is remembered). The font menu moved to the front. The font size is a number (8–72 pt) instead of the three size buttons. The font menu opens as a scrollable list; hovering a font shows it in the sample text, which moves to the right of the list while it is open and is cut off instead of widening the window. Buttons of other add-ons in the command bar (for example LanguageTool) move into the formatting bar. If anything fails the stock bar stays as it is.
+- **Compose window, header rows:** From / To / Subject are lower; the height is now in `em` (`2.5em` instead of 46 px).
+- **New tab "Mailbox" in the settings:** mailbox analysis per account and in total with folders, messages and size (MB/GB), a size distribution bar and the largest folders, in the account colours of the message list. Read-only, calculated from the locally stored folder data (new experiment `mailStats`); for IMAP accounts without offline storage only what is stored locally counts.
+
+### Docs
+- `docs/windows-menue-rand.md`: wide border around menus on Windows (themes Sand 1.0.1, Cobalt 1.0.3, Springlight 1.7.3, already part of this branch).
+
 ## 1.2.1 (2026-10-14)
 Hotfix: DB 1.2.5 · unchanged: Search 1.2.6 · Conversation 0.14.10 · Send 1.0.4 · Extension 1.9.15 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 

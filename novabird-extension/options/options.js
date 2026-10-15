@@ -60,6 +60,24 @@ const TEXTS = {
     rulesDesc: "Legt Nachrichtenfilter Schritt für Schritt an, mit Erklärungen und einer Vorschau, welche Mails im Posteingang passen würden. Eingeschaltet erscheint im Kontextmenü der Nachrichtenliste „Regel aus dieser Mail erstellen …“. Gespeichert wird ein normaler Betterbird-Filter (Extras → Nachrichtenfilter), der auch ohne NovaBird weiterläuft; bestehende Filter bleiben unverändert, vorher wird die Filterdatei gesichert.",
     rulesOpen: "Regel-Assistent öffnen",
     selfTest_rules: "Regel-Assistent (Nachrichtenfilter)",
+    tabStats: "Postfach",
+    statsTitle: "Postfachanalyse",
+    statsRefresh: "Aktualisieren",
+    statsUpdated: "Stand: $1",
+    statsNote: "Berechnet aus den lokal gespeicherten Daten, nichts wird nachgeladen. Bei IMAP-Konten ohne Offline-Speicherung zählt nur, was lokal liegt.",
+    statsAccounts: "Konten",
+    statsFolders: "Ordner",
+    statsMessages: "Nachrichten",
+    statsTotal: "Gesamtgröße",
+    statsPerAccount: "Pro Konto",
+    statsDistribution: "Verteilung nach Größe",
+    statsTop: "Größte Ordner",
+    statsLoading: "Wird berechnet …",
+    statsError: "Die Analyse ist fehlgeschlagen.",
+    statsEmpty: "Keine Konten gefunden.",
+    statsFoldersN: "$1 Ordner",
+    statsMessagesN: "$1 Nachrichten",
+    selfTest_mailStats: "Postfachanalyse",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact im Kontakte-Tab",
     pilotEnableLabel: "Nova-Contact verwenden",
@@ -147,6 +165,24 @@ const TEXTS = {
     rulesDesc: "Creates message filters step by step, with explanations and a preview of which mails in the inbox would match. When enabled, the message list context menu offers \"Create rule from this mail …\". It saves a normal Betterbird filter (Tools → Message Filters) that keeps working without NovaBird; existing filters stay unchanged and the filter file is backed up first.",
     rulesOpen: "Open rule assistant",
     selfTest_rules: "Rule assistant (message filters)",
+    tabStats: "Mailbox",
+    statsTitle: "Mailbox analysis",
+    statsRefresh: "Refresh",
+    statsUpdated: "As of: $1",
+    statsNote: "Calculated from locally stored data; nothing is downloaded. For IMAP accounts without offline storage only what is stored locally is counted.",
+    statsAccounts: "Accounts",
+    statsFolders: "Folders",
+    statsMessages: "Messages",
+    statsTotal: "Total size",
+    statsPerAccount: "Per account",
+    statsDistribution: "Distribution by size",
+    statsTop: "Largest folders",
+    statsLoading: "Calculating …",
+    statsError: "The analysis failed.",
+    statsEmpty: "No accounts found.",
+    statsFoldersN: "$1 folders",
+    statsMessagesN: "$1 messages",
+    selfTest_mailStats: "Mailbox analysis",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact in the Contacts tab",
     pilotEnableLabel: "Use Nova-Contact",
@@ -234,6 +270,24 @@ const TEXTS = {
     rulesDesc: "Crée des filtres de messages pas à pas, avec des explications et un aperçu des messages de la boîte de réception qui correspondraient. Une fois activé, le menu contextuel de la liste des messages propose « Créer une règle à partir de ce message … ». Il enregistre un filtre Betterbird normal (Outils → Filtres de messages) qui fonctionne aussi sans NovaBird ; les filtres existants restent inchangés et le fichier de filtres est sauvegardé avant.",
     rulesOpen: "Ouvrir l’assistant de règles",
     selfTest_rules: "Assistant de règles (filtres de messages)",
+    tabStats: "Boîte mail",
+    statsTitle: "Analyse de la boîte mail",
+    statsRefresh: "Actualiser",
+    statsUpdated: "État : $1",
+    statsNote: "Calculé à partir des données stockées localement, rien n’est téléchargé. Pour les comptes IMAP sans stockage hors ligne, seul ce qui est local est compté.",
+    statsAccounts: "Comptes",
+    statsFolders: "Dossiers",
+    statsMessages: "Messages",
+    statsTotal: "Taille totale",
+    statsPerAccount: "Par compte",
+    statsDistribution: "Répartition par taille",
+    statsTop: "Plus gros dossiers",
+    statsLoading: "Calcul en cours …",
+    statsError: "L’analyse a échoué.",
+    statsEmpty: "Aucun compte trouvé.",
+    statsFoldersN: "$1 dossiers",
+    statsMessagesN: "$1 messages",
+    selfTest_mailStats: "Analyse de la boîte mail",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact dans l’onglet Contacts",
     pilotEnableLabel: "Utiliser Nova-Contact",
@@ -321,6 +375,24 @@ const TEXTS = {
     rulesDesc: "Crea filtros de mensajes paso a paso, con explicaciones y una vista previa de qué correos de la bandeja de entrada coincidirían. Activado, el menú contextual de la lista de mensajes ofrece «Crear regla a partir de este correo …». Guarda un filtro normal de Betterbird (Herramientas → Filtros de mensajes) que funciona también sin NovaBird; los filtros existentes no cambian y antes se hace una copia del archivo de filtros.",
     rulesOpen: "Abrir el asistente de reglas",
     selfTest_rules: "Asistente de reglas (filtros de mensajes)",
+    tabStats: "Buzón",
+    statsTitle: "Análisis del buzón",
+    statsRefresh: "Actualizar",
+    statsUpdated: "Estado: $1",
+    statsNote: "Calculado con los datos almacenados localmente; no se descarga nada. En cuentas IMAP sin almacenamiento sin conexión solo cuenta lo que está en local.",
+    statsAccounts: "Cuentas",
+    statsFolders: "Carpetas",
+    statsMessages: "Mensajes",
+    statsTotal: "Tamaño total",
+    statsPerAccount: "Por cuenta",
+    statsDistribution: "Distribución por tamaño",
+    statsTop: "Carpetas más grandes",
+    statsLoading: "Calculando …",
+    statsError: "El análisis ha fallado.",
+    statsEmpty: "No se encontraron cuentas.",
+    statsFoldersN: "$1 carpetas",
+    statsMessagesN: "$1 mensajes",
+    selfTest_mailStats: "Análisis del buzón",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact en la pestaña Contactos",
     pilotEnableLabel: "Usar Nova-Contact",
@@ -460,6 +532,10 @@ for (const b of document.querySelectorAll("nav button")) {
     document.getElementById("listTab").hidden = b.dataset.tab !== "list";
     document.getElementById("pilotTab").hidden = b.dataset.tab !== "pilot";
     document.getElementById("rulesTab").hidden = b.dataset.tab !== "rules";
+    document.getElementById("statsTab").hidden = b.dataset.tab !== "stats";
+    if (b.dataset.tab === "stats") {
+      loadStats();
+    }
   });
 }
 document.getElementById("tabList").setAttribute("aria-selected", "true");
@@ -665,3 +741,142 @@ const save = patch => messenger.storage.local.set(patch);
     save({ colors: { ...colors } });
   });
 })();
+
+// ---- Postfachanalyse ---------------------------------------------------------------------------
+const STATS_PALETTE = ["#378ADD", "#1D9E75", "#D85A30", "#7F77DD", "#BA7517", "#D4537E", "#0F6E56", "#888780"];
+
+function fmtNum(n) {
+  return n.toLocaleString(document.documentElement.lang);
+}
+
+function fmtSize(bytes) {
+  const mb = bytes / 1048576;
+  if (mb >= 1024) {
+    return (mb / 1024).toLocaleString(document.documentElement.lang, { maximumFractionDigits: 1 }) + " GB";
+  }
+  return mb.toLocaleString(document.documentElement.lang, { maximumFractionDigits: mb >= 100 ? 0 : 1 }) + " MB";
+}
+
+function statsEl(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) {
+    e.className = cls;
+  }
+  if (text !== undefined) {
+    e.textContent = text;
+  }
+  return e;
+}
+
+function statsBar(parts, big) {
+  const bar = statsEl("div", "st-bar" + (big ? " big" : ""));
+  for (const [share, color] of parts) {
+    const seg = document.createElement("div");
+    seg.style.width = Math.max(0, Math.min(100, share)) + "%";
+    seg.style.background = color;
+    bar.append(seg);
+  }
+  return bar;
+}
+
+let statsBusy = false;
+async function loadStats() {
+  if (statsBusy) {
+    return;
+  }
+  statsBusy = true;
+  const body = document.getElementById("statsBody");
+  document.getElementById("statsUpdated").textContent = "";
+  body.replaceChildren(statsEl("p", "st-sub", t.statsLoading));
+  try {
+    const accounts = await messenger.mailStats.getStats();
+    const stored = (await messenger.storage.local.get({ listAcctColors: {} })).listAcctColors || {};
+    let order = [];
+    try {
+      order = (await messenger.accounts.list(false)).map(a => a.id);
+    } catch (e) { /* ohne Kontoreihenfolge */ }
+    const colorOf = a => {
+      const i = order.indexOf(a.id);
+      return stored[a.id] || STATS_PALETTE[(i < 0 ? accounts.indexOf(a) : i) % STATS_PALETTE.length];
+    };
+    const rows = accounts.map(a => ({
+      a,
+      color: colorOf(a),
+      folders: a.folders.length,
+      messages: a.folders.reduce((n, f) => n + f.count, 0),
+      size: a.folders.reduce((n, f) => n + f.size, 0),
+    }));
+    rows.sort((x, y) => y.size - x.size);
+    const total = { folders: 0, messages: 0, size: 0 };
+    for (const r of rows) {
+      total.folders += r.folders;
+      total.messages += r.messages;
+      total.size += r.size;
+    }
+    body.replaceChildren();
+    if (!rows.length) {
+      body.append(statsEl("p", "st-sub", t.statsEmpty));
+      return;
+    }
+
+    const kpis = statsEl("div", "st-kpis");
+    for (const [label, value] of [[t.statsAccounts, fmtNum(rows.length)], [t.statsFolders, fmtNum(total.folders)], [t.statsMessages, fmtNum(total.messages)], [t.statsTotal, fmtSize(total.size)]]) {
+      const k = statsEl("div", "st-kpi");
+      k.append(statsEl("span", "", label), statsEl("b", "", value));
+      kpis.append(k);
+    }
+    body.append(kpis);
+
+    body.append(statsEl("h4", "st-h", t.statsPerAccount));
+    for (const r of rows) {
+      const card = statsEl("div", "st-acc");
+      const head = statsEl("div", "st-ah");
+      const dot = statsEl("span", "st-dot");
+      dot.style.background = r.color;
+      const meta = statsEl("span", "st-am");
+      meta.append(
+        statsEl("span", "", t.statsFoldersN.replace("$1", fmtNum(r.folders))),
+        statsEl("span", "", t.statsMessagesN.replace("$1", fmtNum(r.messages))),
+        statsEl("b", "", fmtSize(r.size))
+      );
+      head.append(dot, statsEl("b", "", r.a.name), meta);
+      card.append(head, statsBar([[total.size ? (r.size / total.size) * 100 : 0, r.color]]));
+      body.append(card);
+    }
+
+    if (rows.length > 1 && total.size) {
+      body.append(statsEl("h4", "st-h", t.statsDistribution));
+      body.append(statsBar(rows.map(r => [(r.size / total.size) * 100, r.color]), true));
+    }
+
+    const top = [];
+    for (const r of rows) {
+      for (const f of r.a.folders) {
+        top.push({ f, color: r.color, account: r.a.name });
+      }
+    }
+    top.sort((x, y) => y.f.size - x.f.size);
+    const shown = top.filter(x => x.f.size > 0).slice(0, 8);
+    if (shown.length) {
+      body.append(statsEl("h4", "st-h", t.statsTop));
+      const max = shown[0].f.size;
+      for (const x of shown) {
+        const row = statsEl("div", "st-top");
+        const label = statsEl("span", "", x.f.path);
+        label.title = x.account + " · " + x.f.path;
+        label.style.overflow = "hidden";
+        label.style.textOverflow = "ellipsis";
+        label.style.whiteSpace = "nowrap";
+        row.append(label, statsBar([[(x.f.size / max) * 100, x.color]]), statsEl("span", "sz", fmtSize(x.f.size)));
+        body.append(row);
+      }
+    }
+    document.getElementById("statsUpdated").textContent = t.statsUpdated.replace("$1", new Date().toLocaleString(document.documentElement.lang));
+  } catch (e) {
+    console.error(e);
+    body.replaceChildren(statsEl("p", "st-sub", t.statsError));
+  } finally {
+    statsBusy = false;
+  }
+}
+document.getElementById("statsRefresh").addEventListener("click", loadStats);

@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "default_locale": "en",
   "name": "__MSG_name__",
-  "version": "1.9.15",
+  "version": "1.9.17",
   "description": "__MSG_description__",
   "browser_specific_settings": {
     "gecko": {
@@ -103,6 +103,20 @@
           ]
         ],
         "script": "experiments/mailRules/implementation.js"
+      }
+    },
+    "mailStats": {
+      "schema": "experiments/mailStats/schema.json",
+      "parent": {
+        "scopes": [
+          "addon_parent"
+        ],
+        "paths": [
+          [
+            "mailStats"
+          ]
+        ],
+        "script": "experiments/mailStats/implementation.js"
       }
     }
   },

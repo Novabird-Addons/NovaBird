@@ -1,5 +1,5 @@
 /* Compose window (messengercompose.xhtml). Tokens/fonts come from shell.css. */
-:root { --tbsr-compose-row: 46px; }
+:root { --tbsr-compose-row: 2.5em; } /* em: wächst mit der Schrift */
 body, #compose-toolbox, #composeContentBox { font-family: var(--tbsr-font); color: var(--tbsr-text); }
 #composeContentBox { background: var(--tbsr-bg) !important; }
 
@@ -107,6 +107,30 @@ mail-address-pill[selected], .address-pill[selected] { background: var(--tbsr-ac
   color: var(--tbsr-text) !important; margin-inline-end: 4px;
 }
 #headersSplitter { display: none !important; }
+
+/* ---- formatting bar: one tinted surface (bar + optional second row), expandable with the arrow at the left ---- */
+#FormatToolbox { background: var(--tbsr-side) !important; border-block: 1px solid var(--tbsr-line) !important; }
+#FormatToolbox #FormatToolbar { background: transparent !important; border: 0 !important; }
+#FormatToolbar.nb-fmt #AbsoluteFontSizeButton, #FormatToolbar.nb-fmt #DecreaseFontSizeButton, #FormatToolbar.nb-fmt #IncreaseFontSizeButton { display: none !important; }
+#nb-fmt-toggle { list-style-image: url("chrome://messenger/skin/icons/new/compact/nav-right.svg") !important; -moz-context-properties: fill, stroke; fill: currentColor; stroke: currentColor; }
+#FormatToolbox[nb-open] #nb-fmt-toggle { list-style-image: url("chrome://messenger/skin/icons/new/compact/nav-down.svg") !important; }
+#nb-fmt-size { min-width: 4.2em; margin-inline-end: 4px; }
+/* contain: inline-size = the text never widens the window (and squeezes the contacts pane); it is cut off with an ellipsis instead */
+#nb-fmt-row { display: none; box-sizing: border-box; width: 100%; min-width: 0; contain: inline-size; padding: 2px 16px 10px 46px; color: var(--tbsr-text); line-height: 1.4; overflow: hidden; }
+#FormatToolbox[nb-open] #nb-fmt-row { display: block; }
+#nb-fmt-sample { font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#nb-fmt-actions { margin-inline-start: auto; gap: 4px; }
+#nb-fmt-actions toolbarbutton {
+  background: var(--tbsr-panel) !important; border: 1px solid var(--tbsr-line) !important; border-radius: 8px !important;
+  color: var(--tbsr-text) !important; padding: 2px 10px !important; margin: 0 !important;
+}
+#nb-fmt-actions toolbarbutton:hover { background: var(--tbsr-hover) !important; }
+/* font list: a framed field with a scroll bar on the right; hovering a font previews it in the sample row */
+#nb-fmt-fonts { --panel-background: var(--tbsr-panel); --panel-color: var(--tbsr-text); --panel-border-color: var(--tbsr-line); --panel-padding: 4px; }
+#nb-fmt-fontlist { width: 17em; max-height: 15em; overflow-y: scroll; scrollbar-width: thin; padding-inline-end: 2px; }
+.nb-fmt-font { padding: 4px 10px; border-radius: 7px; font-size: 15px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--tbsr-text); }
+.nb-fmt-font:hover, .nb-fmt-font.cur { background: var(--tbsr-accent-bg, var(--tbsr-hover)); }
+.nb-fmt-sep { height: 1px; margin: 4px 6px; background: var(--tbsr-line); }
 
 /* ---- status bar ---- */
 #status-bar { background: var(--tbsr-side) !important; border-top: 1px solid var(--tbsr-line) !important; color: var(--tbsr-muted); }

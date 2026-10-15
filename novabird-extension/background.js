@@ -152,6 +152,6 @@ messenger.storage.onChanged.addListener(async changes => {
 });
 
 // Selbsttest der Betterbird-Interna (shared/selftest-bg.js); Ergebnis zeigt die Optionsseite
-nbStartSelfTest([() => messenger.messageList.selfTest(), () => messenger.novaContact.selfTest(), () => messenger.mailRules.selfTest()]);
+nbStartSelfTest([() => messenger.messageList.selfTest(), () => messenger.novaContact.selfTest(), () => messenger.mailRules.selfTest(), () => messenger.mailStats.selfTest()]);
 
 messenger.mailRules.onCreateFromMessage.addListener(info => safe("Regel-Assistent öffnen", () => openRuleWizard(info)));

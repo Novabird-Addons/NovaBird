@@ -15,6 +15,22 @@
     nav { display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
     nav button { border: 0; background: none; padding: 8px 14px; font: inherit; color: inherit; border-bottom: 2px solid transparent; cursor: pointer; }
     nav button[aria-selected="true"] { border-bottom-color: #2F6BD8; font-weight: 600; }
+    .st-sub { color: color-mix(in srgb, currentColor 65%, transparent); margin: 2px 0 12px; font-size: 0.92em; }
+    .st-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(9em, 1fr)); gap: 10px; margin: 10px 0 12px; }
+    .st-kpi { background: color-mix(in srgb, currentColor 6%, transparent); border-radius: 10px; padding: 10px 14px; }
+    .st-kpi span { font-size: 0.85em; opacity: .7; display: block; }
+    .st-kpi b { font-size: 1.7em; font-weight: 600; display: block; }
+    .st-acc { border: 1px solid color-mix(in srgb, currentColor 18%, transparent); border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; }
+    .st-ah { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .st-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+    .st-am { margin-inline-start: auto; display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.9em; opacity: .85; }
+    .st-bar { display: flex; height: 8px; border-radius: 4px; background: color-mix(in srgb, currentColor 10%, transparent); overflow: hidden; }
+    .st-bar.big { height: 14px; }
+    .st-top { display: grid; grid-template-columns: minmax(8em, 16em) 1fr 6em; gap: 10px; align-items: center; padding: 3px 0; }
+    .st-top .st-bar { height: 6px; }
+    .st-top small { opacity: .6; }
+    .st-top .sz { text-align: end; }
+    h4.st-h { margin: 18px 0 8px; }
     section[hidden] { display: none; }
     h3 { margin: 22px 0 6px; }
     h4 { margin: 20px 0 4px; font-size: 1.05em; }
@@ -50,6 +66,7 @@
     <button type="button" data-tab="preview" id="tabPreview"></button>
     <button type="button" data-tab="pilot" id="tabPilot"></button>
     <button type="button" data-tab="rules" id="tabRules"></button>
+    <button type="button" data-tab="stats" id="tabStats"></button>
   </nav>
 
   <section id="calendar" hidden>
@@ -147,6 +164,16 @@
     <label><input type="checkbox" id="rulesEnabled"> <span id="rulesEnableLabel"></span></label>
     <p id="rulesDesc"></p>
     <button type="button" id="rulesOpen"></button>
+  </section>
+
+  <section id="statsTab" hidden>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div><h3 id="statsTitle" style="margin:6px 0 2px"></h3><p id="statsUpdated" class="st-sub"></p></div>
+      <span style="flex:1"></span>
+      <button type="button" id="statsRefresh"></button>
+    </div>
+    <div id="statsBody"></div>
+    <p id="statsNote" class="st-sub"></p>
   </section>
 
   <section id="diag">
