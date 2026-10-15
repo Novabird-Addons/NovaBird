@@ -25,7 +25,7 @@ test("Optionsseite: vier Sprachen, gleiche Schlüssel, keine leeren Texte", () =
 });
 
 test("Selbsttest: jede geprüfte Funktion hat einen Text", () => {
-  const code = L.readAll(root, ["experiments/messageList/implementation.js", "experiments/novaContact/implementation.js", "experiments/mailRules/implementation.js"]);
+  const code = L.readAll(root, ["experiments/messageList/implementation.js", "experiments/novaContact/implementation.js", "experiments/mailRules/implementation.js", "experiments/mailStats/implementation.js"]);
   assert.deepEqual(L.selfTestProblems({ en: TEXTS.en }, code), []);
 });
 

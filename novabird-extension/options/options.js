@@ -78,6 +78,28 @@ const TEXTS = {
     statsFoldersN: "$1 Ordner",
     statsMessagesN: "$1 Nachrichten",
     selfTest_mailStats: "Postfachanalyse",
+    tabAi: "KI",
+    aiTitle: "KI-Zusammenfassung",
+    aiDesc: "Fasst eine geöffnete Nachricht mit einem Sprachmodell zusammen. Nichts geschieht automatisch: Erst der Knopf „Mail zusammenfassen (KI)“ in der Nachrichtenansicht sendet den Mailtext an die Adresse unten. Gedacht für ein Modell auf dem eigenen Rechner (Ollama) oder einen OpenAI-kompatiblen Dienst.",
+    aiCtxLabel: "Kontextlänge (Token)",
+    aiPromptTitle: "Anweisung an die KI",
+    aiPromptDesc: "Das ist der Text, den das Modell zusammen mit der Mail erhält. Er steht vor dem Mailtext und lässt sich hier nicht ändern. Platzhalter: {ZIEL} wird zur gewählten Sprache, {OPEN} und {CLOSE} sind Markierungen mit zufälliger Kennung, zwischen denen der Mailtext steht.",
+    aiPromptSafe: ["Trennung: Der Mailtext steht zwischen Markierungen, die bei jeder Anfrage neu und zufällig sind. Ein Absender kann sie nicht vorhersagen und damit nicht aus dem Textteil ausbrechen.", "Fremde Daten: Das Modell erfährt ausdrücklich, dass der Mailtext von Dritten stammt und Anweisungen darin nicht befolgt werden dürfen. Das macht Fremdanweisungen unwahrscheinlicher, schließt sie bei Sprachmodellen aber nicht sicher aus.", "Begrenzte Wirkung: Das Modell hat keine Werkzeuge. Es kann nichts senden, öffnen oder löschen; seine Antwort wird nur als Text angezeigt. Im schlimmsten Fall ist eine Zusammenfassung falsch oder irreführend.", "Hinweis: Enthält eine Mail Sätze wie „ignoriere alle Anweisungen“, erscheint über der Zusammenfassung eine Warnung."],
+    aiTypeLabel: "Schnittstelle",
+    aiUrlLabel: "Adresse",
+    aiModelLabel: "Modell",
+    aiUserLabel: "Benutzername (optional)",
+    aiKeyLabel: "Passwort oder API-Schlüssel (optional)",
+    aiLangLabel: "Zusammenfassung in",
+    aiLangUi: "Sprache der Oberfläche",
+    aiLangMail: "Sprache der Mail",
+    aiTest: "Verbindung testen",
+    aiTesting: "Wird geprüft …",
+    aiOk: "Verbunden: $1 Modelle gefunden.",
+    aiFail: "Fehlgeschlagen: $1",
+    aiPerm: "Erlaubnis für diese Adresse nicht erteilt.",
+    aiRemote: "Achtung: Diese Adresse liegt nicht auf diesem Rechner. Beim Zusammenfassen wird der Text der Mail dorthin gesendet.",
+    aiNote: "Zugangsdaten werden im Profil dieses Add-ons gespeichert (nicht verschlüsselt). Mit Benutzername wird Basic-Anmeldung verwendet, sonst das Passwort als Bearer-Schlüssel. Empfohlen: Ollama mit einem Modell wie gemma3:12b oder qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact im Kontakte-Tab",
     pilotEnableLabel: "Nova-Contact verwenden",
@@ -183,6 +205,28 @@ const TEXTS = {
     statsFoldersN: "$1 folders",
     statsMessagesN: "$1 messages",
     selfTest_mailStats: "Mailbox analysis",
+    tabAi: "AI",
+    aiTitle: "AI summary",
+    aiDesc: "Summarises an open message with a language model. Nothing happens automatically: only the button “Summarise mail (AI)” in the message view sends the mail text to the address below. Meant for a model on your own computer (Ollama) or an OpenAI-compatible service.",
+    aiCtxLabel: "Context length (tokens)",
+    aiPromptTitle: "Instruction to the AI",
+    aiPromptDesc: "This is the text the model receives together with the mail. It comes before the mail text and cannot be changed here. Placeholders: {ZIEL} becomes the chosen language, {OPEN} and {CLOSE} are markers with a random ID between which the mail text is placed.",
+    aiPromptSafe: ["Separation: The mail text sits between markers that are new and random for every request. A sender cannot predict them and so cannot break out of the text part.", "Third-party data: The model is told explicitly that the mail text comes from others and that instructions in it must not be followed. This makes injected instructions less likely, but with language models it cannot rule them out completely.", "Limited effect: The model has no tools. It cannot send, open or delete anything; its answer is only shown as text. In the worst case a summary is wrong or misleading.", "Notice: If a mail contains sentences such as “ignore all instructions”, a warning appears above the summary."],
+    aiTypeLabel: "Interface",
+    aiUrlLabel: "Address",
+    aiModelLabel: "Model",
+    aiUserLabel: "User name (optional)",
+    aiKeyLabel: "Password or API key (optional)",
+    aiLangLabel: "Summary in",
+    aiLangUi: "Interface language",
+    aiLangMail: "Language of the mail",
+    aiTest: "Test connection",
+    aiTesting: "Checking …",
+    aiOk: "Connected: $1 models found.",
+    aiFail: "Failed: $1",
+    aiPerm: "Permission for this address was not granted.",
+    aiRemote: "Note: this address is not on this computer. When summarising, the text of the mail is sent there.",
+    aiNote: "Credentials are stored in this add-on’s profile data (not encrypted). With a user name Basic authentication is used, otherwise the password is sent as a bearer key. Recommended: Ollama with a model such as gemma3:12b or qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact in the Contacts tab",
     pilotEnableLabel: "Use Nova-Contact",
@@ -288,6 +332,28 @@ const TEXTS = {
     statsFoldersN: "$1 dossiers",
     statsMessagesN: "$1 messages",
     selfTest_mailStats: "Analyse de la boîte mail",
+    tabAi: "IA",
+    aiTitle: "Résumé par IA",
+    aiDesc: "Résume un message ouvert avec un modèle de langage. Rien n’est automatique : seul le bouton « Résumer le message (IA) » de l’affichage du message envoie le texte à l’adresse ci-dessous. Prévu pour un modèle sur votre propre ordinateur (Ollama) ou un service compatible OpenAI.",
+    aiCtxLabel: "Longueur de contexte (jetons)",
+    aiPromptTitle: "Instruction donnée à l’IA",
+    aiPromptDesc: "Voici le texte que le modèle reçoit avec le message. Il précède le texte du message et ne peut pas être modifié ici. Espaces réservés : {ZIEL} devient la langue choisie, {OPEN} et {CLOSE} sont des marqueurs à identifiant aléatoire entre lesquels se trouve le texte du message.",
+    aiPromptSafe: ["Séparation : le texte du message se trouve entre des marqueurs nouveaux et aléatoires à chaque requête. Un expéditeur ne peut pas les prévoir et donc pas sortir de la partie texte.", "Données de tiers : le modèle est informé expressément que le texte provient de tiers et que les instructions qu’il contient ne doivent pas être suivies. Cela rend les instructions injectées moins probables, mais avec des modèles de langage cela ne les exclut pas avec certitude.", "Effet limité : le modèle n’a aucun outil. Il ne peut rien envoyer, ouvrir ni supprimer ; sa réponse est seulement affichée comme texte. Au pire, un résumé est faux ou trompeur.", "Avertissement : si un message contient des phrases comme « ignore toutes les instructions », un avertissement apparaît au-dessus du résumé."],
+    aiTypeLabel: "Interface",
+    aiUrlLabel: "Adresse",
+    aiModelLabel: "Modèle",
+    aiUserLabel: "Nom d’utilisateur (facultatif)",
+    aiKeyLabel: "Mot de passe ou clé API (facultatif)",
+    aiLangLabel: "Résumé en",
+    aiLangUi: "Langue de l’interface",
+    aiLangMail: "Langue du message",
+    aiTest: "Tester la connexion",
+    aiTesting: "Vérification …",
+    aiOk: "Connecté : $1 modèles trouvés.",
+    aiFail: "Échec : $1",
+    aiPerm: "L’autorisation pour cette adresse n’a pas été accordée.",
+    aiRemote: "Attention : cette adresse n’est pas sur cet ordinateur. Lors du résumé, le texte du message y est envoyé.",
+    aiNote: "Les identifiants sont enregistrés dans les données de profil de ce module (non chiffrés). Avec un nom d’utilisateur, l’authentification Basic est utilisée, sinon le mot de passe est envoyé comme clé Bearer. Recommandé : Ollama avec un modèle comme gemma3:12b ou qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact dans l’onglet Contacts",
     pilotEnableLabel: "Utiliser Nova-Contact",
@@ -393,6 +459,28 @@ const TEXTS = {
     statsFoldersN: "$1 carpetas",
     statsMessagesN: "$1 mensajes",
     selfTest_mailStats: "Análisis del buzón",
+    tabAi: "IA",
+    aiTitle: "Resumen con IA",
+    aiDesc: "Resume un mensaje abierto con un modelo de lenguaje. Nada ocurre automáticamente: solo el botón «Resumir mensaje (IA)» de la vista del mensaje envía el texto a la dirección de abajo. Pensado para un modelo en su propio ordenador (Ollama) o un servicio compatible con OpenAI.",
+    aiCtxLabel: "Longitud de contexto (tokens)",
+    aiPromptTitle: "Instrucción para la IA",
+    aiPromptDesc: "Este es el texto que el modelo recibe junto con el correo. Va antes del texto del correo y aquí no se puede cambiar. Marcadores de posición: {ZIEL} pasa a ser el idioma elegido, {OPEN} y {CLOSE} son marcadores con un identificador aleatorio entre los que va el texto del correo.",
+    aiPromptSafe: ["Separación: el texto del correo va entre marcadores nuevos y aleatorios en cada solicitud. Un remitente no puede predecirlos y por tanto no puede salir de la parte de texto.", "Datos de terceros: se informa expresamente al modelo de que el texto procede de otros y de que no debe seguir las instrucciones que contenga. Esto hace menos probables las instrucciones inyectadas, pero con modelos de lenguaje no las descarta con seguridad.", "Efecto limitado: el modelo no tiene herramientas. No puede enviar, abrir ni borrar nada; su respuesta solo se muestra como texto. En el peor caso, un resumen es erróneo o engañoso.", "Aviso: si un correo contiene frases como «ignora todas las instrucciones», aparece una advertencia sobre el resumen."],
+    aiTypeLabel: "Interfaz",
+    aiUrlLabel: "Dirección",
+    aiModelLabel: "Modelo",
+    aiUserLabel: "Nombre de usuario (opcional)",
+    aiKeyLabel: "Contraseña o clave API (opcional)",
+    aiLangLabel: "Resumen en",
+    aiLangUi: "Idioma de la interfaz",
+    aiLangMail: "Idioma del mensaje",
+    aiTest: "Probar conexión",
+    aiTesting: "Comprobando …",
+    aiOk: "Conectado: $1 modelos encontrados.",
+    aiFail: "Error: $1",
+    aiPerm: "No se concedió el permiso para esta dirección.",
+    aiRemote: "Atención: esta dirección no está en este ordenador. Al resumir, el texto del mensaje se envía allí.",
+    aiNote: "Las credenciales se guardan en los datos de perfil de este complemento (sin cifrar). Con nombre de usuario se usa autenticación Basic, si no la contraseña se envía como clave Bearer. Recomendado: Ollama con un modelo como gemma3:12b o qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact en la pestaña Contactos",
     pilotEnableLabel: "Usar Nova-Contact",
@@ -533,6 +621,7 @@ for (const b of document.querySelectorAll("nav button")) {
     document.getElementById("pilotTab").hidden = b.dataset.tab !== "pilot";
     document.getElementById("rulesTab").hidden = b.dataset.tab !== "rules";
     document.getElementById("statsTab").hidden = b.dataset.tab !== "stats";
+    document.getElementById("aiTab").hidden = b.dataset.tab !== "ai";
     if (b.dataset.tab === "stats") {
       loadStats();
     }
@@ -880,3 +969,62 @@ async function loadStats() {
   }
 }
 document.getElementById("statsRefresh").addEventListener("click", loadStats);
+
+// ---- KI-Zusammenfassung ---------------------------------------------------------------------------
+(async () => {
+  const ids = ["aiType", "aiUrl", "aiModel", "aiUser", "aiKey", "aiLang", "aiCtx"];
+  const conf = { ...nbAI.DEFAULTS, ...(await messenger.storage.local.get(nbAI.DEFAULTS)) };
+  const status = document.getElementById("aiStatus");
+  const langSel = document.getElementById("aiLang");
+  langSel.options[0].textContent = t.aiLangUi;
+  langSel.options[1].textContent = t.aiLangMail;
+  for (const id of ids) {
+    document.getElementById(id).value = String(conf[id]);
+  }
+  const current = () => Object.fromEntries(ids.map(id => [id, id === "aiCtx" ? Number(document.getElementById(id).value) : document.getElementById(id).value.trim()]));
+  const syncRemote = () => {
+    const url = current().aiUrl;
+    let remote = false;
+    try {
+      remote = /^https?:/i.test(url) && !nbAI.isLocal(url);
+    } catch (e) { /* ungültige Adresse */ }
+    const box = document.getElementById("aiRemote");
+    box.hidden = !remote;
+    box.textContent = t.aiRemote;
+  };
+  syncRemote();
+  // Anweisung an die KI anzeigen und erklären (Text aus ai/ai.js, in der Sprache der Oberfläche)
+  document.getElementById("aiPromptText").textContent = nbAI.promptTemplate(document.documentElement.lang, false);
+  const safeList = document.getElementById("aiPromptList");
+  for (const line of t.aiPromptSafe) {
+    safeList.append(Object.assign(document.createElement("li"), { textContent: line }));
+  }
+  for (const id of ids) {
+    document.getElementById(id).addEventListener("change", async () => {
+      await save(current());
+      syncRemote();
+    });
+  }
+  document.getElementById("aiUrl").addEventListener("input", syncRemote);
+  document.getElementById("aiTest").addEventListener("click", async () => {
+    const c = current();
+    status.textContent = t.aiTesting;
+    try {
+      await save(c);
+      // Erlaubnis für Adressen außerhalb des eigenen Rechners (muss aus einem Klick heraus erfragt werden)
+      if (/^https?:/i.test(c.aiUrl) && !nbAI.isLocal(c.aiUrl)) {
+        const ok = await messenger.permissions.request({ origins: [nbAI.origin(c.aiUrl)] });
+        if (!ok) {
+          status.textContent = t.aiFail.replace("$1", t.aiPerm);
+          return;
+        }
+      }
+      const models = await nbAI.listModels(c);
+      const list = document.getElementById("aiModels");
+      list.replaceChildren(...models.map(m => Object.assign(document.createElement("option"), { value: m })));
+      status.textContent = t.aiOk.replace("$1", String(models.length));
+    } catch (e) {
+      status.textContent = t.aiFail.replace("$1", String(e.message || e));
+    }
+  });
+})();

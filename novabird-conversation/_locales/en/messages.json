@@ -383,5 +383,8 @@
   },
   "selfTest_noFlicker": {
     "message": "Hiding the reading pane while switching messages (the original may flash briefly)"
+  },
+  "aiSummary": {
+    "message": "Summarise (AI)"
   }
 }

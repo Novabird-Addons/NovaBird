@@ -738,8 +738,13 @@
     allBtn.textContent = t(allOpen ? "collapseAll" : "expandAll");
     setAll(allOpen);
   });
-  if (asc.length > 1) head.append(title, allBtn);
-  else head.append(title);
+  const aiBtn = data.ai ? el("button", "nbc-btn", t("aiSummary")) : null;
+  if (aiBtn) {
+    aiBtn.type = "button";
+    aiBtn.addEventListener("click", () => send({ type: "summarize", ids: asc.map(m => m.id) }).catch(() => {}));
+  }
+  if (asc.length > 1) head.append(title, ...(aiBtn ? [aiBtn] : []), allBtn);
+  else head.append(title, ...(aiBtn ? [aiBtn] : []));
   root.append(head);
 
   const sep = () => el("hr", "nbc-sep");

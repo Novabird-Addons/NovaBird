@@ -92,6 +92,42 @@ async function applySettings() {
   console.log("NovaBird-Extension: gestartet");
 })();
 
+// KI-Zusammenfassung: Ollama lehnt Anfragen mit dem Absender „moz-extension://…“ ab (403, OLLAMA_ORIGINS). Bei Anfragen
+// unserer eigenen Seiten an den eigenen Rechner wird der Origin-Kopf deshalb weggelassen; der Nutzer muss nichts einstellen.
+const OWN_PAGES = messenger.runtime.getURL("");
+messenger.webRequest.onBeforeSendHeaders.addListener(
+  details => {
+    if (!(details.originUrl || "").startsWith(OWN_PAGES)) {
+      return {};
+    }
+    return { requestHeaders: details.requestHeaders.filter(h => h.name.toLowerCase() !== "origin") };
+  },
+  { urls: ["http://localhost/*", "http://127.0.0.1/*"] },
+  ["blocking", "requestHeaders"]
+);
+
+// NovaBird-Conversation: Knopf „Zusammenfassen (KI)“ nur anbieten, wenn die KI eingerichtet ist; die Zusammenfassung öffnet hier
+const CONVERSATION_ID = "novabird-conversation@novabird";
+messenger.runtime.onMessageExternal.addListener(async (message, sender) => {
+  if (sender?.id !== CONVERSATION_ID) {
+    return undefined;
+  }
+  if (message?.type === "aiAvailable") {
+    const c = await messenger.storage.local.get({ aiUrl: "", aiModel: "" });
+    return { available: Boolean(c.aiUrl && c.aiModel) };
+  }
+  if (message?.type === "summarize" && Array.isArray(message.ids) && message.ids.length <= 120 && message.ids.every(Number.isInteger)) {
+    await messenger.windows.create({
+      url: messenger.runtime.getURL(`ai/popup.html?ids=${message.ids.join(",")}`),
+      type: "popup",
+      width: 640,
+      height: 640,
+    });
+    return true;
+  }
+  return undefined;
+});
+
 // Diagnose für die Optionsseite
 messenger.runtime.onMessage.addListener(async message => {
   if (message?.type === "openRules") {

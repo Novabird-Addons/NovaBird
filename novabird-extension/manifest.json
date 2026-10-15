@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "default_locale": "en",
   "name": "__MSG_name__",
-  "version": "1.9.17",
+  "version": "1.9.21",
   "description": "__MSG_description__",
   "browser_specific_settings": {
     "gecko": {
@@ -125,8 +125,21 @@
     "accountsRead",
     "messagesRead",
     "addressBooks",
-    "theme"
+    "theme",
+    "http://localhost/*",
+    "http://127.0.0.1/*",
+    "webRequest",
+    "webRequestBlocking"
   ],
+  "optional_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "message_display_action": {
+    "default_title": "__MSG_aiButton__",
+    "default_icon": "ai/summary.svg",
+    "default_popup": "ai/popup.html"
+  },
   "options_ui": {
     "page": "options/options.html"
   }

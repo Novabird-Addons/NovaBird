@@ -17,7 +17,7 @@ a real conversation view, undo-send and a calmer calendar and address book.</p>
 
 ![NovaBird main window: card message list, conversation view, agenda and attachments](docs/images/hero-light.png)
 
-NovaBird is a family of add-ons for [Betterbird](https://www.betterbird.eu/) (and Thunderbird ESR) where all addons work together. Everything runs locally; nothing leaves your computer.
+NovaBird is a family of add-ons for [Betterbird](https://www.betterbird.eu/) (and Thunderbird ESR) where all addons work together. Everything runs locally; nothing leaves your computer. The one optional exception is the AI summary in NovaBird-Extension: it is off until you enter a server address, and only when you click its button the text of that one message goes to that address (with Ollama on your own computer it stays on your computer).
 
 ## What you get
 

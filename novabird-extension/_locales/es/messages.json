@@ -4,5 +4,8 @@
   },
   "description": {
     "message": "Complemento de los temas NovaBird: navegación unificada de la configuración (incluidas las cuentas), ventana de redacción moderna, diseño del calendario y diálogos con los colores del tema."
+  },
+  "aiButton": {
+    "message": "Resumir mensaje (IA)"
   }
 }

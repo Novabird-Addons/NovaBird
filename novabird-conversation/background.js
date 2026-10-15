@@ -7,7 +7,7 @@ const MAX_MESSAGES = 120;
 const STRING_KEYS = [
   "messagesCount", "toNames", "newBadge", "reply", "replyAll", "more", "forward", "forwardAsAttachment",
   "editAsNew", "expandAll", "collapseAll", "showFull", "showLess", "quoteToggle", "remoteBlocked", "remoteShow", "remoteThis", "remoteAll", "remoteCancel", "remoteAsk", "remoteSender",
-  "noText", "loading", "loadFailed", "history", "notDownloaded", "delete", "deleteTip", "originalBtn", "originalTip", "backToConversation", "spam", "spamTip", "notSpam", "notSpamTip", "copyAddress",
+  "aiSummary", "noText", "loading", "loadFailed", "history", "notDownloaded", "delete", "deleteTip", "originalBtn", "originalTip", "backToConversation", "spam", "spamTip", "notSpam", "notSpamTip", "copyAddress",
 ];
 
 let settings = sanitizeSettings(null);
@@ -23,6 +23,23 @@ const DB_PAUSES = [30000, 120000, 600000]; // Pausen nach Fehlern: 30 s, 2 min, 
 const dbState = { usable: null, retryAt: 0, pauseUntil: 0, failures: 0 };
 const glodaState = { pauseUntil: 0, failures: 0 };
 const BODY_CACHE_MAX = 40;
+const EXTENSION_ID = "novabird-extension@novabird";
+const aiState = { at: 0, available: false };
+
+// KI-Zusammenfassung gibt es nur, wenn die NovaBird-Extension installiert ist und die KI dort eingerichtet wurde (Opt-in).
+async function aiAvailable() {
+  if (Date.now() - aiState.at < 30000) return aiState.available;
+  let available = false;
+  try {
+    const res = await withTimeout(messenger.runtime.sendMessage(EXTENSION_ID, { type: "aiAvailable" }), 400);
+    available = res?.available === true;
+  } catch (e) {
+    // Extension fehlt oder ist zu alt: kein Knopf
+  }
+  aiState.at = Date.now();
+  aiState.available = available;
+  return available;
+}
 
 function clearCaches() {
   convCache.clear();
@@ -428,7 +445,9 @@ async function hello(tabId) {
     for (const m of prefetch) if (m) loadBody(m.id).catch(() => {});
   }, 0);
   if (settings.debugTiming) console.info("NovaBird-Conversation: Zeiten (ms)", JSON.stringify(timing));
+  const ai = await aiAvailable();
   return {
+    ai,
     settings,
     timing,
     theme,
@@ -521,6 +540,13 @@ messenger.runtime.onMessage.addListener((msg, sender) => {
     case "hello":
       return tabId == null ? Promise.resolve(null)
         : hello(tabId).catch(e => { console.error("NovaBird-Conversation: Konversation", e); return null; }).then(data => applyHeader(tabId, data));
+    case "summarize":
+      // die Ansicht kennt Nachrichten über Schlüssel (Text), die Extension braucht die Zahlen-IDs von Thunderbird
+      return Array.isArray(msg.ids) && msg.ids.length && msg.ids.length <= MAX_MESSAGES
+        ? Promise.all(msg.ids.map(id => resolveId(id)))
+          .then(ids => messenger.runtime.sendMessage(EXTENSION_ID, { type: "summarize", ids }))
+          .then(() => true, e => { console.error("NovaBird-Conversation: Zusammenfassung", e); return false; })
+        : Promise.resolve(false);
     case "body": return loadBody(msg.id);
     case "reveal": if (tabId != null) messenger.conversationView.reveal(tabId).catch(() => {}); return Promise.resolve(true);
     case "header": if (tabId != null) scheduleHeader(tabId, !!msg.hidden && settings.hideHeader); return Promise.resolve(true);
