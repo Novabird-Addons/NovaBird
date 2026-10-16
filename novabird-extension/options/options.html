@@ -32,6 +32,7 @@
     .st-top .sz { text-align: end; }
     h4.st-h { margin: 18px 0 8px; }
     .ai-prompt { white-space: pre-wrap; user-select: text; padding: 10px 14px; border-radius: 8px; background: color-mix(in srgb, currentColor 6%, transparent); font: inherit; font-size: .92em; line-height: 1.5; max-width: 52em; }
+    #aiBody.off { opacity: .55; }
     .ai-grid { display: grid; grid-template-columns: max-content minmax(14em, 28em); gap: 8px 14px; align-items: center; margin-top: 8px; }
     .ai-grid label { margin: 0; }
     .ai-grid input[type=text], .ai-grid input[type=password], .ai-grid select { width: 100%; box-sizing: border-box; }
@@ -184,6 +185,8 @@
   <section id="aiTab" hidden>
     <h3 id="aiTitle"></h3>
     <p id="aiDesc" class="st-sub"></p>
+    <label><input type="checkbox" id="aiEnabled"> <span id="aiEnabledLabel"></span></label>
+    <div id="aiBody">
     <div class="ai-grid">
       <label for="aiType" id="aiTypeLabel"></label>
       <select id="aiType"><option value="ollama">Ollama</option><option value="openai">OpenAI-API</option></select>
@@ -210,6 +213,7 @@
     <pre id="aiPromptText" class="ai-prompt"></pre>
     <ul id="aiPromptList" class="st-sub"></ul>
     <p id="aiNote" class="st-sub"></p>
+    </div>
   </section>
 
   <section id="diag">

@@ -1206,7 +1206,22 @@ function setupWindow(win, isMain) {
   perWindow.set(win, undo);
 }
 
+// KI-Knopf im Nachrichtenkopf: ein Add-on kann seinen Knopf dort nicht ausblenden, daher ein Stilblatt mit der (eindeutigen) Knopf-ID
+const AI_BUTTON_SHEET = Services.io.newURI("data:text/css," + encodeURIComponent("#novabird-extension_novabird-messageDisplayAction-toolbarbutton { display: none !important; }"));
+function setAiButtonVisible(visible) {
+  const sss = Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
+  const registered = sss.sheetRegistered(AI_BUTTON_SHEET, sss.USER_SHEET);
+  if (visible && registered) {
+    sss.unregisterSheet(AI_BUTTON_SHEET, sss.USER_SHEET);
+  } else if (!visible && !registered) {
+    sss.loadAndRegisterSheet(AI_BUTTON_SHEET, sss.USER_SHEET);
+  }
+}
+
 function teardown() {
+  try {
+    setAiButtonVisible(true);
+  } catch (e) {}
   for (const [tab] of states) {
     try {
       swapTo(tab, "prefs");
@@ -1246,6 +1261,9 @@ return class extends ExtensionCommon.ExtensionAPI {
     }
     return {
       settingsRedesign: {
+        async setAiButton(visible) {
+          setAiButtonVisible(Boolean(visible));
+        },
         async setColors(colors) {
           const ok = colors && ["bg", "fg", "border", "accent"].every(k => /^#[0-9a-f]{6}$/i.test(colors[k] || ""));
           customColors = ok ? { ...colors } : null;

@@ -85,6 +85,7 @@ const TEXTS = {
     aiPromptTitle: "Anweisung an die KI",
     aiPromptDesc: "Das ist der Text, den das Modell zusammen mit der Mail erhält. Er steht vor dem Mailtext und lässt sich hier nicht ändern. Platzhalter: {ZIEL} wird zur gewählten Sprache, {OPEN} und {CLOSE} sind Markierungen mit zufälliger Kennung, zwischen denen der Mailtext steht.",
     aiPromptSafe: ["Trennung: Der Mailtext steht zwischen Markierungen, die bei jeder Anfrage neu und zufällig sind. Ein Absender kann sie nicht vorhersagen und damit nicht aus dem Textteil ausbrechen.", "Fremde Daten: Das Modell erfährt ausdrücklich, dass der Mailtext von Dritten stammt und Anweisungen darin nicht befolgt werden dürfen. Das macht Fremdanweisungen unwahrscheinlicher, schließt sie bei Sprachmodellen aber nicht sicher aus.", "Begrenzte Wirkung: Das Modell hat keine Werkzeuge. Es kann nichts senden, öffnen oder löschen; seine Antwort wird nur als Text angezeigt. Im schlimmsten Fall ist eine Zusammenfassung falsch oder irreführend.", "Hinweis: Enthält eine Mail Sätze wie „ignoriere alle Anweisungen“, erscheint über der Zusammenfassung eine Warnung."],
+    aiEnabledLabel: "KI-Zusammenfassung verwenden (der Knopf „Mail zusammenfassen (KI)“ erscheint nur, wenn dies an ist)",
     aiTypeLabel: "Schnittstelle",
     aiUrlLabel: "Adresse",
     aiModelLabel: "Modell",
@@ -212,6 +213,7 @@ const TEXTS = {
     aiPromptTitle: "Instruction to the AI",
     aiPromptDesc: "This is the text the model receives together with the mail. It comes before the mail text and cannot be changed here. Placeholders: {ZIEL} becomes the chosen language, {OPEN} and {CLOSE} are markers with a random ID between which the mail text is placed.",
     aiPromptSafe: ["Separation: The mail text sits between markers that are new and random for every request. A sender cannot predict them and so cannot break out of the text part.", "Third-party data: The model is told explicitly that the mail text comes from others and that instructions in it must not be followed. This makes injected instructions less likely, but with language models it cannot rule them out completely.", "Limited effect: The model has no tools. It cannot send, open or delete anything; its answer is only shown as text. In the worst case a summary is wrong or misleading.", "Notice: If a mail contains sentences such as “ignore all instructions”, a warning appears above the summary."],
+    aiEnabledLabel: "Use AI summary (the button “Summarise mail (AI)” only appears when this is on)",
     aiTypeLabel: "Interface",
     aiUrlLabel: "Address",
     aiModelLabel: "Model",
@@ -339,6 +341,7 @@ const TEXTS = {
     aiPromptTitle: "Instruction donnée à l’IA",
     aiPromptDesc: "Voici le texte que le modèle reçoit avec le message. Il précède le texte du message et ne peut pas être modifié ici. Espaces réservés : {ZIEL} devient la langue choisie, {OPEN} et {CLOSE} sont des marqueurs à identifiant aléatoire entre lesquels se trouve le texte du message.",
     aiPromptSafe: ["Séparation : le texte du message se trouve entre des marqueurs nouveaux et aléatoires à chaque requête. Un expéditeur ne peut pas les prévoir et donc pas sortir de la partie texte.", "Données de tiers : le modèle est informé expressément que le texte provient de tiers et que les instructions qu’il contient ne doivent pas être suivies. Cela rend les instructions injectées moins probables, mais avec des modèles de langage cela ne les exclut pas avec certitude.", "Effet limité : le modèle n’a aucun outil. Il ne peut rien envoyer, ouvrir ni supprimer ; sa réponse est seulement affichée comme texte. Au pire, un résumé est faux ou trompeur.", "Avertissement : si un message contient des phrases comme « ignore toutes les instructions », un avertissement apparaît au-dessus du résumé."],
+    aiEnabledLabel: "Utiliser le résumé par IA (le bouton « Résumer le message (IA) » n’apparaît que si cette option est activée)",
     aiTypeLabel: "Interface",
     aiUrlLabel: "Adresse",
     aiModelLabel: "Modèle",
@@ -466,6 +469,7 @@ const TEXTS = {
     aiPromptTitle: "Instrucción para la IA",
     aiPromptDesc: "Este es el texto que el modelo recibe junto con el correo. Va antes del texto del correo y aquí no se puede cambiar. Marcadores de posición: {ZIEL} pasa a ser el idioma elegido, {OPEN} y {CLOSE} son marcadores con un identificador aleatorio entre los que va el texto del correo.",
     aiPromptSafe: ["Separación: el texto del correo va entre marcadores nuevos y aleatorios en cada solicitud. Un remitente no puede predecirlos y por tanto no puede salir de la parte de texto.", "Datos de terceros: se informa expresamente al modelo de que el texto procede de otros y de que no debe seguir las instrucciones que contenga. Esto hace menos probables las instrucciones inyectadas, pero con modelos de lenguaje no las descarta con seguridad.", "Efecto limitado: el modelo no tiene herramientas. No puede enviar, abrir ni borrar nada; su respuesta solo se muestra como texto. En el peor caso, un resumen es erróneo o engañoso.", "Aviso: si un correo contiene frases como «ignora todas las instrucciones», aparece una advertencia sobre el resumen."],
+    aiEnabledLabel: "Usar el resumen con IA (el botón «Resumir mensaje (IA)» solo aparece si esto está activado)",
     aiTypeLabel: "Interfaz",
     aiUrlLabel: "Dirección",
     aiModelLabel: "Modelo",
@@ -973,6 +977,8 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
 // ---- KI-Zusammenfassung ---------------------------------------------------------------------------
 (async () => {
   const ids = ["aiType", "aiUrl", "aiModel", "aiUser", "aiKey", "aiLang", "aiCtx"];
+  const enabled = document.getElementById("aiEnabled");
+  const body = document.getElementById("aiBody");
   const conf = { ...nbAI.DEFAULTS, ...(await messenger.storage.local.get(nbAI.DEFAULTS)) };
   const status = document.getElementById("aiStatus");
   const langSel = document.getElementById("aiLang");
@@ -993,6 +999,12 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
     box.textContent = t.aiRemote;
   };
   syncRemote();
+  enabled.checked = conf.aiEnabled === true;
+  body.classList.toggle("off", !enabled.checked);
+  enabled.addEventListener("change", () => {
+    body.classList.toggle("off", !enabled.checked);
+    save({ aiEnabled: enabled.checked });
+  });
   // Anweisung an die KI anzeigen und erklären (Text aus ai/ai.js, in der Sprache der Oberfläche)
   document.getElementById("aiPromptText").textContent = nbAI.promptTemplate(document.documentElement.lang, false);
   const safeList = document.getElementById("aiPromptList");

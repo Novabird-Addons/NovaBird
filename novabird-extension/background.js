@@ -18,6 +18,7 @@ const DEFAULTS = {
   listScroll: true,
   listAcctColors: {},
   rulesEnabled: false,
+  aiEnabled: false,
   colors: { bg: "#EEF2F8", fg: "#1B2433", border: "#D2DAE6", accent: "#2F6BD8" },
 };
 
@@ -76,6 +77,7 @@ async function applySettings() {
   await safe("Vorschau", () => messenger.attachPreview.setEnabled(s.previewEnabled !== false));
   await safe("Nachrichtenliste", () => applyList(s));
   await safe("Regel-Assistent", () => messenger.mailRules.setEnabled(s.rulesEnabled === true, ruleMenuLabel()));
+  await safe("KI-Knopf", () => messenger.settingsRedesign.setAiButton(s.aiEnabled === true));
 }
 
 (async () => {
@@ -113,8 +115,8 @@ messenger.runtime.onMessageExternal.addListener(async (message, sender) => {
     return undefined;
   }
   if (message?.type === "aiAvailable") {
-    const c = await messenger.storage.local.get({ aiUrl: "", aiModel: "" });
-    return { available: Boolean(c.aiUrl && c.aiModel) };
+    const c = await messenger.storage.local.get({ aiEnabled: false, aiUrl: "", aiModel: "" });
+    return { available: Boolean(c.aiEnabled && c.aiUrl && c.aiModel) };
   }
   if (message?.type === "summarize" && Array.isArray(message.ids) && message.ids.length <= 120 && message.ids.every(Number.isInteger)) {
     await messenger.windows.create({
@@ -174,6 +176,9 @@ messenger.storage.onChanged.addListener(async changes => {
   }
   if (keys.includes("previewEnabled")) {
     safe("Vorschau", () => messenger.attachPreview.setEnabled(s.previewEnabled !== false));
+  }
+  if (keys.includes("aiEnabled")) {
+    safe("KI-Knopf", () => messenger.settingsRedesign.setAiButton(s.aiEnabled === true));
   }
   if (keys.includes("rulesEnabled")) {
     safe("Regel-Assistent", () => messenger.mailRules.setEnabled(s.rulesEnabled === true, ruleMenuLabel()));

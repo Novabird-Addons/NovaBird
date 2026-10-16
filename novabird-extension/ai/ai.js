@@ -4,7 +4,7 @@
  * Nur auf Wunsch (Knopf in der Nachrichtenansicht), nur an die Adresse, die der Nutzer selbst eingetragen hat.
  * Wird von der Optionsseite (Verbindungstest) und vom Popup (Zusammenfassung) geladen. */
 const nbAI = (() => {
-  const DEFAULTS = { aiType: "ollama", aiUrl: "http://localhost:11434", aiModel: "", aiUser: "", aiKey: "", aiLang: "ui", aiCtx: 16384 };
+  const DEFAULTS = { aiEnabled: false, aiType: "ollama", aiUrl: "http://localhost:11434", aiModel: "", aiUser: "", aiKey: "", aiLang: "ui", aiCtx: 16384 };
   // Kontextlänge in Token (Einstellung): Ollama schneidet sonst lange Mails still ab. Der Mailtext wird auf etwa 3 Zeichen je Token begrenzt.
   const ctxOf = c => [4096, 16384, 32768, 65536].includes(Number(c.aiCtx)) ? Number(c.aiCtx) : 16384;
   const maxChars = c => ctxOf(c) * 3 - 1500;

@@ -3,7 +3,7 @@
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
 ## Unreleased (branch `testing`)
-Search 1.2.7 · Extension 1.9.21 · Conversation 0.15.1 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+Search 1.2.7 · Extension 1.9.22 · Conversation 0.15.1 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 
 ### NovaBird-Search 1.2.7
 - The title block in the list header (folder name and count) had a fixed minimum width of 200 px. With the smaller system font on Windows this left a wide gap before the search field. It is now `10.5em` and scales with the font.
@@ -13,8 +13,8 @@ Search 1.2.7 · Extension 1.9.21 · Conversation 0.15.1 · unchanged: DB 1.2.5 �
 ### NovaBird-Conversation 0.15.1
 - New, only if the AI summary is set up in NovaBird-Extension: a button "Summarise (AI)" in the header of the conversation view. It opens a window with a summary of the whole conversation (oldest message first).
 
-### NovaBird-Extension 1.9.21
-- **New, opt-in: AI summary.** New settings tab "AI": interface (Ollama or OpenAI-compatible), address, model, optional user name and password or API key, context length (4k / 16k / 32k / 64k) and the language of the summary. A button "Summarise mail (AI)" in the message header opens a window with a live summary; NovaBird-Conversation offers the same for a whole conversation. Nothing is sent until you click; the text only goes to the address you entered (shown as a warning when it is not on this computer). Requests to the own computer are sent without the `moz-extension://` origin header, because Ollama refuses it with 403 (new permissions `webRequest` / `webRequestBlocking` for `localhost` / `127.0.0.1` only).
+### NovaBird-Extension 1.9.22
+- **New, opt-in: AI summary.** New settings tab "AI" with an on/off switch (off by default): while it is off, the button "Summarise mail (AI)" is hidden in the message header and NovaBird-Conversation shows no summary button. Further settings: interface (Ollama or OpenAI-compatible), address, model, optional user name and password or API key, context length (4k / 16k / 32k / 64k) and the language of the summary. A button "Summarise mail (AI)" in the message header opens a window with a live summary; NovaBird-Conversation offers the same for a whole conversation. Nothing is sent until you click; the text only goes to the address you entered (shown as a warning when it is not on this computer). Requests to the own computer are sent without the `moz-extension://` origin header, because Ollama refuses it with 403 (new permissions `webRequest` / `webRequestBlocking` for `localhost` / `127.0.0.1` only).
 - The instruction to the model is shown and explained in the settings. It names the mail text as untrusted third-party data between markers with a random ID, forbids following instructions inside it and fixes the output form; a notice appears above the summary when the mail contains typical injected instructions. This reduces, but cannot exclude, prompt injection.
 - Credentials are stored unencrypted in the add-on's profile data (stated in the settings).
 - **Compose window, formatting bar:** one tinted surface that stands out from the message text. An arrow at the left expands a second row with a sample text (the state is remembered). The font menu moved to the front. The font size is a number (8–72 pt) instead of the three size buttons. The font menu opens as a scrollable list; hovering a font shows it in the sample text, which moves to the right of the list while it is open and is cut off instead of widening the window. Buttons of other add-ons in the command bar (for example LanguageTool) move into the formatting bar. If anything fails the stock bar stays as it is.

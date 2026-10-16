@@ -6,6 +6,7 @@ const TEXTS = {
     truncated: "Nur der Anfang der Nachricht wurde berücksichtigt (sehr lang).", fail: "Die Zusammenfassung ist fehlgeschlagen:",
     permission: "Für diese Adresse fehlt die Erlaubnis. Bitte in den Einstellungen unter „KI“ speichern und die Erlaubnis bestätigen.", model: "Es ist kein Modell eingetragen.", url: "Die Adresse ist ungültig.",
     remote: "Der Nachrichtentext wird an $1 gesendet." },
+    disabled: "Die KI-Zusammenfassung ist ausgeschaltet. Sie lässt sich in den Einstellungen unter „KI“ einschalten.",
     injection: "Die Nachricht enthält Sätze, die wie Anweisungen an KI-Systeme aussehen. Die Zusammenfassung mit Vorsicht lesen.",
     forbidden: "Der Server hat die Anfrage abgelehnt (403). Bei Ollama hilft die Umgebungsvariable OLLAMA_ORIGINS=moz-extension://*; bei anderen Diensten prüfen, ob Benutzername und Schlüssel stimmen.",
   en: { title: "Summary", again: "Regenerate", copy: "Copy", copied: "Copied", settings: "Settings", working: "Summarising …",
@@ -13,6 +14,7 @@ const TEXTS = {
     truncated: "Only the beginning of the message was used (very long).", fail: "The summary failed:",
     permission: "Permission for this address is missing. Please save it in the settings under “AI” and confirm the permission.", model: "No model has been entered.", url: "The address is invalid.",
     remote: "The message text is sent to $1." },
+    disabled: "AI summary is switched off. You can switch it on in the settings under “AI”.",
     injection: "The message contains sentences that look like instructions to AI systems. Read the summary with caution.",
     forbidden: "The server refused the request (403). For Ollama set the environment variable OLLAMA_ORIGINS=moz-extension://*; for other services check the user name and key.",
   fr: { title: "Résumé", again: "Régénérer", copy: "Copier", copied: "Copié", settings: "Paramètres", working: "Résumé en cours …",
@@ -20,6 +22,7 @@ const TEXTS = {
     truncated: "Seul le début du message a été pris en compte (très long).", fail: "Le résumé a échoué :",
     permission: "L’autorisation pour cette adresse manque. Enregistrez-la dans les paramètres sous « IA » et confirmez l’autorisation.", model: "Aucun modèle n’est indiqué.", url: "L’adresse est invalide.",
     remote: "Le texte du message est envoyé à $1." },
+    disabled: "Le résumé par IA est désactivé. Vous pouvez l’activer dans les paramètres sous « IA ».",
     injection: "Le message contient des phrases qui ressemblent à des instructions pour des systèmes d’IA. Lisez le résumé avec prudence.",
     forbidden: "Le serveur a refusé la requête (403). Avec Ollama, définissez la variable d’environnement OLLAMA_ORIGINS=moz-extension://* ; pour les autres services, vérifiez le nom d’utilisateur et la clé.",
   es: { title: "Resumen", again: "Volver a generar", copy: "Copiar", copied: "Copiado", settings: "Ajustes", working: "Resumiendo …",
@@ -27,6 +30,7 @@ const TEXTS = {
     truncated: "Solo se usó el principio del mensaje (muy largo).", fail: "El resumen ha fallado:",
     permission: "Falta el permiso para esta dirección. Guárdela en los ajustes, en «IA», y confirme el permiso.", model: "No se ha indicado ningún modelo.", url: "La dirección no es válida.",
     remote: "El texto del mensaje se envía a $1." },
+    disabled: "El resumen con IA está desactivado. Puede activarlo en los ajustes, en «IA».",
     injection: "El mensaje contiene frases que parecen instrucciones para sistemas de IA. Lea el resumen con precaución.",
     forbidden: "El servidor rechazó la solicitud (403). Con Ollama defina la variable de entorno OLLAMA_ORIGINS=moz-extension://*; en otros servicios compruebe el usuario y la clave.",
 };
@@ -81,6 +85,10 @@ async function run() {
   $("out").textContent = t.working;
   const conf = { ...nbAI.DEFAULTS, ...(await messenger.storage.local.get(nbAI.DEFAULTS)) };
   $("model").textContent = conf.aiModel;
+  if (!conf.aiEnabled) {
+    $("out").textContent = "";
+    return showError(t.disabled);
+  }
   if (!conf.aiUrl || !conf.aiModel) {
     $("out").textContent = "";
     return showError(conf.aiUrl ? t.model : t.off);
