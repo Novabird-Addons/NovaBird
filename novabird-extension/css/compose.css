@@ -12,7 +12,7 @@ body, #compose-toolbox, #composeContentBox { font-family: var(--tbsr-font); colo
   padding: 6px 12px !important; gap: 2px; color: var(--tbsr-text);
 }
 #composeToolbar2 toolbarbutton, #composeToolbar2 .toolbarbutton-menubutton-button, #composeToolbar2 .toolbarbutton-menubutton-dropmarker {
-  border-radius: 9px !important; color: var(--tbsr-text) !important; font-size: 13px;
+  border-radius: 9px !important; color: var(--tbsr-text) !important; font-size: 0.836em;
 }
 #composeToolbar2 toolbarbutton:not([disabled="true"]):hover { background: var(--tbsr-hover) !important; }
 /* split buttons (Speichern, Rechtschr., Anhängen): highlight only the hovered half, no stacked shades */
@@ -52,7 +52,7 @@ body, #compose-toolbox, #composeContentBox { font-family: var(--tbsr-font); colo
 :root:root:root #MsgHeadersToolbar { background: var(--tbsr-panel) !important; border: 0 !important; padding: 0 !important; }
 #MsgHeadersToolbar .aw-firstColBox { display: none !important; }
 #MsgHeadersToolbar label, #identityLabel, #subjectLabel, .address-label-container label {
-  color: var(--tbsr-muted) !important; font-size: 13px !important;
+  color: var(--tbsr-muted) !important; font-size: 0.836em !important;
 }
 #top-gradient-box, .address-row, #subject-box {
   border-top: 1px solid var(--tbsr-line); min-height: var(--tbsr-compose-row); align-items: center !important;
@@ -77,12 +77,14 @@ body, #compose-toolbox, #composeContentBox { font-family: var(--tbsr-font); colo
 #MsgHeadersToolbar input, #MsgHeadersToolbar input:focus, #msgSubject {
   border: 0 !important; outline: 0 !important; background: transparent !important; box-shadow: none !important; font: inherit; color: var(--tbsr-text) !important;
 }
-#msgSubject { font-size: 16px !important; font-weight: 600 !important; }
+/* Von-Zeile und Empfängerfelder: ebenfalls 90 % der Systemschrift */
+#msgIdentity, #msgIdentity .menulist-label, #MsgHeadersToolbar input:not(#msgSubject) { font-size: 0.9em !important; }
+#msgSubject { font-size: 1.029em !important; font-weight: 600 !important; }
 
 /* recipient pills */
 mail-address-pill, .address-pill {
   border-radius: 99px !important; background: var(--tbsr-chip, var(--tbsr-hover)) !important; color: var(--tbsr-text) !important;
-  border: 0 !important; font-size: 13px;
+  border: 0 !important; font-size: 0.836em;
 }
 mail-address-pill[selected], .address-pill[selected] { background: var(--tbsr-accent) !important; color: #fff !important; }
 
@@ -90,7 +92,7 @@ mail-address-pill[selected], .address-pill[selected] { background: var(--tbsr-ac
 #extraAddressRowsArea { margin-inline-start: auto; border: 0 !important; gap: 2px; align-items: center; }
 #extraAddressRowsArea button, .recipient-button {
   color: var(--tbsr-muted) !important; background: transparent !important; border: 0 !important; border-radius: 7px !important;
-  padding: 3px 9px !important; font-size: 13px;
+  padding: 3px 9px !important; font-size: 0.836em;
 }
 #extraAddressRowsArea button:hover, .recipient-button:hover { background: var(--tbsr-hover) !important; color: var(--tbsr-text) !important; }
 
@@ -118,7 +120,7 @@ mail-address-pill[selected], .address-pill[selected] { background: var(--tbsr-ac
 /* contain: inline-size = the text never widens the window (and squeezes the contacts pane); it is cut off with an ellipsis instead */
 #nb-fmt-row { display: none; box-sizing: border-box; width: 100%; min-width: 0; contain: inline-size; padding: 2px 16px 10px 46px; color: var(--tbsr-text); line-height: 1.4; overflow: hidden; }
 #FormatToolbox[nb-open] #nb-fmt-row { display: block; }
-#nb-fmt-sample { font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#nb-fmt-sample { font-size: 1.157em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #nb-fmt-actions { margin-inline-start: auto; gap: 4px; }
 #nb-fmt-actions toolbarbutton {
   background: var(--tbsr-panel) !important; border: 1px solid var(--tbsr-line) !important; border-radius: 8px !important;
@@ -128,7 +130,7 @@ mail-address-pill[selected], .address-pill[selected] { background: var(--tbsr-ac
 /* font list: a framed field with a scroll bar on the right; hovering a font previews it in the sample row */
 #nb-fmt-fonts { --panel-background: var(--tbsr-panel); --panel-color: var(--tbsr-text); --panel-border-color: var(--tbsr-line); --panel-padding: 4px; }
 #nb-fmt-fontlist { width: 17em; max-height: 15em; overflow-y: scroll; scrollbar-width: thin; padding-inline-end: 2px; }
-.nb-fmt-font { padding: 4px 10px; border-radius: 7px; font-size: 15px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--tbsr-text); }
+.nb-fmt-font { padding: 4px 10px; border-radius: 7px; font-size: 0.964em; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--tbsr-text); }
 .nb-fmt-font:hover, .nb-fmt-font.cur { background: var(--tbsr-accent-bg, var(--tbsr-hover)); }
 .nb-fmt-sep { height: 1px; margin: 4px 6px; background: var(--tbsr-line); }
 
@@ -147,7 +149,7 @@ mail-address-pill .pill-label { padding: 2px 8px !important; }
 /* ---- attachments: tiles right below the header ---- */
 #attachmentSplitter { display: none !important; }
 #attachmentArea { background: var(--tbsr-bg) !important; border: 0 !important; border-top: 1px solid var(--tbsr-line) !important; color: var(--tbsr-text); }
-#attachmentArea > summary { padding: 8px 20px !important; font-size: 13px; color: var(--tbsr-muted); }
+#attachmentArea > summary { padding: 8px 20px !important; font-size: 0.836em; color: var(--tbsr-muted); }
 #attachmentBucket {
   display: flex !important; flex-wrap: wrap; gap: 8px; background: transparent !important; border: 0 !important;
   padding: 2px 20px 12px !important; max-height: 160px; overflow-y: auto; margin: 0 !important;

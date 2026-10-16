@@ -3,15 +3,25 @@
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
 ## Unreleased (branch `testing`)
-Search 1.2.7 · Extension 1.9.22 · Conversation 0.15.1 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+Search 1.2.8 · Extension 1.9.23 · Conversation 0.15.2 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+
+### NovaBird-Search 1.2.8
+- Analysis page: all font sizes are now in `rem` (default font of the page, so they follow the font settings). Measured on Windows (1 rem = 17 px): same size as before there; on Linux, where the default font is usually 16 px, up to 6 % smaller.
 
 ### NovaBird-Search 1.2.7
 - The title block in the list header (folder name and count) had a fixed minimum width of 200 px. With the smaller system font on Windows this left a wide gap before the search field. It is now `10.5em` and scales with the font.
 - The search bar followed the system menu font size instead of the font size set in Thunderbird, so it did not change with the setting. The font family is still the system one, the size is now inherited.
 - Windows only (`@media (-moz-platform: windows)`): search field and the time-range chips are slightly larger so they match the rest of the window.
 
+### NovaBird-Conversation 0.15.2
+- Font sizes of the conversation view are now in `rem` (root font of the reading pane, follows Thunderbird's font setting and the zoom). Measured on Windows: exactly the same sizes as before (1 rem = 17 px).
+
 ### NovaBird-Conversation 0.15.1
 - New, only if the AI summary is set up in NovaBird-Extension: a button "Summarise (AI)" in the header of the conversation view. It opens a window with a summary of the whole conversation (oldest message first).
+
+### NovaBird-Extension 1.9.23
+- **Compose window:** fonts at 90 % of the former fixed sizes, now in `em` relative to the system font of the window (measured: 14 px). Labels and buttons 11.7 px (were 13), subject 14.4 (was 16), From line and recipient fields 12.6 (were 14).
+- **Nova-Contact:** all font sizes in `rem` (default font of the page; Windows: 1 rem = 17 px, same size as before).
 
 ### NovaBird-Extension 1.9.22
 - **New, opt-in: AI summary.** New settings tab "AI" with an on/off switch (off by default): while it is off, the button "Summarise mail (AI)" is hidden in the message header and NovaBird-Conversation shows no summary button. Further settings: interface (Ollama or OpenAI-compatible), address, model, optional user name and password or API key, context length (4k / 16k / 32k / 64k) and the language of the summary. A button "Summarise mail (AI)" in the message header opens a window with a live summary; NovaBird-Conversation offers the same for a whole conversation. Nothing is sent until you click; the text only goes to the address you entered (shown as a warning when it is not on this computer). Requests to the own computer are sent without the `moz-extension://` origin header, because Ollama refuses it with 403 (new permissions `webRequest` / `webRequestBlocking` for `localhost` / `127.0.0.1` only).
