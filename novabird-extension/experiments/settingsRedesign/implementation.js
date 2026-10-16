@@ -847,6 +847,36 @@ function injectAccountSettings(doc, undo) {
 
 
 /** Compose: Cc/Bcc/"more" toggles move from the From row into the To row (end of the line). */
+/**
+ * Compose: Thunderbirds Einstellung "Schriftgröße" (drei Striche) setzt die Schrift der Wurzel des Fensters; Thunderbirds eigene Oberfläche
+ * nutzt genau diesen Wert in px (gemessen: Standard 8,4 px, Einstellung 12 → 12 px). Unsere Grundschrift ist 14 px und damit schon größer
+ * als Thunderbirds Standard. Sie bleibt 13,3 px (95 % von 14), solange die Einstellung kleiner ist, und folgt ihr darüber (--tbsr-scale = Wurzel / 13,3, mindestens 1).
+ */
+const COMPOSE_BASE_PX = 13.3;
+function trackUiScale(win, undo) {
+  const root = win.document.documentElement;
+  const update = () => {
+    try {
+      const cur = parseFloat(win.getComputedStyle(root).fontSize);
+      const ratio = cur > 0 ? Math.max(1, Math.round((cur / COMPOSE_BASE_PX) * 1000) / 1000) : 1;
+      root.style.setProperty("--tbsr-scale", String(ratio));
+    } catch (e) {
+      console.error("NovaBird: Schriftgröße", e);
+    }
+  };
+  update();
+  // Thunderbird setzt die gewählte Größe erst nach dem Laden des Fensters und bei jeder Änderung
+  const timers = [300, 1500, 4000].map(ms => win.setTimeout(update, ms));
+  win.addEventListener("uifontsizechange", update);
+  undo.push(() => {
+    for (const t of timers) {
+      win.clearTimeout(t);
+    }
+    win.removeEventListener("uifontsizechange", update);
+    root.style.removeProperty("--tbsr-scale");
+  });
+}
+
 function moveRecipientToggles(win, undo) {
   const doc = win.document;
   const area = doc.getElementById("extraAddressRowsArea");
@@ -1122,6 +1152,7 @@ function setupWindow(win, isMain) {
 
   if (win.location.href.endsWith("messengercompose.xhtml")) {
     addStyle(win.document, shellCss() + CSS.compose, undo);
+    trackUiScale(win, undo);
     moveRecipientToggles(win, undo);
     try {
       setupFormatBar(win, undo);

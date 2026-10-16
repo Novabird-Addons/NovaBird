@@ -1,6 +1,10 @@
 /* Compose window (messengercompose.xhtml). Tokens/fonts come from shell.css. */
 :root { --tbsr-compose-row: 2.5em; } /* em: wächst mit der Schrift */
 body, #compose-toolbox, #composeContentBox { font-family: var(--tbsr-font); color: var(--tbsr-text); }
+/* Grundschrift: mindestens 13,3 px (14 px × 95 %); folgt Thunderbirds Einstellung "Schriftgröße", wenn diese größer ist (--tbsr-scale, siehe settingsRedesign) */
+:root { --tbsr-fs: calc(13.3px * var(--tbsr-scale, 1)); }
+html, body, input, select, button, textarea, label, legend, menulist, checkbox, description { font-size: var(--tbsr-fs); }
+/* ratios (the former design: buttons and values 14, labels 13, subject 16, sample 18, list 15 → relative to 14) */
 #composeContentBox { background: var(--tbsr-bg) !important; }
 
 /* ---- menu bar stays, just calmer ---- */
@@ -9,10 +13,10 @@ body, #compose-toolbox, #composeContentBox { font-family: var(--tbsr-font); colo
 /* ---- command bar ---- */
 #composeToolbar2 {
   background: var(--tbsr-bg) !important; border: 0 !important; border-bottom: 1px solid var(--tbsr-line) !important;
-  padding: 6px 12px !important; gap: 2px; color: var(--tbsr-text);
+  padding: 4px 12px !important; gap: 2px; color: var(--tbsr-text);
 }
 #composeToolbar2 toolbarbutton, #composeToolbar2 .toolbarbutton-menubutton-button, #composeToolbar2 .toolbarbutton-menubutton-dropmarker {
-  border-radius: 9px !important; color: var(--tbsr-text) !important; font-size: 0.836em;
+  border-radius: 9px !important; color: var(--tbsr-text) !important; font-size: var(--tbsr-fs);
 }
 #composeToolbar2 toolbarbutton:not([disabled="true"]):hover { background: var(--tbsr-hover) !important; }
 /* split buttons (Speichern, Rechtschr., Anhängen): highlight only the hovered half, no stacked shades */
@@ -22,6 +26,7 @@ body, #compose-toolbox, #composeContentBox { font-family: var(--tbsr-font); colo
 #composeToolbar2 toolbarbutton:not([disabled="true"]) > .toolbarbutton-menubutton-dropmarker:hover,
 #composeToolbar2 toolbarbutton[open] > .toolbarbutton-menubutton-dropmarker { background-color: var(--tbsr-hover) !important; }
 #composeToolbar2 toolbarseparator { margin-inline: 6px; opacity: .6; }
+#composeToolbar2 toolbarbutton { margin-block: 2px !important; } /* Thunderbird: 4 px; die Leiste war etwas zu hoch */
 #composeToolbar2 .toolbarbutton-menubutton-dropmarker { border: 0 !important; margin-inline-start: -2px; }
 #composeToolbar2 .toolbarbutton-menubutton-button { border: 0 !important; }
 
@@ -52,7 +57,7 @@ body, #compose-toolbox, #composeContentBox { font-family: var(--tbsr-font); colo
 :root:root:root #MsgHeadersToolbar { background: var(--tbsr-panel) !important; border: 0 !important; padding: 0 !important; }
 #MsgHeadersToolbar .aw-firstColBox { display: none !important; }
 #MsgHeadersToolbar label, #identityLabel, #subjectLabel, .address-label-container label {
-  color: var(--tbsr-muted) !important; font-size: 0.836em !important;
+  color: var(--tbsr-muted) !important; font-size: calc(var(--tbsr-fs) * 0.929) !important;
 }
 #top-gradient-box, .address-row, #subject-box {
   border-top: 1px solid var(--tbsr-line); min-height: var(--tbsr-compose-row); align-items: center !important;
@@ -78,13 +83,13 @@ body, #compose-toolbox, #composeContentBox { font-family: var(--tbsr-font); colo
   border: 0 !important; outline: 0 !important; background: transparent !important; box-shadow: none !important; font: inherit; color: var(--tbsr-text) !important;
 }
 /* Von-Zeile und Empfängerfelder: ebenfalls 90 % der Systemschrift */
-#msgIdentity, #msgIdentity .menulist-label, #MsgHeadersToolbar input:not(#msgSubject) { font-size: 0.9em !important; }
-#msgSubject { font-size: 1.029em !important; font-weight: 600 !important; }
+#msgIdentity, #msgIdentity .menulist-label, #MsgHeadersToolbar input:not(#msgSubject) { font-size: var(--tbsr-fs) !important; }
+#msgSubject { font-size: calc(var(--tbsr-fs) * 1.143) !important; font-weight: 600 !important; }
 
 /* recipient pills */
 mail-address-pill, .address-pill {
   border-radius: 99px !important; background: var(--tbsr-chip, var(--tbsr-hover)) !important; color: var(--tbsr-text) !important;
-  border: 0 !important; font-size: 0.836em;
+  border: 0 !important; font-size: calc(var(--tbsr-fs) * 0.929);
 }
 mail-address-pill[selected], .address-pill[selected] { background: var(--tbsr-accent) !important; color: #fff !important; }
 
@@ -92,7 +97,7 @@ mail-address-pill[selected], .address-pill[selected] { background: var(--tbsr-ac
 #extraAddressRowsArea { margin-inline-start: auto; border: 0 !important; gap: 2px; align-items: center; }
 #extraAddressRowsArea button, .recipient-button {
   color: var(--tbsr-muted) !important; background: transparent !important; border: 0 !important; border-radius: 7px !important;
-  padding: 3px 9px !important; font-size: 0.836em;
+  padding: 3px 9px !important; font-size: calc(var(--tbsr-fs) * 0.929);
 }
 #extraAddressRowsArea button:hover, .recipient-button:hover { background: var(--tbsr-hover) !important; color: var(--tbsr-text) !important; }
 
@@ -100,7 +105,7 @@ mail-address-pill[selected], .address-pill[selected] { background: var(--tbsr-ac
 #FormatToolbox, #FormatToolbar {
   background: var(--tbsr-bg) !important; border: 0 !important; border-top: 1px solid var(--tbsr-line) !important; color: var(--tbsr-text);
 }
-#FormatToolbar { padding: 4px 10px !important; }
+#FormatToolbar { padding: 3px 10px !important; }
 #FormatToolbar toolbarbutton { border-radius: 7px !important; color: var(--tbsr-text) !important; }
 #FormatToolbar toolbarbutton:hover { background: var(--tbsr-hover) !important; }
 #FormatToolbar toolbarbutton[checked="true"] { background: var(--tbsr-accent-bg) !important; color: var(--tbsr-accent-text) !important; }
@@ -116,11 +121,12 @@ mail-address-pill[selected], .address-pill[selected] { background: var(--tbsr-ac
 #FormatToolbar.nb-fmt #AbsoluteFontSizeButton, #FormatToolbar.nb-fmt #DecreaseFontSizeButton, #FormatToolbar.nb-fmt #IncreaseFontSizeButton { display: none !important; }
 #nb-fmt-toggle { list-style-image: url("chrome://messenger/skin/icons/new/compact/nav-right.svg") !important; -moz-context-properties: fill, stroke; fill: currentColor; stroke: currentColor; }
 #FormatToolbox[nb-open] #nb-fmt-toggle { list-style-image: url("chrome://messenger/skin/icons/new/compact/nav-down.svg") !important; }
+#FormatToolbar menulist, #FormatToolbar menulist .menulist-label, #FormatToolbar toolbarbutton { font-size: var(--tbsr-fs); }
 #nb-fmt-size { min-width: 4.2em; margin-inline-end: 4px; }
 /* contain: inline-size = the text never widens the window (and squeezes the contacts pane); it is cut off with an ellipsis instead */
-#nb-fmt-row { display: none; box-sizing: border-box; width: 100%; min-width: 0; contain: inline-size; padding: 2px 16px 10px 46px; color: var(--tbsr-text); line-height: 1.4; overflow: hidden; }
+#nb-fmt-row { display: none; box-sizing: border-box; width: 100%; min-width: 0; contain: inline-size; padding: 0 16px 5px 46px; color: var(--tbsr-text); line-height: 1.4; overflow: hidden; }
 #FormatToolbox[nb-open] #nb-fmt-row { display: block; }
-#nb-fmt-sample { font-size: 1.157em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#nb-fmt-sample { font-size: calc(var(--tbsr-fs) * 1.286); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #nb-fmt-actions { margin-inline-start: auto; gap: 4px; }
 #nb-fmt-actions toolbarbutton {
   background: var(--tbsr-panel) !important; border: 1px solid var(--tbsr-line) !important; border-radius: 8px !important;
@@ -130,7 +136,7 @@ mail-address-pill[selected], .address-pill[selected] { background: var(--tbsr-ac
 /* font list: a framed field with a scroll bar on the right; hovering a font previews it in the sample row */
 #nb-fmt-fonts { --panel-background: var(--tbsr-panel); --panel-color: var(--tbsr-text); --panel-border-color: var(--tbsr-line); --panel-padding: 4px; }
 #nb-fmt-fontlist { width: 17em; max-height: 15em; overflow-y: scroll; scrollbar-width: thin; padding-inline-end: 2px; }
-.nb-fmt-font { padding: 4px 10px; border-radius: 7px; font-size: 0.964em; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--tbsr-text); }
+.nb-fmt-font { padding: 4px 10px; border-radius: 7px; font-size: calc(var(--tbsr-fs) * 1.071); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--tbsr-text); }
 .nb-fmt-font:hover, .nb-fmt-font.cur { background: var(--tbsr-accent-bg, var(--tbsr-hover)); }
 .nb-fmt-sep { height: 1px; margin: 4px 6px; background: var(--tbsr-line); }
 
@@ -149,7 +155,7 @@ mail-address-pill .pill-label { padding: 2px 8px !important; }
 /* ---- attachments: tiles right below the header ---- */
 #attachmentSplitter { display: none !important; }
 #attachmentArea { background: var(--tbsr-bg) !important; border: 0 !important; border-top: 1px solid var(--tbsr-line) !important; color: var(--tbsr-text); }
-#attachmentArea > summary { padding: 8px 20px !important; font-size: 0.836em; color: var(--tbsr-muted); }
+#attachmentArea > summary { padding: 8px 20px !important; font-size: calc(var(--tbsr-fs) * 0.929); color: var(--tbsr-muted); }
 #attachmentBucket {
   display: flex !important; flex-wrap: wrap; gap: 8px; background: transparent !important; border: 0 !important;
   padding: 2px 20px 12px !important; max-height: 160px; overflow-y: auto; margin: 0 !important;
