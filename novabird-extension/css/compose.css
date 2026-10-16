@@ -26,6 +26,8 @@ html, body, input, select, button, textarea, label, legend, menulist, checkbox, 
 #composeToolbar2 toolbarbutton:not([disabled="true"]) > .toolbarbutton-menubutton-dropmarker:hover,
 #composeToolbar2 toolbarbutton[open] > .toolbarbutton-menubutton-dropmarker { background-color: var(--tbsr-hover) !important; }
 #composeToolbar2 toolbarseparator { margin-inline: 6px; opacity: .6; }
+/* Schrift der Befehlsleiste etwas kleiner (0,93 der Basis); die Knopftexte sind eigene label-Elemente und brauchen die Regel selbst */
+#composeToolbar2 toolbarbutton, #composeToolbar2 toolbarbutton .toolbarbutton-text, #nb-fmt-actions toolbarbutton, #nb-fmt-actions toolbarbutton .toolbarbutton-text { font-size: calc(var(--tbsr-fs) * 0.929) !important; }
 #composeToolbar2 toolbarbutton { margin-block: 2px !important; } /* Thunderbird: 4 px; die Leiste war etwas zu hoch */
 #composeToolbar2 .toolbarbutton-menubutton-dropmarker { border: 0 !important; margin-inline-start: -2px; }
 #composeToolbar2 .toolbarbutton-menubutton-button { border: 0 !important; }
