@@ -2,8 +2,8 @@
 
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
-## Unreleased (branch `testing`)
-Search 1.2.8 · Extension 1.10.0 · Conversation 0.15.2 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+## 1.3.0 (2026-10-17)
+Search 1.2.8 · Extension 1.10.1 · Conversation 0.15.2 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 
 ### NovaBird-Search 1.2.8
 - Analysis page: all font sizes are now in `rem` (default font of the page, so they follow the font settings). Measured on Windows (1 rem = 17 px): same size as before there; on Linux, where the default font is usually 16 px, up to 6 % smaller.
@@ -18,6 +18,10 @@ Search 1.2.8 · Extension 1.10.0 · Conversation 0.15.2 · unchanged: DB 1.2.5 �
 
 ### NovaBird-Conversation 0.15.1
 - New, only if the AI summary is set up in NovaBird-Extension: a button "Summarise (AI)" in the header of the conversation view. It opens a window with a summary of the whole conversation (oldest message first).
+
+### NovaBird-Extension 1.10.1
+- **Settings page reorganised:** tabs ordered from look to features to information – Message list, Colors and fonts, Right pane and attachments, Nova-Contact, Rules (beta), AI, Mailbox. The attachment preview (formerly a tab of its own with one switch) is now part of "Right pane and attachments"; the diagnostics block moved from below every tab into the Mailbox tab. The tab row wraps on narrow windows, and the page reopens in the tab used last.
+- AI tab: the instruction to the model and its explanation are folded in ("Instruction to the AI", click to open). The button "Settings" in the summary window opens the AI tab directly.
 
 ### NovaBird-Extension 1.10.0
 - **New settings tab "Colors and fonts"** (formerly "Colors"), two columns side by side, with a small sketch of the main window: moving the mouse over a color outlines the area it affects.

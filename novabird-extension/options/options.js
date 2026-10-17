@@ -35,7 +35,6 @@ const TEXTS = {
     listDetailsTitle: "Weitere Optionen",
     listDensityNote: "Dichte und Kontofarbe gelten nicht für den Betterbird-Standard.",
     title: "NovaBird-Extension",
-    tabPreview: "Anhang-Vorschau",
     tabList: "Nachrichtenliste",
     listTitle: "Aussehen der Nachrichtenliste",
     listIntro: "Gilt für die Kartenansicht der Nachrichtenliste (Einstellung „Ansicht“ → Karten). Die Tabellenansicht bleibt unverändert.",
@@ -106,7 +105,7 @@ const TEXTS = {
     pilotEnableLabel: "Nova-Contact verwenden",
     pilotDesc: "Ergänzt den Kontakte-Tab von Betterbird: Tags als Filter, mehrere Kontakte gemeinsam bearbeiten (Tags, Firma, Position) und die letzten 3 Änderungen rückgängig machen. Der Knopf „Nova-Contact“ unter der Adressbuchliste öffnet die Seite zum Sammeln von Adressen aus E-Mails, zum Zusammenführen von Dubletten und zum Aufräumen alter Kontakte (mit Wiederherstellung).",
     pilotLogLabel: "Protokoll in der Nova-Contact-Seite anzeigen (Aktionen mit Uhrzeit, nur bis zum Neustart gespeichert)",
-    tabCalendar: "Rechte Leiste",
+    tabCalendar: "Rechte Leiste und Anhänge",
     tabColors: "Farben und Schrift",
     layoutTitle: "Layout der rechten Leiste",
     layoutNova: "NovaBird-Layout: Termine und Aufgaben gemeinsam in Mail, Kalender und Aufgaben (Standard)",
@@ -234,7 +233,6 @@ const TEXTS = {
     listDetailsTitle: "More options",
     listDensityNote: "Density and account colour do not apply to the Betterbird default.",
     title: "NovaBird-Extension",
-    tabPreview: "Attachment preview",
     tabList: "Message list",
     listTitle: "Look of the message list",
     listIntro: "Applies to the cards view of the message list (View setting → Cards). The table view stays unchanged.",
@@ -305,7 +303,7 @@ const TEXTS = {
     pilotEnableLabel: "Use Nova-Contact",
     pilotDesc: "Extends Betterbird’s Contacts tab: filter by tags, edit several contacts at once (tags, company, job title) and undo the last 3 changes. The “Nova-Contact” button below the address book list opens the page for collecting addresses from email, merging duplicates and cleaning up old contacts (with restore).",
     pilotLogLabel: "Show a log on the Nova-Contact page (actions with time, kept only until restart)",
-    tabCalendar: "Right pane",
+    tabCalendar: "Right pane and attachments",
     tabColors: "Colors and fonts",
     layoutTitle: "Layout of the right-hand pane",
     layoutNova: "NovaBird layout: events and tasks together in mail, calendar and tasks (default)",
@@ -433,7 +431,6 @@ const TEXTS = {
     listDetailsTitle: "Autres options",
     listDensityNote: "La densité et la couleur du compte ne s’appliquent pas au style par défaut de Betterbird.",
     title: "NovaBird-Extension",
-    tabPreview: "Aperçu des pièces jointes",
     tabList: "Liste des messages",
     listTitle: "Apparence de la liste des messages",
     listIntro: "S’applique à l’affichage en cartes de la liste des messages (réglage Affichage → Cartes). L’affichage en tableau reste inchangé.",
@@ -504,7 +501,7 @@ const TEXTS = {
     pilotEnableLabel: "Utiliser Nova-Contact",
     pilotDesc: "Complète l’onglet Contacts de Betterbird : filtrer par tags, modifier plusieurs contacts à la fois (tags, société, fonction) et annuler les 3 dernières modifications. Le bouton « Nova-Contact » sous la liste des carnets ouvre la page pour collecter des adresses depuis les e-mails, fusionner les doublons et nettoyer les anciens contacts (avec restauration).",
     pilotLogLabel: "Afficher un journal sur la page Nova-Contact (actions avec l’heure, conservé jusqu’au redémarrage)",
-    tabCalendar: "Panneau de droite",
+    tabCalendar: "Panneau de droite et pièces jointes",
     tabColors: "Couleurs et police",
     layoutTitle: "Disposition du panneau de droite",
     layoutNova: "Disposition NovaBird : événements et tâches ensemble dans Courrier, Agenda et Tâches (par défaut)",
@@ -632,7 +629,6 @@ const TEXTS = {
     listDetailsTitle: "Más opciones",
     listDensityNote: "La densidad y el color de la cuenta no se aplican al estilo predeterminado de Betterbird.",
     title: "NovaBird-Extension",
-    tabPreview: "Vista previa de adjuntos",
     tabList: "Lista de mensajes",
     listTitle: "Aspecto de la lista de mensajes",
     listIntro: "Se aplica a la vista de tarjetas de la lista de mensajes (ajuste Vista → Tarjetas). La vista de tabla no cambia.",
@@ -703,7 +699,7 @@ const TEXTS = {
     pilotEnableLabel: "Usar Nova-Contact",
     pilotDesc: "Amplía la pestaña Contactos de Betterbird: filtrar por etiquetas, editar varios contactos a la vez (etiquetas, empresa, cargo) y deshacer los últimos 3 cambios. El botón «Nova-Contact» bajo la lista de libretas abre la página para recoger direcciones del correo, fusionar duplicados y limpiar contactos antiguos (con restauración).",
     pilotLogLabel: "Mostrar un registro en la página de Nova-Contact (acciones con hora, solo hasta reiniciar)",
-    tabCalendar: "Panel derecho",
+    tabCalendar: "Panel derecho y adjuntos",
     tabColors: "Colores y fuente",
     layoutTitle: "Diseño del panel derecho",
     layoutNova: "Diseño NovaBird: eventos y tareas juntos en correo, calendario y tareas (predeterminado)",
@@ -900,25 +896,30 @@ function drawPreviews(s) {
   document.getElementById("attachPreview").innerHTML = paneSvg(mail, "mail", t.mailTab);
 }
 
-for (const b of document.querySelectorAll("nav button")) {
-  b.addEventListener("click", () => {
-    for (const o of document.querySelectorAll("nav button")) {
-      o.setAttribute("aria-selected", String(o === b));
-    }
-    document.getElementById("calendar").hidden = b.dataset.tab !== "calendar";
-    document.getElementById("colorsTab").hidden = b.dataset.tab !== "colors";
-    document.getElementById("previewTab").hidden = b.dataset.tab !== "preview";
-    document.getElementById("listTab").hidden = b.dataset.tab !== "list";
-    document.getElementById("pilotTab").hidden = b.dataset.tab !== "pilot";
-    document.getElementById("rulesTab").hidden = b.dataset.tab !== "rules";
-    document.getElementById("statsTab").hidden = b.dataset.tab !== "stats";
-    document.getElementById("aiTab").hidden = b.dataset.tab !== "ai";
-    if (b.dataset.tab === "stats") {
-      loadStats();
-    }
-  });
+// Reiter: data-tab = ID des Abschnitts; der zuletzt gewählte Reiter wird gemerkt (nur Bequemlichkeit, darf fehlen)
+const TAB_KEY = "nbxOptionsTab";
+function showTab(id) {
+  const buttons = [...document.querySelectorAll("nav button")];
+  const b = buttons.find((x) => x.dataset.tab === id) ?? buttons[0];
+  for (const o of buttons) {
+    o.setAttribute("aria-selected", String(o === b));
+    document.getElementById(o.dataset.tab).hidden = o !== b;
+  }
+  try {
+    localStorage.setItem(TAB_KEY, b.dataset.tab);
+  } catch {}
+  if (b.dataset.tab === "statsTab") {
+    setTimeout(loadStats); // erst nach dem Laden des ganzen Skripts (Start im gemerkten Reiter)
+  }
 }
-document.getElementById("tabList").setAttribute("aria-selected", "true");
+for (const b of document.querySelectorAll("nav button")) {
+  b.addEventListener("click", () => showTab(b.dataset.tab));
+}
+let startTab = "listTab";
+try {
+  startTab = localStorage.getItem(TAB_KEY) || startTab;
+} catch {}
+showTab(startTab);
 
 // Skizzen der drei Stile der Nachrichtenliste
 function listSvg(style) {

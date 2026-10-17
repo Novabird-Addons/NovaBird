@@ -14,7 +14,7 @@
     label.off { color: color-mix(in srgb, currentColor 42%, transparent); pointer-events: none; }
     label.off input { accent-color: color-mix(in srgb, currentColor 42%, transparent); }
     #listTab .wide { max-width: 38em; }
-    nav { display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+    nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
     nav button { border: 0; background: none; padding: 8px 14px; font: inherit; color: inherit; border-bottom: 2px solid transparent; cursor: pointer; }
     nav button[aria-selected="true"] { border-bottom-color: #2F6BD8; font-weight: 600; }
     .st-sub { color: color-mix(in srgb, currentColor 65%, transparent); margin: 2px 0 12px; font-size: 0.92em; }
@@ -35,6 +35,10 @@
     h4.st-h { margin: 18px 0 8px; }
     .ai-prompt { white-space: pre-wrap; user-select: text; padding: 10px 14px; border-radius: 8px; background: color-mix(in srgb, currentColor 6%, transparent); font: inherit; font-size: .92em; line-height: 1.5; max-width: 52em; }
     #aiBody.off { opacity: .55; }
+    .ai-more { margin: 18px 0 8px; }
+    .ai-more summary { cursor: pointer; }
+    .ai-more summary b { font-size: 1.05em; }
+    #aiDesc { line-height: 1.5; }
     .ai-grid { display: grid; grid-template-columns: max-content minmax(14em, 28em); gap: 8px 14px; align-items: center; margin-top: 8px; }
     .ai-grid label { margin: 0; }
     .ai-grid input[type=text], .ai-grid input[type=password], .ai-grid select { width: 100%; box-sizing: border-box; }
@@ -116,14 +120,13 @@
   <div id="nb-selftest" hidden></div>
   <h2 id="title"></h2>
   <nav>
-    <button type="button" data-tab="list" id="tabList"></button>
+    <button type="button" data-tab="listTab" id="tabList"></button>
+    <button type="button" data-tab="colorsTab" id="tabColors"></button>
     <button type="button" data-tab="calendar" id="tabCalendar"></button>
-    <button type="button" data-tab="colors" id="tabColors"></button>
-    <button type="button" data-tab="preview" id="tabPreview"></button>
-    <button type="button" data-tab="pilot" id="tabPilot"></button>
-    <button type="button" data-tab="rules" id="tabRules"></button>
-    <button type="button" data-tab="stats" id="tabStats"></button>
-    <button type="button" data-tab="ai" id="tabAi"></button>
+    <button type="button" data-tab="pilotTab" id="tabPilot"></button>
+    <button type="button" data-tab="rulesTab" id="tabRules"></button>
+    <button type="button" data-tab="aiTab" id="tabAi"></button>
+    <button type="button" data-tab="statsTab" id="tabStats"></button>
   </nav>
 
   <section id="calendar" hidden>
@@ -145,6 +148,16 @@
       </div>
       <figure><div id="attachPreview"></div></figure>
     </div>
+    <h3 id="previewTitle"></h3>
+    <label><input type="checkbox" id="previewEnabled"> <span id="previewEnableLabel"></span></label>
+    <p id="previewDesc"></p>
+    <label><span id="previewDelayLabel"></span>
+      <select id="previewDelay">
+        <option value="200">0,2 s</option>
+        <option value="400">0,4 s</option>
+        <option value="800">0,8 s</option>
+        <option value="1500">1,5 s</option>
+      </select></label>
   </section>
 
   <section id="listTab">
@@ -230,19 +243,6 @@
     </div>
   </section>
 
-  <section id="previewTab" hidden>
-    <h3 id="previewTitle"></h3>
-    <label><input type="checkbox" id="previewEnabled"> <span id="previewEnableLabel"></span></label>
-    <p id="previewDesc"></p>
-    <label><span id="previewDelayLabel"></span>
-      <select id="previewDelay">
-        <option value="200">0,2 s</option>
-        <option value="400">0,4 s</option>
-        <option value="800">0,8 s</option>
-        <option value="1500">1,5 s</option>
-      </select></label>
-  </section>
-
   <section id="pilotTab" hidden>
     <h3 id="pilotTitle"></h3>
     <label><input type="checkbox" id="pilotEnabled"> <span id="pilotEnableLabel"></span></label>
@@ -265,6 +265,9 @@
     </div>
     <div id="statsBody"></div>
     <p id="statsNote" class="st-sub"></p>
+    <h3 id="diagTitle"></h3>
+    <button id="diagBtn" type="button"></button>
+    <pre id="diagOut" style="white-space:pre-wrap;user-select:text"></pre>
   </section>
 
   <section id="aiTab" hidden>
@@ -293,19 +296,16 @@
       <button type="button" id="aiTest"></button>
       <span id="aiStatus"></span>
     </div>
-    <h4 id="aiPromptTitle" class="st-h"></h4>
+    <details class="ai-more">
+    <summary><b id="aiPromptTitle"></b></summary>
     <p id="aiPromptDesc" class="st-sub"></p>
     <pre id="aiPromptText" class="ai-prompt"></pre>
     <ul id="aiPromptList" class="st-sub"></ul>
+    </details>
     <p id="aiNote" class="st-sub"></p>
     </div>
   </section>
 
-  <section id="diag">
-    <h3 id="diagTitle"></h3>
-    <button id="diagBtn" type="button"></button>
-    <pre id="diagOut" style="white-space:pre-wrap;user-select:text"></pre>
-  </section>
   <p id="hint"></p>
   <script src="../shared/selftest-ui.js"></script>
   <script src="../ai/ai.js"></script>

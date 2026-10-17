@@ -153,6 +153,9 @@ $("copy").addEventListener("click", async () => {
   setTimeout(() => ($("copy").textContent = t.copy), 1500);
 });
 $("settings").addEventListener("click", () => {
+  try {
+    localStorage.setItem("nbxOptionsTab", "aiTab"); // Optionsseite öffnet im Reiter KI
+  } catch {}
   messenger.runtime.openOptionsPage();
   window.close();
 });

@@ -16,6 +16,6 @@ Ergänzt **Betterbird** / Thunderbird ESR (ab 128) um Oberfläche und Werkzeuge,
 - **Regel-Assistent (Beta, Opt-in):** Reiter „Regeln (Beta)“ einschalten, dann Rechtsklick auf eine Mail → „Regel aus dieser Mail erstellen …“. Geführt in drei Schritten mit Vorschau der passenden Mails im Posteingang und einer Zusammenfassung als Satz; gespeichert wird ein normaler Betterbird-Filter (Extras → Nachrichtenfilter), bestehende Filter bleiben unverändert und werden vorher gesichert.
 
 ## Installation und Einstellungen
-`novabird-extension-<Version>.xpi` im Add-ons-Manager („Add-on aus Datei installieren“); Betterbird danach neu starten. Nur Betterbird / Thunderbird ESR (Experiment-API). Einstellungen (Add-ons-Manager → NovaBird-Extension): Rechte Leiste (Layout, Tage voraus, Anhänge, Miniaturen), Nachrichtenliste, Farben und Schrift, Anhang-Vorschau, Nova-Contact, Regeln (Beta).
+`novabird-extension-<Version>.xpi` im Add-ons-Manager („Add-on aus Datei installieren“); Betterbird danach neu starten. Nur Betterbird / Thunderbird ESR (Experiment-API). Einstellungen (Add-ons-Manager → NovaBird-Extension), Reiter in dieser Reihenfolge: Nachrichtenliste, Farben und Schrift, Rechte Leiste und Anhänge (Layout, Tage voraus, Anhänge-Bereich, Anhang-Vorschau), Nova-Contact, Regeln (Beta), KI, Postfach (mit Diagnose).
 Nicht gleichzeitig mit der früheren „Stream Extension“, dem Kalender-Pilot oder Kontakt-Pilot installieren.
 
