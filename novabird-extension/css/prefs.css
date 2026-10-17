@@ -7,7 +7,7 @@
 .paneDeckContainer:has(#nbxHub:not([hidden])) { max-width: 1180px; }
 .sticky-container { background: transparent !important; }
 
-.subcategory h1 { font-size: 26px !important; font-weight: 600; margin: 24px 0 10px !important; }
+.subcategory h1 { font-size: calc(26px * var(--tbsr-fe, 1)) !important; font-weight: 600; margin: 24px 0 10px !important; }
 
 /* groups become cards */
 #paneDeck fieldset {
@@ -18,7 +18,7 @@
 #paneDeck fieldset > legend {
   float: left; width: 100%; box-sizing: border-box;
   padding: 14px 18px 8px !important; margin: 0 !important;
-  font-size: 15px !important; font-weight: 600; border: 0 !important;
+  font-size: calc(15px * var(--tbsr-fe, 1)) !important; font-weight: 600; border: 0 !important;
 }
 #paneDeck fieldset > :not(legend) { clear: both; }
 #paneDeck fieldset > :not(legend) { margin-inline: 18px; }

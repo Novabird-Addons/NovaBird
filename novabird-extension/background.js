@@ -20,6 +20,10 @@ const DEFAULTS = {
   rulesEnabled: false,
   aiEnabled: false,
   colors: { bg: "#EEF2F8", fg: "#1B2433", border: "#D2DAE6", accent: "#2F6BD8" },
+  mainColors: { light: {}, dark: {} }, // geänderte Farben des Hauptfensters (nur was vom Theme abweicht), je Hell/Dunkel
+  fontFamily: "", fontRow: 100, fontPad: 100, // Schriftart, Zeilenhöhe und -abstand im Hauptfenster
+  fontCompose: 100, fontSubject: 100, fontLabels: 100, fontSample: 100, // Verfassen-Fenster (Prozent der bisherigen Größe)
+  fontSettings: 100, fontContact: 100, // Einstellungen/Konten, Nova-Contact
 };
 
 const ACCT_PALETTE = ["#378ADD", "#1D9E75", "#D85A30", "#7F77DD", "#BA7517", "#D4537E", "#0F6E56", "#888780"];
@@ -63,6 +67,23 @@ async function openRuleWizard(info) {
   await messenger.windows.create({ url: messenger.runtime.getURL(`rules/wizard.html${query}`), type: "popup", width: 780, height: 860 });
 }
 
+// Farben und Schrift des Hauptfensters (Reiter "Farben und Schrift"); Farben nur im Modus "Eigene Farben", Schrift immer
+async function applyMain(s) {
+  const custom = s.colorMode === "custom";
+  const pct = v => Math.min(200, Math.max(50, Number(v) || 100));
+  await messenger.settingsRedesign.setMainStyle({
+    colors: custom ? s.mainColors : { light: {}, dark: {} },
+    family: s.fontFamily || "",
+    rowPct: pct(s.fontRow),
+    padPct: pct(s.fontPad),
+  });
+}
+
+async function applyFonts(s) {
+  const f = v => Math.min(200, Math.max(50, Number(v) || 100)) / 100;
+  await messenger.settingsRedesign.setFonts({ fe: f(s.fontSettings), fp: f(s.fontCompose), sub: f(s.fontSubject), lab: f(s.fontLabels), sample: f(s.fontSample) });
+}
+
 async function applySettings() {
   const s = await messenger.storage.local.get(DEFAULTS);
   const colors = s.colorMode === "custom" ? s.colors : null;
@@ -78,6 +99,8 @@ async function applySettings() {
   await safe("Nachrichtenliste", () => applyList(s));
   await safe("Regel-Assistent", () => messenger.mailRules.setEnabled(s.rulesEnabled === true, ruleMenuLabel()));
   await safe("KI-Knopf", () => messenger.settingsRedesign.setAiButton(s.aiEnabled === true));
+  await safe("Schriftgrößen", () => applyFonts(s));
+  await safe("Hauptfenster-Stil", () => applyMain(s));
 }
 
 (async () => {
@@ -91,6 +114,7 @@ async function applySettings() {
     }
     await messenger.settingsRedesign.start(css);
   });
+  await safe("Hauptfenster-Stil", async () => applyMain(await messenger.storage.local.get(DEFAULTS))); // jetzt ist das Hauptfenster sicher da (Zeilenhöhe)
   console.log("NovaBird-Extension: gestartet");
 })();
 
@@ -135,6 +159,14 @@ messenger.runtime.onMessage.addListener(async message => {
   if (message?.type === "openRules") {
     await safe("Regel-Assistent öffnen", () => openRuleWizard(null));
     return true;
+  }
+  if (message?.type === "themeColors") {
+    try {
+      return await messenger.settingsRedesign.getThemeColors();
+    } catch (e) {
+      console.error("NovaBird-Extension: Theme-Farben", e);
+      return null;
+    }
   }
   if (message?.type === "status") {
     try {
@@ -185,6 +217,12 @@ messenger.storage.onChanged.addListener(async changes => {
   }
   if (keys.some(k => k.startsWith("list"))) {
     safe("Nachrichtenliste", () => applyList(s));
+  }
+  if (keys.some(k => ["colorMode", "mainColors", "fontFamily", "fontRow", "fontPad"].includes(k))) {
+    safe("Hauptfenster-Stil", () => applyMain(s));
+  }
+  if (keys.some(k => ["fontSettings", "fontCompose", "fontSubject", "fontLabels", "fontSample"].includes(k))) {
+    safe("Schriftgrößen", () => applyFonts(s));
   }
   if (keys.includes("colorMode") || keys.includes("colors")) {
     safe("Kalenderfarben", () => messenger.novaCalendar.setColors(colors));

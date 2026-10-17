@@ -2,7 +2,7 @@
 html, body { background: var(--tbsr-bg) !important; color: var(--tbsr-text); }
 body { padding: 8px 24px 40px; }
 .dialogheader { background: transparent !important; border: 0 !important; margin: 14px 0 6px !important; }
-.dialogheader-title { font-size: 20px !important; font-weight: 600 !important; }
+.dialogheader-title { font-size: calc(20px * var(--tbsr-fe, 1)) !important; font-weight: 600 !important; }
 
 /* legend + groups become cards, same as the preference panes */
 fieldset {
@@ -11,7 +11,7 @@ fieldset {
 }
 fieldset > legend {
   float: left; width: 100%; box-sizing: border-box; padding: 14px 18px 8px !important; margin: 0 !important;
-  font-size: 15px !important; font-weight: 600; border: 0 !important;
+  font-size: calc(15px * var(--tbsr-fe, 1)) !important; font-weight: 600; border: 0 !important;
 }
 fieldset > :not(legend) { clear: both; }
 fieldset > :not(legend) { margin-inline: 18px; }

@@ -24,6 +24,27 @@
         "parameters": [{ "name": "visible", "type": "boolean" }]
       },
       {
+        "name": "getThemeColors",
+        "type": "function",
+        "async": true,
+        "description": "Liefert die --ms-* Variablen des aktiven Themes (hell und dunkel), Zeilenhöhe, Zeilenabstand und Schrift; null ohne Hauptfenster.",
+        "parameters": []
+      },
+      {
+        "name": "setMainStyle",
+        "type": "function",
+        "async": true,
+        "description": "Überschreibt Farben und Schrift des Hauptfensters (null = Theme unverändert).",
+        "parameters": [{ "name": "cfg", "type": "object", "optional": true, "additionalProperties": true }]
+      },
+      {
+        "name": "setFonts",
+        "type": "function",
+        "async": true,
+        "description": "Schriftfaktoren (1 = bisherige Größe) für Einstellungen/Konten (fe) und das Verfassen-Fenster (fp, sub, lab, sample).",
+        "parameters": [{ "name": "fonts", "type": "object", "additionalProperties": true }]
+      },
+      {
         "name": "setColors",
         "type": "function",
         "async": true,

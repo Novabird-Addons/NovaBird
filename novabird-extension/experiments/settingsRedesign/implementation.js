@@ -114,7 +114,7 @@ function tokenCss() {
 }
 
 function shellCss() {
-  return CSS.shell + "\n" + tokenCss();
+  return CSS.shell + "\n" + tokenCss() + "\n" + fontVarsCss();
 }
 
 function calendarOn() {
@@ -1249,7 +1249,145 @@ function setAiButtonVisible(visible) {
   }
 }
 
+/**
+ * Farben und Schrift des Hauptfensters. Die NovaBird-Themes steuern alles über --ms-* Variablen auf :root. Ein Benutzer-Stilblatt
+ * (nsIStyleSheetService, !important) überschreibt sie in allen Dokumenten (auch about:3pane / about:message) und gilt sofort.
+ * Hell und Dunkel getrennt über prefers-color-scheme, wie die Themes selbst.
+ */
+const MS_VARS = {
+  spaces: "--ms-spaces", toolbar: "--ms-toolbar", sidebar: "--ms-sidebar", sidebarText: "--ms-sidebar-text",
+  list: "--ms-list-bg", text: "--ms-text", muted: "--ms-muted", border: "--ms-border", rowLine: "--ms-row-line",
+  hover: "--ms-hover", accent: "--ms-accent", accentDark: "--ms-accent-dark", accentSoft: "--ms-accent-soft",
+  accentFocus: "--ms-accent-soft-focus", countBg: "--ms-count-bg", countFg: "--ms-count-fg",
+};
+const HEX = /^#[0-9a-f]{6}$/i;
+let mainCfg = null; // { colors: {light:{}, dark:{}}, family, rowPct, padPct } oder null = nichts überschreiben
+let mainSheet = null; // aktuell registrierte nsIURI
+let fontCfg = { fe: 1, fp: 1, sub: 1, lab: 1, sample: 1 }; // Faktoren für Einstellungen/Konten und das Verfassen-Fenster
+
+function sheetService() {
+  return Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
+}
+
+function dropMainSheet() {
+  if (mainSheet) {
+    const sss = sheetService();
+    if (sss.sheetRegistered(mainSheet, sss.USER_SHEET)) {
+      sss.unregisterSheet(mainSheet, sss.USER_SHEET);
+    }
+    mainSheet = null;
+  }
+}
+
+function scalePx(text, pct) {
+  return String(text).replace(/(-?\d+(?:\.\d+)?)px/g, (m, n) => `${Math.round(parseFloat(n) * pct) / 100}px`);
+}
+
+/** Aktuelle Werte der --ms-* Variablen des Themes (ohne unser Stilblatt); Hell und Dunkel über die Farbschema-Umschaltung des Fensters. */
+function readThemeVars() {
+  const win = mainWindow();
+  if (!win) {
+    return null;
+  }
+  const had = mainSheet;
+  dropMainSheet();
+  const out = { light: {}, dark: {}, rowH: "", rowPad: "", font: "" };
+  const bc = win.browsingContext;
+  const prev = bc.prefersColorSchemeOverride;
+  try {
+    const cs = () => win.getComputedStyle(win.document.documentElement);
+    for (const mode of ["light", "dark"]) {
+      bc.prefersColorSchemeOverride = mode;
+      const c = cs();
+      for (const [key, name] of Object.entries(MS_VARS)) {
+        out[mode][key] = c.getPropertyValue(name).trim();
+      }
+    }
+    bc.prefersColorSchemeOverride = prev;
+    const c = cs();
+    out.rowH = c.getPropertyValue("--ms-row-h").trim();
+    out.rowPad = c.getPropertyValue("--ms-row-pad").trim();
+    out.font = c.getPropertyValue("--ms-font").trim();
+  } finally {
+    bc.prefersColorSchemeOverride = prev;
+    if (had) {
+      applyMainStyle();
+    }
+  }
+  return out;
+}
+
+function applyMainStyle() {
+  dropMainSheet();
+  if (!mainCfg) {
+    return;
+  }
+  const block = c =>
+    Object.entries(c || {})
+      .filter(([k, v]) => MS_VARS[k] && HEX.test(v))
+      .map(([k, v]) => `${MS_VARS[k]}: ${v} !important;`)
+      .join(" ");
+  const common = [];
+  const family = String(mainCfg.family || "");
+  if (family && /^[\w .-]+$/.test(family)) {
+    common.push(`--ms-font: ${family === "system-ui" ? "system-ui" : `"${family}"`}, sans-serif !important;`);
+  }
+  if (mainCfg.rowPct !== 100 || mainCfg.padPct !== 100) {
+    const win = mainWindow();
+    const c = win ? win.getComputedStyle(win.document.documentElement) : null;
+    const rowH = c ? c.getPropertyValue("--ms-row-h").trim() : "";
+    const rowPad = c ? c.getPropertyValue("--ms-row-pad").trim() : "";
+    if (rowH && mainCfg.rowPct !== 100) {
+      common.push(`--ms-row-h: ${scalePx(rowH, mainCfg.rowPct)} !important;`);
+    }
+    if (rowPad && mainCfg.padPct !== 100) {
+      common.push(`--ms-row-pad: ${scalePx(rowPad, mainCfg.padPct)} !important;`);
+    }
+  }
+  let css = common.length ? `:root:root { ${common.join(" ")} }\n` : "";
+  const light = block(mainCfg.colors?.light);
+  const dark = block(mainCfg.colors?.dark);
+  if (light) {
+    css += `@media not (prefers-color-scheme: dark) { :root:root { ${light} } }\n`;
+  }
+  if (dark) {
+    css += `@media (prefers-color-scheme: dark) { :root:root { ${dark} } }\n`;
+  }
+  if (!css) {
+    return;
+  }
+  const sss = sheetService();
+  mainSheet = Services.io.newURI("data:text/css," + encodeURIComponent(css));
+  sss.loadAndRegisterSheet(mainSheet, sss.USER_SHEET);
+}
+
+// Schriftfaktoren als Variablen für alle NovaBird-Stilblätter (Einstellungen, Konten, Verfassen)
+function fontVarsCss() {
+  const f = fontCfg;
+  return `:root:root:root { --tbsr-fe: ${f.fe}; --tbsr-fp: ${f.fp}; --tbsr-m-sub: ${f.sub}; --tbsr-m-lab: ${f.lab}; --tbsr-m-sample: ${f.sample}; }`;
+}
+
+const themeObserver = {
+  observe() {
+    // Themewechsel: Vorgaben (Zeilenhöhe) neu lesen und das Stilblatt neu aufbauen
+    const win = mainWindow();
+    if (win && mainCfg) {
+      win.setTimeout(() => {
+        try {
+          applyMainStyle();
+        } catch (e) {
+          console.error("NovaBird: Hauptfenster-Stil", e);
+        }
+      }, 300);
+    }
+  },
+};
+
 function teardown() {
+  try {
+    dropMainSheet();
+    Services.obs.removeObserver(themeObserver, "lightweight-theme-styling-update");
+  } catch (e) {}
   try {
     setAiButtonVisible(true);
   } catch (e) {}
@@ -1283,6 +1421,11 @@ return class extends ExtensionCommon.ExtensionAPI {
 
   getAPI(context) {
     hubIcon = context.extension.getURL("icons/icon-48.png");
+    try {
+      Services.obs.addObserver(themeObserver, "lightweight-theme-styling-update");
+    } catch (e) {
+      console.error("NovaBird: Theme-Beobachter", e);
+    }
     if (!nb.nbIsDark) {
       try {
         nbLoadShared(context.extension, ["shared/color.js"], nb);
@@ -1294,6 +1437,21 @@ return class extends ExtensionCommon.ExtensionAPI {
       settingsRedesign: {
         async setAiButton(visible) {
           setAiButtonVisible(Boolean(visible));
+        },
+        async getThemeColors() {
+          return readThemeVars();
+        },
+        async setMainStyle(cfg) {
+          mainCfg = cfg && typeof cfg === "object" ? cfg : null;
+          if (mainCfg) {
+            mainCfg.rowPct = Number(mainCfg.rowPct) || 100;
+            mainCfg.padPct = Number(mainCfg.padPct) || 100;
+          }
+          applyMainStyle();
+        },
+        async setFonts(f) {
+          const n = v => (Number.isFinite(Number(v)) && Number(v) >= 0.5 && Number(v) <= 2 ? Number(v) : 1);
+          fontCfg = { fe: n(f?.fe), fp: n(f?.fp), sub: n(f?.sub), lab: n(f?.lab), sample: n(f?.sample) };
         },
         async setColors(colors) {
           const ok = colors && ["bg", "fg", "border", "accent"].every(k => /^#[0-9a-f]{6}$/i.test(colors[k] || ""));

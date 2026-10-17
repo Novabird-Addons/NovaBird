@@ -3,7 +3,7 @@
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
 ## Unreleased (branch `testing`)
-Search 1.2.8 · Extension 1.9.29 · Conversation 0.15.2 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+Search 1.2.8 · Extension 1.10.0 · Conversation 0.15.2 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 
 ### NovaBird-Search 1.2.8
 - Analysis page: all font sizes are now in `rem` (default font of the page, so they follow the font settings). Measured on Windows (1 rem = 17 px): same size as before there; on Linux, where the default font is usually 16 px, up to 6 % smaller.
@@ -18,6 +18,13 @@ Search 1.2.8 · Extension 1.9.29 · Conversation 0.15.2 · unchanged: DB 1.2.5 �
 
 ### NovaBird-Conversation 0.15.1
 - New, only if the AI summary is set up in NovaBird-Extension: a button "Summarise (AI)" in the header of the conversation view. It opens a window with a summary of the whole conversation (oldest message first).
+
+### NovaBird-Extension 1.10.0
+- **New settings tab "Colors and fonts"** (formerly "Colors"), two columns side by side, with a small sketch of the main window: moving the mouse over a color outlines the area it affects.
+- **Custom Colors:** all colors the NovaBird themes set in the main window can be changed, each with a short description of what it affects: spaces bar, toolbar, folder pane, message list and view, text, secondary text, folder text, borders, row separator, mouse-over, accent, dark accent, selection, selection with focus, unread counter (background and text). Light and dark are edited separately (they follow the color scheme of the operating system). Only colors that differ from the theme are stored, all others keep following the theme. The four colors of dialogs, settings and compose window are listed in the same tab. Works live with the NovaBird themes (the theme's `--ms-*` variables are overridden with a user style sheet, also in the folder, list and message panes); with another theme the main-window part has no effect and the tab says so. Icons keep the colors drawn into them by the theme.
+- **Fonts:** everything NovaBird sets can be changed in percent of the former size (100 %), with the resulting pixel size shown: font family, folder row height and message list spacing in the main window (themes); base size, subject, labels/command bar and sample text in the compose window; settings and accounts pages; Nova-Contact. The main window and Nova-Contact change live, compose window and settings pages when they are opened next.
+- **This settings page** is 17 % larger. The system font it used before is very small on Windows (about 8 px).
+- Technical: new experiment functions `settingsRedesign.getThemeColors`, `setMainStyle`, `setFonts`; compose and settings style sheets use factors (`--tbsr-fp`, `--tbsr-m-*`, `--tbsr-fe`).
 
 ### NovaBird-Extension 1.9.29
 - **Compose window, sizes:** one base size for everything (menu bar, buttons, From line, recipient fields, formatting menus): 13.3 px at least (95 % of the former 14 px). The rest are fixed ratios of it: labels and Cc/Bcc 0.93, subject 1.14, sample text 1.29, font list 1.07. Before, the labels of the buttons stayed on a larger step than the labels of the header rows.

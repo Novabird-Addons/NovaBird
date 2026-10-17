@@ -27,12 +27,12 @@
 /* One font everywhere, so switching pages does not jump. */
 html, body, input, select, button, textarea, label, legend, menulist, checkbox, description {
   font-family: var(--tbsr-font) !important;
-  font-size: 14px;
+  font-size: calc(14px * var(--tbsr-fe, 1));
 }
 
 /* ---- navigation ---- */
-#tbsr-nav, #tbsr-nav * { font-family: var(--tbsr-font) !important; font-size: 14px !important; line-height: 1.35; }
-#tbsr-nav h6 { font-size: 11px !important; }
+#tbsr-nav, #tbsr-nav * { font-family: var(--tbsr-font) !important; font-size: calc(14px * var(--tbsr-fe, 1)) !important; line-height: 1.35; }
+#tbsr-nav h6 { font-size: calc(11px * var(--tbsr-fe, 1)) !important; }
 #tbsr-nav {
   display: flex; flex-direction: column; gap: 2px;
   box-sizing: border-box; width: 280px; min-width: 280px; height: 100%;
@@ -52,7 +52,7 @@ html, body, input, select, button, textarea, label, legend, menulist, checkbox, 
   -moz-context-properties: fill, stroke; fill: var(--tbsr-muted); stroke: var(--tbsr-muted);
 }
 #tbsr-nav h6 {
-  margin: 14px 10px 4px; font-size: 11px; font-weight: 600; letter-spacing: .06em;
+  margin: 14px 10px 4px; font-size: calc(11px * var(--tbsr-fe, 1)); font-weight: 600; letter-spacing: .06em;
   text-transform: uppercase; color: var(--tbsr-muted);
 }
 #tbsr-nav hr { width: 100%; margin: 10px 0 6px; border: 0; border-top: 1px solid var(--tbsr-line); }
@@ -102,7 +102,7 @@ checkbox:focus-visible .checkbox-check, input[type=checkbox]:focus-visible { out
   margin-inline-start: 24px; padding-inline-start: 8px; border-inline-start: 1px solid var(--tbsr-line);
 }
 #tbsr-nav .tbsr-tree a { padding: 5px 8px; gap: 9px; border-radius: 7px; color: var(--tbsr-muted); }
-#tbsr-nav .tbsr-tree a, #tbsr-nav .tbsr-tree a * { font-size: 13px !important; }
+#tbsr-nav .tbsr-tree a, #tbsr-nav .tbsr-tree a * { font-size: calc(13px * var(--tbsr-fe, 1)) !important; }
 #tbsr-nav .tbsr-tree a:hover { color: var(--tbsr-text); }
 #tbsr-nav .tbsr-tree a[aria-current] { background: var(--tbsr-hover); color: var(--tbsr-accent-text); font-weight: 600; }
 #tbsr-nav .tbsr-tree a img {
