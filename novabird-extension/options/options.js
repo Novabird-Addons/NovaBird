@@ -35,7 +35,6 @@ const TEXTS = {
     listDetailsTitle: "Weitere Optionen",
     listDensityNote: "Dichte und Kontofarbe gelten nicht für den Betterbird-Standard.",
     title: "NovaBird-Extension",
-    tabPreview: "Anhang-Vorschau",
     tabList: "Nachrichtenliste",
     listTitle: "Aussehen der Nachrichtenliste",
     listIntro: "Gilt für die Kartenansicht der Nachrichtenliste (Einstellung „Ansicht“ → Karten). Die Tabellenansicht bleibt unverändert.",
@@ -60,13 +59,54 @@ const TEXTS = {
     rulesDesc: "Legt Nachrichtenfilter Schritt für Schritt an, mit Erklärungen und einer Vorschau, welche Mails im Posteingang passen würden. Eingeschaltet erscheint im Kontextmenü der Nachrichtenliste „Regel aus dieser Mail erstellen …“. Gespeichert wird ein normaler Betterbird-Filter (Extras → Nachrichtenfilter), der auch ohne NovaBird weiterläuft; bestehende Filter bleiben unverändert, vorher wird die Filterdatei gesichert.",
     rulesOpen: "Regel-Assistent öffnen",
     selfTest_rules: "Regel-Assistent (Nachrichtenfilter)",
+    tabStats: "Postfach",
+    statsTitle: "Postfachanalyse",
+    statsRefresh: "Aktualisieren",
+    statsUpdated: "Stand: $1",
+    statsNote: "Berechnet aus den lokal gespeicherten Daten, nichts wird nachgeladen. Bei IMAP-Konten ohne Offline-Speicherung zählt nur, was lokal liegt.",
+    statsAccounts: "Konten",
+    statsFolders: "Ordner",
+    statsMessages: "Nachrichten",
+    statsTotal: "Gesamtgröße",
+    statsPerAccount: "Pro Konto",
+    statsDistribution: "Verteilung nach Größe",
+    statsTop: "Größte Ordner",
+    statsLoading: "Wird berechnet …",
+    statsError: "Die Analyse ist fehlgeschlagen.",
+    statsEmpty: "Keine Konten gefunden.",
+    statsFoldersN: "$1 Ordner",
+    statsMessagesN: "$1 Nachrichten",
+    selfTest_mailStats: "Postfachanalyse",
+    tabAi: "KI",
+    aiTitle: "KI-Zusammenfassung",
+    aiDesc: "Fasst eine geöffnete Nachricht mit einem Sprachmodell zusammen. Nichts geschieht automatisch: Erst der Knopf „Mail zusammenfassen (KI)“ in der Nachrichtenansicht sendet den Mailtext an die Adresse unten. Gedacht für ein Modell auf dem eigenen Rechner (Ollama) oder einen OpenAI-kompatiblen Dienst.",
+    aiCtxLabel: "Kontextlänge (Token)",
+    aiPromptTitle: "Anweisung an die KI",
+    aiPromptDesc: "Das ist der Text, den das Modell zusammen mit der Mail erhält. Er steht vor dem Mailtext und lässt sich hier nicht ändern. Platzhalter: {ZIEL} wird zur gewählten Sprache, {OPEN} und {CLOSE} sind Markierungen mit zufälliger Kennung, zwischen denen der Mailtext steht.",
+    aiPromptSafe: ["Trennung: Der Mailtext steht zwischen Markierungen, die bei jeder Anfrage neu und zufällig sind. Ein Absender kann sie nicht vorhersagen und damit nicht aus dem Textteil ausbrechen.", "Fremde Daten: Das Modell erfährt ausdrücklich, dass der Mailtext von Dritten stammt und Anweisungen darin nicht befolgt werden dürfen. Das macht Fremdanweisungen unwahrscheinlicher, schließt sie bei Sprachmodellen aber nicht sicher aus.", "Begrenzte Wirkung: Das Modell hat keine Werkzeuge. Es kann nichts senden, öffnen oder löschen; seine Antwort wird nur als Text angezeigt. Im schlimmsten Fall ist eine Zusammenfassung falsch oder irreführend.", "Hinweis: Enthält eine Mail Sätze wie „ignoriere alle Anweisungen“, erscheint über der Zusammenfassung eine Warnung."],
+    aiEnabledLabel: "KI-Zusammenfassung verwenden (der Knopf „Mail zusammenfassen (KI)“ erscheint nur, wenn dies an ist)",
+    aiTypeLabel: "Schnittstelle",
+    aiUrlLabel: "Adresse",
+    aiModelLabel: "Modell",
+    aiUserLabel: "Benutzername (optional)",
+    aiKeyLabel: "Passwort oder API-Schlüssel (optional)",
+    aiLangLabel: "Zusammenfassung in",
+    aiLangUi: "Sprache der Oberfläche",
+    aiLangMail: "Sprache der Mail",
+    aiTest: "Verbindung testen",
+    aiTesting: "Wird geprüft …",
+    aiOk: "Verbunden: $1 Modelle gefunden.",
+    aiFail: "Fehlgeschlagen: $1",
+    aiPerm: "Erlaubnis für diese Adresse nicht erteilt.",
+    aiRemote: "Achtung: Diese Adresse liegt nicht auf diesem Rechner. Beim Zusammenfassen wird der Text der Mail dorthin gesendet.",
+    aiNote: "Zugangsdaten werden im Profil dieses Add-ons gespeichert (nicht verschlüsselt). Mit Benutzername wird Basic-Anmeldung verwendet, sonst das Passwort als Bearer-Schlüssel. Empfohlen: Ollama mit einem Modell wie gemma3:12b oder qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact im Kontakte-Tab",
     pilotEnableLabel: "Nova-Contact verwenden",
     pilotDesc: "Ergänzt den Kontakte-Tab von Betterbird: Tags als Filter, mehrere Kontakte gemeinsam bearbeiten (Tags, Firma, Position) und die letzten 3 Änderungen rückgängig machen. Der Knopf „Nova-Contact“ unter der Adressbuchliste öffnet die Seite zum Sammeln von Adressen aus E-Mails, zum Zusammenführen von Dubletten und zum Aufräumen alter Kontakte (mit Wiederherstellung).",
     pilotLogLabel: "Protokoll in der Nova-Contact-Seite anzeigen (Aktionen mit Uhrzeit, nur bis zum Neustart gespeichert)",
-    tabCalendar: "Rechte Leiste",
-    tabColors: "Farben",
+    tabCalendar: "Rechte Leiste und Anhänge",
+    tabColors: "Farben und Schrift",
     layoutTitle: "Layout der rechten Leiste",
     layoutNova: "NovaBird-Layout: Termine und Aufgaben gemeinsam in Mail, Kalender und Aufgaben (Standard)",
     layoutDefault: "Betterbird-Standard",
@@ -79,14 +119,85 @@ const TEXTS = {
     mailTab: "Mail-Tab",
     diagTitle: "Diagnose",
     diagBtn: "Status anzeigen",
-    colorTitle: "Farben von Dialogen, Einstellungen und Verfassen-Fenster",
+    colorTitle: "Custom Colors (eigene Farben)",
     modeTheme: "Farben des Themes übernehmen",
     modeCustom: "Eigene Farben",
     bgLabel: "Hintergrund",
     fgLabel: "Schrift",
     borderLabel: "Linien und Rahmen",
     accentLabel: "Akzent (Auswahl, Reiter, Hervorhebung)",
-    reset: "Zurücksetzen",
+    reset: "Farben zurücksetzen",
+    cfEdit: "Bearbeiten für:",
+    cfLight: "Hell",
+    cfDark: "Dunkel",
+    cfNote: "Hell und Dunkel folgen dem Farbschema des Betriebssystems. Nur geänderte Farben werden gespeichert, alle anderen folgen dem Theme.",
+    cfHint: "Mit der Maus über eine Farbe fahren: der betroffene Bereich wird in der Skizze umrandet. Die Skizze zeigt die Farben des gewählten Modus.",
+    cfNoTheme: "Das aktive Theme ist kein NovaBird-Theme. Die Farben des Hauptfensters (links, oben) wirken nur mit Sand, Cobalt oder Springlight; Dialoge, Einstellungen und Verfassen-Fenster funktionieren mit jedem Theme.",
+    g_areas: "Hauptfenster: Flächen",
+    g_text: "Hauptfenster: Text und Linien",
+    g_accent: "Auswahl und Akzent",
+    g_dialog: "Dialoge, Einstellungen, Verfassen",
+    c_spaces: "Spaces-Leiste",
+    cd_spaces: "Schmale Icon-Leiste ganz links (Mail, Kalender, Adressbuch)",
+    c_toolbar: "Werkzeugleiste",
+    cd_toolbar: "Obere Leiste mit Schaltflächen und Suchfeld",
+    c_sidebar: "Ordnerbereich",
+    cd_sidebar: "Hintergrund der Ordnerliste",
+    c_list: "Nachrichtenliste und -ansicht",
+    cd_list: "Hintergrund, auf dem Nachrichten stehen und gelesen werden",
+    c_text: "Text",
+    cd_text: "Betreff, Absender und Haupttext",
+    c_muted: "Zweittext",
+    cd_muted: "Datum, Vorschau, Kontenüberschriften im Ordnerbereich",
+    c_sidebarText: "Ordnertext",
+    cd_sidebarText: "Namen der Ordner",
+    c_border: "Rahmen",
+    cd_border: "Trennlinien zwischen den Bereichen und um Felder",
+    c_rowLine: "Zeilentrenner",
+    cd_rowLine: "Feine Linie zwischen zwei Nachrichten",
+    c_hover: "Maus darüber",
+    cd_hover: "Zeile oder Ordner unter dem Mauszeiger",
+    c_accent: "Akzent",
+    cd_accent: "Auswahlbalken, Links und aktive Symbole",
+    c_accentDark: "Akzent dunkel",
+    cd_accentDark: "Text des gewählten Ordners",
+    c_accentSoft: "Auswahl",
+    cd_accentSoft: "Hintergrund des gewählten Ordners",
+    c_accentFocus: "Auswahl mit Fokus",
+    cd_accentFocus: "Gewählte Nachricht in der Liste",
+    c_count: "Ungelesen-Zähler",
+    cd_count: "Pille mit der Zahl (links Fläche, rechts Schrift)",
+    cd_dbg: "Termin-Dialoge, Einstellungen, Konten und Verfassen-Fenster",
+    cd_dfg: "Text in diesen Fenstern",
+    cd_dborder: "Linien und Feldränder darin",
+    cd_daccent: "Schalter, Schaltflächen und Auswahl darin",
+    fontTitle: "Schrift",
+    fontIntro: "100 % ist die bisherige Größe. Die Pixelwerte darunter gelten bei Thunderbirds Standard-Schriftgröße.",
+    fontNew: "Verfassen-Fenster, Einstellungen und Konten übernehmen Änderungen beim nächsten Öffnen.",
+    fontReset: "Schrift zurücksetzen",
+    fg_main: "Hauptfenster (Theme)",
+    fg_compose: "Verfassen-Fenster",
+    fg_other: "Weitere Seiten",
+    famTheme: "Theme-Standard",
+    famSystem: "System",
+    f_family: "Schriftart",
+    fd_family: "Alle Beschriftungen im Hauptfenster: Ordner, Liste, Leisten",
+    f_row: "Zeilenhöhe Ordnerliste",
+    fd_row: "Höhe eines Ordners im Ordnerbereich",
+    f_pad: "Abstand Nachrichtenliste",
+    fd_pad: "Luft um Absender und Betreff",
+    f_compose: "Grundschrift",
+    fd_compose: "Menüs, Felder und Knöpfe; mindestens 13,3 px, wächst mit Thunderbirds Schriftgröße",
+    f_subject: "Betreff",
+    fd_subject: "Betreff-Zeile",
+    f_labels: "Beschriftungen und Befehlsleiste",
+    fd_labels: "„An“, „Cc“, Anhänge und die Leiste mit „Senden“",
+    f_sample: "Beispieltext der Formatierungsleiste",
+    fd_sample: "Vorschau der Schrift beim Aufklappen",
+    f_settings: "Einstellungen und Konten",
+    fd_settings: "Menü und Inhalt dieser Seiten",
+    f_contact: "Nova-Contact",
+    fd_contact: "Seitenleiste und Kontaktseite",
     hint: "Änderungen wirken sofort; offene Fenster übernehmen sie beim nächsten Öffnen.",
   },
   en: {
@@ -122,7 +233,6 @@ const TEXTS = {
     listDetailsTitle: "More options",
     listDensityNote: "Density and account colour do not apply to the Betterbird default.",
     title: "NovaBird-Extension",
-    tabPreview: "Attachment preview",
     tabList: "Message list",
     listTitle: "Look of the message list",
     listIntro: "Applies to the cards view of the message list (View setting → Cards). The table view stays unchanged.",
@@ -147,13 +257,54 @@ const TEXTS = {
     rulesDesc: "Creates message filters step by step, with explanations and a preview of which mails in the inbox would match. When enabled, the message list context menu offers \"Create rule from this mail …\". It saves a normal Betterbird filter (Tools → Message Filters) that keeps working without NovaBird; existing filters stay unchanged and the filter file is backed up first.",
     rulesOpen: "Open rule assistant",
     selfTest_rules: "Rule assistant (message filters)",
+    tabStats: "Mailbox",
+    statsTitle: "Mailbox analysis",
+    statsRefresh: "Refresh",
+    statsUpdated: "As of: $1",
+    statsNote: "Calculated from locally stored data; nothing is downloaded. For IMAP accounts without offline storage only what is stored locally is counted.",
+    statsAccounts: "Accounts",
+    statsFolders: "Folders",
+    statsMessages: "Messages",
+    statsTotal: "Total size",
+    statsPerAccount: "Per account",
+    statsDistribution: "Distribution by size",
+    statsTop: "Largest folders",
+    statsLoading: "Calculating …",
+    statsError: "The analysis failed.",
+    statsEmpty: "No accounts found.",
+    statsFoldersN: "$1 folders",
+    statsMessagesN: "$1 messages",
+    selfTest_mailStats: "Mailbox analysis",
+    tabAi: "AI",
+    aiTitle: "AI summary",
+    aiDesc: "Summarises an open message with a language model. Nothing happens automatically: only the button “Summarise mail (AI)” in the message view sends the mail text to the address below. Meant for a model on your own computer (Ollama) or an OpenAI-compatible service.",
+    aiCtxLabel: "Context length (tokens)",
+    aiPromptTitle: "Instruction to the AI",
+    aiPromptDesc: "This is the text the model receives together with the mail. It comes before the mail text and cannot be changed here. Placeholders: {ZIEL} becomes the chosen language, {OPEN} and {CLOSE} are markers with a random ID between which the mail text is placed.",
+    aiPromptSafe: ["Separation: The mail text sits between markers that are new and random for every request. A sender cannot predict them and so cannot break out of the text part.", "Third-party data: The model is told explicitly that the mail text comes from others and that instructions in it must not be followed. This makes injected instructions less likely, but with language models it cannot rule them out completely.", "Limited effect: The model has no tools. It cannot send, open or delete anything; its answer is only shown as text. In the worst case a summary is wrong or misleading.", "Notice: If a mail contains sentences such as “ignore all instructions”, a warning appears above the summary."],
+    aiEnabledLabel: "Use AI summary (the button “Summarise mail (AI)” only appears when this is on)",
+    aiTypeLabel: "Interface",
+    aiUrlLabel: "Address",
+    aiModelLabel: "Model",
+    aiUserLabel: "User name (optional)",
+    aiKeyLabel: "Password or API key (optional)",
+    aiLangLabel: "Summary in",
+    aiLangUi: "Interface language",
+    aiLangMail: "Language of the mail",
+    aiTest: "Test connection",
+    aiTesting: "Checking …",
+    aiOk: "Connected: $1 models found.",
+    aiFail: "Failed: $1",
+    aiPerm: "Permission for this address was not granted.",
+    aiRemote: "Note: this address is not on this computer. When summarising, the text of the mail is sent there.",
+    aiNote: "Credentials are stored in this add-on’s profile data (not encrypted). With a user name Basic authentication is used, otherwise the password is sent as a bearer key. Recommended: Ollama with a model such as gemma3:12b or qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact in the Contacts tab",
     pilotEnableLabel: "Use Nova-Contact",
     pilotDesc: "Extends Betterbird’s Contacts tab: filter by tags, edit several contacts at once (tags, company, job title) and undo the last 3 changes. The “Nova-Contact” button below the address book list opens the page for collecting addresses from email, merging duplicates and cleaning up old contacts (with restore).",
     pilotLogLabel: "Show a log on the Nova-Contact page (actions with time, kept only until restart)",
-    tabCalendar: "Right pane",
-    tabColors: "Colors",
+    tabCalendar: "Right pane and attachments",
+    tabColors: "Colors and fonts",
     layoutTitle: "Layout of the right-hand pane",
     layoutNova: "NovaBird layout: events and tasks together in mail, calendar and tasks (default)",
     layoutDefault: "Betterbird default",
@@ -166,14 +317,85 @@ const TEXTS = {
     mailTab: "Mail tab",
     diagTitle: "Diagnostics",
     diagBtn: "Show status",
-    colorTitle: "Colors of dialogs, settings and compose window",
+    colorTitle: "Custom Colors",
     modeTheme: "Use the theme's colors",
     modeCustom: "Custom colors",
     bgLabel: "Background",
     fgLabel: "Text",
     borderLabel: "Lines and borders",
     accentLabel: "Accent (selection, tabs, highlight)",
-    reset: "Reset",
+    reset: "Reset colors",
+    cfEdit: "Edit for:",
+    cfLight: "Light",
+    cfDark: "Dark",
+    cfNote: "Light and dark follow the color scheme of the operating system. Only changed colors are saved, all others follow the theme.",
+    cfHint: "Move the mouse over a color: the affected area is outlined in the sketch. The sketch shows the colors of the selected mode.",
+    cfNoTheme: "The active theme is not a NovaBird theme. The colors of the main window (left, top) only work with Sand, Cobalt or Springlight; dialogs, settings and the compose window work with any theme.",
+    g_areas: "Main window: areas",
+    g_text: "Main window: text and lines",
+    g_accent: "Selection and accent",
+    g_dialog: "Dialogs, settings, compose",
+    c_spaces: "Spaces bar",
+    cd_spaces: "Narrow icon bar on the far left (mail, calendar, address book)",
+    c_toolbar: "Toolbar",
+    cd_toolbar: "Top bar with buttons and the search field",
+    c_sidebar: "Folder pane",
+    cd_sidebar: "Background of the folder list",
+    c_list: "Message list and view",
+    cd_list: "Background where messages are listed and read",
+    c_text: "Text",
+    cd_text: "Subject, sender and main text",
+    c_muted: "Secondary text",
+    cd_muted: "Date, preview, account headings in the folder pane",
+    c_sidebarText: "Folder text",
+    cd_sidebarText: "Names of the folders",
+    c_border: "Border",
+    cd_border: "Dividing lines between areas and around fields",
+    c_rowLine: "Row separator",
+    cd_rowLine: "Fine line between two messages",
+    c_hover: "Mouse over",
+    cd_hover: "Row or folder under the pointer",
+    c_accent: "Accent",
+    cd_accent: "Selection bar, links and active icons",
+    c_accentDark: "Accent, dark",
+    cd_accentDark: "Text of the selected folder",
+    c_accentSoft: "Selection",
+    cd_accentSoft: "Background of the selected folder",
+    c_accentFocus: "Selection with focus",
+    cd_accentFocus: "Selected message in the list",
+    c_count: "Unread counter",
+    cd_count: "Pill with the number (left background, right text)",
+    cd_dbg: "Event dialogs, settings, accounts and compose window",
+    cd_dfg: "Text in these windows",
+    cd_dborder: "Lines and field borders in them",
+    cd_daccent: "Switches, buttons and selection in them",
+    fontTitle: "Fonts",
+    fontIntro: "100 % is the former size. The pixel values below apply at Thunderbird's default font size.",
+    fontNew: "Compose window, settings and accounts take changes the next time they are opened.",
+    fontReset: "Reset fonts",
+    fg_main: "Main window (theme)",
+    fg_compose: "Compose window",
+    fg_other: "Other pages",
+    famTheme: "Theme default",
+    famSystem: "System",
+    f_family: "Font",
+    fd_family: "All text in the main window: folders, list, bars",
+    f_row: "Folder row height",
+    fd_row: "Height of one folder in the folder pane",
+    f_pad: "Message list spacing",
+    fd_pad: "Space around sender and subject",
+    f_compose: "Base size",
+    fd_compose: "Menus, fields and buttons; at least 13.3 px, grows with Thunderbird's font size",
+    f_subject: "Subject",
+    fd_subject: "Subject line",
+    f_labels: "Labels and command bar",
+    fd_labels: "“To”, “Cc”, attachments and the bar with “Send”",
+    f_sample: "Sample text of the formatting bar",
+    fd_sample: "Preview of the font when the bar is expanded",
+    f_settings: "Settings and accounts",
+    fd_settings: "Menu and content of these pages",
+    f_contact: "Nova-Contact",
+    fd_contact: "Sidebar and contact page",
     hint: "Changes apply immediately; open windows pick them up the next time they open.",
   },
   fr: {
@@ -209,7 +431,6 @@ const TEXTS = {
     listDetailsTitle: "Autres options",
     listDensityNote: "La densité et la couleur du compte ne s’appliquent pas au style par défaut de Betterbird.",
     title: "NovaBird-Extension",
-    tabPreview: "Aperçu des pièces jointes",
     tabList: "Liste des messages",
     listTitle: "Apparence de la liste des messages",
     listIntro: "S’applique à l’affichage en cartes de la liste des messages (réglage Affichage → Cartes). L’affichage en tableau reste inchangé.",
@@ -234,13 +455,54 @@ const TEXTS = {
     rulesDesc: "Crée des filtres de messages pas à pas, avec des explications et un aperçu des messages de la boîte de réception qui correspondraient. Une fois activé, le menu contextuel de la liste des messages propose « Créer une règle à partir de ce message … ». Il enregistre un filtre Betterbird normal (Outils → Filtres de messages) qui fonctionne aussi sans NovaBird ; les filtres existants restent inchangés et le fichier de filtres est sauvegardé avant.",
     rulesOpen: "Ouvrir l’assistant de règles",
     selfTest_rules: "Assistant de règles (filtres de messages)",
+    tabStats: "Boîte mail",
+    statsTitle: "Analyse de la boîte mail",
+    statsRefresh: "Actualiser",
+    statsUpdated: "État : $1",
+    statsNote: "Calculé à partir des données stockées localement, rien n’est téléchargé. Pour les comptes IMAP sans stockage hors ligne, seul ce qui est local est compté.",
+    statsAccounts: "Comptes",
+    statsFolders: "Dossiers",
+    statsMessages: "Messages",
+    statsTotal: "Taille totale",
+    statsPerAccount: "Par compte",
+    statsDistribution: "Répartition par taille",
+    statsTop: "Plus gros dossiers",
+    statsLoading: "Calcul en cours …",
+    statsError: "L’analyse a échoué.",
+    statsEmpty: "Aucun compte trouvé.",
+    statsFoldersN: "$1 dossiers",
+    statsMessagesN: "$1 messages",
+    selfTest_mailStats: "Analyse de la boîte mail",
+    tabAi: "IA",
+    aiTitle: "Résumé par IA",
+    aiDesc: "Résume un message ouvert avec un modèle de langage. Rien n’est automatique : seul le bouton « Résumer le message (IA) » de l’affichage du message envoie le texte à l’adresse ci-dessous. Prévu pour un modèle sur votre propre ordinateur (Ollama) ou un service compatible OpenAI.",
+    aiCtxLabel: "Longueur de contexte (jetons)",
+    aiPromptTitle: "Instruction donnée à l’IA",
+    aiPromptDesc: "Voici le texte que le modèle reçoit avec le message. Il précède le texte du message et ne peut pas être modifié ici. Espaces réservés : {ZIEL} devient la langue choisie, {OPEN} et {CLOSE} sont des marqueurs à identifiant aléatoire entre lesquels se trouve le texte du message.",
+    aiPromptSafe: ["Séparation : le texte du message se trouve entre des marqueurs nouveaux et aléatoires à chaque requête. Un expéditeur ne peut pas les prévoir et donc pas sortir de la partie texte.", "Données de tiers : le modèle est informé expressément que le texte provient de tiers et que les instructions qu’il contient ne doivent pas être suivies. Cela rend les instructions injectées moins probables, mais avec des modèles de langage cela ne les exclut pas avec certitude.", "Effet limité : le modèle n’a aucun outil. Il ne peut rien envoyer, ouvrir ni supprimer ; sa réponse est seulement affichée comme texte. Au pire, un résumé est faux ou trompeur.", "Avertissement : si un message contient des phrases comme « ignore toutes les instructions », un avertissement apparaît au-dessus du résumé."],
+    aiEnabledLabel: "Utiliser le résumé par IA (le bouton « Résumer le message (IA) » n’apparaît que si cette option est activée)",
+    aiTypeLabel: "Interface",
+    aiUrlLabel: "Adresse",
+    aiModelLabel: "Modèle",
+    aiUserLabel: "Nom d’utilisateur (facultatif)",
+    aiKeyLabel: "Mot de passe ou clé API (facultatif)",
+    aiLangLabel: "Résumé en",
+    aiLangUi: "Langue de l’interface",
+    aiLangMail: "Langue du message",
+    aiTest: "Tester la connexion",
+    aiTesting: "Vérification …",
+    aiOk: "Connecté : $1 modèles trouvés.",
+    aiFail: "Échec : $1",
+    aiPerm: "L’autorisation pour cette adresse n’a pas été accordée.",
+    aiRemote: "Attention : cette adresse n’est pas sur cet ordinateur. Lors du résumé, le texte du message y est envoyé.",
+    aiNote: "Les identifiants sont enregistrés dans les données de profil de ce module (non chiffrés). Avec un nom d’utilisateur, l’authentification Basic est utilisée, sinon le mot de passe est envoyé comme clé Bearer. Recommandé : Ollama avec un modèle comme gemma3:12b ou qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact dans l’onglet Contacts",
     pilotEnableLabel: "Utiliser Nova-Contact",
     pilotDesc: "Complète l’onglet Contacts de Betterbird : filtrer par tags, modifier plusieurs contacts à la fois (tags, société, fonction) et annuler les 3 dernières modifications. Le bouton « Nova-Contact » sous la liste des carnets ouvre la page pour collecter des adresses depuis les e-mails, fusionner les doublons et nettoyer les anciens contacts (avec restauration).",
     pilotLogLabel: "Afficher un journal sur la page Nova-Contact (actions avec l’heure, conservé jusqu’au redémarrage)",
-    tabCalendar: "Panneau de droite",
-    tabColors: "Couleurs",
+    tabCalendar: "Panneau de droite et pièces jointes",
+    tabColors: "Couleurs et police",
     layoutTitle: "Disposition du panneau de droite",
     layoutNova: "Disposition NovaBird : événements et tâches ensemble dans Courrier, Agenda et Tâches (par défaut)",
     layoutDefault: "Disposition standard de Betterbird",
@@ -253,14 +515,85 @@ const TEXTS = {
     mailTab: "Onglet Courrier",
     diagTitle: "Diagnostic",
     diagBtn: "Afficher l'état",
-    colorTitle: "Couleurs des boîtes de dialogue, des paramètres et de la fenêtre de rédaction",
+    colorTitle: "Custom Colors (couleurs personnalisées)",
     modeTheme: "Utiliser les couleurs du thème",
     modeCustom: "Couleurs personnalisées",
     bgLabel: "Arrière-plan",
     fgLabel: "Texte",
     borderLabel: "Lignes et bordures",
     accentLabel: "Accent (sélection, onglets, surbrillance)",
-    reset: "Réinitialiser",
+    reset: "Réinitialiser les couleurs",
+    cfEdit: "Modifier pour :",
+    cfLight: "Clair",
+    cfDark: "Sombre",
+    cfNote: "Clair et sombre suivent le schéma de couleurs du système. Seules les couleurs modifiées sont enregistrées, les autres suivent le thème.",
+    cfHint: "Passez la souris sur une couleur : la zone concernée est entourée dans l'aperçu. L'aperçu montre les couleurs du mode choisi.",
+    cfNoTheme: "Le thème actif n'est pas un thème NovaBird. Les couleurs de la fenêtre principale (à gauche, en haut) ne fonctionnent qu'avec Sand, Cobalt ou Springlight ; les dialogues, les paramètres et la fenêtre de rédaction fonctionnent avec tous les thèmes.",
+    g_areas: "Fenêtre principale : surfaces",
+    g_text: "Fenêtre principale : texte et lignes",
+    g_accent: "Sélection et accent",
+    g_dialog: "Dialogues, paramètres, rédaction",
+    c_spaces: "Barre des espaces",
+    cd_spaces: "Étroite barre d'icônes à gauche (courrier, agenda, carnet d'adresses)",
+    c_toolbar: "Barre d'outils",
+    cd_toolbar: "Barre du haut avec boutons et champ de recherche",
+    c_sidebar: "Volet des dossiers",
+    cd_sidebar: "Arrière-plan de la liste des dossiers",
+    c_list: "Liste et affichage des messages",
+    cd_list: "Arrière-plan où les messages sont listés et lus",
+    c_text: "Texte",
+    cd_text: "Objet, expéditeur et texte principal",
+    c_muted: "Texte secondaire",
+    cd_muted: "Date, aperçu, titres de comptes dans le volet des dossiers",
+    c_sidebarText: "Texte des dossiers",
+    cd_sidebarText: "Noms des dossiers",
+    c_border: "Bordure",
+    cd_border: "Lignes de séparation entre les zones et autour des champs",
+    c_rowLine: "Séparateur de lignes",
+    cd_rowLine: "Fine ligne entre deux messages",
+    c_hover: "Survol",
+    cd_hover: "Ligne ou dossier sous le pointeur",
+    c_accent: "Accent",
+    cd_accent: "Barre de sélection, liens et icônes actives",
+    c_accentDark: "Accent foncé",
+    cd_accentDark: "Texte du dossier sélectionné",
+    c_accentSoft: "Sélection",
+    cd_accentSoft: "Arrière-plan du dossier sélectionné",
+    c_accentFocus: "Sélection avec focus",
+    cd_accentFocus: "Message sélectionné dans la liste",
+    c_count: "Compteur de non lus",
+    cd_count: "Pastille avec le nombre (à gauche le fond, à droite le texte)",
+    cd_dbg: "Dialogues d'événements, paramètres, comptes et fenêtre de rédaction",
+    cd_dfg: "Texte dans ces fenêtres",
+    cd_dborder: "Lignes et bordures de champs",
+    cd_daccent: "Interrupteurs, boutons et sélection",
+    fontTitle: "Police",
+    fontIntro: "100 % correspond à la taille actuelle. Les valeurs en pixels valent pour la taille de police par défaut de Thunderbird.",
+    fontNew: "La fenêtre de rédaction, les paramètres et les comptes appliquent les changements à la prochaine ouverture.",
+    fontReset: "Réinitialiser la police",
+    fg_main: "Fenêtre principale (thème)",
+    fg_compose: "Fenêtre de rédaction",
+    fg_other: "Autres pages",
+    famTheme: "Défaut du thème",
+    famSystem: "Système",
+    f_family: "Police",
+    fd_family: "Tout le texte de la fenêtre principale : dossiers, liste, barres",
+    f_row: "Hauteur des lignes de dossiers",
+    fd_row: "Hauteur d'un dossier dans le volet",
+    f_pad: "Espacement de la liste",
+    fd_pad: "Espace autour de l'expéditeur et de l'objet",
+    f_compose: "Taille de base",
+    fd_compose: "Menus, champs et boutons ; au moins 13,3 px, suit la taille de police de Thunderbird",
+    f_subject: "Objet",
+    fd_subject: "Ligne d'objet",
+    f_labels: "Libellés et barre de commandes",
+    fd_labels: "« À », « Cc », pièces jointes et la barre avec « Envoyer »",
+    f_sample: "Texte d'exemple de la barre de mise en forme",
+    fd_sample: "Aperçu de la police à l'ouverture de la barre",
+    f_settings: "Paramètres et comptes",
+    fd_settings: "Menu et contenu de ces pages",
+    f_contact: "Nova-Contact",
+    fd_contact: "Barre latérale et page des contacts",
     hint: "Les modifications s'appliquent immédiatement ; les fenêtres ouvertes les prennent en compte à la prochaine ouverture.",
   },
   es: {
@@ -296,7 +629,6 @@ const TEXTS = {
     listDetailsTitle: "Más opciones",
     listDensityNote: "La densidad y el color de la cuenta no se aplican al estilo predeterminado de Betterbird.",
     title: "NovaBird-Extension",
-    tabPreview: "Vista previa de adjuntos",
     tabList: "Lista de mensajes",
     listTitle: "Aspecto de la lista de mensajes",
     listIntro: "Se aplica a la vista de tarjetas de la lista de mensajes (ajuste Vista → Tarjetas). La vista de tabla no cambia.",
@@ -321,13 +653,54 @@ const TEXTS = {
     rulesDesc: "Crea filtros de mensajes paso a paso, con explicaciones y una vista previa de qué correos de la bandeja de entrada coincidirían. Activado, el menú contextual de la lista de mensajes ofrece «Crear regla a partir de este correo …». Guarda un filtro normal de Betterbird (Herramientas → Filtros de mensajes) que funciona también sin NovaBird; los filtros existentes no cambian y antes se hace una copia del archivo de filtros.",
     rulesOpen: "Abrir el asistente de reglas",
     selfTest_rules: "Asistente de reglas (filtros de mensajes)",
+    tabStats: "Buzón",
+    statsTitle: "Análisis del buzón",
+    statsRefresh: "Actualizar",
+    statsUpdated: "Estado: $1",
+    statsNote: "Calculado con los datos almacenados localmente; no se descarga nada. En cuentas IMAP sin almacenamiento sin conexión solo cuenta lo que está en local.",
+    statsAccounts: "Cuentas",
+    statsFolders: "Carpetas",
+    statsMessages: "Mensajes",
+    statsTotal: "Tamaño total",
+    statsPerAccount: "Por cuenta",
+    statsDistribution: "Distribución por tamaño",
+    statsTop: "Carpetas más grandes",
+    statsLoading: "Calculando …",
+    statsError: "El análisis ha fallado.",
+    statsEmpty: "No se encontraron cuentas.",
+    statsFoldersN: "$1 carpetas",
+    statsMessagesN: "$1 mensajes",
+    selfTest_mailStats: "Análisis del buzón",
+    tabAi: "IA",
+    aiTitle: "Resumen con IA",
+    aiDesc: "Resume un mensaje abierto con un modelo de lenguaje. Nada ocurre automáticamente: solo el botón «Resumir mensaje (IA)» de la vista del mensaje envía el texto a la dirección de abajo. Pensado para un modelo en su propio ordenador (Ollama) o un servicio compatible con OpenAI.",
+    aiCtxLabel: "Longitud de contexto (tokens)",
+    aiPromptTitle: "Instrucción para la IA",
+    aiPromptDesc: "Este es el texto que el modelo recibe junto con el correo. Va antes del texto del correo y aquí no se puede cambiar. Marcadores de posición: {ZIEL} pasa a ser el idioma elegido, {OPEN} y {CLOSE} son marcadores con un identificador aleatorio entre los que va el texto del correo.",
+    aiPromptSafe: ["Separación: el texto del correo va entre marcadores nuevos y aleatorios en cada solicitud. Un remitente no puede predecirlos y por tanto no puede salir de la parte de texto.", "Datos de terceros: se informa expresamente al modelo de que el texto procede de otros y de que no debe seguir las instrucciones que contenga. Esto hace menos probables las instrucciones inyectadas, pero con modelos de lenguaje no las descarta con seguridad.", "Efecto limitado: el modelo no tiene herramientas. No puede enviar, abrir ni borrar nada; su respuesta solo se muestra como texto. En el peor caso, un resumen es erróneo o engañoso.", "Aviso: si un correo contiene frases como «ignora todas las instrucciones», aparece una advertencia sobre el resumen."],
+    aiEnabledLabel: "Usar el resumen con IA (el botón «Resumir mensaje (IA)» solo aparece si esto está activado)",
+    aiTypeLabel: "Interfaz",
+    aiUrlLabel: "Dirección",
+    aiModelLabel: "Modelo",
+    aiUserLabel: "Nombre de usuario (opcional)",
+    aiKeyLabel: "Contraseña o clave API (opcional)",
+    aiLangLabel: "Resumen en",
+    aiLangUi: "Idioma de la interfaz",
+    aiLangMail: "Idioma del mensaje",
+    aiTest: "Probar conexión",
+    aiTesting: "Comprobando …",
+    aiOk: "Conectado: $1 modelos encontrados.",
+    aiFail: "Error: $1",
+    aiPerm: "No se concedió el permiso para esta dirección.",
+    aiRemote: "Atención: esta dirección no está en este ordenador. Al resumir, el texto del mensaje se envía allí.",
+    aiNote: "Las credenciales se guardan en los datos de perfil de este complemento (sin cifrar). Con nombre de usuario se usa autenticación Basic, si no la contraseña se envía como clave Bearer. Recomendado: Ollama con un modelo como gemma3:12b o qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact en la pestaña Contactos",
     pilotEnableLabel: "Usar Nova-Contact",
     pilotDesc: "Amplía la pestaña Contactos de Betterbird: filtrar por etiquetas, editar varios contactos a la vez (etiquetas, empresa, cargo) y deshacer los últimos 3 cambios. El botón «Nova-Contact» bajo la lista de libretas abre la página para recoger direcciones del correo, fusionar duplicados y limpiar contactos antiguos (con restauración).",
     pilotLogLabel: "Mostrar un registro en la página de Nova-Contact (acciones con hora, solo hasta reiniciar)",
-    tabCalendar: "Panel derecho",
-    tabColors: "Colores",
+    tabCalendar: "Panel derecho y adjuntos",
+    tabColors: "Colores y fuente",
     layoutTitle: "Diseño del panel derecho",
     layoutNova: "Diseño NovaBird: eventos y tareas juntos en correo, calendario y tareas (predeterminado)",
     layoutDefault: "Predeterminado de Betterbird",
@@ -340,14 +713,85 @@ const TEXTS = {
     mailTab: "Pestaña Correo",
     diagTitle: "Diagnóstico",
     diagBtn: "Mostrar estado",
-    colorTitle: "Colores de los diálogos, la configuración y la ventana de redacción",
+    colorTitle: "Custom Colors (colores personalizados)",
     modeTheme: "Usar los colores del tema",
     modeCustom: "Colores personalizados",
     bgLabel: "Fondo",
     fgLabel: "Texto",
     borderLabel: "Líneas y bordes",
     accentLabel: "Acento (selección, pestañas, resaltado)",
-    reset: "Restablecer",
+    reset: "Restablecer colores",
+    cfEdit: "Editar para:",
+    cfLight: "Claro",
+    cfDark: "Oscuro",
+    cfNote: "Claro y oscuro siguen el esquema de color del sistema. Solo se guardan los colores cambiados, los demás siguen el tema.",
+    cfHint: "Pase el ratón sobre un color: el área afectada se marca en el esquema. El esquema muestra los colores del modo elegido.",
+    cfNoTheme: "El tema activo no es un tema NovaBird. Los colores de la ventana principal (izquierda, arriba) solo funcionan con Sand, Cobalt o Springlight; los diálogos, la configuración y la ventana de redacción funcionan con cualquier tema.",
+    g_areas: "Ventana principal: superficies",
+    g_text: "Ventana principal: texto y líneas",
+    g_accent: "Selección y acento",
+    g_dialog: "Diálogos, configuración, redacción",
+    c_spaces: "Barra de espacios",
+    cd_spaces: "Barra estrecha de iconos a la izquierda (correo, calendario, libreta)",
+    c_toolbar: "Barra de herramientas",
+    cd_toolbar: "Barra superior con botones y campo de búsqueda",
+    c_sidebar: "Panel de carpetas",
+    cd_sidebar: "Fondo de la lista de carpetas",
+    c_list: "Lista y vista de mensajes",
+    cd_list: "Fondo donde se listan y leen los mensajes",
+    c_text: "Texto",
+    cd_text: "Asunto, remitente y texto principal",
+    c_muted: "Texto secundario",
+    cd_muted: "Fecha, vista previa, títulos de cuentas en el panel de carpetas",
+    c_sidebarText: "Texto de carpetas",
+    cd_sidebarText: "Nombres de las carpetas",
+    c_border: "Borde",
+    cd_border: "Líneas entre áreas y alrededor de campos",
+    c_rowLine: "Separador de filas",
+    cd_rowLine: "Línea fina entre dos mensajes",
+    c_hover: "Ratón encima",
+    cd_hover: "Fila o carpeta bajo el puntero",
+    c_accent: "Acento",
+    cd_accent: "Barra de selección, enlaces e iconos activos",
+    c_accentDark: "Acento oscuro",
+    cd_accentDark: "Texto de la carpeta seleccionada",
+    c_accentSoft: "Selección",
+    cd_accentSoft: "Fondo de la carpeta seleccionada",
+    c_accentFocus: "Selección con foco",
+    cd_accentFocus: "Mensaje seleccionado en la lista",
+    c_count: "Contador de no leídos",
+    cd_count: "Píldora con el número (a la izquierda el fondo, a la derecha el texto)",
+    cd_dbg: "Diálogos de eventos, configuración, cuentas y ventana de redacción",
+    cd_dfg: "Texto en estas ventanas",
+    cd_dborder: "Líneas y bordes de campos",
+    cd_daccent: "Interruptores, botones y selección",
+    fontTitle: "Fuente",
+    fontIntro: "100 % es el tamaño actual. Los valores en píxeles valen para el tamaño de fuente predeterminado de Thunderbird.",
+    fontNew: "La ventana de redacción, la configuración y las cuentas aplican los cambios al abrirse de nuevo.",
+    fontReset: "Restablecer fuente",
+    fg_main: "Ventana principal (tema)",
+    fg_compose: "Ventana de redacción",
+    fg_other: "Otras páginas",
+    famTheme: "Predeterminada del tema",
+    famSystem: "Sistema",
+    f_family: "Fuente",
+    fd_family: "Todo el texto de la ventana principal: carpetas, lista, barras",
+    f_row: "Altura de fila de carpetas",
+    fd_row: "Altura de una carpeta en el panel",
+    f_pad: "Espaciado de la lista",
+    fd_pad: "Espacio alrededor del remitente y el asunto",
+    f_compose: "Tamaño base",
+    fd_compose: "Menús, campos y botones; al menos 13,3 px, crece con el tamaño de fuente de Thunderbird",
+    f_subject: "Asunto",
+    fd_subject: "Línea de asunto",
+    f_labels: "Etiquetas y barra de comandos",
+    fd_labels: "«Para», «Cc», adjuntos y la barra con «Enviar»",
+    f_sample: "Texto de ejemplo de la barra de formato",
+    fd_sample: "Vista previa de la fuente al desplegar la barra",
+    f_settings: "Configuración y cuentas",
+    fd_settings: "Menú y contenido de estas páginas",
+    f_contact: "Nova-Contact",
+    fd_contact: "Barra lateral y página de contactos",
     hint: "Los cambios se aplican de inmediato; las ventanas abiertas los toman la próxima vez que se abran.",
   },
 };
@@ -369,8 +813,11 @@ const DEFAULTS = {
   listScroll: true,
   listAcctColors: {},
   colors: { bg: "#EEF2F8", fg: "#1B2433", border: "#D2DAE6", accent: "#2F6BD8" },
+  mainColors: { light: {}, dark: {} },
+  fontFamily: "", fontRow: 100, fontPad: 100,
+  fontCompose: 100, fontSubject: 100, fontLabels: 100, fontSample: 100,
+  fontSettings: 100, fontContact: 100,
 };
-const KEYS = ["bg", "fg", "border", "accent"];
 
 const forcedLang = new URLSearchParams(location.search).get("lang"); // nur zum Testen: options.html?lang=fr
 const lang = (forcedLang || messenger.i18n.getUILanguage() || "en").slice(0, 2).toLowerCase();
@@ -449,20 +896,30 @@ function drawPreviews(s) {
   document.getElementById("attachPreview").innerHTML = paneSvg(mail, "mail", t.mailTab);
 }
 
-for (const b of document.querySelectorAll("nav button")) {
-  b.addEventListener("click", () => {
-    for (const o of document.querySelectorAll("nav button")) {
-      o.setAttribute("aria-selected", String(o === b));
-    }
-    document.getElementById("calendar").hidden = b.dataset.tab !== "calendar";
-    document.getElementById("colorsTab").hidden = b.dataset.tab !== "colors";
-    document.getElementById("previewTab").hidden = b.dataset.tab !== "preview";
-    document.getElementById("listTab").hidden = b.dataset.tab !== "list";
-    document.getElementById("pilotTab").hidden = b.dataset.tab !== "pilot";
-    document.getElementById("rulesTab").hidden = b.dataset.tab !== "rules";
-  });
+// Reiter: data-tab = ID des Abschnitts; der zuletzt gewählte Reiter wird gemerkt (nur Bequemlichkeit, darf fehlen)
+const TAB_KEY = "nbxOptionsTab";
+function showTab(id) {
+  const buttons = [...document.querySelectorAll("nav button")];
+  const b = buttons.find((x) => x.dataset.tab === id) ?? buttons[0];
+  for (const o of buttons) {
+    o.setAttribute("aria-selected", String(o === b));
+    document.getElementById(o.dataset.tab).hidden = o !== b;
+  }
+  try {
+    localStorage.setItem(TAB_KEY, b.dataset.tab);
+  } catch {}
+  if (b.dataset.tab === "statsTab") {
+    setTimeout(loadStats); // erst nach dem Laden des ganzen Skripts (Start im gemerkten Reiter)
+  }
 }
-document.getElementById("tabList").setAttribute("aria-selected", "true");
+for (const b of document.querySelectorAll("nav button")) {
+  b.addEventListener("click", () => showTab(b.dataset.tab));
+}
+let startTab = "listTab";
+try {
+  startTab = localStorage.getItem(TAB_KEY) || startTab;
+} catch {}
+showTab(startTab);
 
 // Skizzen der drei Stile der Nachrichtenliste
 function listSvg(style) {
@@ -647,21 +1104,210 @@ const save = patch => messenger.storage.local.set(patch);
   ro.disabled = !re.checked;
   re.addEventListener("change", () => { ro.disabled = !re.checked; save({ rulesEnabled: re.checked }); });
   ro.addEventListener("click", () => messenger.runtime.sendMessage({ type: "openRules" }));
+})(); // Farben und Schrift: looks.js
 
-  const colors = { ...DEFAULTS.colors, ...s.colors };
-  for (const key of KEYS) {
-    const input = document.getElementById(key);
-    input.value = colors[key];
-    input.addEventListener("input", () => {
-      colors[key] = input.value;
-      save({ colors: { ...colors } }); // sofort speichern: Live-Vorschau beim Ziehen im Farbwähler
+// ---- Postfachanalyse ---------------------------------------------------------------------------
+const STATS_PALETTE = ["#378ADD", "#1D9E75", "#D85A30", "#7F77DD", "#BA7517", "#D4537E", "#0F6E56", "#888780"];
+
+function fmtNum(n) {
+  return n.toLocaleString(document.documentElement.lang);
+}
+
+function fmtSize(bytes) {
+  const mb = bytes / 1048576;
+  if (mb >= 1024) {
+    return (mb / 1024).toLocaleString(document.documentElement.lang, { maximumFractionDigits: 1 }) + " GB";
+  }
+  return mb.toLocaleString(document.documentElement.lang, { maximumFractionDigits: mb >= 100 ? 0 : 1 }) + " MB";
+}
+
+function statsEl(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) {
+    e.className = cls;
+  }
+  if (text !== undefined) {
+    e.textContent = text;
+  }
+  return e;
+}
+
+function statsBar(parts, big) {
+  const bar = statsEl("div", "st-bar" + (big ? " big" : ""));
+  for (const [share, color] of parts) {
+    const seg = document.createElement("div");
+    seg.style.width = Math.max(0, Math.min(100, share)) + "%";
+    seg.style.background = color;
+    bar.append(seg);
+  }
+  return bar;
+}
+
+let statsBusy = false;
+async function loadStats() {
+  if (statsBusy) {
+    return;
+  }
+  statsBusy = true;
+  const body = document.getElementById("statsBody");
+  document.getElementById("statsUpdated").textContent = "";
+  body.replaceChildren(statsEl("p", "st-sub", t.statsLoading));
+  try {
+    const accounts = await messenger.mailStats.getStats();
+    const stored = (await messenger.storage.local.get({ listAcctColors: {} })).listAcctColors || {};
+    let order = [];
+    try {
+      order = (await messenger.accounts.list(false)).map(a => a.id);
+    } catch (e) { /* ohne Kontoreihenfolge */ }
+    const colorOf = a => {
+      const i = order.indexOf(a.id);
+      return stored[a.id] || STATS_PALETTE[(i < 0 ? accounts.indexOf(a) : i) % STATS_PALETTE.length];
+    };
+    const rows = accounts.map(a => ({
+      a,
+      color: colorOf(a),
+      folders: a.folders.length,
+      messages: a.folders.reduce((n, f) => n + f.count, 0),
+      size: a.folders.reduce((n, f) => n + f.size, 0),
+    }));
+    rows.sort((x, y) => y.size - x.size);
+    const total = { folders: 0, messages: 0, size: 0 };
+    for (const r of rows) {
+      total.folders += r.folders;
+      total.messages += r.messages;
+      total.size += r.size;
+    }
+    body.replaceChildren();
+    if (!rows.length) {
+      body.append(statsEl("p", "st-sub", t.statsEmpty));
+      return;
+    }
+
+    const kpis = statsEl("div", "st-kpis");
+    for (const [label, value] of [[t.statsAccounts, fmtNum(rows.length)], [t.statsFolders, fmtNum(total.folders)], [t.statsMessages, fmtNum(total.messages)], [t.statsTotal, fmtSize(total.size)]]) {
+      const k = statsEl("div", "st-kpi");
+      k.append(statsEl("span", "", label), statsEl("b", "", value));
+      kpis.append(k);
+    }
+    body.append(kpis);
+
+    body.append(statsEl("h4", "st-h", t.statsPerAccount));
+    for (const r of rows) {
+      const card = statsEl("div", "st-acc");
+      const head = statsEl("div", "st-ah");
+      const dot = statsEl("span", "st-dot");
+      dot.style.background = r.color;
+      const meta = statsEl("span", "st-am");
+      meta.append(
+        statsEl("span", "", t.statsFoldersN.replace("$1", fmtNum(r.folders))),
+        statsEl("span", "", t.statsMessagesN.replace("$1", fmtNum(r.messages))),
+        statsEl("b", "", fmtSize(r.size))
+      );
+      head.append(dot, statsEl("b", "", r.a.name), meta);
+      card.append(head, statsBar([[total.size ? (r.size / total.size) * 100 : 0, r.color]]));
+      body.append(card);
+    }
+
+    if (rows.length > 1 && total.size) {
+      body.append(statsEl("h4", "st-h", t.statsDistribution));
+      body.append(statsBar(rows.map(r => [(r.size / total.size) * 100, r.color]), true));
+    }
+
+    const top = [];
+    for (const r of rows) {
+      for (const f of r.a.folders) {
+        top.push({ f, color: r.color, account: r.a.name });
+      }
+    }
+    top.sort((x, y) => y.f.size - x.f.size);
+    const shown = top.filter(x => x.f.size > 0).slice(0, 8);
+    if (shown.length) {
+      body.append(statsEl("h4", "st-h", t.statsTop));
+      const max = shown[0].f.size;
+      for (const x of shown) {
+        const row = statsEl("div", "st-top");
+        const label = statsEl("span", "", x.f.path);
+        label.title = x.account + " · " + x.f.path;
+        label.style.overflow = "hidden";
+        label.style.textOverflow = "ellipsis";
+        label.style.whiteSpace = "nowrap";
+        row.append(label, statsBar([[(x.f.size / max) * 100, x.color]]), statsEl("span", "sz", fmtSize(x.f.size)));
+        body.append(row);
+      }
+    }
+    document.getElementById("statsUpdated").textContent = t.statsUpdated.replace("$1", new Date().toLocaleString(document.documentElement.lang));
+  } catch (e) {
+    console.error(e);
+    body.replaceChildren(statsEl("p", "st-sub", t.statsError));
+  } finally {
+    statsBusy = false;
+  }
+}
+document.getElementById("statsRefresh").addEventListener("click", loadStats);
+
+// ---- KI-Zusammenfassung ---------------------------------------------------------------------------
+(async () => {
+  const ids = ["aiType", "aiUrl", "aiModel", "aiUser", "aiKey", "aiLang", "aiCtx"];
+  const enabled = document.getElementById("aiEnabled");
+  const body = document.getElementById("aiBody");
+  const conf = { ...nbAI.DEFAULTS, ...(await messenger.storage.local.get(nbAI.DEFAULTS)) };
+  const status = document.getElementById("aiStatus");
+  const langSel = document.getElementById("aiLang");
+  langSel.options[0].textContent = t.aiLangUi;
+  langSel.options[1].textContent = t.aiLangMail;
+  for (const id of ids) {
+    document.getElementById(id).value = String(conf[id]);
+  }
+  const current = () => Object.fromEntries(ids.map(id => [id, id === "aiCtx" ? Number(document.getElementById(id).value) : document.getElementById(id).value.trim()]));
+  const syncRemote = () => {
+    const url = current().aiUrl;
+    let remote = false;
+    try {
+      remote = /^https?:/i.test(url) && !nbAI.isLocal(url);
+    } catch (e) { /* ungültige Adresse */ }
+    const box = document.getElementById("aiRemote");
+    box.hidden = !remote;
+    box.textContent = t.aiRemote;
+  };
+  syncRemote();
+  enabled.checked = conf.aiEnabled === true;
+  body.classList.toggle("off", !enabled.checked);
+  enabled.addEventListener("change", () => {
+    body.classList.toggle("off", !enabled.checked);
+    save({ aiEnabled: enabled.checked });
+  });
+  // Anweisung an die KI anzeigen und erklären (Text aus ai/ai.js, in der Sprache der Oberfläche)
+  document.getElementById("aiPromptText").textContent = nbAI.promptTemplate(document.documentElement.lang, false);
+  const safeList = document.getElementById("aiPromptList");
+  for (const line of t.aiPromptSafe) {
+    safeList.append(Object.assign(document.createElement("li"), { textContent: line }));
+  }
+  for (const id of ids) {
+    document.getElementById(id).addEventListener("change", async () => {
+      await save(current());
+      syncRemote();
     });
   }
-  document.getElementById("reset").addEventListener("click", () => {
-    for (const key of KEYS) {
-      colors[key] = DEFAULTS.colors[key];
-      document.getElementById(key).value = colors[key];
+  document.getElementById("aiUrl").addEventListener("input", syncRemote);
+  document.getElementById("aiTest").addEventListener("click", async () => {
+    const c = current();
+    status.textContent = t.aiTesting;
+    try {
+      await save(c);
+      // Erlaubnis für Adressen außerhalb des eigenen Rechners (muss aus einem Klick heraus erfragt werden)
+      if (/^https?:/i.test(c.aiUrl) && !nbAI.isLocal(c.aiUrl)) {
+        const ok = await messenger.permissions.request({ origins: [nbAI.origin(c.aiUrl)] });
+        if (!ok) {
+          status.textContent = t.aiFail.replace("$1", t.aiPerm);
+          return;
+        }
+      }
+      const models = await nbAI.listModels(c);
+      const list = document.getElementById("aiModels");
+      list.replaceChildren(...models.map(m => Object.assign(document.createElement("option"), { value: m })));
+      status.textContent = t.aiOk.replace("$1", String(models.length));
+    } catch (e) {
+      status.textContent = t.aiFail.replace("$1", String(e.message || e));
     }
-    save({ colors: { ...colors } });
   });
 })();

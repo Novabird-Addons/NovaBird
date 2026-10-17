@@ -6,7 +6,7 @@ VERSION="$(python3 -c "import json;print(json.load(open('manifest.json'))['versi
 OUTDIR="$(cd "$PWD/../../Release/Kandidaten" && pwd)"
 OUT="$OUTDIR/novabird-extension-$VERSION.xpi"
 rm -f "$OUT"
-zip -r -q "$OUT" manifest.json background.js experiments css options pilot rules icons _locales
+zip -r -q "$OUT" manifest.json background.js experiments css options pilot rules icons _locales ai
 # Gemeinsamer Code aus Source/shared (im Paket unter shared/)
 (cd .. && zip -q "$OUT" shared/color.js shared/selftest.js shared/selftest-bg.js shared/selftest-ui.js)
 echo "Gebaut: $OUT"

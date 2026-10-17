@@ -2,6 +2,52 @@
 
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
+## 1.3.0 (2026-10-17)
+Search 1.2.8 · Extension 1.10.1 · Conversation 0.15.2 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+
+### NovaBird-Search 1.2.8
+- Analysis page: all font sizes are now in `rem` (default font of the page, so they follow the font settings). Measured on Windows (1 rem = 17 px): same size as before there; on Linux, where the default font is usually 16 px, up to 6 % smaller.
+
+### NovaBird-Search 1.2.7
+- The title block in the list header (folder name and count) had a fixed minimum width of 200 px. With the smaller system font on Windows this left a wide gap before the search field. It is now `10.5em` and scales with the font.
+- The search bar followed the system menu font size instead of the font size set in Thunderbird, so it did not change with the setting. The font family is still the system one, the size is now inherited.
+- Windows only (`@media (-moz-platform: windows)`): search field and the time-range chips are slightly larger so they match the rest of the window.
+
+### NovaBird-Conversation 0.15.2
+- Font sizes of the conversation view are now in `rem` (root font of the reading pane, follows Thunderbird's font setting and the zoom). Measured on Windows: exactly the same sizes as before (1 rem = 17 px).
+
+### NovaBird-Conversation 0.15.1
+- New, only if the AI summary is set up in NovaBird-Extension: a button "Summarise (AI)" in the header of the conversation view. It opens a window with a summary of the whole conversation (oldest message first).
+
+### NovaBird-Extension 1.10.1
+- **Settings page reorganised:** tabs ordered from look to features to information – Message list, Colors and fonts, Right pane and attachments, Nova-Contact, Rules (beta), AI, Mailbox. The attachment preview (formerly a tab of its own with one switch) is now part of "Right pane and attachments"; the diagnostics block moved from below every tab into the Mailbox tab. The tab row wraps on narrow windows, and the page reopens in the tab used last.
+- AI tab: the instruction to the model and its explanation are folded in ("Instruction to the AI", click to open). The button "Settings" in the summary window opens the AI tab directly.
+
+### NovaBird-Extension 1.10.0
+- **New settings tab "Colors and fonts"** (formerly "Colors"), two columns side by side, with a small sketch of the main window: moving the mouse over a color outlines the area it affects.
+- **Custom Colors:** all colors the NovaBird themes set in the main window can be changed, each with a short description of what it affects: spaces bar, toolbar, folder pane, message list and view, text, secondary text, folder text, borders, row separator, mouse-over, accent, dark accent, selection, selection with focus, unread counter (background and text). Light and dark are edited separately (they follow the color scheme of the operating system). Only colors that differ from the theme are stored, all others keep following the theme. The four colors of dialogs, settings and compose window are listed in the same tab. Works live with the NovaBird themes (the theme's `--ms-*` variables are overridden with a user style sheet, also in the folder, list and message panes); with another theme the main-window part has no effect and the tab says so. Icons keep the colors drawn into them by the theme.
+- **Fonts:** everything NovaBird sets can be changed in percent of the former size (100 %), with the resulting pixel size shown: font family, folder row height and message list spacing in the main window (themes); base size, subject, labels/command bar and sample text in the compose window; settings and accounts pages; Nova-Contact. The main window and Nova-Contact change live, compose window and settings pages when they are opened next.
+- **This settings page** is 17 % larger. The system font it used before is very small on Windows (about 8 px).
+- Technical: new experiment functions `settingsRedesign.getThemeColors`, `setMainStyle`, `setFonts`; compose and settings style sheets use factors (`--tbsr-fp`, `--tbsr-m-*`, `--tbsr-fe`).
+
+### NovaBird-Extension 1.9.29
+- **Compose window, sizes:** one base size for everything (menu bar, buttons, From line, recipient fields, formatting menus): 13.3 px at least (95 % of the former 14 px). The rest are fixed ratios of it: labels and Cc/Bcc 0.93, subject 1.14, sample text 1.29, font list 1.07. Before, the labels of the buttons stayed on a larger step than the labels of the header rows.
+- **Compose window follows Thunderbird's font size setting** (three-lines menu): Thunderbird's own interface uses the set value directly in px (measured: default 8.4 px, setting 12 → 12 px). The base stays at 13.3 px and grows with the setting above that. Before, a fixed 14 px base from `shell.css` did not move with the setting.
+- **Compose window, command bar:** text of the buttons (Send, Spelling, Save, Contacts, Attach, add-on buttons) at 0.93 of the base, the menu bar stays at the base size.
+- **Compose window, heights:** command bar and formatting area about 12 % lower (less padding around the buttons and below the sample row).
+- **Nova-Contact:** all font sizes in `rem` (default font of the page; Windows: 1 rem = 17 px, same size as before).
+
+### NovaBird-Extension 1.9.22
+- **New, opt-in: AI summary.** New settings tab "AI" with an on/off switch (off by default): while it is off, the button "Summarise mail (AI)" is hidden in the message header and NovaBird-Conversation shows no summary button. Further settings: interface (Ollama or OpenAI-compatible), address, model, optional user name and password or API key, context length (4k / 16k / 32k / 64k) and the language of the summary. A button "Summarise mail (AI)" in the message header opens a window with a live summary; NovaBird-Conversation offers the same for a whole conversation. Nothing is sent until you click; the text only goes to the address you entered (shown as a warning when it is not on this computer). Requests to the own computer are sent without the `moz-extension://` origin header, because Ollama refuses it with 403 (new permissions `webRequest` / `webRequestBlocking` for `localhost` / `127.0.0.1` only).
+- The instruction to the model is shown and explained in the settings. It names the mail text as untrusted third-party data between markers with a random ID, forbids following instructions inside it and fixes the output form; a notice appears above the summary when the mail contains typical injected instructions. This reduces, but cannot exclude, prompt injection.
+- Credentials are stored unencrypted in the add-on's profile data (stated in the settings).
+- **Compose window, formatting bar:** one tinted surface that stands out from the message text. An arrow at the left expands a second row with a sample text (the state is remembered). The font menu moved to the front. The font size is a number (8–72 pt) instead of the three size buttons. The font menu opens as a scrollable list; hovering a font shows it in the sample text, which moves to the right of the list while it is open and is cut off instead of widening the window. Buttons of other add-ons in the command bar (for example LanguageTool) move into the formatting bar. If anything fails the stock bar stays as it is.
+- **Compose window, header rows:** From / To / Subject are lower; the height is now in `em` (`2.5em` instead of 46 px).
+- **New tab "Mailbox" in the settings:** mailbox analysis per account and in total with folders, messages and size (MB/GB), a size distribution bar and the largest folders, in the account colours of the message list. Read-only, calculated from the locally stored folder data (new experiment `mailStats`); for IMAP accounts without offline storage only what is stored locally counts.
+
+### Docs
+- `docs/windows-menue-rand.md`: wide border around menus on Windows (themes Sand 1.0.1, Cobalt 1.0.3, Springlight 1.7.3, already part of this branch).
+
 ## 1.2.1 (2026-10-14)
 Hotfix: DB 1.2.5 · unchanged: Search 1.2.6 · Conversation 0.14.10 · Send 1.0.4 · Extension 1.9.15 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 

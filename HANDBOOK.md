@@ -12,7 +12,7 @@ NovaBird is a family of add-ons for **Betterbird** (and Thunderbird ESR, version
 | **NovaBird-DB** | Own search index (fast, finds word parts and sentences); the base for Search and Conversation |
 | **NovaBird-Conversation** | All messages of a conversation in the reading pane |
 | **NovaBird-Send** | Sending with an undo window and a queue |
-| **NovaBird-Extension** | Right pane (agenda, tasks, attachments), attachment preview, Nova-Contact, rule assistant (beta), settings in the new style |
+| **NovaBird-Extension** | Right pane (agenda, tasks, attachments), attachment preview, Nova-Contact, rule assistant (beta), colors and fonts, AI summary (opt-in), mailbox overview, settings in the new style |
 | **NovaBird-Sand / -Cobalt / -Springlight** | Themes (light and dark) |
 
 ## 2. Install
@@ -90,6 +90,9 @@ After **Send** the compose window disappears and a countdown runs at the bottom 
 - **Attachment preview:** hold the mouse over a PDF or image attachment (right pane, message header, Conversation chips) and a scrollable preview opens.
 - **Rule assistant (beta, off by default):** switch it on in the Extension settings under "Rules (beta)". Right-click a mail in the list → "Create rule from this mail …": choose a condition (this sender, this domain, subject, recipient), see which inbox mails match, pick actions (move, tag, mark read, star, trash) and save. It creates a normal Betterbird filter (Tools → Message Filters); existing filters are left untouched and backed up first.
 - **Nova-Contact** (address book tab): tags as filters, edit several contacts at once, undo recent changes, and a "✦ Nova-Contact" button to collect, merge and clean up (with a restore point).
+- **Colors and fonts** (Extension settings): with a NovaBird theme every main-window color can be changed (light and dark separately, a sketch shows the affected area); font sizes of the main window, compose window, settings pages and Nova-Contact in percent.
+- **AI summary (off by default):** "Summarise mail (AI)" in the message header and in Conversation, with a language model of your choice (see Privacy below).
+- **Mailbox:** folders, messages and size per account, the largest folders.
 - Settings, accounts and the add-ons manager in the unified style; colors from the theme.
 
 ## 8. Themes
@@ -98,7 +101,7 @@ NovaBird-Sand (calm, warm), -Cobalt (compact, strong), -Springlight (light, fres
 
 ## 9. Privacy
 
-- Everything runs **locally**. No add-on uses the network (only Conversation loads external images, and only after your click).
+- Everything runs **locally**. No add-on uses the network (only Conversation loads external images, and only after your click). One optional exception: the **AI summary** of NovaBird-Extension (Settings → NovaBird → Extension → AI) is off until you switch it on in the settings and enter the address of a language-model server (Ollama or an OpenAI-compatible service). Only when you click "Summarise mail (AI)" does the text of that message go to that address. With Ollama on your own computer it does not leave your computer; with a remote server it does, and the settings page says so. Credentials are stored unencrypted in the add-on's profile data.
 - The **search index** sits unencrypted in your profile folder (`novabird-db/index.sqlite`) and contains mail text and attachment names, like Betterbird's own index. If you back up your profile or do not encrypt your disk, the mail text is included. NovaBird-DB → "Delete index" removes it.
 - NovaBird-DB keeps confirmed search queries **locally** (to improve the parser later; nothing leaves your computer). You can switch this off and clear it under NovaBird-DB → "Search log".
 

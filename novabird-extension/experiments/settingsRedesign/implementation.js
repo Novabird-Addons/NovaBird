@@ -114,7 +114,7 @@ function tokenCss() {
 }
 
 function shellCss() {
-  return CSS.shell + "\n" + tokenCss();
+  return CSS.shell + "\n" + tokenCss() + "\n" + fontVarsCss();
 }
 
 function calendarOn() {
@@ -847,6 +847,36 @@ function injectAccountSettings(doc, undo) {
 
 
 /** Compose: Cc/Bcc/"more" toggles move from the From row into the To row (end of the line). */
+/**
+ * Compose: Thunderbirds Einstellung "Schriftgröße" (drei Striche) setzt die Schrift der Wurzel des Fensters; Thunderbirds eigene Oberfläche
+ * nutzt genau diesen Wert in px (gemessen: Standard 8,4 px, Einstellung 12 → 12 px). Unsere Grundschrift ist 14 px und damit schon größer
+ * als Thunderbirds Standard. Sie bleibt 13,3 px (95 % von 14), solange die Einstellung kleiner ist, und folgt ihr darüber (--tbsr-scale = Wurzel / 13,3, mindestens 1).
+ */
+const COMPOSE_BASE_PX = 13.3;
+function trackUiScale(win, undo) {
+  const root = win.document.documentElement;
+  const update = () => {
+    try {
+      const cur = parseFloat(win.getComputedStyle(root).fontSize);
+      const ratio = cur > 0 ? Math.max(1, Math.round((cur / COMPOSE_BASE_PX) * 1000) / 1000) : 1;
+      root.style.setProperty("--tbsr-scale", String(ratio));
+    } catch (e) {
+      console.error("NovaBird: Schriftgröße", e);
+    }
+  };
+  update();
+  // Thunderbird setzt die gewählte Größe erst nach dem Laden des Fensters und bei jeder Änderung
+  const timers = [300, 1500, 4000].map(ms => win.setTimeout(update, ms));
+  win.addEventListener("uifontsizechange", update);
+  undo.push(() => {
+    for (const t of timers) {
+      win.clearTimeout(t);
+    }
+    win.removeEventListener("uifontsizechange", update);
+    root.style.removeProperty("--tbsr-scale");
+  });
+}
+
 function moveRecipientToggles(win, undo) {
   const doc = win.document;
   const area = doc.getElementById("extraAddressRowsArea");
@@ -860,6 +890,257 @@ function moveRecipientToggles(win, undo) {
   undo.push(() => home.insertBefore(area, next));
 }
 
+
+const FMT_OPEN_PREF = "extensions.novabird-extension.composeFormatOpen";
+const FMT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 36, 48, 72];
+const FMT_T = {
+  toggle: tr("Formatierung ein-/ausklappen", "Expand/collapse formatting", "Afficher/masquer la mise en forme", "Mostrar/ocultar formato"),
+  size: tr("Schriftgröße", "Font size", "Taille de police", "Tamaño de fuente"),
+  sample: tr(
+    "Guten Tag, anbei finden Sie unser Angebot. 0123456789",
+    "Hello, please find our offer attached. 0123456789",
+    "Bonjour, veuillez trouver notre offre ci-jointe. 0123456789",
+    "Hola, adjunto encontrará nuestra oferta. 0123456789"
+  ),
+};
+
+/**
+ * Compose: formatting bar. Expandable second row with a font preview, font size as a number,
+ * the font list as a scrollable panel (hover = preview) and extension buttons (LanguageTool) in the bar.
+ * Everything is added next to the original controls (hidden by CSS only while class "nb-fmt" is set), so a
+ * failure leaves the stock bar usable.
+ */
+function setupFormatBar(win, undo) {
+  const doc = win.document;
+  const toolbox = doc.getElementById("FormatToolbox");
+  const bar = doc.getElementById("FormatToolbar");
+  const fontMenu = doc.getElementById("FontFaceSelect");
+  const fontPopup = doc.getElementById("FontFacePopup");
+  const anchorBtn = doc.getElementById("AbsoluteFontSizeButton");
+  if (!toolbox || !bar || !fontMenu || !fontPopup || !anchorBtn) {
+    return;
+  }
+  let open = false;
+  try {
+    open = Services.prefs.getBoolPref(FMT_OPEN_PREF, false);
+  } catch (e) {}
+
+  // 1. toggle button (first item of the bar)
+  const toggle = doc.createXULElement("toolbarbutton");
+  toggle.id = "nb-fmt-toggle";
+  toggle.className = "formatting-button";
+  toggle.setAttribute("tooltiptext", FMT_T.toggle);
+  bar.insertBefore(toggle, bar.firstChild);
+  // the font menu moves to the front (right behind the arrow), as in the mockup
+  const fontHome = { parent: fontMenu.parentNode, next: fontMenu.nextSibling };
+  toggle.after(fontMenu);
+
+  // 2. font size as a number (replaces the three size buttons while "nb-fmt" is set)
+  const sizeMenu = doc.createXULElement("menulist");
+  sizeMenu.id = "nb-fmt-size";
+  sizeMenu.setAttribute("tooltiptext", FMT_T.size);
+  const sizePopup = doc.createXULElement("menupopup");
+  for (const n of FMT_SIZES) {
+    const item = doc.createXULElement("menuitem");
+    item.setAttribute("label", String(n));
+    item.setAttribute("value", String(n));
+    sizePopup.append(item);
+  }
+  sizeMenu.append(sizePopup);
+  anchorBtn.before(sizeMenu);
+
+  // 3. second row: sample text
+  const sample = el(doc, "div", { id: "nb-fmt-sample", textContent: FMT_T.sample });
+  const row = el(doc, "div", { id: "nb-fmt-row" }, sample);
+  toolbox.append(row);
+
+  // 4. font panel
+  const panel = doc.createXULElement("panel");
+  panel.id = "nb-fmt-fonts";
+  panel.setAttribute("noautofocus", "true");
+  panel.setAttribute("norolluponanchor", "true");
+  const list = el(doc, "div", { id: "nb-fmt-fontlist" });
+  panel.append(list);
+  toolbox.append(panel);
+
+  const setPreview = family => {
+    sample.style.fontFamily = family || "";
+  };
+  const currentFamily = () => fontMenu.value || "";
+  // while the list is open the sample text moves to the right of it, so scrolling through the fonts shows the preview
+  panel.addEventListener("popupshown", () => {
+    row.style.paddingInlineStart = Math.round(fontMenu.getBoundingClientRect().left - row.getBoundingClientRect().left + list.getBoundingClientRect().width + 20) + "px";
+  });
+  panel.addEventListener("popuphidden", () => {
+    setPreview(currentFamily());
+    row.style.paddingInlineStart = "";
+  });
+  const buildList = () => {
+    try {
+      win.initLocalFontFaceMenu?.(fontPopup);
+    } catch (e) {}
+    list.replaceChildren();
+    for (const node of fontPopup.children) {
+      if (node.localName == "menuseparator") {
+        if (!node.hidden) {
+          list.append(el(doc, "div", { className: "nb-fmt-sep" }));
+        }
+        continue;
+      }
+      if (node.localName != "menuitem" || node.hidden) {
+        continue;
+      }
+      const value = node.getAttribute("value") ?? "";
+      const item = el(doc, "div", { className: "nb-fmt-font", textContent: node.getAttribute("label") || value });
+      item.style.fontFamily = value;
+      if (value == currentFamily()) {
+        item.classList.add("cur");
+      }
+      item.addEventListener("mouseenter", () => setPreview(value));
+      item.addEventListener("click", () => {
+        panel.hidePopup();
+        try {
+          win.doStatefulCommand("cmd_fontFace", value);
+        } catch (e) {
+          console.error(e);
+        }
+        win.gContentWindow?.focus();
+      });
+      list.append(item);
+    }
+  };
+  // The menulist keeps showing the current font; its own popup is replaced by the panel.
+  const onFontPopup = event => {
+    event.preventDefault();
+    buildList();
+    panel.openPopup(fontMenu, "after_start");
+    list.querySelector(".cur")?.scrollIntoView({ block: "center" });
+  };
+  fontPopup.addEventListener("popupshowing", onFontPopup);
+
+  // 5. editor: size from the selection, size changes
+  let editorDoc = null;
+  let pendingPt = 12;
+  const editorDocument = () => {
+    try {
+      return win.GetCurrentEditor?.()?.document || null;
+    } catch (e) {
+      return null;
+    }
+  };
+  const convertMarkers = d => {
+    // execCommand("fontSize", 7) marks the text; 7 is not offered anywhere else, so it only means "our size"
+    for (const f of d.querySelectorAll('font[size="7"]')) {
+      f.removeAttribute("size");
+      f.style.fontSize = pendingPt + "pt";
+    }
+  };
+  const refresh = () => {
+    const d = editorDocument();
+    if (!d) {
+      return;
+    }
+    try {
+      const sel = d.getSelection();
+      const node = sel?.focusNode;
+      const e = node && (node.nodeType == 1 ? node : node.parentElement);
+      if (!e) {
+        return;
+      }
+      const px = parseFloat(d.defaultView.getComputedStyle(e).fontSize);
+      if (!px) {
+        return;
+      }
+      const pt = Math.round(px * 0.75 * 2) / 2;
+      const idx = FMT_SIZES.indexOf(pt);
+      if (idx >= 0) {
+        sizeMenu.selectedIndex = idx;
+      } else {
+        sizeMenu.selectedIndex = -1;
+        sizeMenu.setAttribute("label", String(pt));
+      }
+      sample.style.fontSize = Math.min(34, Math.max(13, Math.round(px))) + "px";
+    } catch (e) {}
+  };
+  const hookEditor = () => {
+    const d = editorDocument();
+    if (!d || d === editorDoc) {
+      return;
+    }
+    editorDoc = d;
+    d.addEventListener("selectionchange", refresh);
+    d.addEventListener("input", () => convertMarkers(d));
+    refresh();
+  };
+  sizeMenu.addEventListener("command", () => {
+    const d = editorDocument();
+    const pt = parseFloat(sizeMenu.value);
+    if (!d || !pt) {
+      return;
+    }
+    pendingPt = pt;
+    d.execCommand("fontSize", false, "7");
+    convertMarkers(d);
+    win.gContentWindow?.focus();
+    refresh();
+  });
+  const timers = [0, 400, 1500, 4000].map(ms => win.setTimeout(hookEditor, ms));
+  win.addEventListener("focus", hookEditor, true);
+
+  // 6. extension buttons (LanguageTool etc.) from the command bar into the formatting bar
+  const cmdBar = doc.getElementById("composeToolbar2");
+  const actions = doc.createXULElement("hbox");
+  actions.id = "nb-fmt-actions";
+  actions.setAttribute("align", "center");
+  bar.append(actions);
+  const moved = [];
+  const isExt = n => n.localName == "toolbarbutton" && n.classList.contains("webextension-compose-action") && !/novabird/i.test(n.id);
+  const collect = () => {
+    for (const n of cmdBar ? [...cmdBar.children] : []) {
+      if (isExt(n)) {
+        moved.push({ node: n, next: n.nextSibling });
+        actions.append(n);
+      }
+    }
+  };
+  collect();
+  const mo = cmdBar ? new win.MutationObserver(collect) : null;
+  mo?.observe(cmdBar, { childList: true });
+
+  // 7. open/close
+  const apply = () => {
+    toolbox.toggleAttribute("nb-open", open);
+    toggle.setAttribute("aria-expanded", String(open));
+  };
+  toggle.addEventListener("command", () => {
+    open = !open;
+    try {
+      Services.prefs.setBoolPref(FMT_OPEN_PREF, open);
+    } catch (e) {}
+    apply();
+  });
+  apply();
+  bar.classList.add("nb-fmt");
+
+  undo.push(() => {
+    bar.classList.remove("nb-fmt");
+    mo?.disconnect();
+    for (const t of timers) {
+      win.clearTimeout(t);
+    }
+    win.removeEventListener("focus", hookEditor, true);
+    fontPopup.removeEventListener("popupshowing", onFontPopup);
+    for (const { node, next } of moved.reverse()) {
+      cmdBar?.insertBefore(node, next && next.parentNode == cmdBar ? next : null);
+    }
+    fontHome.parent?.insertBefore(fontMenu, fontHome.next && fontHome.next.parentNode == fontHome.parent ? fontHome.next : null);
+    for (const n of [toggle, sizeMenu, row, panel, actions]) {
+      n.remove();
+    }
+    toolbox.removeAttribute("nb-open");
+  });
+}
+
 function setupWindow(win, isMain) {
   const undo = [];
   perWindow.set(win, undo);
@@ -871,7 +1152,13 @@ function setupWindow(win, isMain) {
 
   if (win.location.href.endsWith("messengercompose.xhtml")) {
     addStyle(win.document, shellCss() + CSS.compose, undo);
+    trackUiScale(win, undo);
     moveRecipientToggles(win, undo);
+    try {
+      setupFormatBar(win, undo);
+    } catch (e) {
+      console.error("NovaBird: Formatierungsleiste", e);
+    }
   }
 
   const orig = win.MsgAccountManager;
@@ -950,7 +1237,160 @@ function setupWindow(win, isMain) {
   perWindow.set(win, undo);
 }
 
+// KI-Knopf im Nachrichtenkopf: ein Add-on kann seinen Knopf dort nicht ausblenden, daher ein Stilblatt mit der (eindeutigen) Knopf-ID
+const AI_BUTTON_SHEET = Services.io.newURI("data:text/css," + encodeURIComponent("#novabird-extension_novabird-messageDisplayAction-toolbarbutton { display: none !important; }"));
+function setAiButtonVisible(visible) {
+  const sss = Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
+  const registered = sss.sheetRegistered(AI_BUTTON_SHEET, sss.USER_SHEET);
+  if (visible && registered) {
+    sss.unregisterSheet(AI_BUTTON_SHEET, sss.USER_SHEET);
+  } else if (!visible && !registered) {
+    sss.loadAndRegisterSheet(AI_BUTTON_SHEET, sss.USER_SHEET);
+  }
+}
+
+/**
+ * Farben und Schrift des Hauptfensters. Die NovaBird-Themes steuern alles über --ms-* Variablen auf :root. Ein Benutzer-Stilblatt
+ * (nsIStyleSheetService, !important) überschreibt sie in allen Dokumenten (auch about:3pane / about:message) und gilt sofort.
+ * Hell und Dunkel getrennt über prefers-color-scheme, wie die Themes selbst.
+ */
+const MS_VARS = {
+  spaces: "--ms-spaces", toolbar: "--ms-toolbar", sidebar: "--ms-sidebar", sidebarText: "--ms-sidebar-text",
+  list: "--ms-list-bg", text: "--ms-text", muted: "--ms-muted", border: "--ms-border", rowLine: "--ms-row-line",
+  hover: "--ms-hover", accent: "--ms-accent", accentDark: "--ms-accent-dark", accentSoft: "--ms-accent-soft",
+  accentFocus: "--ms-accent-soft-focus", countBg: "--ms-count-bg", countFg: "--ms-count-fg",
+};
+const HEX = /^#[0-9a-f]{6}$/i;
+let mainCfg = null; // { colors: {light:{}, dark:{}}, family, rowPct, padPct } oder null = nichts überschreiben
+let mainSheet = null; // aktuell registrierte nsIURI
+let fontCfg = { fe: 1, fp: 1, sub: 1, lab: 1, sample: 1 }; // Faktoren für Einstellungen/Konten und das Verfassen-Fenster
+
+function sheetService() {
+  return Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
+}
+
+function dropMainSheet() {
+  if (mainSheet) {
+    const sss = sheetService();
+    if (sss.sheetRegistered(mainSheet, sss.USER_SHEET)) {
+      sss.unregisterSheet(mainSheet, sss.USER_SHEET);
+    }
+    mainSheet = null;
+  }
+}
+
+function scalePx(text, pct) {
+  return String(text).replace(/(-?\d+(?:\.\d+)?)px/g, (m, n) => `${Math.round(parseFloat(n) * pct) / 100}px`);
+}
+
+/** Aktuelle Werte der --ms-* Variablen des Themes (ohne unser Stilblatt); Hell und Dunkel über die Farbschema-Umschaltung des Fensters. */
+function readThemeVars() {
+  const win = mainWindow();
+  if (!win) {
+    return null;
+  }
+  const had = mainSheet;
+  dropMainSheet();
+  const out = { light: {}, dark: {}, rowH: "", rowPad: "", font: "" };
+  const bc = win.browsingContext;
+  const prev = bc.prefersColorSchemeOverride;
+  try {
+    const cs = () => win.getComputedStyle(win.document.documentElement);
+    for (const mode of ["light", "dark"]) {
+      bc.prefersColorSchemeOverride = mode;
+      const c = cs();
+      for (const [key, name] of Object.entries(MS_VARS)) {
+        out[mode][key] = c.getPropertyValue(name).trim();
+      }
+    }
+    bc.prefersColorSchemeOverride = prev;
+    const c = cs();
+    out.rowH = c.getPropertyValue("--ms-row-h").trim();
+    out.rowPad = c.getPropertyValue("--ms-row-pad").trim();
+    out.font = c.getPropertyValue("--ms-font").trim();
+  } finally {
+    bc.prefersColorSchemeOverride = prev;
+    if (had) {
+      applyMainStyle();
+    }
+  }
+  return out;
+}
+
+function applyMainStyle() {
+  dropMainSheet();
+  if (!mainCfg) {
+    return;
+  }
+  const block = c =>
+    Object.entries(c || {})
+      .filter(([k, v]) => MS_VARS[k] && HEX.test(v))
+      .map(([k, v]) => `${MS_VARS[k]}: ${v} !important;`)
+      .join(" ");
+  const common = [];
+  const family = String(mainCfg.family || "");
+  if (family && /^[\w .-]+$/.test(family)) {
+    common.push(`--ms-font: ${family === "system-ui" ? "system-ui" : `"${family}"`}, sans-serif !important;`);
+  }
+  if (mainCfg.rowPct !== 100 || mainCfg.padPct !== 100) {
+    const win = mainWindow();
+    const c = win ? win.getComputedStyle(win.document.documentElement) : null;
+    const rowH = c ? c.getPropertyValue("--ms-row-h").trim() : "";
+    const rowPad = c ? c.getPropertyValue("--ms-row-pad").trim() : "";
+    if (rowH && mainCfg.rowPct !== 100) {
+      common.push(`--ms-row-h: ${scalePx(rowH, mainCfg.rowPct)} !important;`);
+    }
+    if (rowPad && mainCfg.padPct !== 100) {
+      common.push(`--ms-row-pad: ${scalePx(rowPad, mainCfg.padPct)} !important;`);
+    }
+  }
+  let css = common.length ? `:root:root { ${common.join(" ")} }\n` : "";
+  const light = block(mainCfg.colors?.light);
+  const dark = block(mainCfg.colors?.dark);
+  if (light) {
+    css += `@media not (prefers-color-scheme: dark) { :root:root { ${light} } }\n`;
+  }
+  if (dark) {
+    css += `@media (prefers-color-scheme: dark) { :root:root { ${dark} } }\n`;
+  }
+  if (!css) {
+    return;
+  }
+  const sss = sheetService();
+  mainSheet = Services.io.newURI("data:text/css," + encodeURIComponent(css));
+  sss.loadAndRegisterSheet(mainSheet, sss.USER_SHEET);
+}
+
+// Schriftfaktoren als Variablen für alle NovaBird-Stilblätter (Einstellungen, Konten, Verfassen)
+function fontVarsCss() {
+  const f = fontCfg;
+  return `:root:root:root { --tbsr-fe: ${f.fe}; --tbsr-fp: ${f.fp}; --tbsr-m-sub: ${f.sub}; --tbsr-m-lab: ${f.lab}; --tbsr-m-sample: ${f.sample}; }`;
+}
+
+const themeObserver = {
+  observe() {
+    // Themewechsel: Vorgaben (Zeilenhöhe) neu lesen und das Stilblatt neu aufbauen
+    const win = mainWindow();
+    if (win && mainCfg) {
+      win.setTimeout(() => {
+        try {
+          applyMainStyle();
+        } catch (e) {
+          console.error("NovaBird: Hauptfenster-Stil", e);
+        }
+      }, 300);
+    }
+  },
+};
+
 function teardown() {
+  try {
+    dropMainSheet();
+    Services.obs.removeObserver(themeObserver, "lightweight-theme-styling-update");
+  } catch (e) {}
+  try {
+    setAiButtonVisible(true);
+  } catch (e) {}
   for (const [tab] of states) {
     try {
       swapTo(tab, "prefs");
@@ -981,6 +1421,11 @@ return class extends ExtensionCommon.ExtensionAPI {
 
   getAPI(context) {
     hubIcon = context.extension.getURL("icons/icon-48.png");
+    try {
+      Services.obs.addObserver(themeObserver, "lightweight-theme-styling-update");
+    } catch (e) {
+      console.error("NovaBird: Theme-Beobachter", e);
+    }
     if (!nb.nbIsDark) {
       try {
         nbLoadShared(context.extension, ["shared/color.js"], nb);
@@ -990,6 +1435,24 @@ return class extends ExtensionCommon.ExtensionAPI {
     }
     return {
       settingsRedesign: {
+        async setAiButton(visible) {
+          setAiButtonVisible(Boolean(visible));
+        },
+        async getThemeColors() {
+          return readThemeVars();
+        },
+        async setMainStyle(cfg) {
+          mainCfg = cfg && typeof cfg === "object" ? cfg : null;
+          if (mainCfg) {
+            mainCfg.rowPct = Number(mainCfg.rowPct) || 100;
+            mainCfg.padPct = Number(mainCfg.padPct) || 100;
+          }
+          applyMainStyle();
+        },
+        async setFonts(f) {
+          const n = v => (Number.isFinite(Number(v)) && Number(v) >= 0.5 && Number(v) <= 2 ? Number(v) : 1);
+          fontCfg = { fe: n(f?.fe), fp: n(f?.fp), sub: n(f?.sub), lab: n(f?.lab), sample: n(f?.sample) };
+        },
         async setColors(colors) {
           const ok = colors && ["bg", "fg", "border", "accent"].every(k => /^#[0-9a-f]{6}$/i.test(colors[k] || ""));
           customColors = ok ? { ...colors } : null;

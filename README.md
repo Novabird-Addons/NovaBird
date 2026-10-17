@@ -17,7 +17,7 @@ a real conversation view, undo-send and a calmer calendar and address book.</p>
 
 ![NovaBird main window: card message list, conversation view, agenda and attachments](docs/images/hero-light.png)
 
-NovaBird is a family of add-ons for [Betterbird](https://www.betterbird.eu/) (and Thunderbird ESR) where all addons work together. Everything runs locally; nothing leaves your computer.
+NovaBird is a family of add-ons for [Betterbird](https://www.betterbird.eu/) (and Thunderbird ESR) where all addons work together. Everything runs locally; nothing leaves your computer. The one optional exception is the AI summary in NovaBird-Extension: it is off until you switch it on and enter a server address, and only when you click its button the text of that one message goes to that address (with Ollama on your own computer it stays on your computer).
 
 ## What you get
 
@@ -72,7 +72,7 @@ Calendar dialogs and views pick up your theme. **Nova-Contact** adds tag filters
 | **[NovaBird-DB](novabird-db/README.md)** | Fast full-text index and the sentence parser (DE, EN, FR, ES) |
 | **[NovaBird-Conversation](novabird-conversation/README.md)** | Whole threads in the reading pane |
 | **[NovaBird-Send](novabird-send/README.md)** | Undo send with queue |
-| **[NovaBird-Extension](novabird-extension/README.md)** | Message list (Soft, Clear, Thread; three densities and per-account colours), right pane, attachment preview, Nova-Contact, rule assistant (beta, opt-in), new-style settings, the NovaBird settings page |
+| **[NovaBird-Extension](novabird-extension/README.md)** | Message list (Soft, Clear, Thread; three densities and per-account colours), right pane, attachment preview, Nova-Contact, rule assistant (beta, opt-in), colors and fonts, AI summary (opt-in), mailbox overview, new-style settings, the NovaBird settings page |
 | **[NovaBird-Sand / -Cobalt / -Springlight](novabird-themes/README.md)** | The themes |
 
 They cooperate loosely: Search and Conversation use the DB if it is installed (and fall back to Betterbird's own index if not); the Extension takes its colors from the active theme. None of them requires another.

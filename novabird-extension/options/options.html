@@ -5,24 +5,100 @@
   <title>NovaBird-Extension</title>
   <style>
     :root { color-scheme: light dark; }
-    body { font: message-box; margin: 16px; max-width: 70em; }
+    html { font: message-box; }
+    /* Die Systemschrift ist hier sehr klein (unter Windows etwa 8 px), daher 17 % größer; alles Weitere ist em-relativ */
+    body { font-size: 117%; margin: 16px; max-width: 70em; }
     .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(19em, 1fr)); gap: 0 32px; align-items: start; }
     .cols .opt { gap: 12px; }
     .cols .opt .txt { flex: 1 1 8em; }
     label.off { color: color-mix(in srgb, currentColor 42%, transparent); pointer-events: none; }
     label.off input { accent-color: color-mix(in srgb, currentColor 42%, transparent); }
     #listTab .wide { max-width: 38em; }
-    nav { display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+    nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
     nav button { border: 0; background: none; padding: 8px 14px; font: inherit; color: inherit; border-bottom: 2px solid transparent; cursor: pointer; }
     nav button[aria-selected="true"] { border-bottom-color: #2F6BD8; font-weight: 600; }
+    .st-sub { color: color-mix(in srgb, currentColor 65%, transparent); margin: 2px 0 12px; font-size: 0.92em; }
+    .st-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(9em, 1fr)); gap: 10px; margin: 10px 0 12px; }
+    .st-kpi { background: color-mix(in srgb, currentColor 6%, transparent); border-radius: 10px; padding: 10px 14px; }
+    .st-kpi span { font-size: 0.85em; opacity: .7; display: block; }
+    .st-kpi b { font-size: 1.7em; font-weight: 600; display: block; }
+    .st-acc { border: 1px solid color-mix(in srgb, currentColor 18%, transparent); border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; }
+    .st-ah { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .st-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+    .st-am { margin-inline-start: auto; display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.9em; opacity: .85; }
+    .st-bar { display: flex; height: 8px; border-radius: 4px; background: color-mix(in srgb, currentColor 10%, transparent); overflow: hidden; }
+    .st-bar.big { height: 14px; }
+    .st-top { display: grid; grid-template-columns: minmax(8em, 16em) 1fr 6em; gap: 10px; align-items: center; padding: 3px 0; }
+    .st-top .st-bar { height: 6px; }
+    .st-top small { opacity: .6; }
+    .st-top .sz { text-align: end; }
+    h4.st-h { margin: 18px 0 8px; }
+    .ai-prompt { white-space: pre-wrap; user-select: text; padding: 10px 14px; border-radius: 8px; background: color-mix(in srgb, currentColor 6%, transparent); font: inherit; font-size: .92em; line-height: 1.5; max-width: 52em; }
+    #aiBody.off { opacity: .55; }
+    .ai-more { margin: 18px 0 8px; }
+    .ai-more summary { cursor: pointer; }
+    .ai-more summary b { font-size: 1.05em; }
+    #aiDesc { line-height: 1.5; }
+    .ai-grid { display: grid; grid-template-columns: max-content minmax(14em, 28em); gap: 8px 14px; align-items: center; margin-top: 8px; }
+    .ai-grid label { margin: 0; }
+    .ai-grid input[type=text], .ai-grid input[type=password], .ai-grid select { width: 100%; box-sizing: border-box; }
     section[hidden] { display: none; }
     h3 { margin: 22px 0 6px; }
     h4 { margin: 20px 0 4px; font-size: 1.05em; }
     label { display: block; margin: 8px 0; }
-    .color { display: flex; align-items: center; gap: 10px; margin: 6px 0 6px 22px; }
-    .color input { width: 3em; height: 1.8em; padding: 0; }
-    .color span { min-width: 12em; }
     #colors[disabled] { opacity: 0.45; }
+    /* Reiter Farben und Schrift: zwei Spalten nebeneinander */
+    .cf-cols { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 0 32px; align-items: start; }
+    @media (max-width: 52em) { .cf-cols { grid-template-columns: minmax(0, 1fr); } }
+    .cf-cols h4 { font-size: .8em; margin: 16px 0 4px; color: color-mix(in srgb, currentColor 65%, transparent); letter-spacing: .02em; }
+    .cf-cols .sub { font-size: .85em; color: color-mix(in srgb, currentColor 65%, transparent); margin: 2px 0 8px; line-height: 1.4; }
+    .cf-row { display: grid; grid-template-columns: 2.6em minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 4px 6px; border-radius: 6px; }
+    .cf-row.two { grid-template-columns: 5.4em minmax(0, 1fr) auto; }
+    .cf-row:hover, .cf-frow:hover { background: color-mix(in srgb, currentColor 6%, transparent); }
+    .cf-row input[type=color] { width: 2.6em; height: 1.9em; padding: 0; cursor: pointer; }
+    .cf-row .pair { display: flex; gap: 4px; }
+    .cf-row b, .cf-frow b { font-weight: 600; font-size: .92em; display: block; }
+    .cf-row small, .cf-frow small { display: block; font-size: .82em; line-height: 1.3; color: color-mix(in srgb, currentColor 65%, transparent); }
+    .cf-row code { font-size: .78em; color: color-mix(in srgb, currentColor 60%, transparent); }
+    .cf-frow { display: grid; grid-template-columns: minmax(0, 1fr) 9em 5.5em; gap: 8px; align-items: center; padding: 4px 6px; border-radius: 6px; }
+    .cf-frow input[type=range] { width: 100%; }
+    .cf-frow select { grid-column: 2 / 4; }
+    .cf-frow output { font-size: .85em; text-align: end; font-variant-numeric: tabular-nums; }
+    .cf-frow output i { display: block; font-style: normal; font-size: .85em; color: color-mix(in srgb, currentColor 60%, transparent); }
+    .cf-seg { display: inline-flex; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); border-radius: 6px; overflow: hidden; margin-inline-start: 6px; }
+    .cf-seg button { border: 0; border-radius: 0; padding: 3px 12px; font: inherit; background: transparent; color: inherit; cursor: pointer; }
+    .cf-seg button.on { background: color-mix(in srgb, #2F6BD8 22%, transparent); font-weight: 600; }
+    /* Skizze des Hauptfensters (Farben aus den Variablen --c-*) */
+    #cfPrev { display: grid; grid-template-columns: 2.2em 8em 1fr 1fr; grid-template-rows: 2em 1fr; height: 10.5em; max-width: 34em; margin: 8px 0 4px;
+      border: 1px solid var(--c-border); border-radius: .5em; overflow: hidden; background: var(--c-list); }
+    #cfPrev > div { min-width: 0; position: relative; }
+    #cfPrev i { display: block; height: .38em; border-radius: .2em; margin: .3em .5em; background: var(--c-text); }
+    #cfPrev .hl { outline: 2px solid #D85A30; outline-offset: -2px; }
+    .pv-tb { grid-column: 1 / -1; background: var(--c-toolbar); border-bottom: 1px solid var(--c-border); display: flex; align-items: center; gap: .3em; padding: 0 .4em; }
+    .pv-tb i { width: 2.4em; margin: 0 .2em; }
+    .pv-tb .pv-s { flex: 1; max-width: 8em; height: 1.1em; margin-inline-start: auto; background: transparent; border: 1px solid var(--c-border); border-radius: .3em; }
+    .pv-sp { background: var(--c-spaces); border-right: 1px solid var(--c-border); padding-top: .5em; }
+    .pv-sp i { width: .9em; height: .9em; margin: .35em auto; border-radius: .25em; opacity: .5; }
+    .pv-sp i.a { background: var(--c-accent); opacity: 1; }
+    .pv-fo { background: var(--c-sidebar); border-right: 1px solid var(--c-border); padding-top: .3em; }
+    .pv-fo .r { display: flex; align-items: center; margin: 1px .3em; border-radius: .25em; min-height: 1.5em; }
+    .pv-fo .r i { flex: 1; background: var(--c-sidebarText); }
+    .pv-fo .sel { background: var(--c-accentSoft); box-shadow: inset 3px 0 0 var(--c-accent); }
+    .pv-fo .sel i { background: var(--c-accentDark); }
+    .pv-fo .hv { background: var(--c-hover); }
+    .pv-fo .hd i { background: var(--c-muted); width: 50%; flex: none; height: .3em; }
+    .pv-fo .cnt { width: 1.5em; height: .9em; border-radius: .5em; margin: 0 .4em; background: var(--c-countBg); display: flex; align-items: center; justify-content: center; flex: none; }
+    .pv-fo .cnt b { display: block; width: .7em; height: .25em; border-radius: .2em; background: var(--c-countFg); }
+    .pv-li { background: var(--c-list); border-right: 1px solid var(--c-border); }
+    .pv-li .m { border-bottom: 1px solid var(--c-rowLine); padding: .15em 0; }
+    .pv-li .m i.mu { background: var(--c-muted); width: 55%; height: .3em; }
+    .pv-li .m.sel { background: var(--c-accentFocus); }
+    .pv-me { background: var(--c-list); }
+    .pv-me i.mu { background: var(--c-muted); width: 40%; height: .3em; }
+    .pv-me i.ln { background: var(--c-accent); width: 30%; }
+    .pv-dl { position: absolute; right: .5em; bottom: .4em; width: 6.5em; background: var(--c-d_bg); border: 1px solid var(--c-d_border); border-radius: .4em; padding: .2em 0 .35em; }
+    .pv-dl i { background: var(--c-d_fg); }
+    .pv-dl i.bt { background: var(--c-d_accent); width: 2.4em; height: .55em; margin-top: .45em; }
     #hint { opacity: .65; margin-top: 16px; }
     #pilotDesc, #rulesDesc, #previewDesc, #listIntro, #listNote, #listAcctNote, #listDensityNote { line-height: 1.5; margin: 10px 0 14px 0; color: color-mix(in srgb, currentColor 78%, transparent); }
     #reset { margin-top: 10px; }
@@ -44,12 +120,13 @@
   <div id="nb-selftest" hidden></div>
   <h2 id="title"></h2>
   <nav>
-    <button type="button" data-tab="list" id="tabList"></button>
+    <button type="button" data-tab="listTab" id="tabList"></button>
+    <button type="button" data-tab="colorsTab" id="tabColors"></button>
     <button type="button" data-tab="calendar" id="tabCalendar"></button>
-    <button type="button" data-tab="colors" id="tabColors"></button>
-    <button type="button" data-tab="preview" id="tabPreview"></button>
-    <button type="button" data-tab="pilot" id="tabPilot"></button>
-    <button type="button" data-tab="rules" id="tabRules"></button>
+    <button type="button" data-tab="pilotTab" id="tabPilot"></button>
+    <button type="button" data-tab="rulesTab" id="tabRules"></button>
+    <button type="button" data-tab="aiTab" id="tabAi"></button>
+    <button type="button" data-tab="statsTab" id="tabStats"></button>
   </nav>
 
   <section id="calendar" hidden>
@@ -71,6 +148,16 @@
       </div>
       <figure><div id="attachPreview"></div></figure>
     </div>
+    <h3 id="previewTitle"></h3>
+    <label><input type="checkbox" id="previewEnabled"> <span id="previewEnableLabel"></span></label>
+    <p id="previewDesc"></p>
+    <label><span id="previewDelayLabel"></span>
+      <select id="previewDelay">
+        <option value="200">0,2 s</option>
+        <option value="400">0,4 s</option>
+        <option value="800">0,8 s</option>
+        <option value="1500">1,5 s</option>
+      </select></label>
   </section>
 
   <section id="listTab">
@@ -110,29 +197,50 @@
   </section>
 
   <section id="colorsTab" hidden>
-    <h3 id="colorTitle"></h3>
-    <label><input type="radio" name="colorMode" value="theme"> <span id="modeTheme"></span></label>
-    <label><input type="radio" name="colorMode" value="custom"> <span id="modeCustom"></span></label>
-    <fieldset id="colors" style="border:none;padding:0;margin:0">
-      <div class="color"><input type="color" id="bg"><span id="bgLabel"></span></div>
-      <div class="color"><input type="color" id="fg"><span id="fgLabel"></span></div>
-      <div class="color"><input type="color" id="border"><span id="borderLabel"></span></div>
-      <div class="color"><input type="color" id="accent"><span id="accentLabel"></span></div>
-      <button id="reset" type="button"></button>
-    </fieldset>
-  </section>
-
-  <section id="previewTab" hidden>
-    <h3 id="previewTitle"></h3>
-    <label><input type="checkbox" id="previewEnabled"> <span id="previewEnableLabel"></span></label>
-    <p id="previewDesc"></p>
-    <label><span id="previewDelayLabel"></span>
-      <select id="previewDelay">
-        <option value="200">0,2 s</option>
-        <option value="400">0,4 s</option>
-        <option value="800">0,8 s</option>
-        <option value="1500">1,5 s</option>
-      </select></label>
+    <div id="cfPrev" aria-hidden="true">
+      <div class="pv-tb" data-c="toolbar border"><i></i><i></i><i></i><span class="pv-s"></span></div>
+      <div class="pv-sp" data-c="spaces border accent"><i class="a"></i><i></i><i></i></div>
+      <div class="pv-fo" data-c="sidebar border">
+        <div class="r sel" data-c="accentSoft accentDark accent"><i></i><span class="cnt" data-c="count"><b></b></span></div>
+        <div class="r" data-c="sidebarText"><i></i></div>
+        <div class="r hv" data-c="hover sidebarText"><i></i></div>
+        <div class="r hd" data-c="muted"><i></i></div>
+        <div class="r" data-c="sidebarText"><i></i></div>
+      </div>
+      <div class="pv-li" data-c="list text rowLine border">
+        <div class="m" data-c="text rowLine"><i></i><i class="mu" data-c="muted"></i></div>
+        <div class="m sel" data-c="accentFocus"><i></i><i class="mu" data-c="muted"></i></div>
+        <div class="m" data-c="rowLine"><i></i><i class="mu" data-c="muted"></i></div>
+        <div class="m" data-c="rowLine"><i></i><i class="mu" data-c="muted"></i></div>
+      </div>
+      <div class="pv-me" data-c="list">
+        <i style="width:55%;margin-top:.7em" data-c="text"></i><i class="mu" data-c="muted"></i>
+        <i style="width:85%" data-c="text"></i><i style="width:70%" data-c="text"></i><i class="ln" data-c="accent"></i>
+        <div class="pv-dl" data-c="d_bg d_fg d_border d_accent"><i style="width:60%"></i><i style="width:80%"></i><i class="bt"></i></div>
+      </div>
+    </div>
+    <p id="cfHint" class="sub" style="margin:2px 0 4px"></p>
+    <p id="cfNoTheme" class="sub" style="margin:2px 0 10px;color:#B54708" hidden></p>
+    <div class="cf-cols">
+      <div>
+        <h3 id="colorTitle"></h3>
+        <label><input type="radio" name="colorMode" value="theme"> <span id="modeTheme"></span></label>
+        <label><input type="radio" name="colorMode" value="custom"> <span id="modeCustom"></span></label>
+        <fieldset id="colors" style="border:none;padding:0;margin:0">
+          <div style="margin:4px 0 2px"><span id="cfEdit"></span><span class="cf-seg" id="cfModeSeg"><button type="button" data-m="light" id="cfLight"></button><button type="button" data-m="dark" id="cfDark"></button></span></div>
+          <p id="cfNote" class="sub"></p>
+          <div id="cfGrid"></div>
+          <button id="reset" type="button" style="margin-top:10px"></button>
+        </fieldset>
+      </div>
+      <div>
+        <h3 id="fontTitle"></h3>
+        <p id="fontIntro" class="sub"></p>
+        <div id="cfFonts"></div>
+        <p id="fontNew" class="sub"></p>
+        <button id="fontReset" type="button" style="margin-top:6px"></button>
+      </div>
+    </div>
   </section>
 
   <section id="pilotTab" hidden>
@@ -149,13 +257,59 @@
     <button type="button" id="rulesOpen"></button>
   </section>
 
-  <section id="diag">
+  <section id="statsTab" hidden>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div><h3 id="statsTitle" style="margin:6px 0 2px"></h3><p id="statsUpdated" class="st-sub"></p></div>
+      <span style="flex:1"></span>
+      <button type="button" id="statsRefresh"></button>
+    </div>
+    <div id="statsBody"></div>
+    <p id="statsNote" class="st-sub"></p>
     <h3 id="diagTitle"></h3>
     <button id="diagBtn" type="button"></button>
     <pre id="diagOut" style="white-space:pre-wrap;user-select:text"></pre>
   </section>
+
+  <section id="aiTab" hidden>
+    <h3 id="aiTitle"></h3>
+    <p id="aiDesc" class="st-sub"></p>
+    <label><input type="checkbox" id="aiEnabled"> <span id="aiEnabledLabel"></span></label>
+    <div id="aiBody">
+    <div class="ai-grid">
+      <label for="aiType" id="aiTypeLabel"></label>
+      <select id="aiType"><option value="ollama">Ollama</option><option value="openai">OpenAI-API</option></select>
+      <label for="aiUrl" id="aiUrlLabel"></label>
+      <input type="text" id="aiUrl" spellcheck="false" autocomplete="off">
+      <label for="aiModel" id="aiModelLabel"></label>
+      <div><input type="text" id="aiModel" list="aiModels" spellcheck="false" autocomplete="off"><datalist id="aiModels"></datalist></div>
+      <label for="aiUser" id="aiUserLabel"></label>
+      <input type="text" id="aiUser" spellcheck="false" autocomplete="off">
+      <label for="aiKey" id="aiKeyLabel"></label>
+      <input type="password" id="aiKey" autocomplete="off">
+      <label for="aiCtx" id="aiCtxLabel"></label>
+      <select id="aiCtx"><option value="4096">4k</option><option value="16384">16k</option><option value="32768">32k</option><option value="65536">64k</option></select>
+      <label for="aiLang" id="aiLangLabel"></label>
+      <select id="aiLang"><option value="ui"></option><option value="mail"></option></select>
+    </div>
+    <p id="aiRemote" class="st-sub" hidden style="color:#b3261e"></p>
+    <div style="display:flex;gap:10px;align-items:center;margin:10px 0">
+      <button type="button" id="aiTest"></button>
+      <span id="aiStatus"></span>
+    </div>
+    <details class="ai-more">
+    <summary><b id="aiPromptTitle"></b></summary>
+    <p id="aiPromptDesc" class="st-sub"></p>
+    <pre id="aiPromptText" class="ai-prompt"></pre>
+    <ul id="aiPromptList" class="st-sub"></ul>
+    </details>
+    <p id="aiNote" class="st-sub"></p>
+    </div>
+  </section>
+
   <p id="hint"></p>
   <script src="../shared/selftest-ui.js"></script>
+  <script src="../ai/ai.js"></script>
   <script src="options.js"></script>
+  <script src="looks.js"></script>
 </body>
 </html>

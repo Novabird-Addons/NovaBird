@@ -6,7 +6,7 @@ body:has(> #tbsr-nav) {
 #accountTreeBox { background: var(--tbsr-panel) !important; border-inline-end: 1px solid var(--tbsr-line) !important; }
 #prefsButton { display: none !important; }
 
-#accountTreeBox, #accounttree, #accountTreeBox * { font-size: 14px !important; font-family: var(--tbsr-font) !important; }
+#accountTreeBox, #accounttree, #accountTreeBox * { font-size: calc(14px * var(--tbsr-fe, 1)) !important; font-family: var(--tbsr-font) !important; }
 /* the add-ons link is in the shared navigation now */
 #accountTreeBox > :last-child:not(#accounttree):not(#accountTreeHeaderBar) { display: none !important; }
 

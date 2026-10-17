@@ -1,0 +1,9 @@
+[
+  {
+    "namespace": "mailStats",
+    "functions": [
+      {"name": "getStats", "type": "function", "async": true, "description": "Konten mit Ordnern: [{id, name, type, folders:[{path, name, count, unread, size}]}], Größen in Byte; nur lesend.", "parameters": []},
+      {"name": "selfTest", "type": "function", "async": true, "description": "Selbsttest: {app, version, missing:[…], pending}.", "parameters": []}
+    ]
+  }
+]

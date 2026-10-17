@@ -12,7 +12,7 @@ NovaBird ist eine Familie von Add-ons für **Betterbird** (und Thunderbird ESR, 
 | **NovaBird-DB** | Eigener Suchindex (schnell, findet auch Wortteile und Sätze), Grundlage für Search und Conversation |
 | **NovaBird-Conversation** | Alle Nachrichten einer Konversation im Lesebereich |
 | **NovaBird-Send** | Senden mit Rückgängig-Fenster und Warteschlange |
-| **NovaBird-Extension** | Rechte Leiste (Termine, Aufgaben, Anhänge), Anhang-Vorschau, Nova-Contact, Regel-Assistent (Beta), Einstellungen im neuen Stil |
+| **NovaBird-Extension** | Rechte Leiste (Termine, Aufgaben, Anhänge), Anhang-Vorschau, Nova-Contact, Regel-Assistent (Beta), Farben und Schrift, KI-Zusammenfassung (Opt-in), Postfach-Übersicht, Einstellungen im neuen Stil |
 | **NovaBird-Sand / -Cobalt / -Springlight** | Themes (hell und dunkel) |
 
 ## 2. Installieren
@@ -90,6 +90,9 @@ Nach **Senden** verschwindet das Verfassen-Fenster, unten im Hauptfenster läuft
 - **Anhang-Vorschau:** Maus über einen PDF- oder Bild-Anhang halten (in der rechten Leiste, im Nachrichtenkopf, an den Conversation-Chips): ein scrollbares Vorschaufenster öffnet sich.
 - **Regel-Assistent (Beta, standardmäßig aus):** in den Einstellungen der Extension unter „Regeln (Beta)“ einschalten. Rechtsklick auf eine Mail in der Liste → „Regel aus dieser Mail erstellen …“: Bedingung wählen (dieser Absender, diese Domain, Betreff, Empfänger), sehen, welche Mails im Posteingang passen, Aktionen wählen (verschieben, Schlagwort, gelesen, Stern, Papierkorb) und speichern. Es entsteht ein normaler Betterbird-Filter (Extras → Nachrichtenfilter); bestehende Filter bleiben unverändert und werden vorher gesichert.
 - **Nova-Contact** (Kontakte-Tab): Tags als Filter, mehrere Kontakte gemeinsam bearbeiten, letzte Änderungen rückgängig, Knopf „✦ Nova-Contact“ zum Sammeln, Zusammenführen und Aufräumen (mit Wiederherstellungspunkt).
+- **Farben und Schrift** (Einstellungen der Extension): mit einem NovaBird-Theme lässt sich jede Farbe des Hauptfensters ändern (hell und dunkel getrennt, eine Skizze zeigt den betroffenen Bereich); Schriftgrößen von Hauptfenster, Verfassen-Fenster, Einstellungsseiten und Nova-Contact in Prozent.
+- **KI-Zusammenfassung (standardmäßig aus):** „Mail zusammenfassen (KI)“ im Nachrichtenkopf und in Conversation, mit einem Sprachmodell deiner Wahl (siehe Datenschutz unten).
+- **Postfach:** Ordner, Nachrichten und Größe je Konto, die größten Ordner.
 - Einstellungen, Konten und Add-ons-Manager im einheitlichen Stil; Farben vom Theme.
 
 ## 8. Themes
@@ -98,7 +101,7 @@ NovaBird-Sand (ruhig, warm), -Cobalt (kompakt, kräftig), -Springlight (hell, fr
 
 ## 9. Datenschutz
 
-- Alles läuft **lokal**. Kein Add-on greift auf das Netz zu (nur Conversation lädt externe Bilder, und erst nach deinem Klick).
+- Alles läuft **lokal**. Kein Add-on greift auf das Netz zu (nur Conversation lädt externe Bilder, und erst nach deinem Klick). Eine freiwillige Ausnahme: die **KI-Zusammenfassung** der NovaBird-Extension (Einstellungen → NovaBird → Extension → KI) ist aus, bis du sie in den Einstellungen einschaltest und die Adresse eines Sprachmodell-Servers einträgst (Ollama oder ein OpenAI-kompatibler Dienst). Erst wenn du „Mail zusammenfassen (KI)“ anklickst, geht der Text genau dieser Nachricht an diese Adresse. Mit Ollama auf dem eigenen Rechner verlässt er den Rechner nicht, bei einem entfernten Server schon, und die Einstellungsseite weist darauf hin. Zugangsdaten liegen unverschlüsselt in den Profildaten des Add-ons.
 - Der **Suchindex** liegt unverschlüsselt im Profilordner (`novabird-db/index.sqlite`) und enthält Mailtext und Anhangnamen, wie der Index von Betterbird selbst. Wer sein Profil sichert oder die Festplatte nicht verschlüsselt, sichert den Mailtext mit. NovaBird-DB → „Index löschen“ entfernt ihn.
 - NovaBird-DB schreibt die bestätigten Suchanfragen **lokal** mit (zur späteren Verbesserung des Parsers; nichts verlässt den Rechner). Abschaltbar und löschbar unter NovaBird-DB → „Suchprotokoll“.
 

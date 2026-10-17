@@ -4,5 +4,8 @@
   },
   "description": {
     "message": "Companion to the NovaBird themes: unified settings navigation (incl. accounts), modern compose window, calendar layout and dialogs in theme colors."
+  },
+  "aiButton": {
+    "message": "Summarise mail (AI)"
   }
 }

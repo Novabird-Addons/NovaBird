@@ -383,5 +383,8 @@
   },
   "selfTest_noFlicker": {
     "message": "Masquer le volet de lecture lors du changement de message (l’original peut apparaître brièvement)"
+  },
+  "aiSummary": {
+    "message": "Résumer (IA)"
   }
 }
