@@ -3,7 +3,10 @@
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
 ## Unreleased (branch `testing`)
-Search 1.2.9 · Conversation 0.15.3 · unchanged: Extension 1.10.1 · DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+Search 1.2.9 · Extension 1.11.0 · Conversation 0.15.3 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+
+### NovaBird-Extension 1.11.0
+- **New settings tab "Screen Scaling (experimental)"**, off by default. Changes the scaling of the whole window (`layout.css.devPixelsPerPx`) automatically when the screen resolution changes, e.g. with changing remote (RDP) connections. Three profiles with their own percentage: 1080p (default 100 %), QHD/WQHD (125 %), 4K (150 %). The change is detected through window resize/focus events (debounced), not by polling. Turning it off restores the previous value of the preference.
 
 ### NovaBird-Search 1.2.9
 - **Thunderbird 158 (release channel):** after clearing the search with "✕" the message list stayed empty instead of showing the folder again, and changing the search word could leave the old results. Cause: since Thunderbird 158, `gDBView` in the mail tab is only a getter (taken from `gViewWrapper`); setting it to `null` throws there, so returning from the results view stopped before the folder was reopened. The value is now only set where it is still a variable (Thunderbird 153 ESR and older). Tested with 153.5 ESR and 158.0, table and card view.

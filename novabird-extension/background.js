@@ -24,6 +24,7 @@ const DEFAULTS = {
   fontFamily: "", fontRow: 100, fontPad: 100, // Schriftart, Zeilenhöhe und -abstand im Hauptfenster
   fontCompose: 100, fontSubject: 100, fontLabels: 100, fontSample: 100, // Verfassen-Fenster (Prozent der bisherigen Größe)
   fontSettings: 100, fontContact: 100, // Einstellungen/Konten, Nova-Contact
+  screenEnabled: false, screenFhd: 100, screenQhd: 125, screenUhd: 150, // Screen Scaling (experimentell): Skalierung in Prozent je Auflösung
 };
 
 const ACCT_PALETTE = ["#378ADD", "#1D9E75", "#D85A30", "#7F77DD", "#BA7517", "#D4537E", "#0F6E56", "#888780"];
@@ -84,6 +85,8 @@ async function applyFonts(s) {
   await messenger.settingsRedesign.setFonts({ fe: f(s.fontSettings), fp: f(s.fontCompose), sub: f(s.fontSubject), lab: f(s.fontLabels), sample: f(s.fontSample) });
 }
 
+const applyScreen = s => messenger.screenScale.setConfig(s.screenEnabled === true, s.screenFhd, s.screenQhd, s.screenUhd);
+
 async function applySettings() {
   const s = await messenger.storage.local.get(DEFAULTS);
   const colors = s.colorMode === "custom" ? s.colors : null;
@@ -101,6 +104,7 @@ async function applySettings() {
   await safe("KI-Knopf", () => messenger.settingsRedesign.setAiButton(s.aiEnabled === true));
   await safe("Schriftgrößen", () => applyFonts(s));
   await safe("Hauptfenster-Stil", () => applyMain(s));
+  await safe("Screen Scaling", () => applyScreen(s));
 }
 
 (async () => {
@@ -168,6 +172,13 @@ messenger.runtime.onMessage.addListener(async message => {
       return null;
     }
   }
+  if (message?.type === "screenInfo") {
+    try {
+      return await messenger.screenScale.getInfo();
+    } catch (e) {
+      return null;
+    }
+  }
   if (message?.type === "status") {
     try {
       return await messenger.novaCalendar.getStatus();
@@ -223,6 +234,9 @@ messenger.storage.onChanged.addListener(async changes => {
   }
   if (keys.some(k => ["fontSettings", "fontCompose", "fontSubject", "fontLabels", "fontSample"].includes(k))) {
     safe("Schriftgrößen", () => applyFonts(s));
+  }
+  if (keys.some(k => k.startsWith("screen"))) {
+    safe("Screen Scaling", () => applyScreen(s));
   }
   if (keys.includes("colorMode") || keys.includes("colors")) {
     safe("Kalenderfarben", () => messenger.novaCalendar.setColors(colors));

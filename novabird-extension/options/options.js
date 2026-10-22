@@ -60,6 +60,17 @@ const TEXTS = {
     rulesOpen: "Regel-Assistent öffnen",
     selfTest_rules: "Regel-Assistent (Nachrichtenfilter)",
     tabStats: "Postfach",
+    tabScreen: "Screen Scaling (experimentell)",
+    screenTitle: "Screen Scaling – experimentell",
+    screenDesc: "Ändert automatisch die Skalierung (Schrift und Einteilung des ganzen Fensters), wenn sich die Auflösung einer Sitzung oder Anmeldung ändert, zum Beispiel bei wechselnden Remoteverbindungen (RDP). Das Add-on erkennt den Wechsel direkt über die Fenstergröße, es wird nicht regelmäßig abgefragt. Experimentell und standardmäßig ausgeschaltet.",
+    screenEnableLabel: "Skalierung nach Auflösung automatisch anpassen",
+    screenFhdLabel: "1080p (bis 2199 Pixel Breite)",
+    screenQhdLabel: "QHD/WQHD (2200–3199 Pixel Breite)",
+    screenUhdLabel: "4K (ab 3200 Pixel Breite)",
+    screenNote: "Setzt die Betterbird-Einstellung layout.css.devPixelsPerPx; sie ersetzt die Skalierung von Windows für Betterbird. Beim Ausschalten wird der frühere Wert wiederhergestellt. Kleinere Auflösungen als 1080p zählen zu 1080p.",
+    screenInfoText: "Erkannt: $1 × $2 Pixel → $3, aktuelle Skalierung: $4",
+    screenInfoNone: "Auflösung nicht ermittelbar.",
+    screenSystem: "Systemstandard",
     statsTitle: "Postfachanalyse",
     statsRefresh: "Aktualisieren",
     statsUpdated: "Stand: $1",
@@ -258,6 +269,17 @@ const TEXTS = {
     rulesOpen: "Open rule assistant",
     selfTest_rules: "Rule assistant (message filters)",
     tabStats: "Mailbox",
+    tabScreen: "Screen Scaling (experimental)",
+    screenTitle: "Screen Scaling – experimental",
+    screenDesc: "Automatically changes the scaling (font size and layout of the whole window) when the resolution of a session or login changes, for example with changing remote connections (RDP). The add-on notices the change directly through the window size; nothing is polled regularly. Experimental and off by default.",
+    screenEnableLabel: "Adjust scaling to the screen resolution automatically",
+    screenFhdLabel: "1080p (up to 2199 pixels wide)",
+    screenQhdLabel: "QHD/WQHD (2200–3199 pixels wide)",
+    screenUhdLabel: "4K (3200 pixels wide and more)",
+    screenNote: "Sets the Betterbird preference layout.css.devPixelsPerPx; for Betterbird it replaces the Windows scaling. Turning it off restores the previous value. Resolutions below 1080p count as 1080p.",
+    screenInfoText: "Detected: $1 × $2 pixels → $3, current scaling: $4",
+    screenInfoNone: "Resolution could not be determined.",
+    screenSystem: "system default",
     statsTitle: "Mailbox analysis",
     statsRefresh: "Refresh",
     statsUpdated: "As of: $1",
@@ -456,6 +478,17 @@ const TEXTS = {
     rulesOpen: "Ouvrir l’assistant de règles",
     selfTest_rules: "Assistant de règles (filtres de messages)",
     tabStats: "Boîte mail",
+    tabScreen: "Screen Scaling (expérimental)",
+    screenTitle: "Screen Scaling – expérimental",
+    screenDesc: "Adapte automatiquement l’échelle (taille de police et disposition de toute la fenêtre) quand la résolution d’une session change, par exemple avec des connexions à distance (RDP) successives. Le module détecte le changement directement via la taille de la fenêtre, sans interrogation régulière. Expérimental et désactivé par défaut.",
+    screenEnableLabel: "Adapter automatiquement l’échelle à la résolution",
+    screenFhdLabel: "1080p (jusqu’à 2199 pixels de large)",
+    screenQhdLabel: "QHD/WQHD (2200–3199 pixels de large)",
+    screenUhdLabel: "4K (à partir de 3200 pixels de large)",
+    screenNote: "Définit la préférence layout.css.devPixelsPerPx ; pour Betterbird elle remplace la mise à l’échelle de Windows. En désactivant, l’ancienne valeur est rétablie. Les résolutions inférieures à 1080p comptent comme 1080p.",
+    screenInfoText: "Détecté : $1 × $2 pixels → $3, échelle actuelle : $4",
+    screenInfoNone: "Résolution indéterminée.",
+    screenSystem: "défaut du système",
     statsTitle: "Analyse de la boîte mail",
     statsRefresh: "Actualiser",
     statsUpdated: "État : $1",
@@ -654,6 +687,17 @@ const TEXTS = {
     rulesOpen: "Abrir el asistente de reglas",
     selfTest_rules: "Asistente de reglas (filtros de mensajes)",
     tabStats: "Buzón",
+    tabScreen: "Screen Scaling (experimental)",
+    screenTitle: "Screen Scaling – experimental",
+    screenDesc: "Cambia automáticamente la escala (tamaño de fuente y disposición de toda la ventana) cuando cambia la resolución de una sesión, por ejemplo con conexiones remotas (RDP) cambiantes. El complemento detecta el cambio directamente por el tamaño de la ventana, sin consultas periódicas. Experimental y desactivado por defecto.",
+    screenEnableLabel: "Ajustar la escala automáticamente a la resolución",
+    screenFhdLabel: "1080p (hasta 2199 píxeles de ancho)",
+    screenQhdLabel: "QHD/WQHD (2200–3199 píxeles de ancho)",
+    screenUhdLabel: "4K (desde 3200 píxeles de ancho)",
+    screenNote: "Establece la preferencia layout.css.devPixelsPerPx; para Betterbird sustituye la escala de Windows. Al desactivarlo se restaura el valor anterior. Las resoluciones inferiores a 1080p cuentan como 1080p.",
+    screenInfoText: "Detectado: $1 × $2 píxeles → $3, escala actual: $4",
+    screenInfoNone: "No se pudo determinar la resolución.",
+    screenSystem: "predeterminada del sistema",
     statsTitle: "Análisis del buzón",
     statsRefresh: "Actualizar",
     statsUpdated: "Estado: $1",
@@ -817,6 +861,7 @@ const DEFAULTS = {
   fontFamily: "", fontRow: 100, fontPad: 100,
   fontCompose: 100, fontSubject: 100, fontLabels: 100, fontSample: 100,
   fontSettings: 100, fontContact: 100,
+  screenEnabled: false, screenFhd: 100, screenQhd: 125, screenUhd: 150,
 };
 
 const forcedLang = new URLSearchParams(location.search).get("lang"); // nur zum Testen: options.html?lang=fr
@@ -1104,6 +1149,32 @@ const save = patch => messenger.storage.local.set(patch);
   ro.disabled = !re.checked;
   re.addEventListener("change", () => { ro.disabled = !re.checked; save({ rulesEnabled: re.checked }); });
   ro.addEventListener("click", () => messenger.runtime.sendMessage({ type: "openRules" }));
+
+  // Screen Scaling (experimentell, standardmäßig aus)
+  const sc = document.getElementById("screenEnabled"), scBody = document.getElementById("screenBody");
+  const scIn = { screenFhd: "fhd", screenQhd: "qhd", screenUhd: "uhd" };
+  const scShow = async () => {
+    const info = await messenger.runtime.sendMessage({ type: "screenInfo" }).catch(() => null);
+    const names = { fhd: "1080p", qhd: "QHD/WQHD", uhd: "4K" };
+    document.getElementById("screenInfo").textContent = info
+      ? t.screenInfoText.replace("$1", info.width).replace("$2", info.height).replace("$3", names[info.profile]).replace("$4", info.scale ? `${info.scale} %` : t.screenSystem)
+      : t.screenInfoNone;
+  };
+  sc.checked = s.screenEnabled === true;
+  scBody.classList.toggle("off", !sc.checked);
+  sc.addEventListener("change", () => { scBody.classList.toggle("off", !sc.checked); save({ screenEnabled: sc.checked }); setTimeout(scShow, 1500); });
+  for (const key of Object.keys(scIn)) {
+    const el = document.getElementById(key);
+    el.value = s[key];
+    el.addEventListener("change", () => {
+      const v = Math.min(400, Math.max(50, Number(el.value) || DEFAULTS[key]));
+      el.value = v;
+      save({ [key]: v });
+      setTimeout(scShow, 1500);
+    });
+  }
+  scShow();
+  window.addEventListener("focus", scShow);
 })(); // Farben und Schrift: looks.js
 
 // ---- Postfachanalyse ---------------------------------------------------------------------------

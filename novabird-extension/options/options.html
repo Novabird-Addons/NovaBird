@@ -34,7 +34,7 @@
     .st-top .sz { text-align: end; }
     h4.st-h { margin: 18px 0 8px; }
     .ai-prompt { white-space: pre-wrap; user-select: text; padding: 10px 14px; border-radius: 8px; background: color-mix(in srgb, currentColor 6%, transparent); font: inherit; font-size: .92em; line-height: 1.5; max-width: 52em; }
-    #aiBody.off { opacity: .55; }
+    #aiBody.off, #screenBody.off { opacity: .55; }
     .ai-more { margin: 18px 0 8px; }
     .ai-more summary { cursor: pointer; }
     .ai-more summary b { font-size: 1.05em; }
@@ -127,6 +127,7 @@
     <button type="button" data-tab="rulesTab" id="tabRules"></button>
     <button type="button" data-tab="aiTab" id="tabAi"></button>
     <button type="button" data-tab="statsTab" id="tabStats"></button>
+    <button type="button" data-tab="screenTab" id="tabScreen"></button>
   </nav>
 
   <section id="calendar" hidden>
@@ -303,6 +304,24 @@
     <ul id="aiPromptList" class="st-sub"></ul>
     </details>
     <p id="aiNote" class="st-sub"></p>
+    </div>
+  </section>
+
+  <section id="screenTab" hidden>
+    <h3 id="screenTitle"></h3>
+    <p id="screenDesc" class="st-sub"></p>
+    <label><input type="checkbox" id="screenEnabled"> <span id="screenEnableLabel"></span></label>
+    <div id="screenBody">
+    <div class="ai-grid">
+      <label for="screenFhd" id="screenFhdLabel"></label>
+      <div><input type="number" id="screenFhd" min="50" max="400" step="5" style="width:5em"> %</div>
+      <label for="screenQhd" id="screenQhdLabel"></label>
+      <div><input type="number" id="screenQhd" min="50" max="400" step="5" style="width:5em"> %</div>
+      <label for="screenUhd" id="screenUhdLabel"></label>
+      <div><input type="number" id="screenUhd" min="50" max="400" step="5" style="width:5em"> %</div>
+    </div>
+    <p id="screenInfo" class="st-sub"></p>
+    <p id="screenNote" class="st-sub"></p>
     </div>
   </section>
 
