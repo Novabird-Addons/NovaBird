@@ -377,7 +377,12 @@ function leaveSyntheticView(cw) {
   } catch (e) {
     dbg("close synthetic view failed", String(e));
   }
-  cw.gDBView = null;
+  // Bis Thunderbird 153 eine eigene Variable; ab 158 nur ein Getter (gViewWrapper.dbView), eine Zuweisung wirft dort
+  // einen Fehler und die Ordneransicht würde nicht mehr geöffnet.
+  const dbView = Object.getOwnPropertyDescriptor(cw, "gDBView");
+  if (!dbView || dbView.writable || dbView.set) {
+    cw.gDBView = null;
+  }
   cw.gViewWrapper = null;
   try {
     cw.threadTree.view = null;

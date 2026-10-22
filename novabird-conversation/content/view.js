@@ -550,7 +550,11 @@
       more.append(toggleBtn);
       e.slot.append(more);
       // Link nur zeigen, wenn der Text wirklich abgeschnitten ist; wächst der Inhalt später (nachgeladene Bilder), erscheint er von selbst
-      const check = () => { more.hidden = bodyBox.classList.contains("full") ? false : bodyBox.scrollHeight <= bodyBox.clientHeight + 2; };
+      const check = () => {
+        const cut = bodyBox.scrollHeight > bodyBox.clientHeight + 2;
+        bodyBox.classList.toggle("cut", cut);
+        more.hidden = bodyBox.classList.contains("full") ? false : !cut;
+      };
       more.hidden = true;
       requestAnimationFrame(check);
       if (window.ResizeObserver) new ResizeObserver(check).observe(content);
@@ -664,6 +668,33 @@
   // Beim Scrollen: die zugeklappte Zeile unter dem Mauszeiger klappt auf, wenn der Zeiger nach dem Scrollen kurz stehen bleibt
   // (autoOpenDelay ms ohne Scrollen und ohne Mausbewegung). autoOpenTrigger "hover": auch ohne vorheriges Scrollen, nur durch Verweilen. Reagiert nur auf Eingaben des Nutzers, nicht auf Verschiebungen
   // durch den Aufbau oder unser eigenes Aufklappen.
+  // Fixierte Nachricht: höchstens settings.maxHeight % der Höhe der Ansicht, auch bei niedrigem Fenster (sonst bleibt für den Verlauf
+  // nur ein Streifen). Der Text wird so weit gekürzt, dass Kopf, Anhänge, Knöpfe und „Ganze Nachricht“ in diese Höhe passen.
+  // --nbc-fit = Zielhöhe − (Karte − Textinhalt) hängt nicht von der Texthöhe selbst ab, daher keine Rückkopplung.
+  function fitPinned(root, pinned) {
+    const update = () => {
+      // niedrige Ansicht (unter 700 px): höchstens 55 %, damit der Verlauf lesbar bleibt
+      const pct = root.clientHeight < 700 ? Math.min(settings.maxHeight, 55) : settings.maxHeight;
+      if (root.style.getPropertyValue("--nbc-pin") !== `${pct}%`) root.style.setProperty("--nbc-pin", `${pct}%`);
+      const card = pinned.firstElementChild;
+      const body = card?.querySelector(".nbc-body.limited");
+      if (!body || body.classList.contains("full")) return;
+      const cs = getComputedStyle(body);
+      const content = body.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const target = (root.clientHeight * pct) / 100;
+      // scrollHeight des Bereichs: Karte samt Außenabstand
+      const fit = Math.floor(target - pinned.scrollHeight + content);
+      if (fit > 0 && String(fit) + "px" !== root.style.getPropertyValue("--nbc-fit")) root.style.setProperty("--nbc-fit", `${fit}px`);
+    };
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => update());
+      ro.observe(root);
+      ro.observe(pinned);
+      if (pinned.firstElementChild) ro.observe(pinned.firstElementChild); // Karte wächst beim Laden (Anhänge, Knöpfe)
+    }
+    requestAnimationFrame(update);
+  }
+
   function setupAutoOpen(scroller) {
     if (!settings.autoOpen || !scroller) return;
     let quietUntil = Date.now() + 800;
@@ -722,6 +753,7 @@
   if (settings.stickyHeader) root.classList.add("nbc-sticky");
   root.style.setProperty("--nbc-lines", String(settings.rowLines));
   root.style.setProperty("--nbc-max", `${settings.maxHeight}vh`);
+  root.style.setProperty("--nbc-pin", `${settings.maxHeight}%`);
   const SAFE_COLOR = /^(rgba?\([\d\s.,%/]+\)|color\(srgb [\d.\s/]+\)|#[0-9a-f]{6})$/i;
   for (const [key, prop] of [["accent", "--nbc-accent"], ["border", "--nbc-border"], ["bg", "--nbc-tint"]]) {
     if (typeof data.theme?.[key] === "string" && SAFE_COLOR.test(data.theme[key])) root.style.setProperty(prop, data.theme[key]);
@@ -756,6 +788,7 @@
     if (ordered.length > 1) history.append(el("div", "nbc-label", t("history")));
     for (const m of ordered) if (m !== pinnedMsg) history.append(cards.get(m.id));
     root.append(pinned, sep(), history);
+    fitPinned(root, pinned);
   } else {
     const list = el("div", "nbc-list");
     ordered.forEach((m, i) => {
