@@ -35,6 +35,10 @@ body.nbc-on { overflow: hidden; font: message-box; font-size: 0.765rem; line-hei
 .nbc-chip { font: inherit; font-size: 0.706rem; display: inline-flex; gap: 6px; padding: 2px 8px; border: 1px solid color-mix(in srgb, CanvasText 28%, transparent); border-radius: 8px; background: transparent; color: inherit; cursor: pointer; }
 .nbc-chip:hover { background: color-mix(in srgb, CanvasText 8%, transparent); }
 .nbc-chip small { color: GrayText; }
+#nbc-menu { position: fixed; z-index: 100; min-width: 11em; padding: 4px; border-radius: 8px; background: Canvas; color: CanvasText;
+  border: 1px solid color-mix(in srgb, CanvasText 22%, transparent); box-shadow: 0 6px 18px rgba(0, 0, 0, .18); display: flex; flex-direction: column; }
+.nbc-menu-item { font: inherit; text-align: start; padding: 5px 12px; border: 0; border-radius: 5px; background: transparent; color: inherit; cursor: pointer; }
+.nbc-menu-item:hover, .nbc-menu-item:focus { background: color-mix(in srgb, var(--nbc-accent, AccentColor) 16%, transparent); outline: none; }
 .nbc-body { padding: 10px 12px 6px 52px; border-top: 1px solid color-mix(in srgb, CanvasText 12%, transparent); overflow-wrap: anywhere; }
 .nbc-body.limited { max-height: max(4.5em, var(--nbc-fit, calc(var(--nbc-max, 40vh) - 8rem))); overflow: hidden; }
 .nbc-body.limited.cut:not(.full) { mask-image: linear-gradient(to bottom, #000 calc(100% - 2.5em), transparent); }

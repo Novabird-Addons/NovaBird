@@ -3,7 +3,11 @@
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
 ## Unreleased (branch `testing`)
-Search 1.2.9 · Extension 1.12.0 · Conversation 0.15.3 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+Search 1.2.9 · Extension 1.12.1 · Conversation 0.15.4 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+
+### NovaBird-Extension 1.12.1
+- **Attachments in the right pane:** right-click opens a menu "Open" / "Save as …", double-click opens the attachment (a single click still goes to the message). Before, there was no way to open or save an attachment there. Saving uses Thunderbird's own attachment code (file picker, name and type of the attachment). Tested with 153.5.1 and 158.0.1: a PDF is saved as PDF.
+- **Thunderbird 158, AI summary:** `messageDisplay.getDisplayedMessage` does not answer in Thunderbird 158 (in the test also without any NovaBird add-on involved in the reading pane; 153 ESR answers at once), so the summary window would have waited forever. It now waits at most 0.5 s and otherwise takes the message selected in the mail tab. Unchanged on 153 ESR.
 
 ### NovaBird-Extension 1.12.0
 - **New settings tab "Online updates"**, off by default. Keeps all eight NovaBird packages (five add-ons, three themes) at the version of a channel ("Stable" = releases, "Testing" = pre-release) and installs missing ones, so a new PC only needs NovaBird-Extension installed by hand. Default "only show": at start (at most once a day) a notice lists the available updates and opens the tab; "Update all" installs them. Optional: install automatically. Per package a "Manage" box; missing themes are only installed when ticked, and the theme in use stays active. NovaBird-Extension updates itself last, then a restart is offered.
@@ -15,6 +19,10 @@ Search 1.2.9 · Extension 1.12.0 · Conversation 0.15.3 · unchanged: DB 1.2.5 �
 
 ### NovaBird-Search 1.2.9
 - **Thunderbird 158 (release channel):** after clearing the search with "✕" the message list stayed empty instead of showing the folder again, and changing the search word could leave the old results. Cause: since Thunderbird 158, `gDBView` in the mail tab is only a getter (taken from `gViewWrapper`); setting it to `null` throws there, so returning from the results view stopped before the folder was reopened. The value is now only set where it is still a variable (Thunderbird 153 ESR and older). Tested with 153.5 ESR and 158.0, table and card view.
+
+### NovaBird-Conversation 0.15.4
+- **Saving attachments:** right-clicking an attachment in the conversation view only showed the page menu, whose "Save" stores the whole mail as `.eml`. Attachments now have their own menu "Open" / "Save as …"; saving uses Thunderbird's attachment code (file picker with the attachment's name and type). Left-click still opens the attachment.
+- **Thunderbird 158:** the conversation view stayed at the hint "searching" and never appeared. `messageDisplay.getDisplayedMessage` waits for the reading pane's "MsgLoaded" event; in Thunderbird 158 it does not answer at all (in the test even without Conversation). Conversation now waits at most 400 ms and otherwise reads the displayed message directly from the reading pane. Tested with 153.5.1 and 158.0.1.
 
 ### NovaBird-Conversation 0.15.3
 - **Low screens:** the pinned newest message took as much height as its header, buttons and text needed, and the history below kept only 5rem, so little of it was readable. The setting "maximum height of the pinned message" (default 60 %) now limits the whole message card, not only its text; below 700 px view height it is at most 55 %. The text is shortened so that header, attachments, buttons and "Show full" fit into that height, and it fades out at the bottom when shortened. Measured with a 452 px reading pane: history 140 px instead of 97 px.

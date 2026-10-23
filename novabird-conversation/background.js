@@ -7,7 +7,7 @@ const MAX_MESSAGES = 120;
 const STRING_KEYS = [
   "messagesCount", "toNames", "newBadge", "reply", "replyAll", "more", "forward", "forwardAsAttachment",
   "editAsNew", "expandAll", "collapseAll", "showFull", "showLess", "quoteToggle", "remoteBlocked", "remoteShow", "remoteThis", "remoteAll", "remoteCancel", "remoteAsk", "remoteSender",
-  "aiSummary", "noText", "loading", "loadFailed", "history", "notDownloaded", "delete", "deleteTip", "originalBtn", "originalTip", "backToConversation", "spam", "spamTip", "notSpam", "notSpamTip", "copyAddress",
+  "aiSummary", "attOpen", "attSave", "noText", "loading", "loadFailed", "history", "notDownloaded", "delete", "deleteTip", "originalBtn", "originalTip", "backToConversation", "spam", "spamTip", "notSpam", "notSpamTip", "copyAddress",
 ];
 
 let settings = sanitizeSettings(null);
@@ -401,7 +401,12 @@ messenger.messageDisplay.onMessageDisplayed.addListener((tab, message) => {
 
 async function hello(tabId) {
   const tStart = Date.now();
-  let shown = await messenger.messageDisplay.getDisplayedMessage(tabId);
+  // Thunderbird wartet hier auf „MsgLoaded“ des Lesebereichs; unter 158 kam das im Test nicht, und die Ansicht blieb beim
+  // Hinweis „wird gesucht“ stehen. Daher höchstens 400 ms warten, sonst die Nachricht direkt aus dem Lesebereich lesen.
+  let shown = await Promise.race([
+    messenger.messageDisplay.getDisplayedMessage(tabId).catch(() => null),
+    new Promise(resolve => setTimeout(() => resolve(null), 400)),
+  ]);
   if (!shown) {
     // zugeklappter Faden: mehrere Nachrichten ausgewählt, der Lesebereich zeigt aber genau eine
     shown = await messenger.conversationView.getDisplayedMessage(tabId).catch(() => null);
@@ -502,6 +507,7 @@ async function runAction(raw, tabId) {
     case "forwardAsAttachment": return messenger.compose.beginForward(msg.id, "forwardAsAttachment");
     case "editAsNew": return messenger.compose.beginNew(msg.id);
     case "openAttachment": return messenger.messages.openAttachment(msg.id, msg.partName, tabId);
+    case "saveAttachment": return messenger.conversationView.saveAttachment(msg.id, String(msg.partName), String(msg.name || "attachment"), String(msg.contentType || ""));
     // in den Papierkorb (je nach Kontoeinstellung), nie endgültig löschen
     case "delete": {
       const result = await messenger.messages.delete([msg.id]);

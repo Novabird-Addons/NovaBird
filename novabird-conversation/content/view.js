@@ -358,6 +358,39 @@
 
   // ---------- Karten ----------
 
+  // kleines Menü an der Mausposition; schließt bei Klick daneben, Escape, Scrollen oder Verlassen des Fensters
+  function attachmentMenu(e, items) {
+    document.getElementById("nbc-menu")?.remove();
+    const menu = el("div");
+    menu.id = "nbc-menu";
+    menu.setAttribute("role", "menu");
+    const close = () => {
+      menu.remove();
+      document.removeEventListener("mousedown", outside, true);
+      document.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("blur", close);
+      window.removeEventListener("scroll", close, true);
+    };
+    const outside = ev => { if (!menu.contains(ev.target)) close(); };
+    const onKey = ev => { if (ev.key === "Escape") close(); };
+    for (const [label, fn] of items) {
+      const b = el("button", "nbc-menu-item", label);
+      b.type = "button";
+      b.setAttribute("role", "menuitem");
+      b.addEventListener("click", () => { close(); fn(); });
+      menu.append(b);
+    }
+    document.body.append(menu);
+    const r = menu.getBoundingClientRect();
+    menu.style.left = `${Math.max(4, Math.min(e.clientX, innerWidth - r.width - 4))}px`;
+    menu.style.top = `${Math.max(4, Math.min(e.clientY, innerHeight - r.height - 4))}px`;
+    document.addEventListener("mousedown", outside, true);
+    document.addEventListener("keydown", onKey, true);
+    window.addEventListener("blur", close);
+    window.addEventListener("scroll", close, true);
+    menu.querySelector("button")?.focus();
+  }
+
   function attachmentsNode(body) {
     const list = (body.attachments ?? []).filter(a => !a.inline);
     if (!list.length) return null;
@@ -368,6 +401,14 @@
       chip.append(document.createTextNode(`📎 ${a.name}`));
       if (a.size) chip.append(el("small", null, sizeText(a.size)));
       chip.addEventListener("click", () => send({ type: "action", action: "openAttachment", id: body.id, partName: a.partName }));
+      // Rechtsklick: eigenes Menü (sonst bietet Thunderbird nur „Seite speichern“ = ganze Mail als .eml)
+      chip.addEventListener("contextmenu", e => {
+        e.preventDefault();
+        attachmentMenu(e, [
+          [t("attOpen"), () => send({ type: "action", action: "openAttachment", id: body.id, partName: a.partName })],
+          [t("attSave"), () => send({ type: "action", action: "saveAttachment", id: body.id, partName: a.partName, name: a.name, contentType: a.contentType })],
+        ]);
+      });
       box.append(chip);
     }
     return box;

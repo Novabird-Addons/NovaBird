@@ -76,6 +76,25 @@ function showError(text) {
   $("err").textContent = text;
 }
 
+// Angezeigte Nachricht des Tabs. messageDisplay.getDisplayedMessage wartet auf das Laden des Lesebereichs; unter
+// Thunderbird 158 kam diese Antwort im Test nicht. Daher höchstens 500 ms warten, sonst im Mail-Tab die ausgewählte Nachricht nehmen.
+async function displayedMessage(tab) {
+  const pending = messenger.messageDisplay.getDisplayedMessage(tab.id).catch(() => null);
+  const shown = await Promise.race([pending, new Promise(resolve => setTimeout(() => resolve(undefined), 500))]);
+  if (shown !== undefined) {
+    return shown || null;
+  }
+  if (tab.type !== "mail") {
+    return (await pending) || null; // eigenes Nachrichtenfenster: keine Auswahl zum Ausweichen, weiter warten
+  }
+  try {
+    const sel = await messenger.mailTabs.getSelectedMessages(tab.id);
+    return sel?.messages?.length === 1 ? sel.messages[0] : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 async function run() {
   controller?.abort();
   controller = new AbortController();
@@ -103,7 +122,7 @@ async function run() {
       thread = await nbAI.threadText(ids, conf);
     } else {
       const [tab] = await messenger.tabs.query({ active: true, currentWindow: true });
-      message = tab && (await messenger.messageDisplay.getDisplayedMessage(tab.id));
+      message = tab && (await displayedMessage(tab));
       if (!message) {
         $("out").textContent = "";
         return showError(t.noMessage);
