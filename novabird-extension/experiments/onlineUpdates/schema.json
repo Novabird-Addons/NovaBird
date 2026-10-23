@@ -1,0 +1,12 @@
+[
+  {
+    "namespace": "onlineUpdates",
+    "functions": [
+      {"name": "fetchChannel", "type": "function", "async": true, "description": "Liest die Kanal-Datei (stable|testing) des Update-Repos: {channel, built, commit, addons:[{id, version, type, url, sha256, minApp, size}]}; nur gültige Einträge der acht NovaBird-IDs.", "parameters": [{"name": "channel", "type": "string"}]},
+      {"name": "getInstalled", "type": "function", "async": true, "description": "Installierte NovaBird-Add-ons: [{id, version, type, active, name}].", "parameters": []},
+      {"name": "install", "type": "function", "async": true, "description": "Installiert einen Eintrag der Kanal-Datei (Prüfsumme wird geprüft): {ok, version} oder {ok:false, error}.", "parameters": [{"name": "entry", "type": "object", "additionalProperties": true}]},
+      {"name": "appVersion", "type": "function", "async": true, "description": "Version von Thunderbird/Betterbird.", "parameters": []},
+      {"name": "restart", "type": "function", "async": true, "description": "Startet Thunderbird/Betterbird neu.", "parameters": []}
+    ]
+  }
+]

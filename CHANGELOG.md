@@ -3,7 +3,12 @@
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
 ## Unreleased (branch `testing`)
-Search 1.2.9 · Extension 1.11.0 · Conversation 0.15.3 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+Search 1.2.9 · Extension 1.12.0 · Conversation 0.15.3 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+
+### NovaBird-Extension 1.12.0
+- **New settings tab "Online updates"**, off by default. Keeps all eight NovaBird packages (five add-ons, three themes) at the version of a channel ("Stable" = releases, "Testing" = pre-release) and installs missing ones, so a new PC only needs NovaBird-Extension installed by hand. Default "only show": at start (at most once a day) a notice lists the available updates and opens the tab; "Update all" installs them. Optional: install automatically. Per package a "Manage" box; missing themes are only installed when ticked, and the theme in use stays active. NovaBird-Extension updates itself last, then a restart is offered.
+- Source: the separate repository `Novabird-Addons/Nova-Bird-Online-Updates` (channel files `channels/stable.json`, `channels/testing.json`; packages as release assets). Every package is checked against its SHA-256 checksum by Thunderbird before installing; only the eight NovaBird IDs and only addresses of that repository are accepted.
+- New script `tools/publish-updates.py stable|testing`: builds the set (same file lists as the build.sh scripts), creates the release in the update repository and writes the channel file (`--dry-run`, `--local` for tests). Tested with Thunderbird 153.5 and 158.0: install of missing packages, updates, self-update of the extension, wrong checksum and foreign address refused.
 
 ### NovaBird-Extension 1.11.0
 - **New settings tab "Screen Scaling (experimental)"**, off by default. Changes the scaling of the whole window (`layout.css.devPixelsPerPx`) automatically when the screen resolution changes, e.g. with changing remote (RDP) connections. Three profiles with their own percentage: 1080p (default 100 %), QHD/WQHD (125 %), 4K (150 %). The change is detected through window resize/focus events (debounced), not by polling. Turning it off restores the previous value of the preference.

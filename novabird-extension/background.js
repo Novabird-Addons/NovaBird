@@ -248,3 +248,41 @@ messenger.storage.onChanged.addListener(async changes => {
 nbStartSelfTest([() => messenger.messageList.selfTest(), () => messenger.novaContact.selfTest(), () => messenger.mailRules.selfTest(), () => messenger.mailStats.selfTest()]);
 
 messenger.mailRules.onCreateFromMessage.addListener(info => safe("Regel-Assistent öffnen", () => openRuleWizard(info)));
+
+// ---- Online-Updates (Reiter „Online-Updates“, standardmäßig aus) --------------------------------------------------------
+// Beim Start höchstens einmal in 20 Stunden: Kanal-Datei lesen; „nur anzeigen“ meldet die Updates, „automatisch“ installiert sie.
+const UPD_TEXT = {
+  de: { title: "NovaBird-Updates", avail: "Updates verfügbar: $1. Klicken zum Anzeigen.", auto: "Wird aktualisiert: $1. Danach Thunderbird neu starten." },
+  en: { title: "NovaBird updates", avail: "Updates available: $1. Click to show.", auto: "Updating: $1. Restart Thunderbird afterwards." },
+  fr: { title: "Mises à jour NovaBird", avail: "Mises à jour disponibles : $1. Cliquer pour afficher.", auto: "Mise à jour : $1. Redémarrez Thunderbird ensuite." },
+  es: { title: "Actualizaciones de NovaBird", avail: "Actualizaciones disponibles: $1. Haga clic para verlas.", auto: "Actualizando: $1. Reinicie Thunderbird después." },
+};
+const updText = () => UPD_TEXT[(messenger.i18n.getUILanguage() || "en").slice(0, 2).toLowerCase()] ?? UPD_TEXT.en;
+const UPD_NOTE = "novabird-updates";
+
+async function updatesOnStart() {
+  const s = await messenger.storage.local.get(nbUpdates.DEFAULTS);
+  if (!s.updatesEnabled || !s.updatesOnStart || Date.now() - (s.updatesLastCheck || 0) < 20 * 3600e3) {
+    return;
+  }
+  await messenger.storage.local.set({ updatesLastCheck: Date.now() });
+  const res = await nbUpdates.check(s.updatesChannel, s.updatesManaged);
+  const todo = nbUpdates.pending(res.rows);
+  if (!todo.length) {
+    return;
+  }
+  const names = todo.map(r => `${r.name} ${r.available}`).join(", ");
+  const tx = updText();
+  const auto = s.updatesMode === "auto";
+  await messenger.notifications.create(UPD_NOTE, { type: "basic", iconUrl: "icons/icon-96.png", title: tx.title, message: (auto ? tx.auto : tx.avail).replace("$1", names) });
+  if (auto) {
+    await nbUpdates.apply(todo);
+  }
+}
+
+messenger.notifications.onClicked.addListener(id => {
+  if (id === UPD_NOTE) {
+    messenger.runtime.openOptionsPage().catch(() => {});
+  }
+});
+setTimeout(() => updatesOnStart().catch(e => console.warn("NovaBird-Extension: Online-Updates", e)), 20000);
