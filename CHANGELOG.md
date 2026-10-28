@@ -2,7 +2,7 @@
 
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
-## Unreleased (branch `testing`)
+## 1.4.0 (2026-10-28)
 Search 1.2.10 · Extension 1.12.3 · Conversation 0.15.4 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 
 ### NovaBird-Extension 1.12.3
