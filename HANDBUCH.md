@@ -93,6 +93,9 @@ Nach **Senden** verschwindet das Verfassen-Fenster, unten im Hauptfenster läuft
 - **Farben und Schrift** (Einstellungen der Extension): mit einem NovaBird-Theme lässt sich jede Farbe des Hauptfensters ändern (hell und dunkel getrennt, eine Skizze zeigt den betroffenen Bereich); Schriftgrößen von Hauptfenster, Verfassen-Fenster, Einstellungsseiten und Nova-Contact in Prozent.
 - **KI-Zusammenfassung (standardmäßig aus):** „Mail zusammenfassen (KI)“ im Nachrichtenkopf und in Conversation, mit einem Sprachmodell deiner Wahl (siehe Datenschutz unten).
 - **Postfach:** Ordner, Nachrichten und Größe je Konto, die größten Ordner.
+- **Anhänge öffnen und speichern** aus der rechten Leiste und der Konversationsansicht: Rechtsklick → „Öffnen“ / „Speichern unter …“; in der rechten Leiste öffnet ein Doppelklick den Anhang.
+- **Screen Scaling (experimentell, standardmäßig aus):** passt die Skalierung des Fensters automatisch an, wenn sich die Bildschirmauflösung ändert, z. B. bei wechselnden Remoteverbindungen.
+- **Online-Updates (standardmäßig aus):** hält alle NovaBird-Pakete auf dem Stand des Kanals „Stabil“ oder „Testing“ und installiert fehlende nach (siehe Datenschutz unten).
 - Einstellungen, Konten und Add-ons-Manager im einheitlichen Stil; Farben vom Theme.
 
 ## 8. Themes
