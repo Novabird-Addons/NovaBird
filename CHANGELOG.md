@@ -3,7 +3,7 @@
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
 ## Unreleased (branch `testing`)
-Search 1.2.9 · Extension 1.12.1 · Conversation 0.15.4 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+Search 1.2.10 · Extension 1.12.1 · Conversation 0.15.4 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 
 ### NovaBird-Extension 1.12.1
 - **Attachments in the right pane:** right-click opens a menu "Open" / "Save as …", double-click opens the attachment (a single click still goes to the message). Before, there was no way to open or save an attachment there. Saving uses Thunderbird's own attachment code (file picker, name and type of the attachment). Tested with 153.5.1 and 158.0.1: a PDF is saved as PDF.
@@ -16,6 +16,9 @@ Search 1.2.9 · Extension 1.12.1 · Conversation 0.15.4 · unchanged: DB 1.2.5 �
 
 ### NovaBird-Extension 1.11.0
 - **New settings tab "Screen Scaling (experimental)"**, off by default. Changes the scaling of the whole window (`layout.css.devPixelsPerPx`) automatically when the screen resolution changes, e.g. with changing remote (RDP) connections. Three profiles with their own percentage: 1080p (default 100 %), QHD/WQHD (125 %), 4K (150 %). The change is detected through window resize/focus events (debounced), not by polling. Turning it off restores the previous value of the preference.
+
+### NovaBird-Search 1.2.10
+- **Smaller gap between folder name and search field:** the title block (folder name and message count) no longer has a minimum width (was 10.5em) and is as wide as its text; the search field takes the rest and adjusts its width when the name gets longer (e.g. "Search results"). Very long names are still cut with "…" at 35 % of the bar. Measured (153.5.1, Cobalt, "Posteingang"): gap from the end of the text to the search field 11 px instead of about 42 px.
 
 ### NovaBird-Search 1.2.9
 - **Thunderbird 158 (release channel):** after clearing the search with "✕" the message list stayed empty instead of showing the folder again, and changing the search word could leave the old results. Cause: since Thunderbird 158, `gDBView` in the mail tab is only a getter (taken from `gViewWrapper`); setting it to `null` throws there, so returning from the results view stopped before the folder was reopened. The value is now only set where it is still a variable (Thunderbird 153 ESR and older). Tested with 153.5 ESR and 158.0, table and card view.
