@@ -3,7 +3,10 @@
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
 ## Unreleased (branch `testing`)
-Search 1.2.10 · Extension 1.12.1 · Conversation 0.15.4 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+Search 1.2.10 · Extension 1.12.2 · Conversation 0.15.4 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+
+### NovaBird-Extension 1.12.2
+- **AI summary window, missing notes:** in all four languages the texts for "AI summary switched off", "message looks like instructions to AI systems" and "server refused the request (403)" were outside the language block, so the window showed an empty note in these cases. Fixed; the summary itself was not affected.
 
 ### NovaBird-Extension 1.12.1
 - **Attachments in the right pane:** right-click opens a menu "Open" / "Save as …", double-click opens the attachment (a single click still goes to the message). Before, there was no way to open or save an attachment there. Saving uses Thunderbird's own attachment code (file picker, name and type of the attachment). Tested with 153.5.1 and 158.0.1: a PDF is saved as PDF.
