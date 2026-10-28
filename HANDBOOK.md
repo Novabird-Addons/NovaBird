@@ -95,7 +95,7 @@ After **Send** the compose window disappears and a countdown runs at the bottom 
 - **Mailbox:** folders, messages and size per account, the largest folders.
 - **Open and save attachments** from the right pane and the Conversation view: right-click → "Open" / "Save as …"; in the right pane a double-click opens the attachment.
 - **Screen Scaling (experimental, off by default):** adjusts the scaling of the window automatically when the screen resolution changes, e.g. with changing remote desktop connections.
-- **Online updates (off by default):** keeps all NovaBird packages at the "Stable" or "Testing" channel and installs missing ones (see Privacy below).
+- **Online updates (beta, off by default):** keeps all NovaBird packages at the "Stable" or "Testing" channel and installs missing ones (see Privacy below).
 - Settings, accounts and the add-ons manager in the unified style; colors from the theme.
 
 ## 8. Themes

@@ -3,7 +3,10 @@
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
 ## Unreleased (branch `testing`)
-Search 1.2.10 · Extension 1.12.2 · Conversation 0.15.4 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+Search 1.2.10 · Extension 1.12.3 · Conversation 0.15.4 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+
+### NovaBird-Extension 1.12.3
+- **Online updates marked as beta** (tab "Online updates (beta)", still off by default) with a note in the tab: if anything goes wrong, install the packages by hand as before. Lab test with a local channel (Betterbird 153.5): updates offered and installed (Search, Conversation), missing add-on installed (DB, Send), package with a wrong checksum refused, entry with a foreign address ignored, themes that are not installed left alone.
 
 ### NovaBird-Extension 1.12.2
 - **AI summary window, missing notes:** in all four languages the texts for "AI summary switched off", "message looks like instructions to AI systems" and "server refused the request (403)" were outside the language block, so the window showed an empty note in these cases. Fixed; the summary itself was not affected.

@@ -95,7 +95,7 @@ Nach **Senden** verschwindet das Verfassen-Fenster, unten im Hauptfenster läuft
 - **Postfach:** Ordner, Nachrichten und Größe je Konto, die größten Ordner.
 - **Anhänge öffnen und speichern** aus der rechten Leiste und der Konversationsansicht: Rechtsklick → „Öffnen“ / „Speichern unter …“; in der rechten Leiste öffnet ein Doppelklick den Anhang.
 - **Screen Scaling (experimentell, standardmäßig aus):** passt die Skalierung des Fensters automatisch an, wenn sich die Bildschirmauflösung ändert, z. B. bei wechselnden Remoteverbindungen.
-- **Online-Updates (standardmäßig aus):** hält alle NovaBird-Pakete auf dem Stand des Kanals „Stabil“ oder „Testing“ und installiert fehlende nach (siehe Datenschutz unten).
+- **Online-Updates (Beta, standardmäßig aus):** hält alle NovaBird-Pakete auf dem Stand des Kanals „Stabil“ oder „Testing“ und installiert fehlende nach (siehe Datenschutz unten).
 - Einstellungen, Konten und Add-ons-Manager im einheitlichen Stil; Farben vom Theme.
 
 ## 8. Themes
