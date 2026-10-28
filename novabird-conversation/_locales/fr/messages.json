@@ -384,6 +384,12 @@
   "selfTest_noFlicker": {
     "message": "Masquer le volet de lecture lors du changement de message (l’original peut apparaître brièvement)"
   },
+  "attOpen": {
+    "message": "Ouvrir"
+  },
+  "attSave": {
+    "message": "Enregistrer sous …"
+  },
   "aiSummary": {
     "message": "Résumer (IA)"
   }

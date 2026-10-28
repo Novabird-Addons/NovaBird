@@ -2,6 +2,40 @@
 
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
+## 1.4.0 (2026-10-28)
+Search 1.2.10 · Extension 1.12.3 · Conversation 0.15.4 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+
+### NovaBird-Extension 1.12.3
+- **Online updates marked as beta** (tab "Online updates (beta)", still off by default) with a note in the tab: if anything goes wrong, install the packages by hand as before. Lab test with a local channel (Betterbird 153.5): updates offered and installed (Search, Conversation), missing add-on installed (DB, Send), package with a wrong checksum refused, entry with a foreign address ignored, themes that are not installed left alone.
+
+### NovaBird-Extension 1.12.2
+- **AI summary window, missing notes:** in all four languages the texts for "AI summary switched off", "message looks like instructions to AI systems" and "server refused the request (403)" were outside the language block, so the window showed an empty note in these cases. Fixed; the summary itself was not affected.
+
+### NovaBird-Extension 1.12.1
+- **Attachments in the right pane:** right-click opens a menu "Open" / "Save as …", double-click opens the attachment (a single click still goes to the message). Before, there was no way to open or save an attachment there. Saving uses Thunderbird's own attachment code (file picker, name and type of the attachment). Tested with 153.5.1 and 158.0.1: a PDF is saved as PDF.
+- **Thunderbird 158, AI summary:** `messageDisplay.getDisplayedMessage` does not answer in Thunderbird 158 (in the test also without any NovaBird add-on involved in the reading pane; 153 ESR answers at once), so the summary window would have waited forever. It now waits at most 0.5 s and otherwise takes the message selected in the mail tab. Unchanged on 153 ESR.
+
+### NovaBird-Extension 1.12.0
+- **New settings tab "Online updates"**, off by default. Keeps all eight NovaBird packages (five add-ons, three themes) at the version of a channel ("Stable" = releases, "Testing" = pre-release) and installs missing ones, so a new PC only needs NovaBird-Extension installed by hand. Default "only show": at start (at most once a day) a notice lists the available updates and opens the tab; "Update all" installs them. Optional: install automatically. Per package a "Manage" box; missing themes are only installed when ticked, and the theme in use stays active. NovaBird-Extension updates itself last, then a restart is offered.
+- Source: the separate repository `Novabird-Addons/Nova-Bird-Online-Updates` (channel files `channels/stable.json`, `channels/testing.json`; packages as release assets). Every package is checked against its SHA-256 checksum by Thunderbird before installing; only the eight NovaBird IDs and only addresses of that repository are accepted.
+- New script `tools/publish-updates.py stable|testing`: builds the set (same file lists as the build.sh scripts), creates the release in the update repository and writes the channel file (`--dry-run`, `--local` for tests). Tested with Thunderbird 153.5 and 158.0: install of missing packages, updates, self-update of the extension, wrong checksum and foreign address refused.
+
+### NovaBird-Extension 1.11.0
+- **New settings tab "Screen Scaling (experimental)"**, off by default. Changes the scaling of the whole window (`layout.css.devPixelsPerPx`) automatically when the screen resolution changes, e.g. with changing remote (RDP) connections. Three profiles with their own percentage: 1080p (default 100 %), QHD/WQHD (125 %), 4K (150 %). The change is detected through window resize/focus events (debounced), not by polling. Turning it off restores the previous value of the preference.
+
+### NovaBird-Search 1.2.10
+- **Smaller gap between folder name and search field:** the title block (folder name and message count) no longer has a minimum width (was 10.5em) and is as wide as its text; the search field takes the rest and adjusts its width when the name gets longer (e.g. "Search results"). Very long names are still cut with "…" at 35 % of the bar. Measured (153.5.1, Cobalt, "Posteingang"): gap from the end of the text to the search field 11 px instead of about 42 px.
+
+### NovaBird-Search 1.2.9
+- **Thunderbird 158 (release channel):** after clearing the search with "✕" the message list stayed empty instead of showing the folder again, and changing the search word could leave the old results. Cause: since Thunderbird 158, `gDBView` in the mail tab is only a getter (taken from `gViewWrapper`); setting it to `null` throws there, so returning from the results view stopped before the folder was reopened. The value is now only set where it is still a variable (Thunderbird 153 ESR and older). Tested with 153.5 ESR and 158.0, table and card view.
+
+### NovaBird-Conversation 0.15.4
+- **Saving attachments:** right-clicking an attachment in the conversation view only showed the page menu, whose "Save" stores the whole mail as `.eml`. Attachments now have their own menu "Open" / "Save as …"; saving uses Thunderbird's attachment code (file picker with the attachment's name and type). Left-click still opens the attachment.
+- **Thunderbird 158:** the conversation view stayed at the hint "searching" and never appeared. `messageDisplay.getDisplayedMessage` waits for the reading pane's "MsgLoaded" event; in Thunderbird 158 it does not answer at all (in the test even without Conversation). Conversation now waits at most 400 ms and otherwise reads the displayed message directly from the reading pane. Tested with 153.5.1 and 158.0.1.
+
+### NovaBird-Conversation 0.15.3
+- **Low screens:** the pinned newest message took as much height as its header, buttons and text needed, and the history below kept only 5rem, so little of it was readable. The setting "maximum height of the pinned message" (default 60 %) now limits the whole message card, not only its text; below 700 px view height it is at most 55 %. The text is shortened so that header, attachments, buttons and "Show full" fit into that height, and it fades out at the bottom when shortened. Measured with a 452 px reading pane: history 140 px instead of 97 px.
+
 ## 1.3.0 (2026-10-17)
 Search 1.2.8 · Extension 1.10.1 · Conversation 0.15.2 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 

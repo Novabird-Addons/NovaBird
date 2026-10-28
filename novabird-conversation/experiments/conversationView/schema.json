@@ -26,7 +26,12 @@
         "type": "function",
         "async": true,
         "description": "Lesebereich des Tabs wieder sichtbar machen (vor dem Laden einer anderen Mail versteckt, damit das Original nicht aufblitzt).",
-        "parameters": [{ "name": "tabId", "type": "integer" }]
+        "parameters": [
+          {
+            "name": "tabId",
+            "type": "integer"
+          }
+        ]
       },
       {
         "name": "getOtherConversations",
@@ -188,6 +193,30 @@
           {
             "name": "messageId",
             "type": "integer"
+          }
+        ]
+      },
+      {
+        "name": "saveAttachment",
+        "type": "function",
+        "async": true,
+        "description": "Speichert einen Anhang mit Dateiauswahl (wie die Anhangleiste); true, wenn gespeichert.",
+        "parameters": [
+          {
+            "name": "messageId",
+            "type": "integer"
+          },
+          {
+            "name": "partName",
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "contentType",
+            "type": "string"
           }
         ]
       }

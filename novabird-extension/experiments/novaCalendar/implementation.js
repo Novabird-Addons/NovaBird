@@ -354,6 +354,7 @@ function restoreMain(win) {
 // ---- Anhänge-Bereich unter dem Tagesplan ------------------------------------------------------
 
 const ATTACH_BOX_ID = "nbx-attach-box";
+const ATTACH_MENU_ID = "nbx-attach-menu";
 const ATTACH_SPLITTER_ID = "nbx-attach-splitter";
 const ATTACH_STYLE_ID = "nbx-attach-style";
 const ATTACH_HEIGHT_PREF = "extensions.novabird-extension.attachHeight";
@@ -387,7 +388,9 @@ const ATTACH_TEXT = () => ({
   loading: kpText("Anhänge werden gesucht …", "Looking for attachments …", "Recherche des pièces jointes …", "Buscando adjuntos …"),
   mail: kpText("Mail", "Mail", "Message", "Correo"),
   thread: kpText("Unterhaltung", "Conversation", "Conversation", "Conversación"),
-  goTo: kpText("Zur Nachricht springen", "Go to message", "Aller au message", "Ir al mensaje"),
+  goTo: kpText("Klick: zur Nachricht · Doppelklick: öffnen · Rechtsklick: speichern", "Click: go to message · Double-click: open · Right-click: save", "Clic : aller au message · Double-clic : ouvrir · Clic droit : enregistrer", "Clic: ir al mensaje · Doble clic: abrir · Clic derecho: guardar"),
+  open: kpText("Öffnen", "Open", "Ouvrir", "Abrir"),
+  save: kpText("Speichern unter …", "Save as …", "Enregistrer sous …", "Guardar como …"),
 });
 
 const HAS_ATTACHMENT_FLAG = 0x10000000; // nsMsgMessageFlags.Attachment
@@ -429,7 +432,7 @@ function hdrAttachments(hdr) {
             }
             const list = found
               .filter(a => a.name && !IGNORED_TYPES.test(a.contentType || ""))
-              .map(a => ({ name: a.name, size: a.size, contentType: a.contentType, url: a.url }));
+              .map(a => ({ name: a.name, size: a.size, contentType: a.contentType, url: a.url, partName: a.partName }));
             resolve(list);
           }, true);
         } catch (e) {
@@ -440,6 +443,63 @@ function hdrAttachments(hdr) {
     );
   }
   return attachCache.get(key);
+}
+
+// Anhang der rechten Leiste öffnen oder speichern: wie die Anhangleiste von Thunderbird (AttachmentInfo, mit Dateiauswahl beim Speichern)
+function attachmentInfo(a, hdr) {
+  const { AttachmentInfo } = ChromeUtils.importESModule("resource:///modules/AttachmentInfo.sys.mjs");
+  let url = a.url;
+  if (a.partName) {
+    try {
+      const { getMsgPartUrl } = ChromeUtils.importESModule("resource:///modules/ExtensionMessages.sys.mjs");
+      url = `${getMsgPartUrl(hdr, a.partName)}&filename=${encodeURIComponent(a.name)}`;
+    } catch (e) {
+      // ältere Versionen: Adresse aus MimeMessage
+    }
+  }
+  return new AttachmentInfo({
+    contentType: a.contentType || "application/octet-stream",
+    url,
+    name: a.name,
+    uri: hdr.folder ? hdr.folder.getUriForMsg(hdr) : hdr.getStringProperty("dummyMsgUrl"),
+    isExternalAttachment: false,
+    message: hdr,
+  });
+}
+
+function attachAction(win, a, hdr, what) {
+  try {
+    const info = attachmentInfo(a, hdr);
+    const done = what === "save" ? info.save(win.browsingContext) : info.open(win.browsingContext);
+    Promise.resolve(done).catch(e => console.error("NovaBird-Extension: Anhang", what, e));
+  } catch (e) {
+    console.error("NovaBird-Extension: Anhang", what, e);
+  }
+}
+
+// ein Kontextmenü je Fenster (Öffnen / Speichern unter …); das Ziel merkt sich das Menü beim Öffnen
+function attachMenu(win, t) {
+  const doc = win.document;
+  let menu = doc.getElementById(ATTACH_MENU_ID);
+  if (!menu) {
+    menu = doc.createXULElement("menupopup");
+    menu.id = ATTACH_MENU_ID;
+    for (const what of ["open", "save"]) {
+      const item = doc.createXULElement("menuitem");
+      item.dataset.what = what;
+      item.addEventListener("command", () => {
+        if (menu._target) {
+          attachAction(win, menu._target.a, menu._target.m, what);
+        }
+      });
+      menu.append(item);
+    }
+    (doc.getElementById("mainPopupSet") || doc.documentElement).append(menu);
+  }
+  for (const item of menu.children) {
+    item.setAttribute("label", t[item.dataset.what]);
+  }
+  return menu;
 }
 
 function currentHdr(win) {
@@ -660,6 +720,13 @@ async function renderAttach(win) {
     row.addEventListener("click", () => {
       try { about3?.selectMessage?.(m); } catch (e) { console.error(e); }
     });
+    row.addEventListener("dblclick", () => attachAction(win, a, m, "open"));
+    row.addEventListener("contextmenu", e => {
+      e.preventDefault();
+      const menu = attachMenu(win, t);
+      menu._target = { a, m };
+      menu.openPopupAtScreen(e.screenX, e.screenY, true);
+    });
     return row;
   });
   frame(`${t.title}${found.length ? ` (${found.length})` : ""}`, ...(rows.length ? rows : [h("div", { className: "sa-empty", textContent: t.none })]));
@@ -715,6 +782,7 @@ function teardownAttach(win) {
   doc.getElementById(ATTACH_BOX_ID)?.remove();
   doc.getElementById(ATTACH_SPLITTER_ID)?.remove();
   doc.getElementById(ATTACH_STYLE_ID)?.remove();
+  doc.getElementById(ATTACH_MENU_ID)?.remove();
 }
 
 // ---- Dialoge ---------------------------------------------------------------------------------

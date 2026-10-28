@@ -358,6 +358,39 @@
 
   // ---------- Karten ----------
 
+  // kleines Menü an der Mausposition; schließt bei Klick daneben, Escape, Scrollen oder Verlassen des Fensters
+  function attachmentMenu(e, items) {
+    document.getElementById("nbc-menu")?.remove();
+    const menu = el("div");
+    menu.id = "nbc-menu";
+    menu.setAttribute("role", "menu");
+    const close = () => {
+      menu.remove();
+      document.removeEventListener("mousedown", outside, true);
+      document.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("blur", close);
+      window.removeEventListener("scroll", close, true);
+    };
+    const outside = ev => { if (!menu.contains(ev.target)) close(); };
+    const onKey = ev => { if (ev.key === "Escape") close(); };
+    for (const [label, fn] of items) {
+      const b = el("button", "nbc-menu-item", label);
+      b.type = "button";
+      b.setAttribute("role", "menuitem");
+      b.addEventListener("click", () => { close(); fn(); });
+      menu.append(b);
+    }
+    document.body.append(menu);
+    const r = menu.getBoundingClientRect();
+    menu.style.left = `${Math.max(4, Math.min(e.clientX, innerWidth - r.width - 4))}px`;
+    menu.style.top = `${Math.max(4, Math.min(e.clientY, innerHeight - r.height - 4))}px`;
+    document.addEventListener("mousedown", outside, true);
+    document.addEventListener("keydown", onKey, true);
+    window.addEventListener("blur", close);
+    window.addEventListener("scroll", close, true);
+    menu.querySelector("button")?.focus();
+  }
+
   function attachmentsNode(body) {
     const list = (body.attachments ?? []).filter(a => !a.inline);
     if (!list.length) return null;
@@ -368,6 +401,14 @@
       chip.append(document.createTextNode(`📎 ${a.name}`));
       if (a.size) chip.append(el("small", null, sizeText(a.size)));
       chip.addEventListener("click", () => send({ type: "action", action: "openAttachment", id: body.id, partName: a.partName }));
+      // Rechtsklick: eigenes Menü (sonst bietet Thunderbird nur „Seite speichern“ = ganze Mail als .eml)
+      chip.addEventListener("contextmenu", e => {
+        e.preventDefault();
+        attachmentMenu(e, [
+          [t("attOpen"), () => send({ type: "action", action: "openAttachment", id: body.id, partName: a.partName })],
+          [t("attSave"), () => send({ type: "action", action: "saveAttachment", id: body.id, partName: a.partName, name: a.name, contentType: a.contentType })],
+        ]);
+      });
       box.append(chip);
     }
     return box;
@@ -550,7 +591,11 @@
       more.append(toggleBtn);
       e.slot.append(more);
       // Link nur zeigen, wenn der Text wirklich abgeschnitten ist; wächst der Inhalt später (nachgeladene Bilder), erscheint er von selbst
-      const check = () => { more.hidden = bodyBox.classList.contains("full") ? false : bodyBox.scrollHeight <= bodyBox.clientHeight + 2; };
+      const check = () => {
+        const cut = bodyBox.scrollHeight > bodyBox.clientHeight + 2;
+        bodyBox.classList.toggle("cut", cut);
+        more.hidden = bodyBox.classList.contains("full") ? false : !cut;
+      };
       more.hidden = true;
       requestAnimationFrame(check);
       if (window.ResizeObserver) new ResizeObserver(check).observe(content);
@@ -664,6 +709,33 @@
   // Beim Scrollen: die zugeklappte Zeile unter dem Mauszeiger klappt auf, wenn der Zeiger nach dem Scrollen kurz stehen bleibt
   // (autoOpenDelay ms ohne Scrollen und ohne Mausbewegung). autoOpenTrigger "hover": auch ohne vorheriges Scrollen, nur durch Verweilen. Reagiert nur auf Eingaben des Nutzers, nicht auf Verschiebungen
   // durch den Aufbau oder unser eigenes Aufklappen.
+  // Fixierte Nachricht: höchstens settings.maxHeight % der Höhe der Ansicht, auch bei niedrigem Fenster (sonst bleibt für den Verlauf
+  // nur ein Streifen). Der Text wird so weit gekürzt, dass Kopf, Anhänge, Knöpfe und „Ganze Nachricht“ in diese Höhe passen.
+  // --nbc-fit = Zielhöhe − (Karte − Textinhalt) hängt nicht von der Texthöhe selbst ab, daher keine Rückkopplung.
+  function fitPinned(root, pinned) {
+    const update = () => {
+      // niedrige Ansicht (unter 700 px): höchstens 55 %, damit der Verlauf lesbar bleibt
+      const pct = root.clientHeight < 700 ? Math.min(settings.maxHeight, 55) : settings.maxHeight;
+      if (root.style.getPropertyValue("--nbc-pin") !== `${pct}%`) root.style.setProperty("--nbc-pin", `${pct}%`);
+      const card = pinned.firstElementChild;
+      const body = card?.querySelector(".nbc-body.limited");
+      if (!body || body.classList.contains("full")) return;
+      const cs = getComputedStyle(body);
+      const content = body.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const target = (root.clientHeight * pct) / 100;
+      // scrollHeight des Bereichs: Karte samt Außenabstand
+      const fit = Math.floor(target - pinned.scrollHeight + content);
+      if (fit > 0 && String(fit) + "px" !== root.style.getPropertyValue("--nbc-fit")) root.style.setProperty("--nbc-fit", `${fit}px`);
+    };
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => update());
+      ro.observe(root);
+      ro.observe(pinned);
+      if (pinned.firstElementChild) ro.observe(pinned.firstElementChild); // Karte wächst beim Laden (Anhänge, Knöpfe)
+    }
+    requestAnimationFrame(update);
+  }
+
   function setupAutoOpen(scroller) {
     if (!settings.autoOpen || !scroller) return;
     let quietUntil = Date.now() + 800;
@@ -722,6 +794,7 @@
   if (settings.stickyHeader) root.classList.add("nbc-sticky");
   root.style.setProperty("--nbc-lines", String(settings.rowLines));
   root.style.setProperty("--nbc-max", `${settings.maxHeight}vh`);
+  root.style.setProperty("--nbc-pin", `${settings.maxHeight}%`);
   const SAFE_COLOR = /^(rgba?\([\d\s.,%/]+\)|color\(srgb [\d.\s/]+\)|#[0-9a-f]{6})$/i;
   for (const [key, prop] of [["accent", "--nbc-accent"], ["border", "--nbc-border"], ["bg", "--nbc-tint"]]) {
     if (typeof data.theme?.[key] === "string" && SAFE_COLOR.test(data.theme[key])) root.style.setProperty(prop, data.theme[key]);
@@ -756,6 +829,7 @@
     if (ordered.length > 1) history.append(el("div", "nbc-label", t("history")));
     for (const m of ordered) if (m !== pinnedMsg) history.append(cards.get(m.id));
     root.append(pinned, sep(), history);
+    fitPinned(root, pinned);
   } else {
     const list = el("div", "nbc-list");
     ordered.forEach((m, i) => {

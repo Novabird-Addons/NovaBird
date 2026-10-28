@@ -1,0 +1,26 @@
+[
+  {
+    "namespace": "screenScale",
+    "functions": [
+      {
+        "name": "setConfig",
+        "type": "function",
+        "async": true,
+        "description": "Schaltet die Skalierung nach Bildschirmauflösung ein oder aus; fhd/qhd/uhd = Skalierung in Prozent für 1080p, QHD und 4K.",
+        "parameters": [
+          {"name": "enabled", "type": "boolean"},
+          {"name": "fhd", "type": "number"},
+          {"name": "qhd", "type": "number"},
+          {"name": "uhd", "type": "number"}
+        ]
+      },
+      {
+        "name": "getInfo",
+        "type": "function",
+        "async": true,
+        "description": "Erkannte Auflösung in Gerätepixeln: {width, height, profile, scale}; scale = aktuell eingestellte Skalierung in Prozent.",
+        "parameters": []
+      }
+    ]
+  }
+]

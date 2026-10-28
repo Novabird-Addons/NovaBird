@@ -377,6 +377,26 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
             return null;
           }
         },
+        // Anhang speichern wie die Anhangleiste von Thunderbird (Dateiauswahl, Name und Typ des Anhangs). Rechtsklick auf einen
+        // Anhang in der Konversation bot sonst nur „Seite speichern“ (die ganze Mail als .eml).
+        async saveAttachment(messageId, partName, name, contentType) {
+          const hdr = context.extension.messageManager.get(messageId);
+          if (!hdr || !/^[\d.]+$/.test(partName)) {
+            return false;
+          }
+          const { AttachmentInfo } = ChromeUtils.importESModule("resource:///modules/AttachmentInfo.sys.mjs");
+          const { getMsgPartUrl } = ChromeUtils.importESModule("resource:///modules/ExtensionMessages.sys.mjs");
+          const info = new AttachmentInfo({
+            contentType: contentType || "application/octet-stream",
+            url: `${getMsgPartUrl(hdr, partName)}&filename=${encodeURIComponent(name)}`,
+            name,
+            uri: hdr.folder ? hdr.folder.getUriForMsg(hdr) : hdr.getStringProperty("dummyMsgUrl"),
+            isExternalAttachment: false,
+            message: hdr,
+          });
+          const win = Services.wm.getMostRecentWindow("mail:3pane");
+          return Boolean(await info.save(win.browsingContext));
+        },
         async getMessageId(headerMessageId, accountId, path) {
           try {
             const folder = context.extension.folderManager.get(accountId, path);

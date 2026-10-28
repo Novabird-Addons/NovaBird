@@ -384,6 +384,12 @@
   "selfTest_noFlicker": {
     "message": "Ocultar el panel de lectura al cambiar de mensaje (el original puede aparecer un instante)"
   },
+  "attOpen": {
+    "message": "Abrir"
+  },
+  "attSave": {
+    "message": "Guardar como …"
+  },
   "aiSummary": {
     "message": "Resumir (IA)"
   }

@@ -155,8 +155,9 @@ tr.nbs-newest td:first-of-type {
 #folderTree:has(li.nbs-shared)::before { display: none; }
 #folderTree li.nbs-shared-first { padding-top: 4px; }
 #folderTree li.nbs-shared-last { border-bottom: 1px solid var(--layout-border-0, color-mix(in srgb, currentColor 25%, transparent)); box-shadow: 0 2px 3px -2px rgba(0, 0, 0, 0.35); }
-/* Titelbereich links (Ordnername + Anzahl) hat eine feste Mindestbreite: sonst wird die Leiste beim Wechsel von „Posteingang“ zu „Suchergebnisse“ verdrängt und springt. */
-.list-header-bar-container-start { min-width: 10.5em; max-width: 35%; } /* em: wächst mit der Schrift (feste px ließen unter Windows eine große Lücke zum Suchfeld) */
+/* Titelbereich links (Ordnername + Anzahl) so breit wie sein Inhalt: das Suchfeld rückt nah heran und passt seine Breite an, wenn
+   der Name länger wird (z. B. „Suchergebnisse“). Sehr lange Namen höchstens 35 % breit, dann mit „…“ gekürzt. */
+.list-header-bar-container-start { min-width: 0; max-width: 35%; }
 /* langer Ordnername: mit „…“ kürzen, das Suchfeld behält seine Mindestbreite */
 .list-header-bar-container-start #threadPaneFolderName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 #${ROOT_ID} {
@@ -377,7 +378,12 @@ function leaveSyntheticView(cw) {
   } catch (e) {
     dbg("close synthetic view failed", String(e));
   }
-  cw.gDBView = null;
+  // Bis Thunderbird 153 eine eigene Variable; ab 158 nur ein Getter (gViewWrapper.dbView), eine Zuweisung wirft dort
+  // einen Fehler und die Ordneransicht würde nicht mehr geöffnet.
+  const dbView = Object.getOwnPropertyDescriptor(cw, "gDBView");
+  if (!dbView || dbView.writable || dbView.set) {
+    cw.gDBView = null;
+  }
   cw.gViewWrapper = null;
   try {
     cw.threadTree.view = null;

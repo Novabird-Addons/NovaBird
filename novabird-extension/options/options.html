@@ -34,7 +34,16 @@
     .st-top .sz { text-align: end; }
     h4.st-h { margin: 18px 0 8px; }
     .ai-prompt { white-space: pre-wrap; user-select: text; padding: 10px 14px; border-radius: 8px; background: color-mix(in srgb, currentColor 6%, transparent); font: inherit; font-size: .92em; line-height: 1.5; max-width: 52em; }
-    #aiBody.off { opacity: .55; }
+    #aiBody.off, #screenBody.off, #updBody.off { opacity: .55; }
+    .upd-table { border-collapse: collapse; margin: 10px 0 6px; min-width: 34em; }
+    .upd-table th, .upd-table td { text-align: start; padding: 5px 12px 5px 0; border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+    .upd-table th { font-weight: 600; font-size: .9em; color: color-mix(in srgb, currentColor 70%, transparent); }
+    .upd-table td.c { text-align: center; }
+    .upd-st { font-size: .85em; padding: 1px 8px; border-radius: 99px; background: color-mix(in srgb, currentColor 10%, transparent); white-space: nowrap; }
+    .upd-st.update, .upd-st.missing { background: color-mix(in srgb, #2F6BD8 22%, transparent); }
+    .upd-st.incompatible { background: color-mix(in srgb, #D85A30 25%, transparent); }
+    .upd-btns { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+    #updLog { white-space: pre-wrap; }
     .ai-more { margin: 18px 0 8px; }
     .ai-more summary { cursor: pointer; }
     .ai-more summary b { font-size: 1.05em; }
@@ -127,6 +136,8 @@
     <button type="button" data-tab="rulesTab" id="tabRules"></button>
     <button type="button" data-tab="aiTab" id="tabAi"></button>
     <button type="button" data-tab="statsTab" id="tabStats"></button>
+    <button type="button" data-tab="screenTab" id="tabScreen"></button>
+    <button type="button" data-tab="updatesTab" id="tabUpdates"></button>
   </nav>
 
   <section id="calendar" hidden>
@@ -306,10 +317,61 @@
     </div>
   </section>
 
+  <section id="screenTab" hidden>
+    <h3 id="screenTitle"></h3>
+    <p id="screenDesc" class="st-sub"></p>
+    <label><input type="checkbox" id="screenEnabled"> <span id="screenEnableLabel"></span></label>
+    <div id="screenBody">
+    <div class="ai-grid">
+      <label for="screenFhd" id="screenFhdLabel"></label>
+      <div><input type="number" id="screenFhd" min="50" max="400" step="5" style="width:5em"> %</div>
+      <label for="screenQhd" id="screenQhdLabel"></label>
+      <div><input type="number" id="screenQhd" min="50" max="400" step="5" style="width:5em"> %</div>
+      <label for="screenUhd" id="screenUhdLabel"></label>
+      <div><input type="number" id="screenUhd" min="50" max="400" step="5" style="width:5em"> %</div>
+    </div>
+    <p id="screenInfo" class="st-sub"></p>
+    <p id="screenNote" class="st-sub"></p>
+    </div>
+  </section>
+
+  <section id="updatesTab" hidden>
+    <h3 id="updTitle"></h3>
+    <p id="updDesc" class="st-sub"></p>
+    <label><input type="checkbox" id="updEnabledBox"> <span id="updEnable"></span></label>
+    <div id="updBody">
+      <div class="ai-grid">
+        <label for="updChannelSel" id="updChannel"></label>
+        <select id="updChannelSel"><option value="stable" id="updStable"></option><option value="testing" id="updTesting"></option></select>
+        <span id="updMode"></span>
+        <div>
+          <label style="margin:2px 0"><input type="radio" name="updMode" value="show"> <span id="updModeShow"></span></label>
+          <label style="margin:2px 0"><input type="radio" name="updMode" value="auto"> <span id="updModeAuto"></span></label>
+        </div>
+      </div>
+      <label><input type="checkbox" id="updOnStartBox"> <span id="updOnStart"></span></label>
+      <div class="upd-btns">
+        <button type="button" id="updCheck"></button>
+        <button type="button" id="updApply" hidden></button>
+        <button type="button" id="updDowngrade" hidden></button>
+        <button type="button" id="updRestart" hidden></button>
+      </div>
+      <p id="updInfo" class="st-sub"></p>
+      <table class="upd-table" id="updTable" hidden>
+        <thead><tr><th id="updColName"></th><th id="updColInst"></th><th id="updColAvail"></th><th id="updColState"></th><th id="updColManage"></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p id="updLog" class="st-sub"></p>
+      <p id="updThemeNote" class="st-sub"></p>
+    </div>
+  </section>
+
   <p id="hint"></p>
   <script src="../shared/selftest-ui.js"></script>
   <script src="../ai/ai.js"></script>
   <script src="options.js"></script>
   <script src="looks.js"></script>
+  <script src="../updates/updates.js"></script>
+  <script src="updtab.js"></script>
 </body>
 </html>

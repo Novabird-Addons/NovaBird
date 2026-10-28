@@ -93,6 +93,9 @@ After **Send** the compose window disappears and a countdown runs at the bottom 
 - **Colors and fonts** (Extension settings): with a NovaBird theme every main-window color can be changed (light and dark separately, a sketch shows the affected area); font sizes of the main window, compose window, settings pages and Nova-Contact in percent.
 - **AI summary (off by default):** "Summarise mail (AI)" in the message header and in Conversation, with a language model of your choice (see Privacy below).
 - **Mailbox:** folders, messages and size per account, the largest folders.
+- **Open and save attachments** from the right pane and the Conversation view: right-click → "Open" / "Save as …"; in the right pane a double-click opens the attachment.
+- **Screen Scaling (experimental, off by default):** adjusts the scaling of the window automatically when the screen resolution changes, e.g. with changing remote desktop connections.
+- **Online updates (beta, off by default):** keeps all NovaBird packages at the "Stable" or "Testing" channel and installs missing ones (see Privacy below).
 - Settings, accounts and the add-ons manager in the unified style; colors from the theme.
 
 ## 8. Themes
@@ -102,6 +105,7 @@ NovaBird-Sand (calm, warm), -Cobalt (compact, strong), -Springlight (light, fres
 ## 9. Privacy
 
 - Everything runs **locally**. No add-on uses the network (only Conversation loads external images, and only after your click). One optional exception: the **AI summary** of NovaBird-Extension (Settings → NovaBird → Extension → AI) is off until you switch it on in the settings and enter the address of a language-model server (Ollama or an OpenAI-compatible service). Only when you click "Summarise mail (AI)" does the text of that message go to that address. With Ollama on your own computer it does not leave your computer; with a remote server it does, and the settings page says so. Credentials are stored unencrypted in the add-on's profile data.
+- Second optional exception: **Online updates** of NovaBird-Extension (Settings → NovaBird → Extension → Online updates), off by default. When on, the extension asks GitHub (repository Nova-Bird-Online-Updates) for new versions of the NovaBird packages, at start at most once a day and when you click "Check now". Only the usual web request goes out, no data from Thunderbird; every package is checked against its SHA-256 checksum before it is installed.
 - The **search index** sits unencrypted in your profile folder (`novabird-db/index.sqlite`) and contains mail text and attachment names, like Betterbird's own index. If you back up your profile or do not encrypt your disk, the mail text is included. NovaBird-DB → "Delete index" removes it.
 - NovaBird-DB keeps confirmed search queries **locally** (to improve the parser later; nothing leaves your computer). You can switch this off and clear it under NovaBird-DB → "Search log".
 

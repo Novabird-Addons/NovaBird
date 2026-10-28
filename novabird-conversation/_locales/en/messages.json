@@ -384,6 +384,12 @@
   "selfTest_noFlicker": {
     "message": "Hiding the reading pane while switching messages (the original may flash briefly)"
   },
+  "attOpen": {
+    "message": "Open"
+  },
+  "attSave": {
+    "message": "Save as …"
+  },
   "aiSummary": {
     "message": "Summarise (AI)"
   }

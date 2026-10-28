@@ -384,6 +384,12 @@
   "selfTest_noFlicker": {
     "message": "Lesebereich beim Wechsel der Nachricht verbergen (das Original kann kurz aufblitzen)"
   },
+  "attOpen": {
+    "message": "Öffnen"
+  },
+  "attSave": {
+    "message": "Speichern unter …"
+  },
   "aiSummary": {
     "message": "Zusammenfassen (KI)"
   }
