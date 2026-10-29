@@ -3,6 +3,9 @@
  *  ordnet sie 1080p, QHD oder 4K zu und setzt layout.css.devPixelsPerPx entsprechend. Ereignisgesteuert, kein Timer-Polling:
  *  Wechselt bei einer Remote-Verbindung die Auflösung, ändert sich die Fenstergröße ("resize"); beim erneuten Verbinden kommt
  *  zusätzlich "focus". Der ursprüngliche Wert der Einstellung wird gesichert und beim Ausschalten wiederhergestellt.
+ *  Die Aufteilung des Hauptfensters (Breite des Ordnerbereichs, Breite oder Höhe des Lesebereichs) speichert Thunderbird in
+ *  CSS-Pixeln; sie würde beim Umskalieren mitwachsen oder schrumpfen. Daher werden ihre Anteile am Fensterinhalt gemerkt und
+ *  nach einer Änderung der Skalierung wiederhergestellt (grob, ohne Mindestbreiten zu berücksichtigen).
  * In einer IIFE gekapselt, weil alle Experimente dieses Add-ons einen globalen Scope teilen.
  */
 "use strict";
@@ -17,9 +20,14 @@ const PREF = "layout.css.devPixelsPerPx";
 const PREF_ORIG = "extensions.novabird.screenScale.orig"; // Wert vor unserer ersten Änderung ("" = Standard)
 const PREF_SET = "extensions.novabird.screenScale.set"; // zuletzt von uns gesetzter Wert
 const DEBOUNCE_MS = 600;
+const RELAYOUT_MS = 300; // Wartezeit nach dem Umskalieren, bis das Fenster neu aufgebaut ist
+// Trenner im Mail-Tab und ihr Eintrag im xulStore (wie in Thunderbirds pane-layout.mjs)
+const SPLITTERS = { folderPaneSplitter: "folderPaneBox", messagePaneSplitter: "messagepaneboxwrapper" };
+const STORE_URL = "chrome://messenger/content/messenger.xhtml";
 
 let cfg = { enabled: false, fhd: 100, qhd: 125, uhd: 150 };
 const windows = new Map(); // Fenster -> { onChange, timer }
+const shares = new WeakMap(); // paneLayout (about:3pane) -> { splitterId: { dim, share } }
 
 // Auflösung in Gerätepixeln: die Bildschirmverwaltung kennt sie unabhängig von devPixelsPerPx (window.screen rechnet in CSS-Pixeln)
 function measure(win) {
@@ -46,33 +54,116 @@ function currentPct() {
   return v > 0 ? Math.round(v * 100) : 0; // 0 = Systemstandard
 }
 
+// liefert true, wenn sich der Wert geändert hat
 function setPct(pct) {
   const value = String(pct / 100);
   if (!Services.prefs.prefHasUserValue(PREF_SET) && !Services.prefs.prefHasUserValue(PREF_ORIG)) {
     Services.prefs.setCharPref(PREF_ORIG, Services.prefs.prefHasUserValue(PREF) ? Services.prefs.getCharPref(PREF) : "");
   }
-  if (Services.prefs.getCharPref(PREF, "-1") !== value) {
+  const changed = Services.prefs.getCharPref(PREF, "-1") !== value;
+  if (changed) {
     Services.prefs.setCharPref(PREF, value);
   }
   Services.prefs.setCharPref(PREF_SET, value);
+  return changed;
 }
 
+// liefert true, wenn die Skalierung zurückgesetzt wurde
 function restore() {
-  if (!Services.prefs.prefHasUserValue(PREF_ORIG)) return;
+  if (!Services.prefs.prefHasUserValue(PREF_ORIG)) return false;
   const orig = Services.prefs.getCharPref(PREF_ORIG);
+  let changed = false;
   // nur zurücksetzen, wenn der Wert noch von uns stammt; hat der Nutzer ihn inzwischen selbst geändert, bleibt er
   if (Services.prefs.getCharPref(PREF, "") === Services.prefs.getCharPref(PREF_SET, "")) {
+    changed = Services.prefs.getCharPref(PREF, "") !== orig;
     if (orig) Services.prefs.setCharPref(PREF, orig); else Services.prefs.clearUserPref(PREF);
   }
   Services.prefs.clearUserPref(PREF_ORIG);
   Services.prefs.clearUserPref(PREF_SET);
+  return changed;
+}
+
+// paneLayout-Elemente aller Mail-Tabs eines Hauptfensters
+function paneLayouts(win) {
+  const tabmail = win.document.getElementById("tabmail");
+  return (tabmail?.tabInfo || [])
+    .filter(tab => tab.mode?.name === "mail3PaneTab")
+    .map(tab => tab.chromeBrowser?.contentDocument?.getElementById("paneLayout"))
+    .filter(Boolean);
+}
+
+function splitterDim(splitter) {
+  return splitter.resizeDirection === "vertical" ? "height" : "width";
+}
+
+// Größe des Fensterinhalts; Tabs im Hintergrund haben keine Maße, daher die des sichtbaren Tabs für alle
+function layoutSize(layouts) {
+  for (const layout of layouts) {
+    const rect = layout.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) return rect;
+  }
+  return null;
+}
+
+// Anteile merken; onlyMissing: nur für Tabs, die noch keine haben (vor dem ersten Umskalieren)
+function rememberShares(win, onlyMissing = false) {
+  const layouts = paneLayouts(win);
+  const size = layoutSize(layouts);
+  if (!size) return;
+  for (const layout of layouts) {
+    if (onlyMissing && shares.has(layout)) continue;
+    const entry = {};
+    for (const id of Object.keys(SPLITTERS)) {
+      const splitter = layout.querySelector("#" + id);
+      if (!splitter) continue;
+      const dim = splitterDim(splitter);
+      const value = Number(splitter[dim]);
+      if (value > 0) entry[id] = { dim, share: value / size[dim] };
+    }
+    shares.set(layout, entry);
+  }
+}
+
+function applyShares(win) {
+  const layouts = paneLayouts(win);
+  const size = layoutSize(layouts);
+  if (!size) return;
+  for (const layout of layouts) {
+    for (const [id, { dim, share }] of Object.entries(shares.get(layout) || {})) {
+      try {
+        const splitter = layout.querySelector("#" + id);
+        if (!splitter || splitterDim(splitter) !== dim) continue; // Ansicht inzwischen gewechselt
+        const value = Math.round(share * size[dim]);
+        splitter[dim] = value;
+        // wie nach dem Ziehen mit der Maus speichern, damit der Wert beim nächsten Start gilt
+        Services.xulStore.setValue(STORE_URL, SPLITTERS[id], dim, String(value));
+      } catch (e) {
+        console.error("Screen Scaling: Aufteilung", id, e);
+      }
+    }
+  }
+}
+
+function followLayout(wins) {
+  for (const win of wins) {
+    win.setTimeout(() => {
+      try { applyShares(win); } catch (e) { console.error("Screen Scaling: Aufteilung", e); }
+    }, RELAYOUT_MS);
+  }
 }
 
 function evaluate(win) {
   if (!cfg.enabled) return;
   const { width } = measure(win);
   const pct = Number(cfg[profileOf(width)]);
-  if (pct >= 50 && pct <= 400) setPct(pct);
+  if (!(pct >= 50 && pct <= 400)) return;
+  try {
+    // Anteile stammen aus dem letzten ruhigen Zustand; Tabs ohne gemerkte Anteile (erstes Einschalten) jetzt erfassen
+    for (const w of windows.keys()) rememberShares(w, pct !== currentPct());
+  } catch (e) {
+    console.error("Screen Scaling: Aufteilung", e);
+  }
+  if (setPct(pct)) followLayout(windows.keys());
 }
 
 function hook(win) {
@@ -106,8 +197,9 @@ function start() {
 
 function stop() {
   ExtensionSupport.unregisterWindowListener(LISTENER);
-  for (const win of [...windows.keys()]) unhook(win);
-  restore();
+  const wins = [...windows.keys()];
+  for (const win of wins) unhook(win);
+  if (restore()) followLayout(wins);
 }
 
 let running = false;

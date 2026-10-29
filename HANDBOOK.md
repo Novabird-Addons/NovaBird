@@ -94,7 +94,7 @@ After **Send** the compose window disappears and a countdown runs at the bottom 
 - **AI summary (off by default):** "Summarise mail (AI)" in the message header and in Conversation, with a language model of your choice (see Privacy below).
 - **Mailbox:** folders, messages and size per account, the largest folders.
 - **Open and save attachments** from the right pane and the Conversation view: right-click → "Open" / "Save as …"; in the right pane a double-click opens the attachment.
-- **Screen Scaling (experimental, off by default):** adjusts the scaling of the window automatically when the screen resolution changes, e.g. with changing remote desktop connections.
+- **Screen Scaling (experimental, off by default):** adjusts the scaling of the window automatically when the screen resolution changes, e.g. with changing remote desktop connections. The layout of the main window (folder pane, message pane) roughly keeps its proportions.
 - **Online updates (beta, off by default):** keeps all NovaBird packages at the "Stable" or "Testing" channel and installs missing ones (see Privacy below).
 - Settings, accounts and the add-ons manager in the unified style; colors from the theme.
 

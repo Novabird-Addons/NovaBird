@@ -2,6 +2,12 @@
 
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
+## Unreleased (branch `testing`)
+Extension 1.12.4 · unchanged: Search 1.2.10 · Conversation 0.15.4 · DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+
+### NovaBird-Extension 1.12.4
+- **Screen Scaling keeps the window layout:** Thunderbird stores the width of the folder pane and the width or height of the message pane as fixed sizes, so after a change of scaling they took a larger (scaling up) or smaller (scaling down) part of the window. Screen Scaling now remembers their share of the window and restores it after the scaling has changed (also when switching it off), and saves the new sizes for the next start. Rough: minimum widths are not taken into account. Tested with 153.6.0 and 159.0 in the wide and the standard view: folder pane 300 of 1255 at 100 %, 199 of 832 at 150 %, 243 of 1014 at 125 % (24 % each).
+
 ## 1.4.0 (2026-10-28)
 Search 1.2.10 · Extension 1.12.3 · Conversation 0.15.4 · unchanged: DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 
