@@ -14,10 +14,8 @@ const { AddonManager } = ChromeUtils.importESModule("resource://gre/modules/Addo
 
 const REPO = "Novabird-Addons/Nova-Bird-Online-Updates";
 const CHANNELS = ["stable", "testing"];
-const IDS = [
-  "novabird-extension@novabird", "novabird-search@novabird", "novabird-conversation@novabird", "novabird-db@novabird",
-  "novabird-send@novabird", "novabird-t-sand@novabird", "novabird-t-cobalt@novabird", "novabird-t-springlight@novabird",
-];
+// Ab NovaBird 2.0 vier Add-ons: Search und DB sind eins (ID von DB), die Themes stecken in der Extension
+const IDS = ["novabird-extension@novabird", "novabird-db@novabird", "novabird-conversation@novabird", "novabird-send@novabird"];
 const TEST_PREF = "extensions.novabird.updates.testBase";
 
 function bases() {

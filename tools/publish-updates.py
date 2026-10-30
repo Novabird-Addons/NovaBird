@@ -14,8 +14,9 @@ import argparse, base64, datetime, hashlib, json, os, re, shlex, shutil, subproc
 
 REPO_UPDATES = "Novabird-Addons/Nova-Bird-Online-Updates"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ADDONS = ["novabird-extension", "novabird-search", "novabird-conversation", "novabird-db", "novabird-send"]
-THEMES = ["novabird-t-sand", "novabird-t-cobalt", "novabird-t-springlight"]
+# Ab NovaBird 2.0: vier Add-ons. Die Themes stecken in der Extension, NovaBird-Search enthält den Index (ID novabird-db@novabird).
+ADDONS = ["novabird-extension", "novabird-search", "novabird-conversation", "novabird-send"]
+THEMES_IN_EXTENSION = ["sand", "cobalt", "springlight"]
 
 
 def git(*args):
@@ -43,6 +44,11 @@ def manifest(path):
 
 def build_addon(name, out_dir):
     src = os.path.join(ROOT, name)
+    if name == "novabird-extension":
+        for t in THEMES_IN_EXTENSION:  # wie build.sh: theme.css aus den Quellen hell/dunkel
+            subprocess.run([sys.executable, os.path.join(src, "themes", "tools", "build-theme.py"), t], check=True, stdout=subprocess.DEVNULL)
+    if name == "novabird-search":  # wie build.sh: Laufzeit der semantischen Suche prüfen bzw. holen (nicht in Git)
+        subprocess.run([sys.executable, os.path.join(ROOT, "tools", "vendor-semantic.py")], check=True, stdout=subprocess.DEVNULL)
     with open(os.path.join(src, "build.sh"), encoding="utf-8") as f:
         sh = f.read()
     m = manifest(src)
@@ -56,23 +62,6 @@ def build_addon(name, out_dir):
             for rel in shlex.split(shared.group(1)):
                 add(z, ROOT, rel)
     return out, m, "extension"
-
-
-def build_theme(name, out_dir):
-    tdir = os.path.join(ROOT, "novabird-themes")
-    subprocess.run([sys.executable, os.path.join(tdir, "tools", "build-theme.py"), name], check=True, stdout=subprocess.DEVNULL)
-    src = os.path.join(tdir, name)
-    m = manifest(src)
-    out = os.path.join(out_dir, f"{name}-{m['version']}.xpi")
-    files = ["manifest.json", "theme.css", "_locales"]
-    if os.path.isdir(os.path.join(src, "icons")):
-        files.append("icons")
-    if os.path.isfile(os.path.join(src, "icon.svg")):
-        files.append("icon.svg")
-    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
-        for rel in files:
-            add(z, src, rel)
-    return out, m, "theme"
 
 
 def sha256(path):
@@ -109,7 +98,7 @@ def main():
     tag = f"{a.channel}-{day}-{commit}"
     out_dir = a.local or tempfile.mkdtemp(prefix="novabird-updates-")
     os.makedirs(out_dir, exist_ok=True)
-    built = [build_addon(n, out_dir) for n in ADDONS] + [build_theme(n, out_dir) for n in THEMES]
+    built = [build_addon(n, out_dir) for n in ADDONS]
 
     if a.local:
         base = (a.base_url or "http://127.0.0.1:8791/").rstrip("/") + "/"

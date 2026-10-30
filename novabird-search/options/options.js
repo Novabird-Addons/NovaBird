@@ -72,7 +72,7 @@ messenger.storage.local.get(SETTINGS_KEY).then(stored => {
   }
 });
 
-// Status des NovaBird-DB anzeigen (Ping an das andere Add-on)
+// Status des eigenen Suchindex anzeigen (Reiter „Index“ zeigt mehr)
 async function showDbState() {
   const el = document.getElementById("dbState");
   const t = (key, subs) => messenger.i18n.getMessage(key, subs);
@@ -83,7 +83,7 @@ async function showDbState() {
   let st = null;
   try {
     st = await Promise.race([
-      messenger.runtime.sendMessage("novabird-db@novabird", { type: "ping" }),
+      messenger.runtime.sendMessage({ type: "novabird-db:ping" }),
       new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 4000)),
     ]);
   } catch {

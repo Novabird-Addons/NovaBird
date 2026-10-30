@@ -77,6 +77,8 @@
     .cf-seg { display: inline-flex; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); border-radius: 6px; overflow: hidden; margin-inline-start: 6px; }
     .cf-seg button { border: 0; border-radius: 0; padding: 3px 12px; font: inherit; background: transparent; color: inherit; cursor: pointer; }
     .cf-seg button.on { background: color-mix(in srgb, #2F6BD8 22%, transparent); font-weight: 600; }
+    .cf-theme { display: flex; align-items: center; gap: .5em; flex-wrap: wrap; margin: 0 0 .2em; }
+    .cf-theme label { font-weight: 600; }
     /* Skizze des Hauptfensters (Farben aus den Variablen --c-*) */
     #cfPrev { display: grid; grid-template-columns: 2.2em 8em 1fr 1fr; grid-template-rows: 2em 1fr; height: 10.5em; max-width: 34em; margin: 8px 0 4px;
       border: 1px solid var(--c-border); border-radius: .5em; overflow: hidden; background: var(--c-list); }
@@ -208,6 +210,17 @@
   </section>
 
   <section id="colorsTab" hidden>
+    <div class="cf-theme">
+      <label for="uiTheme" id="themeLabel"></label>
+      <select id="uiTheme">
+        <option value="" id="themeNone"></option>
+        <option value="sand">NovaBird-Sand</option>
+        <option value="cobalt">NovaBird-Cobalt</option>
+        <option value="springlight">NovaBird-Springlight</option>
+      </select>
+      <span id="themeDesc" class="sub"></span>
+    </div>
+    <p id="themeHint" class="sub" style="margin:2px 0 10px"></p>
     <div id="cfPrev" aria-hidden="true">
       <div class="pv-tb" data-c="toolbar border"><i></i><i></i><i></i><span class="pv-s"></span></div>
       <div class="pv-sp" data-c="spaces border accent"><i class="a"></i><i></i><i></i></div>

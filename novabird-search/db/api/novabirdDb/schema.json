@@ -1,0 +1,141 @@
+[
+  {
+    "namespace": "novabirdDb",
+    "description": "Schlanker Datenbankzugriff für den NovaBird-DB-Index (<Profil>/novabird-db/index.sqlite).",
+    "functions": [
+      {
+        "name": "open",
+        "type": "function",
+        "async": true,
+        "description": "Öffnet bzw. erzeugt die Index-Datei, wenn möglich mit nachgeladener FTS5-Erweiterung. Liefert { path }. options.fts5 = false schaltet FTS5 ab (nur beim ersten Öffnen wirksam).",
+        "parameters": [
+          { "name": "options", "type": "object", "optional": true, "properties": { "fts5": { "type": "boolean", "optional": true } } }
+        ]
+      },
+      {
+        "name": "execute",
+        "type": "function",
+        "async": true,
+        "description": "Eine schreibende SQL-Anweisung mit Positionsparametern (?).",
+        "parameters": [
+          { "name": "sql", "type": "string" },
+          { "name": "params", "type": "array", "items": { "type": "any" }, "optional": true }
+        ]
+      },
+      {
+        "name": "select",
+        "type": "function",
+        "async": true,
+        "description": "Lesende Abfrage. columns benennt die Spalten der SELECT-Liste in Reihenfolge.",
+        "parameters": [
+          { "name": "sql", "type": "string" },
+          { "name": "params", "type": "array", "items": { "type": "any" }, "optional": true },
+          { "name": "columns", "type": "array", "items": { "type": "string" } }
+        ]
+      },
+      {
+        "name": "executeBatch",
+        "type": "function",
+        "async": true,
+        "description": "Mehrere Anweisungen in einer Transaktion: [{ sql, params }].",
+        "parameters": [
+          {
+            "name": "statements",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sql": { "type": "string" },
+                "params": { "type": "array", "items": { "type": "any" }, "optional": true }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "offlineFlags",
+        "type": "function",
+        "async": true,
+        "description": "Pro Nachrichten-ID (Sitzungs-ID der WebExtension-API): true, wenn der Nachrichtentext lokal vorliegt (Offline-Flag), sonst false.",
+        "parameters": [
+          { "name": "messageIds", "type": "array", "items": { "type": "integer" } }
+        ]
+      },
+      {
+        "name": "resolveMessages",
+        "type": "function",
+        "async": true,
+        "description": "Löst Mails über Message-ID und Ordner-ID (MailFolder.id) auf, viele auf einmal: je Eintrag {id, offline} oder null (nicht gefunden).",
+        "parameters": [
+          { "name": "items", "type": "array", "items": { "type": "object", "properties": { "headerMessageId": { "type": "string" }, "folderId": { "type": "string" } } } }
+        ]
+      },
+      {
+        "name": "folderInfo",
+        "type": "function",
+        "async": true,
+        "description": "Pro Ordner ({accountId, path}): { virtual, offline } (virtueller Such-/Sammelordner; Nachrichten werden lokal vorgehalten) oder null, wenn der Ordner nicht gefunden wird.",
+        "parameters": [
+          { "name": "folders", "type": "array", "items": { "type": "object", "properties": { "accountId": { "type": "string" }, "path": { "type": "string" } } } }
+        ]
+      },
+      {
+        "name": "references",
+        "type": "function",
+        "async": true,
+        "description": "Pro Nachrichten-ID (Sitzungs-ID der WebExtension-API): die Verweise (References, ersatzweise In-Reply-To) aus der Kopfdatenbank als Liste von Message-IDs ohne spitze Klammern, null wenn nicht gefunden.",
+        "parameters": [
+          { "name": "messageIds", "type": "array", "items": { "type": "integer" } }
+        ]
+      },
+      {
+        "name": "info",
+        "type": "function",
+        "async": true,
+        "description": "Pfad, Dateigröße, SQLite-Version und ob FTS5 geladen ist.",
+        "parameters": []
+      },
+      {
+        "name": "close",
+        "type": "function",
+        "async": true,
+        "parameters": []
+      },
+      {
+        "name": "deleteIndex",
+        "type": "function",
+        "async": true,
+        "description": "Schließt die Verbindung und löscht index.sqlite inkl. -wal/-shm.",
+        "parameters": []
+      },
+      {
+        "name": "moveAside",
+        "type": "function",
+        "async": true,
+        "description": "Schließt die Verbindung und legt die Indexdatei als index.sqlite.alt zur Seite (keepOld=true: aktuelle Datei löschen, vorhandene .alt behalten).",
+        "parameters": [{ "name": "keepOld", "type": "boolean" }]
+      },
+      {
+        "name": "deleteAside",
+        "type": "function",
+        "async": true,
+        "description": "Löscht die zur Seite gelegte alte Indexdatei (index.sqlite.alt inkl. -wal/-shm).",
+        "parameters": []
+      },
+      {
+        "name": "hasAside",
+        "type": "function",
+        "async": true,
+        "description": "true, wenn eine zur Seite gelegte alte Indexdatei existiert.",
+        "parameters": []
+      },
+      {
+        "name": "idleSeconds",
+        "type": "function",
+        "async": true,
+        "description": "Sekunden seit der letzten Eingabe des Benutzers.",
+        "parameters": []
+      }
+    ]
+  }
+]

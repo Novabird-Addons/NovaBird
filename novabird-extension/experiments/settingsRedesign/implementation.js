@@ -442,10 +442,12 @@ function injectNav(doc, undo) {
 
 // ---------- NovaBird-Sammelseite: Einstellungen aller installierten NovaBird-Add-ons als Reiter ----------
 
-const HUB_ORDER = ["search", "db", "conversation", "send", "extension"];
+// Ab 2.0 hat NovaBird-Search (mit Suchindex) die ID des früheren NovaBird-DB, daher der Schlüssel "db" für „Suche“;
+// "search" gibt es nur noch kurz beim Umstieg von 1.x (das alte Add-on wird dann entfernt).
+const HUB_ORDER = ["db", "search", "conversation", "send", "extension"];
 const HUB_LABEL = {
-  search: tr("Suche", "Search", "Recherche", "Búsqueda"),
-  db: tr("Datenbank", "Database", "Base de données", "Base de datos"),
+  db: tr("Suche", "Search", "Recherche", "Búsqueda"),
+  search: tr("Suchleiste (alt)", "Search bar (old)", "Barre de recherche (ancienne)", "Barra de búsqueda (antigua)"),
   conversation: tr("Konversation", "Conversation", "Conversation", "Conversación"),
   send: tr("Senden", "Send", "Envoi", "Envío"),
   extension: "Extension",

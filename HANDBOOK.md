@@ -8,29 +8,31 @@ NovaBird is a family of add-ons for **Betterbird** (and Thunderbird ESR, version
 
 | Add-on | What it does |
 |---|---|
-| **NovaBird-Search** | One search bar instead of two, results while you type, strictly by date |
-| **NovaBird-DB** | Own search index (fast, finds word parts and sentences); the base for Search and Conversation |
+| **NovaBird-Search** | One search bar instead of two, results while you type, strictly by date; with its own search index (fast, finds word parts and sentences), which Conversation uses too |
 | **NovaBird-Conversation** | All messages of a conversation in the reading pane |
 | **NovaBird-Send** | Sending with an undo window and a queue |
-| **NovaBird-Extension** | Right pane (agenda, tasks, attachments), attachment preview, Nova-Contact, rule assistant (beta), colors and fonts, AI summary (opt-in), mailbox overview, settings in the new style |
-| **NovaBird-Sand / -Cobalt / -Springlight** | Themes (light and dark) |
+| **NovaBird-Extension** | Right pane (agenda, tasks, attachments), attachment preview, Nova-Contact, rule assistant (beta), the designs Sand, Cobalt and Springlight (light and dark), colors and fonts, AI summary (opt-in), mailbox overview, settings in the new style |
+
+Since version 2.0 there are four add-ons: the search index (formerly "NovaBird-DB") is part of NovaBird-Search, and the themes are part of the Extension.
 
 ## 2. Install
 
 > **Please read the [disclaimer](README.md#disclaimer) first:** unofficial, experimental, use at your own risk, back up your profile.
 
 1. **Remove old add-ons** if present (Such-Pilot, DB-Pilot, Sende-Pilot, Conversation-Pilot, Stream Extension, Kalender-/Kontakt-Pilot, Stream themes). Never run an old and a new version of the same add-on together.
-2. Open the **add-ons manager** (menu → Add-ons and Themes), gear → **Install Add-on From File…**, choose the `.xpi`. Suggested order: **DB**, Search, Conversation, Send, Extension. Install themes under *Themes* and enable one. **Faster:** select all `.xpi` files at once in the file dialog (Ctrl+A) or drag them all onto the add-ons manager; Betterbird then asks once per add-on (order does not matter).
+2. Open the **add-ons manager** (menu → Add-ons and Themes), gear → **Install Add-on From File…**, choose the `.xpi`. Suggested order: Search, Conversation, Send, Extension. **Faster:** select all `.xpi` files at once in the file dialog (Ctrl+A) or drag them all onto the add-ons manager; Betterbird then asks once per add-on (order does not matter).
 3. **Restart Betterbird.**
-4. **First start with NovaBird-DB:** the search index is built once (about 6 minutes for 75,000 messages). A progress window shows the state. Betterbird stays usable; search uses Betterbird's own index meanwhile (a hint appears in the bar). You can pause and resume at any time.
+4. **First start with NovaBird-Search:** the search index is built once (about 6 minutes for 75,000 messages). A progress window shows the state. Betterbird stays usable; search uses Betterbird's own index meanwhile (a hint appears in the bar). You can pause and resume at any time.
 
 After updating a version, restart Betterbird, otherwise the old one stays active.
 
+**Moving from 1.x to 2.0:** just install NovaBird-Search 2.0 and Extension 2.0 over the old packages. The old NovaBird-Search and the old themes are taken over and removed on the first start: settings, search history, the search index and your chosen theme are kept (the theme is then selected under Colors and fonts → Design).
+
 ## 3. All settings in one place
 
-With the **NovaBird-Extension**: **Settings → NovaBird** (left list). There is one tab per installed add-on: Search, Database, Conversation, Send, Extension. They are the same settings as in the add-ons manager. Every option is explained, important ones with a small sketch. Changes apply immediately.
+With the **NovaBird-Extension**: **Settings → NovaBird** (left list). There is one tab per installed add-on: Search, Conversation, Send, Extension. Search has two sub-tabs: "Search" and "Index". They are the same settings as in the add-ons manager. Every option is explained, important ones with a small sketch. Changes apply immediately.
 
-## 4. Searching (NovaBird-Search + NovaBird-DB)
+## 4. Searching (NovaBird-Search)
 
 - **Type** in the bar above the message list (Ctrl+K jumps there). On the left you choose *All folders* or *Current folder*. From three characters on, results appear while you type (Enter forces shorter terms).
 - **Gear:** search in From / To / Subject / Message, only with attachment, only unread, trash, spam. **Chips:** All, Today, 3, 7, 30 days.
@@ -54,7 +56,7 @@ With the **NovaBird-Extension**: **Settings → NovaBird** (left list). There is
 
 Dates: `2026-01-31`, `31.01.2026`, `31/01/2026` or relative `7t` (days), `3w`, `6m`, `1j`.
 
-### Sentences (with NovaBird-DB)
+### Sentences (with the own search index)
 
 These work equally in English, German, French and Spanish:
 
@@ -64,7 +66,16 @@ These work equally in English, German, French and Spanish:
 
 Understood: people (from, to, "from me"), periods (yesterday, last week, in May 2025, between …), attachments (with PDF, without attachment), status, folders, "or" and negation ("without"). German compound words are found ("Speiseplan" finds "Wochenspeiseplan").
 
-**Search language:** the default is English plus the language of Betterbird (German Betterbird: German and English). You can change this in the NovaBird-DB settings; with several languages, short ambiguous words such as "an" may be misread. French and Spanish are not yet reviewed by native speakers.
+**Search language:** the default is English plus the language of Betterbird (German Betterbird: German and English). You can change this in the search settings under "Index"; with several languages, short ambiguous words such as "an" may be misread. French and Spanish are not yet reviewed by native speakers.
+
+### Semantic search (beta, off by default)
+Also finds messages by their **meaning**: "parents meeting" finds the "parent-teacher evening", "holiday by the sea" the hotel booking. Turn it on in the search settings, tab **Semantic search**, and click **"Download model"** once (about 320 MB from Hugging Face, every file checked against its checksum). NovaBird-Search then works through the messages in the background, newest first, older ones only when idle. The hits add to the normal search; the bar shows "+N similar". Under *Advanced*: how vectors are computed, threads, how long the model stays in memory (about 2 GB), strictness, export/import of the vectors.
+
+**NovaBird Helper (Windows, optional):** computes on the graphics card, about 20 minutes for 70,000 messages instead of several hours. Install by double-click, for your own Windows user only, no admin rights; then *Advanced* → "Connect helper" and "Download model in the helper". With the helper the vectors can be shared between PCs, encrypted, through a shared folder (NAS, OneDrive …) using a pairing code. More: [novabird-helper/README.md](novabird-helper/README.md).
+
+**One PC computes for several (optional):** the NovaBird Helper has a network mode: on the PC with the strong graphics card start "NovaBird Helper (Netz)" from the Start menu (icon in the notification area; a click shows address and pairing code). On the other PCs choose the computing path "Other PC or server" under *Advanced*, interface "NovaBird Helper (network)", and enter address and code. Requests and answers are encrypted with the code; searches go first, and while indexing the PCs take turns. More: [novabird-helper/README.md](novabird-helper/README.md).
+
+**Own server (optional):** instead of the add-on or the helper, Ollama or an OpenAI-compatible service (LM Studio, llama.cpp, vLLM …) can compute, on this PC or on another computer in the network. *Advanced* → computing path "Other PC or server", interface Ollama or OpenAI-compatible, enter address and model (in Ollama `jina/jina-embeddings-v2-base-de`), "Save and check". The server must use the same model: before first use, then hourly and after every error it computes six probe texts, and only if its vectors match those of the add-on do they go into the index. A different model or a heavily compressed version is refused, and the search stays as it was. NovaBird checks the add-on and the helper the same way.
 
 ## 5. Reading conversations (NovaBird-Conversation)
 
@@ -73,7 +84,7 @@ When you open a message, **all messages of the conversation** appear (across fol
 - **Per message:** Reply, Reply all, Forward, Edit as new, Delete, Spam. **Original view** shows Betterbird's own view.
 - **Expand while scrolling** (option): the row under the pointer opens when the pointer rests for a moment (50–200 ms).
 - **Styles:** Soft, Clear, Thread. External images load only after your click.
-- It also works without NovaBird-DB (via Gloda), just a bit slower.
+- It also works without NovaBird-Search (via Gloda), just a bit slower.
 
 ## 6. Undo send (NovaBird-Send)
 
@@ -90,7 +101,7 @@ After **Send** the compose window disappears and a countdown runs at the bottom 
 - **Attachment preview:** hold the mouse over a PDF or image attachment (right pane, message header, Conversation chips) and a scrollable preview opens.
 - **Rule assistant (beta, off by default):** switch it on in the Extension settings under "Rules (beta)". Right-click a mail in the list → "Create rule from this mail …": choose a condition (this sender, this domain, subject, recipient), see which inbox mails match, pick actions (move, tag, mark read, star, trash) and save. It creates a normal Betterbird filter (Tools → Message Filters); existing filters are left untouched and backed up first.
 - **Nova-Contact** (address book tab): tags as filters, edit several contacts at once, undo recent changes, and a "✦ Nova-Contact" button to collect, merge and clean up (with a restore point).
-- **Colors and fonts** (Extension settings): with a NovaBird theme every main-window color can be changed (light and dark separately, a sketch shows the affected area); font sizes of the main window, compose window, settings pages and Nova-Contact in percent.
+- **Colors and fonts** (Extension settings): choose the **Design** at the top (Sand, Cobalt, Springlight or the theme from the add-ons manager); with Cobalt or Springlight every main-window color can be changed (light and dark separately, a sketch shows the affected area); font sizes of the main window, compose window, settings pages and Nova-Contact in percent.
 - **AI summary (off by default):** "Summarise mail (AI)" in the message header and in Conversation, with a language model of your choice (see Privacy below).
 - **Mailbox:** folders, messages and size per account, the largest folders.
 - **Open and save attachments** from the right pane and the Conversation view: right-click → "Open" / "Save as …"; in the right pane a double-click opens the attachment.
@@ -98,25 +109,27 @@ After **Send** the compose window disappears and a countdown runs at the bottom 
 - **Online updates (beta, off by default):** keeps all NovaBird packages at the "Stable" or "Testing" channel and installs missing ones (see Privacy below).
 - Settings, accounts and the add-ons manager in the unified style; colors from the theme.
 
-## 8. Themes
+## 8. Designs (themes)
 
-NovaBird-Sand (calm, warm), -Cobalt (compact, strong), -Springlight (light, fresh). Each follows the light/dark mode of the operating system. The Extension carries the theme colors into dialogs, settings and the right pane.
+Sand (calm, warm), Cobalt (compact, strong) and Springlight (light, fresh) are part of the Extension: Extension settings → Colors and fonts → **Design**. Each follows the light/dark mode of the operating system. While one is selected it is used instead of the theme in the add-ons manager; "Thunderbird theme" hands the look back to the add-ons manager. The Extension carries the colors into dialogs, settings and the right pane.
 
 ## 9. Privacy
 
 - Everything runs **locally**. No add-on uses the network (only Conversation loads external images, and only after your click). One optional exception: the **AI summary** of NovaBird-Extension (Settings → NovaBird → Extension → AI) is off until you switch it on in the settings and enter the address of a language-model server (Ollama or an OpenAI-compatible service). Only when you click "Summarise mail (AI)" does the text of that message go to that address. With Ollama on your own computer it does not leave your computer; with a remote server it does, and the settings page says so. Credentials are stored unencrypted in the add-on's profile data.
 - Second optional exception: **Online updates** of NovaBird-Extension (Settings → NovaBird → Extension → Online updates), off by default. When on, the extension asks GitHub (repository Nova-Bird-Online-Updates) for new versions of the NovaBird packages, at start at most once a day and when you click "Check now". Only the usual web request goes out, no data from Thunderbird; every package is checked against its SHA-256 checksum before it is installed.
-- The **search index** sits unencrypted in your profile folder (`novabird-db/index.sqlite`) and contains mail text and attachment names, like Betterbird's own index. If you back up your profile or do not encrypt your disk, the mail text is included. NovaBird-DB → "Delete index" removes it.
-- NovaBird-DB keeps confirmed search queries **locally** (to improve the parser later; nothing leaves your computer). You can switch this off and clear it under NovaBird-DB → "Search log".
+- The **search index** sits unencrypted in your profile folder (`novabird-db/index.sqlite`) and contains mail text and attachment names, like Betterbird's own index. If you back up your profile or do not encrypt your disk, the mail text is included. Search settings → Index → "Delete index" removes it.
+- NovaBird-Search keeps confirmed search queries **locally** (to improve the parser later; nothing leaves your computer). You can switch this off and clear it under Search settings → Index → "Search log".
+
+- **Semantic search** (off until you turn it on): network only when you click "Download model" (huggingface.co, fixed version, checksum). The vectors are stored in the profile; they roughly reveal what a message is about but contain no text. The NovaBird Helper computes on this PC; folder sync only puts encrypted packages (Message-ID and vector) into the folder you choose. With the **NovaBird Helper in network mode**, the subject and (shortened) text of every message go to the computing PC, encrypted. With an **own server**, they go to the address you entered; on this PC (localhost) they do not leave it, with another address they do, and the settings page points this out. Thunderbird asks for permission for exactly this address on the first check. Credentials are stored unencrypted in the add-on's profile data.
 
 ## 10. When something does not work
 
 | Problem | Remedy |
 |---|---|
 | Add-on shown as "corrupt" or "incompatible" | Are you running Betterbird / Thunderbird **ESR**? The add-ons need experiment APIs and do not work in the release channel. |
-| Search bar says "Gloda search" | NovaBird-DB is missing, still building or damaged: Settings → NovaBird → Database; "Rebuild index" keeps the old one until the end. |
+| Search bar says "Gloda search" | The search index is still starting, building or damaged: Settings → NovaBird → Search → Index; "Rebuild index" keeps the old one until the end. |
 | "NovaBird" settings page missing or empty | NovaBird-Extension installed and Betterbird restarted? Tabs only appear for active add-ons. |
-| Indexing stalls or never finishes (log shows "No progress for … s" or "Mail skipped") | **Repair the affected folder first:** right-click the folder → Properties → **Repair Folder**; repair all local folders if unsure. Then use "Check index now" in Settings → NovaBird → Database. For more detail switch on the detailed index log there. |
+| Indexing stalls or never finishes (log shows "No progress for … s" or "Mail skipped") | **Repair the affected folder first:** right-click the folder → Properties → **Repair Folder**; repair all local folders if unsure. Then use "Check index now" in Settings → NovaBird → Search → Index. For more detail switch on the detailed index log there. |
 | Settings page of an add-on says "Not all features available" (usually after a Betterbird update) | The add-on found that Betterbird changed something it relies on; only the listed features are switched off, everything else works. Look for a newer NovaBird version. |
 | Nothing changes after an update | Restart Betterbird once. |
 | Quitting takes unusually long | Wait briefly (waiting mails in NovaBird-Send are saved as drafts first). If it hangs, open the error console and keep the messages containing "NovaBird" ready. |

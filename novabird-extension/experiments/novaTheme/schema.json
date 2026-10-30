@@ -1,0 +1,39 @@
+[
+  {
+    "namespace": "novaTheme",
+    "functions": [
+      {
+        "name": "apply",
+        "type": "function",
+        "async": true,
+        "description": "Setzt ein NovaBird-Theme wie ein installiertes Theme: Farben hell (theme) und dunkel (darkTheme, nach dem Modus des Betriebssystems) und das Stylesheet (Pfad im Add-on).",
+        "parameters": [
+          {"name": "theme", "type": "object", "additionalProperties": {"type": "any"}},
+          {"name": "darkTheme", "type": "object", "additionalProperties": {"type": "any"}},
+          {"name": "stylesheet", "type": "string"}
+        ]
+      },
+      {
+        "name": "restore",
+        "type": "function",
+        "async": true,
+        "description": "Gibt das Aussehen an das im Add-ons-Manager aktive Theme zurück.",
+        "parameters": []
+      },
+      {
+        "name": "legacyThemes",
+        "type": "function",
+        "async": true,
+        "description": "Installierte alte NovaBird-Theme-Add-ons: [{id, active}].",
+        "parameters": []
+      },
+      {
+        "name": "removeLegacyThemes",
+        "type": "function",
+        "async": true,
+        "description": "Deinstalliert die alten NovaBird-Theme-Add-ons (sie stecken jetzt in der Extension). Gibt die entfernten IDs zurück.",
+        "parameters": []
+      }
+    ]
+  }
+]

@@ -2,12 +2,13 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title data-i18n="extName"></title>
+  <title data-i18n="optPageTitle"></title>
   <style>
     :root { color-scheme: light dark; }
     body { font: menu; font-size: 13px; padding: 16px; max-width: 640px; }
     h2 { font-size: 14px; margin: 18px 0 8px; }
     h2:first-of-type { margin-top: 0; }
+    [hidden] { display: none !important; }
     .row { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; }
     .hint { color: GrayText; font-size: 12px; margin: 2px 0 10px 24px; }
     input[type="number"] { width: 6em; }
@@ -23,10 +24,50 @@
     .acc { fill: #2F6BD8; } .accl { fill: #2F6BD8; fill-opacity: .22; stroke: #2F6BD8; stroke-opacity: .6; }
     .dash { stroke: currentColor; stroke-opacity: .5; stroke-dasharray: 3 2; stroke-width: 1; fill: none; }
     #version { color: GrayText; margin-top: 24px; font-size: 12px; }
+
+    /* Reiter */
+    nav.tabs { display: flex; gap: 4px; border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); margin: 0 0 14px; }
+    nav.tabs button { font: inherit; background: none; border: none; border-bottom: 2px solid transparent; padding: 6px 12px; cursor: pointer; color: inherit; }
+    nav.tabs button.active { border-bottom-color: AccentColor; color: AccentColor; font-weight: 600; }
+    /* Reiter „Index“ (bis 1.x Einstellungsseite von NovaBird-DB) */
+    #indexTab h2 { margin-top: 22px; }
+    #indexTab .row { margin: 8px 0; flex-wrap: wrap; gap: 10px; }
+    #indexTab .hint { margin: 4px 0 0; }
+    #indexTab dl { display: grid; grid-template-columns: 180px 1fr; gap: 4px 8px; margin: 0; }
+    #indexTab dt { color: GrayText; } #indexTab dd { margin: 0; }
+    #msg { color: AccentColor; min-height: 1.2em; }
+    #events { font: 11px monospace; height: 220px; overflow: auto; border: 1px solid GrayText; padding: 4px 6px; margin: 6px 0; white-space: pre-wrap; background: Field; color: FieldText; }
+    #events .warn { color: #8a6d00; } #events .error { color: #b3261e; }
+    button.danger { color: #b3261e; }
+    /* Reiter „Semantische Suche (Beta)“ */
+    #semanticTab dl { display: grid; grid-template-columns: 13em 1fr; gap: .25em .6em; margin: 0; }
+    #semanticTab dt { color: GrayText; } #semanticTab dd { margin: 0; }
+    #semanticTab .row { flex-wrap: wrap; }
+    #semanticTab .hint { margin-left: 0; }
+    #semanticTab details { margin-top: 1.2em; }
+    #semanticTab summary { cursor: pointer; font-weight: 600; }
+    #semanticTab input[type="search"] { flex: 1 1 16em; }
+    #semModels .model { border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: .5em; padding: .6em .8em; margin: .4em 0; }
+    #semModels .model .meta { color: GrayText; font-size: .92em; margin: .2em 0 .4em; }
+    #semProgress { width: 16em; }
+    #semMsg { color: AccentColor; min-height: 1.2em; }
+    #semanticTab .hint.warn { color: #b3261e; }
+    #semServerState.ok { color: AccentColor; } #semServerState.bad { color: #b3261e; }
+    #semTryOut { margin: .4em 0 0 1.2em; padding: 0; }
+    #semanticTab h3 { font-size: 1em; margin: 1.2em 0 .4em; }
+    #semanticTab input.wide { flex: 1 1 22em; }
+    #semSyncCode { width: 16em; font-family: monospace; }
   </style>
 </head>
 <body>
   <div id="nb-selftest" hidden></div>
+  <nav class="tabs" role="tablist">
+    <button type="button" data-tab="searchTab" data-i18n="optTabSearch"></button>
+    <button type="button" data-tab="indexTab" data-i18n="optTabIndex"></button>
+    <button type="button" data-tab="semanticTab" data-i18n="optTabSemantic"></button>
+  </nav>
+  <section id="searchTab">
+
   <h2 data-i18n="optHeadingResults"></h2>
   <div class="opt"><div class="txt">
   <div class="row"><label for="enterMode" data-i18n="optEnter"></label>
@@ -91,8 +132,184 @@
 
   <div id="saved" data-i18n="optSaved"></div>
   <div id="version"></div>
+  </section>
+  <section id="indexTab" hidden>
+
+  <h2 data-i18n="optHStatus"></h2>
+  <dl id="status"></dl>
+
+  <h2 data-i18n="optHIndexing"></h2>
+  <div class="row">
+    <button id="pause"></button>
+  </div>
+  <p class="hint" data-i18n="optIndexingHint"></p>
+
+  <h2 data-i18n="optHLog"></h2>
+  <div id="events"></div>
+  <div class="row">
+    <button id="copyEvents" data-i18n="optCopy"></button>
+    <button id="clearEvents" data-i18n="optClearEvents"></button>
+  </div>
+  <p class="hint" data-i18n="optLogHint"></p>
+
+  <h2 data-i18n="optHCompound"></h2>
+  <div class="row">
+    <label for="compoundMode" data-i18n="optCompoundLabel"></label>
+    <select id="compoundMode">
+      <option value="query" data-i18n="optCompQuery"></option>
+      <option value="index" data-i18n="optCompIndex"></option>
+    </select>
+  </div>
+  <p class="hint"><b data-i18n="optCompQueryHead"></b><span data-i18n="optCompQueryText"></span></p>
+  <p class="hint"><b data-i18n="optCompIndexHead"></b><span data-i18n="optCompIndexText"></span></p>
+  <div id="compoundInfo" class="hint"></div>
+
+  <h2 data-i18n="optHLangs"></h2>
+  <div class="row" id="langs">
+    <label><input type="checkbox" value="de"> Deutsch</label>
+    <label><input type="checkbox" value="en"> English</label>
+    <label><input type="checkbox" value="fr"> Français</label>
+    <label><input type="checkbox" value="es"> Español</label>
+  </div>
+  <p class="hint" data-i18n="optLangsHint"></p>
+
+  <h2 data-i18n="optHPrivacy"></h2>
+  <p class="hint" data-i18n="optPrivacyText"></p>
+
+  <h2 data-i18n="optHVersion"></h2>
+  <p class="hint" data-i18n="optVersionText"></p>
+
+  <h2 data-i18n="optHMaint"></h2>
+  <div class="row">
+    <button id="maintain" data-i18n="optMaintain"></button>
+    <button id="reindex" data-i18n="optReindex"></button>
+    <button id="delete" class="danger" data-i18n="optDelete"></button>
+  </div>
+  <p class="hint" data-i18n="optMaintHint"></p>
+  <div id="msg"></div>
+
+  <h2 data-i18n="optHDebug"></h2>
+  <div class="row"><label><input type="checkbox" id="debugLog"> <span data-i18n="optDebug"></span></label></div>
+  <p class="hint" data-i18n="optDebugHint"></p>
+
+  <h2 data-i18n="optHLogging"></h2>
+  <div class="row"><label><input type="checkbox" id="logging"> <span data-i18n="optLogging"></span></label></div>
+  <p class="hint" data-i18n="optLoggingHint"></p>
+  <div class="row">
+    <span id="logCount"></span>
+    <button id="export" data-i18n="optExport"></button>
+    <button id="clearLog" data-i18n="optClearLog"></button>
+  </div>
+
+  </section>
+
+  <section id="semanticTab" hidden>
+    <p class="hint sem-intro" data-i18n="semIntro"></p>
+    <div class="row"><input type="checkbox" id="semEnabled"><label for="semEnabled" data-i18n="semEnable"></label></div>
+
+    <h2 data-i18n="semModelHeading"></h2>
+    <div id="semModels"></div>
+    <p class="hint" data-i18n="semModelHint"></p>
+    <div class="row"><progress id="semProgress" max="1" value="0" hidden></progress><span id="semDownloadText"></span></div>
+
+    <h2 data-i18n="semStateHeading"></h2>
+    <dl id="semState"></dl>
+    <div class="row">
+      <button type="button" id="semPause"></button>
+    </div>
+    <div class="row">
+      <input type="search" id="semTryText" data-i18n-placeholder="semTryPlaceholder">
+      <button type="button" id="semTry" data-i18n="semTry"></button>
+    </div>
+    <ol id="semTryOut" class="hint"></ol>
+
+    <details id="semAdvanced">
+      <summary data-i18n="semAdvanced"></summary>
+      <div class="row"><label for="semPath" data-i18n="semPath"></label>
+        <select id="semPath">
+          <option value="auto" data-i18n="semPathAuto"></option>
+          <option value="addon" data-i18n="semPathAddon"></option>
+          <option value="helper" data-i18n="semPathHelper"></option>
+          <option value="server" data-i18n="semPathServer"></option>
+        </select>
+      </div>
+      <p class="hint" data-i18n="semPathHint"></p>
+      <div id="semServerBox" hidden>
+        <h3 data-i18n="semServerHeading"></h3>
+        <p class="hint srv-generic" data-i18n="semServerHint"></p>
+        <div class="row"><label for="semServerType" data-i18n="semServerType"></label>
+          <select id="semServerType">
+            <option value="ollama">Ollama</option>
+            <option value="openai" data-i18n="semServerTypeOpenai"></option>
+            <option value="nbhelper" data-i18n="semServerTypeNbhelper"></option>
+          </select>
+        </div>
+        <p class="hint srv-nb" data-i18n="semServerNbHint"></p>
+        <div class="row"><label for="semServerUrl" data-i18n="semServerUrl"></label><input type="url" id="semServerUrl" class="wide" placeholder="http://localhost:11434"></div>
+        <div class="row srv-generic"><label for="semServerModel" data-i18n="semServerModel"></label><input type="text" id="semServerModel" class="wide" list="semServerModels"><datalist id="semServerModels"></datalist></div>
+        <div class="row srv-generic"><label for="semServerUser" data-i18n="semServerUser"></label><input type="text" id="semServerUser" autocomplete="off"></div>
+        <div class="row srv-generic"><label for="semServerKey" data-i18n="semServerKey"></label><input type="password" id="semServerKey" autocomplete="new-password"></div>
+        <div class="row srv-nb"><label for="semServerCode" data-i18n="semServerCode"></label><input type="password" id="semServerCode" autocomplete="off" placeholder="XXXXX-XXXXX-XXXXX-XXXXX"></div>
+        <div class="row srv-nb"><label for="semServerLabel" data-i18n="semServerLabel"></label><input type="text" id="semServerLabel" maxlength="40" autocomplete="off"></div>
+        <p class="hint warn" id="semServerRemote" hidden></p>
+        <div class="row"><button type="button" id="semServerCheck" data-i18n="semServerCheck"></button></div>
+        <p class="hint" id="semServerState"></p>
+      </div>
+      <div class="row"><input type="checkbox" id="semIdleOnly"><label for="semIdleOnly" data-i18n="semIdleOnly"></label></div>
+      <p class="hint" data-i18n="semIdleOnlyHint"></p>
+      <div class="row"><label for="semThreads" data-i18n="semThreads"></label><input type="number" id="semThreads" min="0" max="64" step="1"><span id="semThreadsInfo" class="hint"></span></div>
+      <div class="row"><label for="semKeep" data-i18n="semKeep"></label>
+        <select id="semKeep">
+          <option value="10min" data-i18n="semKeep10"></option>
+          <option value="always" data-i18n="semKeepAlways"></option>
+          <option value="search" data-i18n="semKeepSearch"></option>
+        </select>
+      </div>
+      <p class="hint" data-i18n="semKeepHint"></p>
+      <div class="row"><label for="semStrictness" data-i18n="semStrictness"></label>
+        <select id="semStrictness">
+          <option value="low" data-i18n="semStrictLow"></option>
+          <option value="medium" data-i18n="semStrictMedium"></option>
+          <option value="high" data-i18n="semStrictHigh"></option>
+        </select>
+      </div>
+      <p class="hint" data-i18n="semStrictnessHint"></p>
+
+      <h2 data-i18n="semHelperHeading"></h2>
+      <p class="hint" data-i18n="semHelperHint"></p>
+      <div class="row">
+        <button type="button" id="semHelperConnect" data-i18n="semHelperConnect"></button>
+        <button type="button" id="semHelperPrepare" data-i18n="semHelperPrepare"></button>
+      </div>
+      <p class="hint" id="semHelperState"></p>
+      <h3 data-i18n="semSyncHeading"></h3>
+      <p class="hint" data-i18n="semSyncHint"></p>
+      <div class="row"><label for="semSyncFolder" data-i18n="semSyncFolder"></label><input type="text" id="semSyncFolder" class="wide" data-i18n-placeholder="semSyncFolderPlaceholder"></div>
+      <div class="row"><label for="semSyncCode" data-i18n="semSyncCode"></label><input type="text" id="semSyncCode" data-i18n-placeholder="semSyncCodePlaceholder"></div>
+      <div class="row">
+        <button type="button" id="semSyncSetup" data-i18n="semSyncSetup"></button>
+        <button type="button" id="semSyncNow" data-i18n="semSyncNow"></button>
+        <button type="button" id="semSyncLeave" data-i18n="semSyncLeave"></button>
+      </div>
+      <p class="hint" id="semSyncState"></p>
+
+      <h2 data-i18n="semDataHeading"></h2>
+      <div class="row">
+        <button type="button" id="semExport" data-i18n="semExport"></button>
+        <button type="button" id="semImport" data-i18n="semImport"></button>
+        <input type="file" id="semImportFile" accept=".nbvec,application/octet-stream" hidden>
+        <button type="button" id="semClear" class="danger" data-i18n="semClear"></button>
+      </div>
+      <p class="hint" data-i18n="semDataHint"></p>
+      <p id="semMsg"></p>
+    </details>
+  </section>
+
   <script src="../settings.js"></script>
   <script src="../shared/selftest-ui.js"></script>
+  <script src="tabs.js"></script>
   <script src="options.js"></script>
+  <script src="index.js"></script>
+  <script src="semantic.js"></script>
 </body>
 </html>

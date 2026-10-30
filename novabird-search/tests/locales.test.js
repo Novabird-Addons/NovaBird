@@ -16,7 +16,7 @@ test("Vier Sprachen: gleiche Schlüssel, nicht leer, Platzhalter stimmig", () =>
 
 test("Alle im Code verwendeten Schlüssel gibt es", () => {
   const used = new Set();
-  for (const file of ["background.js", "options/options.js"]) {
+  for (const file of ["background.js", "options/options.js", "options/index.js", "options/semantic.js", "db/background.js", "db/debug/debug.js"]) {
     for (const m of read(file).matchAll(/"(\w+)"/g)) if (m[1] in all.en || m[1] in all.de) used.add(m[1]);
   }
   for (const m of read("manifest.json").matchAll(/__MSG_(\w+)__/g)) used.add(m[1]);
@@ -29,7 +29,13 @@ test("Alle im Code verwendeten Schlüssel gibt es", () => {
 });
 
 test("Jeder Text aus den Sprachdateien wird verwendet", () => {
-  const code = L.readAll(root, ["background.js", "manifest.json", "options/options.html", "options/options.js", "analysis/analysis.js"]);
+  const code = L.readAll(root, [
+    "background.js", "manifest.json", "options/options.html", "options/options.js", "analysis/analysis.js",
+    // Suchindex (bis 1.x Add-on NovaBird-DB)
+    "options/index.js", "db/background.js", "db/debug/debug.js", "db/api/novabirdDbUi/implementation.js",
+    // Semantische Suche (Beta)
+    "options/semantic.js",
+  ]);
   assert.deepEqual(L.unusedKeys(all, code), []);
 });
 

@@ -29,7 +29,7 @@ Folder pane, card-style message list, mail tab, settings, accounts and the add-o
 ![Sand, Cobalt and Springlight](docs/images/themes.png)
 
 ### One search bar, not two
-Global search and quick filter become **one field** at the top of the message list. Results appear while you type, strictly newest first. Powered by **NovaBird-DB**, an own SQLite/FTS5 index that replaces\* Gloda for search results: it finds mail across all accounts and folders in a fraction of a second, even in a mailbox of 75,000 messages, and it understands sentences:
+Global search and quick filter become **one field** at the top of the message list. Results appear while you type, strictly newest first. Powered by its own SQLite/FTS5 index that replaces\* Gloda for search results: it finds mail across all accounts and folders in a fraction of a second, even in a mailbox of 75,000 messages, and it understands sentences:
 
 > `invoices from Northwind last 2 weeks` · `unread mail with pdf since March` · `what did Maya send me`
 
@@ -38,6 +38,8 @@ Global search and quick filter become **one field** at the top of the message li
 \*Thunderbird's own database (Gloda) keeps running and is not uninstalled or replaced as a whole.
 
 ![Unified search: natural language query and results](docs/images/search.png)
+
+**Semantic search (beta):** optionally finds messages by meaning as well ("parents meeting" finds the "parent-teacher evening"), computed locally in the add-on or, much faster, on the graphics card with the optional [NovaBird Helper](novabird-helper/README.md) for Windows.
 
 ### Conversations that read like conversations
 Open any message and the whole thread is there: the newest message pinned on top, older ones as one-line cards, unread ones expanded. Across all folders, including Sent. Reply, forward, delete and mark as spam right in the thread. Three styles, mail styles never leak in, and external images load only on your click.
@@ -68,21 +70,21 @@ Calendar dialogs and views pick up your theme. **Nova-Contact** adds tag filters
 
 | Add-on | What it does |
 |---|---|
-| **[NovaBird-Search](novabird-search/README.md)** | The unified search bar, history, analysis, shared folders |
-| **[NovaBird-DB](novabird-db/README.md)** | Fast full-text index and the sentence parser (DE, EN, FR, ES) |
+| **[NovaBird-Search](novabird-search/README.md)** | The unified search bar, history, analysis, shared folders, plus the fast full-text index and the sentence parser (DE, EN, FR, ES) |
 | **[NovaBird-Conversation](novabird-conversation/README.md)** | Whole threads in the reading pane |
 | **[NovaBird-Send](novabird-send/README.md)** | Undo send with queue |
-| **[NovaBird-Extension](novabird-extension/README.md)** | Message list (Soft, Clear, Thread; three densities and per-account colours), right pane, attachment preview, Nova-Contact, rule assistant (beta, opt-in), colors and fonts, AI summary (opt-in), mailbox overview, new-style settings, the NovaBird settings page |
-| **[NovaBird-Sand / -Cobalt / -Springlight](novabird-themes/README.md)** | The themes |
+| **[NovaBird-Extension](novabird-extension/README.md)** | Message list (Soft, Clear, Thread; three densities and per-account colours), right pane, attachment preview, Nova-Contact, rule assistant (beta, opt-in), the three designs Sand, Cobalt and Springlight, colors and fonts, AI summary (opt-in), mailbox overview, new-style settings, the NovaBird settings page |
 
-They cooperate loosely: Search and Conversation use the DB if it is installed (and fall back to Betterbird's own index if not); the Extension takes its colors from the active theme. None of them requires another.
+They cooperate loosely: Conversation uses the search index of NovaBird-Search if it is installed (and falls back to Betterbird's own index if not). None of them requires another.
+
+Since 2.0 there are four add-ons instead of eight: the index (formerly NovaBird-DB) is part of NovaBird-Search, and the themes are part of the Extension (*Colors and fonts → Design*). When you install 2.0 over an older set, the old Search add-on and the old themes are taken over and removed automatically; settings, search history, the index and the chosen theme are kept.
 
 ## Install
 
 1. **Requirements:** Betterbird or Thunderbird **ESR** 128 or newer. The add-ons use experiment APIs, which do not run in the monthly Thunderbird release.
 2. Download the `.xpi` files from the [latest release](../../releases/latest).
-3. In the add-ons manager choose the gear → **Install Add-on From File…** for each file. Suggested order: **DB**, Search, Conversation, Send, Extension; themes under *Themes*. Tip: you can select all files at once (Ctrl+A in the file dialog) or drag them onto the add-ons manager. Restart Betterbird.
-4. On the first start NovaBird-DB builds its index once (about 6 minutes for 75,000 messages, with a progress indicator). Betterbird stays usable meanwhile.
+3. In the add-ons manager choose the gear → **Install Add-on From File…** for each file. Suggested order: Search, Conversation, Send, Extension. Tip: you can select all files at once (Ctrl+A in the file dialog) or drag them onto the add-ons manager. Restart Betterbird.
+4. On the first start NovaBird-Search builds its index once (about 6 minutes for 75,000 messages, with a progress indicator). Betterbird stays usable meanwhile.
 
 > **Please read the [disclaimer](#disclaimer) first:** unofficial, experimental, use at your own risk, back up your profile.
 >
@@ -94,7 +96,7 @@ Since NovaBird is just based on add-ons, you can simply remove NovaBird and go b
 
 ## Privacy
 
-Everything is local, no add-on uses the network. The search index contains the text of your mail in plain form inside your profile folder, just like Betterbird's own index does; protect your disk accordingly. You can delete the index at any time from the NovaBird-DB settings.
+Everything is local. The network is only used where you switch it on yourself: the AI summary, online updates, and the one-time model download of the semantic search (from Hugging Face, checked against fixed checksums). The search index contains the text of your mail in plain form inside your profile folder, just like Betterbird's own index does; protect your disk accordingly. You can delete the index at any time in the NovaBird-Search settings (*Index* tab).
 
 ## Status and roadmap
 
@@ -104,7 +106,7 @@ Planned: more screenshots and docs, synonyms and abbreviations for search, furth
 
 ## Building from source
 
-Each add-on folder has a `build.sh`. Unit tests: `novabird-db` (`npm install && npm test`), the others `node --test tests/*.test.js`.
+Each add-on folder has a `build.sh`. Unit tests: the index in `novabird-search/db` (`npm install && npm test`), the others `node --test tests/*.test.js`.
 
 ## License
 

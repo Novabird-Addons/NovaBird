@@ -2,31 +2,35 @@
 
 [English version](README.md) · [Disclaimer](#disclaimer)
 
-Eine Familie von Add-ons für **Betterbird** (Thunderbird ESR, getestet mit Betterbird 153 ESR): schnelle Suche, Konversationsansicht, Sende-Hilfen, eine stilvolle Oberfläche und passende Themes. Die Add-ons arbeiten einzeln, ergänzen sich aber (siehe Tabelle).
+Eine Familie von Add-ons für **Betterbird** (Thunderbird ESR, getestet mit Betterbird 153 ESR): schnelle Suche, Konversationsansicht, Sende-Hilfen, eine stilvolle Oberfläche mit drei Designs. Die Add-ons arbeiten einzeln, ergänzen sich aber (siehe Tabelle).
+
+Ab 2.0 sind es vier Add-ons statt acht: Der Suchindex (bis 1.x NovaBird-DB) steckt in NovaBird-Search, die Themes stecken in der Extension.
 
 | Add-on | Ordner | ID | Aufgabe |
 |---|---|---|---|
-| **NovaBird-Search** | [`novabird-search/`](novabird-search/README.md) | `novabird-search@novabird` | Suchleiste im Hauptfenster: Operatoren, Verlauf, Analyse, „Meinten Sie“; mit NovaBird-DB natürliche Sätze und Volltext |
-| **NovaBird-DB** | [`novabird-db/`](novabird-db/README.md) | `novabird-db@novabird` | eigener SQLite-/FTS5-Index im Profil: schnelle Volltextsuche, Konversationsabfrage; Schnittstelle für andere Add-ons |
-| **NovaBird-Conversation** | [`novabird-conversation/`](novabird-conversation/README.md) | `novabird-conversation@novabird` | alle Nachrichten einer Konversation im Lesebereich; nutzt optional NovaBird-DB |
+| **NovaBird-Search** | [`novabird-search/`](novabird-search/README.md) | `novabird-db@novabird` | Suchleiste im Hauptfenster: Operatoren, Verlauf, Analyse, „Meinten Sie“, natürliche Sätze und Volltext; eigener SQLite-/FTS5-Index im Profil (`db/`), Konversationsabfrage für andere Add-ons |
+| **NovaBird-Conversation** | [`novabird-conversation/`](novabird-conversation/README.md) | `novabird-conversation@novabird` | alle Nachrichten einer Konversation im Lesebereich; nutzt optional den Index von NovaBird-Search |
 | **NovaBird-Send** | [`novabird-send/`](novabird-send/README.md) | `novabird-send@novabird` | Senden mit Rückgängig-Fenster und Warteschlange |
-| **NovaBird-Extension** | [`novabird-extension/`](novabird-extension/README.md) | `novabird-extension@novabird` | rechte Leiste (Termine, Aufgaben, Anhänge), Einstellungen im neuen Stil, Nova-Calendar, Nova-Contact, Anhang-Vorschau, Regel-Assistent (Beta), Farben und Schrift, KI-Zusammenfassung (Opt-in), Postfach-Übersicht |
-| **NovaBird-Sand / -Cobalt / -Springlight** | [`novabird-themes/`](novabird-themes/README.md) | `novabird-t-<name>@novabird` | Themes (hell und dunkel); die Extension übernimmt ihre Farben |
+| **NovaBird-Extension** | [`novabird-extension/`](novabird-extension/README.md) | `novabird-extension@novabird` | rechte Leiste (Termine, Aufgaben, Anhänge), Einstellungen im neuen Stil, Nova-Calendar, Nova-Contact, Anhang-Vorschau, Regel-Assistent (Beta), Designs Sand/Cobalt/Springlight (hell und dunkel), Farben und Schrift, KI-Zusammenfassung (Opt-in), Postfach-Übersicht |
+
+Dazu optional der **[NovaBird Helper](novabird-helper/README.md)** (Windows): rechnet die semantische Suche (Beta) auf der Grafikkarte und teilt die Vektoren verschlüsselt über einen Ordner zwischen PCs.
+
+NovaBird-Search behält die ID des früheren NovaBird-DB, damit Index und Einstellungen bei der Aktualisierung erhalten bleiben. Umstieg von 1.x: Das alte NovaBird-Search (`novabird-search@novabird`) und die alten Theme-Add-ons (`novabird-t-<name>@novabird`) werden beim ersten Start übernommen (Einstellungen, Suchverlauf, gewähltes Theme) und entfernt.
 
 ## Zusammenspiel
-- **Search → DB:** Search fragt per `runtime.sendMessage("novabird-db@novabird", …)` (`ping`, `search`); ohne DB fällt Search auf Betterbirds eigenen Index (Gloda) zurück. Die DB erlaubt nur Absender aus einer festen Rechteliste (`ALLOWED_EXTERNAL`).
-- **Conversation → DB:** nur `ping` und `conversation`; ohne DB: Gloda, dann Betterbird-Suche.
+- **Suchleiste → Index:** im selben Add-on, direkter Aufruf (`dbCall` in `background.js`, Gegenstück `novabirdDbLocal` in `db/background.js`); solange der Index nicht bereit ist, sucht die Leiste über Betterbirds eigenen Index (Gloda).
+- **Conversation → Index:** per `runtime.sendMessage("novabird-db@novabird", …)`, nur `ping` und `conversation` (feste Rechteliste `ALLOWED_EXTERNAL`); ohne Index: Gloda, dann Betterbird-Suche.
 - **Extension ↔ Conversation:** die Anhang-Vorschau liest `.nbc-chip` aus dem DOM der Conversation (Klassennamen nicht ohne Abstimmung ändern).
-- **Extension ↔ Themes:** die Extension liest die Standard-Theme-Variablen des aktiven Themes (keine ID-Kopplung); beide funktionieren auch einzeln.
+- **Extension → Designs:** das Experiment `novaTheme` setzt das gewählte Design wie ein installiertes Theme (hell/dunkel nach Betriebssystem, eigenes Stylesheet). Ohne gewähltes Design gilt das Theme aus dem Add-ons-Manager.
 
 ## Bauen und Testen
-Jedes Add-on hat einen `build.sh` (erzeugt `novabird-<name>-<Version>.xpi`). Unit-Tests: `novabird-db` (`npm install && npm test`), `novabird-search`/`-send`/`-conversation` (`node --test tests/*.test.js`). Tests im echten Betterbird laufen headless per Marionette in einem lokalen Labor (nicht Teil dieses Repos).
+Jedes Add-on hat einen `build.sh` (erzeugt `novabird-<name>-<Version>.xpi`). Unit-Tests: Index in `novabird-search/db` (`npm install && npm test`), `novabird-search`/`-send`/`-conversation`/`-extension` (`node --test tests/*.test.js`). Tests im echten Betterbird laufen headless per Marionette in einem lokalen Labor (nicht Teil dieses Repos).
 Installieren: das `.xpi` im Add-ons-Manager („Add-on aus Datei installieren“); mehrere Pakete lassen sich im Dateifenster auf einmal markieren (Strg+A) oder zusammen auf den Add-ons-Manager ziehen.
 
 ## Hinweise
 - Alle Add-ons sind unsignierte Entwicklerbuilds (noch ohne Signatur und ohne Store-Veröffentlichung).
-- Der Index von NovaBird-DB liegt im Profilordner (`novabird-db/`) und enthält Mailinhalte: genauso schützenswert wie das Postfach.
-- **Suchsprachen:** Der Freitext-Parser versteht Deutsch, Englisch, Französisch und Spanisch (Standard: Sprache von Betterbird, in den NovaBird-DB-Einstellungen änderbar). Französisch und Spanisch sind noch nicht von Muttersprachlern geprüft.
+- Der Suchindex liegt im Profilordner (`novabird-db/`) und enthält Mailinhalte: genauso schützenswert wie das Postfach.
+- **Suchsprachen:** Der Freitext-Parser versteht Deutsch, Englisch, Französisch und Spanisch (Standard: Sprache von Betterbird, in den Einstellungen von NovaBird-Search unter „Index“ änderbar). Französisch und Spanisch sind noch nicht von Muttersprachlern geprüft.
 
 Eine kurze Anleitung für Anwender: [HANDBUCH.md](HANDBUCH.md).
 

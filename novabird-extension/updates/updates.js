@@ -3,16 +3,14 @@
  * Wird vom Hintergrundskript und von der Optionsseite geladen; die privilegierten Schritte macht das Experiment onlineUpdates. */
 const nbUpdates = (() => {
   const ORDER = [
-    "novabird-db@novabird", "novabird-search@novabird", "novabird-conversation@novabird", "novabird-send@novabird",
-    "novabird-t-sand@novabird", "novabird-t-cobalt@novabird", "novabird-t-springlight@novabird",
+    "novabird-db@novabird", "novabird-conversation@novabird", "novabird-send@novabird",
     "novabird-extension@novabird", // zuletzt: die Extension aktualisiert sich selbst
   ];
   const SELF = "novabird-extension@novabird";
+  // Ab NovaBird 2.0: NovaBird-Search enthält den Index und hat die ID des früheren NovaBird-DB; die Themes stecken in der Extension
   const NAMES = {
-    "novabird-extension@novabird": "NovaBird-Extension", "novabird-search@novabird": "NovaBird-Search",
-    "novabird-conversation@novabird": "NovaBird-Conversation", "novabird-db@novabird": "NovaBird-DB",
-    "novabird-send@novabird": "NovaBird-Send", "novabird-t-sand@novabird": "NovaBird-Sand",
-    "novabird-t-cobalt@novabird": "NovaBird-Cobalt", "novabird-t-springlight@novabird": "NovaBird-Springlight",
+    "novabird-extension@novabird": "NovaBird-Extension", "novabird-db@novabird": "NovaBird-Search",
+    "novabird-conversation@novabird": "NovaBird-Conversation", "novabird-send@novabird": "NovaBird-Send",
   };
   const DEFAULTS = { updatesEnabled: false, updatesChannel: "stable", updatesMode: "show", updatesOnStart: true, updatesManaged: {}, updatesLastCheck: 0 };
 

@@ -110,6 +110,13 @@
     ],
     "functions": [
       {
+        "name": "startUi",
+        "type": "function",
+        "async": true,
+        "description": "Startet die Suchleiste, falls sie wegen des alten NovaBird-Search (1.x) noch wartet.",
+        "parameters": []
+      },
+      {
         "name": "selfTest",
         "type": "function",
         "async": true,
@@ -323,6 +330,12 @@
           {
             "name": "busy",
             "type": "boolean"
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "optional": true,
+            "description": "Tooltip, solange das Symbol dreht (leer = der übliche)."
           }
         ]
       },

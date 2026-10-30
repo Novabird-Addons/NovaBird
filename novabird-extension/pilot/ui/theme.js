@@ -1,5 +1,5 @@
 "use strict";
-// Übernimmt die Farben des aktiven Themes (NovaBird-Themes); ohne Theme bleiben die eigenen Farben.
+// Übernimmt die Farben des NovaBird-Designs bzw. des aktiven Themes; ohne Theme bleiben die eigenen Farben.
 (() => {
   const api = globalThis.messenger || globalThis.browser;
   const STYLE_ID = "cp-theme";
@@ -43,9 +43,22 @@ textarea, .folders { scrollbar-color: var(--border) var(--card); }
     const n = parseInt(h.slice(1, 7), 16);
     return `${n >> 16}, ${(n >> 8) & 255}, ${n & 255}`;
   }
+  // Farben des NovaBird-Designs (in der Extension, nicht über theme.getCurrent sichtbar), sonst die des aktiven Themes
+  async function current() {
+    try {
+      const { uiTheme } = await api.storage.local.get({ uiTheme: "" });
+      if (["sand", "cobalt", "springlight"].includes(uiTheme)) {
+        const data = await (await fetch(api.runtime.getURL(`themes/${uiTheme}/theme.json`))).json();
+        return window.matchMedia("(prefers-color-scheme: dark)").matches ? data.dark_theme : data.theme;
+      }
+    } catch (e) {
+      /* dann das aktive Theme */
+    }
+    return api.theme.getCurrent();
+  }
   async function apply() {
     try {
-      const theme = await api.theme.getCurrent();
+      const theme = await current();
       let el = document.getElementById(STYLE_ID);
       if (!el) {
         el = document.createElement("style");
@@ -59,4 +72,6 @@ textarea, .folders { scrollbar-color: var(--border) var(--card); }
   }
   apply();
   try { api.theme.onUpdated.addListener(apply); } catch (e) {}
+  try { api.storage.onChanged.addListener(ch => { if (ch.uiTheme) apply(); }); } catch (e) {}
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", apply);
 })();

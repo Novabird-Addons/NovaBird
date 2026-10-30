@@ -1,0 +1,28 @@
+[
+  {
+    "namespace": "searchMigrate",
+    "functions": [
+      {
+        "name": "legacy",
+        "type": "function",
+        "async": true,
+        "description": "Ist das alte NovaBird-Search (bis 1.x eigenes Add-on) installiert? {installed, version, active}",
+        "parameters": []
+      },
+      {
+        "name": "readLegacyStorage",
+        "type": "function",
+        "async": true,
+        "description": "Liest storage.local des alten NovaBird-Search (nur die genannten Schlüssel).",
+        "parameters": [{"name": "keys", "type": "array", "items": {"type": "string"}}]
+      },
+      {
+        "name": "removeLegacy",
+        "type": "function",
+        "async": true,
+        "description": "Deinstalliert das alte NovaBird-Search (seine Suchleiste ist jetzt Teil dieses Add-ons).",
+        "parameters": []
+      }
+    ]
+  }
+]

@@ -147,9 +147,14 @@ async function leaveSearch(ctl, tab) {
   ctl.searchFolderId = null;
 }
 
-// --- NovaBird-DB (eigener Suchindex) --------------------------------------------------------------
-const NOVABIRD_DB_ID = "novabird-db@novabird";
+// --- Eigener Suchindex (früher Add-on NovaBird-DB) -------------------------------------------------
+// Ab 2.0 läuft der Index im selben Add-on (db/background.js, Modul, lädt nach diesen Skripten). Er meldet sich über
+// globalThis.novabirdDbLocal an; bis dahin gilt er als „startet noch“.
 let novabirdDbCache = { at: 0, status: null };
+function dbCall(msg) {
+  const local = globalThis.novabirdDbLocal;
+  return local ? local(msg) : Promise.reject(new Error("Suchindex startet noch"));
+}
 
 function withTimeout(promise, ms) {
   return Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))]);
@@ -168,7 +173,7 @@ async function novabirdDbStatus() {
   }
   let status = null;
   try {
-    const st = await withTimeout(messenger.runtime.sendMessage(NOVABIRD_DB_ID, { type: "ping" }), 1500);
+    const st = await withTimeout(dbCall({ type: "ping" }), 1500);
     if (st?.ok && st.broken) {
       status = null;
       novabirdDbWhy = "broken"; // Index beschädigt: Neuaufbau in den NovaBird-DB-Einstellungen
@@ -180,8 +185,8 @@ async function novabirdDbStatus() {
       novabirdDbWhy = st?.ok && !st.usable ? "building" : "missing";
     }
   } catch {
-    status = null; // nicht installiert, deaktiviert oder defekt -> Gloda
-    novabirdDbWhy = "missing";
+    status = null; // startet noch oder defekt -> Gloda
+    novabirdDbWhy = globalThis.novabirdDbLocal ? "missing" : "building";
   }
   novabirdDbCache = { at: Date.now(), status };
   return status;
@@ -212,7 +217,7 @@ async function novabirdDbFetch(text, state, folderId, limit) {
   }
   try {
     const res = await withTimeout(
-      messenger.runtime.sendMessage(NOVABIRD_DB_ID, {
+      dbCall({
         type: "search",
         text,
         limit: limit || dbLimit(),
@@ -237,7 +242,7 @@ async function novabirdDbSearch(ctl, text, criteria, state, gen, folderId) {
   }
   try {
     const res = await withTimeout(
-      messenger.runtime.sendMessage(NOVABIRD_DB_ID, {
+      dbCall({
         type: "search",
         text,
         limit: dbLimit(),
@@ -258,12 +263,72 @@ async function novabirdDbSearch(ctl, text, criteria, state, gen, folderId) {
     // Aktueller Ordner: auch im Papierkorb/Spam-Ordner selbst anzeigen
     const showState = folderId ? { ...state, trash: true, spam: true } : state;
     const count = await ctl.sb.idSearch(res.rows, criteria, { ...showState, group: settings.group }, settings.sortMode === "relevance");
+    if (count >= 0) {
+      semanticAugment(ctl, text, criteria, showState, gen, folderId, res.rows); // nicht abwarten: Worttreffer stehen schon
+    }
     return count === -2 ? null : count;
   } catch (e) {
     console.warn("NovaBird-Search: NovaBird-DB-Suche fehlgeschlagen, nutze Gloda", e);
     novabirdDbCache = { at: 0, status: null };
     return null;
   }
+}
+
+// Semantische Suche (Beta, semantic/main.js): ergänzt die Worttreffer um Mails, die der Bedeutung nach passen. Läuft erst
+// nach der Anzeige der Worttreffer, damit das Tippen nicht langsamer wird; der Hinweis „+N ähnlich“ zählt die ergänzten.
+// Dieselben Filter wie bei der Wortsuche (Zeitraum, ungelesen, Anhang, Papierkorb/Spam, aktueller Ordner).
+// Solange sie rechnet, dreht das Lade-Symbol weiter (eigener Tooltip); die Worttreffer sind schon benutzbar.
+async function semanticAugment(ctl, text, criteria, showState, gen, folderId, lexRows) {
+  const sem = globalThis.novabirdSemantic;
+  if (!sem?.enabled()) {
+    return;
+  }
+  ctl.semanticGen = gen;
+  ctl.sb.setBusy(true, messenger.i18n.getMessage("busySimilar")).catch(() => {});
+  try {
+    const res = await sem.query(text, { includeTrash: Boolean(showState.trash || showState.spam || folderId), folderId: folderId || null });
+    if (!res?.rows?.length || gen !== ctl.generation) {
+      return;
+    }
+    const have = new Set(lexRows.map(r => r.header_msg_id));
+    const extra = res.rows.filter(r => !have.has(r.header_msg_id));
+    if (!extra.length) {
+      return;
+    }
+    const relevance = settings.sortMode === "relevance";
+    const rows = relevance ? fuseRanks(lexRows, res.rows) : [...lexRows, ...extra];
+    const count = await ctl.sb.idSearch(rows, criteria, { ...showState, group: settings.group }, relevance);
+    if (count >= 0 && gen === ctl.generation) {
+      showNote(ctl, messenger.i18n.getMessage("noteSimilar", [String(extra.length)]), messenger.i18n.getMessage("noteSimilarTip"), "info");
+    }
+  } catch (e) {
+    console.warn("NovaBird-Search: semantische Suche", e);
+  } finally {
+    if (ctl.semanticGen === gen) {
+      ctl.semanticGen = 0;
+      endBusy(ctl, gen);
+    }
+  }
+}
+
+// Lade-Symbol der Suche gen ausschalten, außer sie ist überholt oder die semantische Suche rechnet noch
+function endBusy(ctl, gen) {
+  if (gen === ctl.generation && ctl.semanticGen !== gen) {
+    ctl.sb.setBusy(false).catch(() => {});
+  }
+}
+
+// Reciprocal Rank Fusion (k = 60): gemeinsame Rangfolge aus Wortsuche und Bedeutungssuche (nur bei Sortierung „Relevanz“)
+function fuseRanks(lexRows, semRows) {
+  const score = new Map();
+  const row = new Map();
+  [lexRows, semRows].forEach(list => list.forEach((r, i) => {
+    score.set(r.header_msg_id, (score.get(r.header_msg_id) || 0) + 1 / (60 + i + 1));
+    if (!row.has(r.header_msg_id)) {
+      row.set(r.header_msg_id, r);
+    }
+  }));
+  return [...row.values()].sort((a, b) => score.get(b.header_msg_id) - score.get(a.header_msg_id));
 }
 
 // Volltext nach kurzer Pause; bis dahin und währenddessen dreht das Lade-Symbol.
@@ -289,9 +354,7 @@ function scheduleGloda(ctl, criteria, state, gen, text) {
     } catch (e) {
       console.error("NovaBird-Search: Volltextsuche fehlgeschlagen", e);
     } finally {
-      if (gen === ctl.generation) {
-        ctl.sb.setBusy(false).catch(() => {});
-      }
+      endBusy(ctl, gen);
     }
   }, GLODA_DELAY_MS);
 }
@@ -371,9 +434,7 @@ async function runSearch(ctl, query) {
     } catch (e) {
       console.error("NovaBird-Search: NovaBird-DB-Suche fehlgeschlagen", e);
     } finally {
-      if (gen === ctl.generation) {
-        ctl.sb.setBusy(false).catch(() => {});
-      }
+      endBusy(ctl, gen);
     }
     if (gen !== ctl.generation) {
       return;
@@ -565,10 +626,15 @@ async function openAnalysis(ctl, text) {
   await ctl.sb.openPage(messenger.runtime.getURL("analysis/analysis.html"));
 }
 
-messenger.runtime.onMessage.addListener(async (msg, sender) => {
-  if (sender.id !== messenger.runtime.id) {
+// Nur "analysis:*" beantworten; alles andere (z. B. "novabird-db:*" für den Index) bleibt beim anderen Listener.
+// Darum kein async-Listener: der gäbe für jede Nachricht ein Promise zurück und käme dem Index zuvor.
+messenger.runtime.onMessage.addListener((msg, sender) => {
+  if (sender.id !== messenger.runtime.id || !String(msg?.type ?? "").startsWith("analysis:")) {
     return undefined;
   }
+  return handleAnalysisMessage(msg);
+});
+async function handleAnalysisMessage(msg) {
   if (msg?.type === "analysis:get") {
     // neueste noch nicht abgeholte Analyse (jede Seite holt genau eine)
     const open = [...analyses.entries()].filter(([, v]) => !v.claimed).pop();
@@ -593,7 +659,7 @@ messenger.runtime.onMessage.addListener(async (msg, sender) => {
     return { ok: true };
   }
   return undefined;
-});
+}
 
 messenger.searchBar.onOpenSettings.addListener(() => {
   messenger.runtime.openOptionsPage().catch(e => console.error("NovaBird-Search: Einstellungen", e));
@@ -757,7 +823,37 @@ async function leaveStaleSearchFolder() {
   }
 }
 
-init().then(syncSharedFolders).then(leaveStaleSearchFolder).catch(e => console.error("NovaBird-Search: Start fehlgeschlagen", e));
+// Umstieg von 1.x: Bis dahin waren Suchleiste (novabird-search@novabird) und Suchindex (dieses Add-on, früher NovaBird-DB) getrennt.
+// Einstellungen und Suchverlauf der alten Suchleiste einmal übernehmen, das alte Add-on entfernen, dann die eigene Leiste starten.
+async function migrateLegacySearch() {
+  try {
+    const old = await messenger.searchMigrate.legacy();
+    if (old.installed) {
+      const { migratedFromSearch } = await messenger.storage.local.get({ migratedFromSearch: false });
+      if (!migratedFromSearch) {
+        const data = await messenger.searchMigrate.readLegacyStorage([SETTINGS_KEY, HISTORY_KEY]).catch(e => {
+          console.error("NovaBird-Search: alte Einstellungen nicht lesbar", e);
+          return {};
+        });
+        const patch = { migratedFromSearch: true };
+        if (data[SETTINGS_KEY]) {
+          patch[SETTINGS_KEY] = sanitizeSettings(data[SETTINGS_KEY]);
+        }
+        if (Array.isArray(data[HISTORY_KEY])) {
+          patch[HISTORY_KEY] = data[HISTORY_KEY];
+        }
+        await messenger.storage.local.set(patch);
+      }
+      await messenger.searchMigrate.removeLegacy();
+      console.log(`NovaBird-Search: altes NovaBird-Search ${old.version} übernommen und entfernt`);
+    }
+  } catch (e) {
+    console.error("NovaBird-Search: Umstieg von 1.x", e);
+  }
+  await messenger.searchBar.startUi();
+}
+
+migrateLegacySearch().then(init).then(syncSharedFolders).then(leaveStaleSearchFolder).catch(e => console.error("NovaBird-Search: Start fehlgeschlagen", e));
 
 // Selbsttest der Betterbird-Interna (shared/selftest-bg.js); Ergebnis zeigt die Optionsseite
 nbStartSelfTest([() => messenger.searchBar.selfTest()]);

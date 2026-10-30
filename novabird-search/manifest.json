@@ -1,21 +1,16 @@
 {
   "manifest_version": 2,
   "name": "__MSG_extName__",
-  "version": "1.2.10",
+  "version": "2.0.0",
   "description": "__MSG_extDescription__",
   "browser_specific_settings": {
     "gecko": {
-      "id": "novabird-search@novabird",
+      "id": "novabird-db@novabird",
       "strict_min_version": "128.0"
     }
   },
   "background": {
-    "scripts": [
-      "shared/selftest-bg.js",
-      "settings.js",
-      "parser.js",
-      "background.js"
-    ]
+    "page": "background.html"
   },
   "permissions": [
     "accountsRead",
@@ -25,7 +20,17 @@
     "menus",
     "messagesUpdate",
     "messagesTags",
-    "messagesTagsList"
+    "messagesTagsList",
+    "addressBooks",
+    "alarms",
+    "clipboardWrite"
+  ],
+  "optional_permissions": [
+    "nativeMessaging",
+    "webRequest",
+    "webRequestBlocking",
+    "http://*/*",
+    "https://*/*"
   ],
   "experiment_apis": {
     "searchBar": {
@@ -41,6 +46,48 @@
         ],
         "script": "experiments/searchBar/implementation.js"
       }
+    },
+    "novabirdDb": {
+      "schema": "db/api/novabirdDb/schema.json",
+      "parent": {
+        "scopes": [
+          "addon_parent"
+        ],
+        "paths": [
+          [
+            "novabirdDb"
+          ]
+        ],
+        "script": "db/api/novabirdDb/implementation.js"
+      }
+    },
+    "novabirdDbUi": {
+      "schema": "db/api/novabirdDbUi/schema.json",
+      "parent": {
+        "scopes": [
+          "addon_parent"
+        ],
+        "paths": [
+          [
+            "novabirdDbUi"
+          ]
+        ],
+        "script": "db/api/novabirdDbUi/implementation.js"
+      }
+    },
+    "searchMigrate": {
+      "schema": "experiments/searchMigrate/schema.json",
+      "parent": {
+        "scopes": [
+          "addon_parent"
+        ],
+        "paths": [
+          [
+            "searchMigrate"
+          ]
+        ],
+        "script": "experiments/searchMigrate/implementation.js"
+      }
     }
   },
   "default_locale": "en",
@@ -50,5 +97,6 @@
   "icons": {
     "48": "icons/icon-48.png",
     "96": "icons/icon-96.png"
-  }
+  },
+  "content_security_policy": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
 }

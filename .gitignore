@@ -10,3 +10,11 @@ bb.pid
 
 # Lokale Arbeitsanleitungen (nicht veröffentlicht)
 CLAUDE.md
+
+# Laufzeit der semantischen Suche (tools/vendor-semantic.py legt sie an)
+novabird-search/semantic/lib/
+
+# Build-Ausgabe des NovaBird Helpers
+novabird-helper/bin/
+novabird-helper/obj/
+__pycache__/

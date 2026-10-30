@@ -163,19 +163,19 @@
     "message": "Source des conversations"
   },
   "optEngineAuto": {
-    "message": "Automatique (NovaBird-DB, puis Gloda, puis la recherche de Betterbird)"
+    "message": "Automatique (NovaBird-Search, puis Gloda, puis la recherche de Betterbird)"
   },
   "optEngineQuery": {
     "message": "Toujours la recherche de Betterbird"
   },
   "optEngineHint": {
-    "message": "L'index NovaBird-DB trouve les conversations en quelques millisecondes. S'il est absent, en cours d'indexation ou ne répond pas, Gloda (l'index propre à Betterbird) est essayé, puis la recherche de Betterbird. Les règles de regroupement pour les messages sans chaîne s'appliquent à NovaBird-DB et à la recherche ; Gloda utilise les siennes."
+    "message": "L'index NovaBird-Search trouve les conversations en quelques millisecondes. S'il est absent, en cours d'indexation ou ne répond pas, Gloda (l'index propre à Betterbird) est essayé, puis la recherche de Betterbird. Les règles de regroupement pour les messages sans chaîne s'appliquent à NovaBird-Search et à la recherche ; Gloda utilise les siennes."
   },
   "optLimit": {
-    "message": "Nombre maximal de messages par conversation (NovaBird-DB)"
+    "message": "Nombre maximal de messages par conversation (NovaBird-Search)"
   },
   "optEngineDb": {
-    "message": "NovaBird-DB uniquement (sinon la recherche de Betterbird)"
+    "message": "NovaBird-Search uniquement (sinon la recherche de Betterbird)"
   },
   "optEngineGloda": {
     "message": "Gloda uniquement (sinon la recherche de Betterbird)"
@@ -367,7 +367,7 @@
     "message": "Conversation lorsque plusieurs messages sont sélectionnés"
   },
   "selfTest_gloda": {
-    "message": "Recherche via l’index Gloda (solution de repli sans NovaBird-DB)"
+    "message": "Recherche via l’index Gloda (solution de repli sans NovaBird-Search)"
   },
   "otherConvText": {
     "message": "« Thunderbird Conversations » est également actif. Les deux modules s’insèrent dans l’affichage des messages et se gênent mutuellement ; mieux vaut n’en utiliser qu’un."

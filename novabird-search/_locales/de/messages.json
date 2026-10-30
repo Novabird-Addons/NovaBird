@@ -4,7 +4,7 @@
     "description": "Name des Add-ons"
   },
   "extDescription": {
-    "message": "Eine Suchleiste statt zwei: Bereich und Optionen im Feld, Treffer live in der Nachrichtenliste, neueste zuerst.",
+    "message": "Eine Suchleiste statt zwei: Bereich und Optionen im Feld, Treffer live in der Nachrichtenliste, neueste zuerst. Mit eigenem schnellem Suchindex.",
     "description": "Beschreibung"
   },
   "placeholder": {
@@ -176,43 +176,43 @@
     "description": "Hinweis"
   },
   "optHeadingDb": {
-    "message": "NovaBird-DB (eigener Suchindex)"
+    "message": "Eigener Suchindex"
   },
   "optDbMode": {
-    "message": "NovaBird-DB verwenden:"
+    "message": "Eigenen Suchindex verwenden:"
   },
   "optDbAuto": {
-    "message": "Automatisch (wenn vorhanden und bereit)"
+    "message": "Automatisch (sobald bereit)"
   },
   "optDbOff": {
     "message": "Nie (nur Gloda)"
   },
   "optDbHint": {
-    "message": "Ist das Add-on „NovaBird-DB“ installiert und sein Index fertig, ersetzt es für die Volltextsuche über alle Ordner den Gloda-Index. Fehlt es oder ist es nicht bereit, sucht NovaBird-Search wie bisher mit Gloda."
+    "message": "Sobald der eigene Suchindex fertig aufgebaut ist, ersetzt er für die Volltextsuche über alle Ordner den Gloda-Index. Bis dahin sucht NovaBird-Search mit Gloda. Status und Wartung: Reiter „Index“."
   },
   "optDbStateChecking": {
     "message": "Status wird geprüft …"
   },
   "optDbStateMissing": {
-    "message": "NovaBird-DB nicht gefunden – es wird Gloda genutzt."
+    "message": "Der Suchindex startet noch – es wird Gloda genutzt."
   },
   "optDbStateIndexing": {
-    "message": "NovaBird-DB gefunden, Index wird noch aufgebaut ($1 Mails) – bis dahin wird Gloda genutzt."
+    "message": "Der Suchindex wird noch aufgebaut ($1 Mails) – bis dahin wird Gloda genutzt."
   },
   "optDbStateEmpty": {
-    "message": "NovaBird-DB gefunden, aber der Index ist leer – es wird Gloda genutzt."
+    "message": "Der Suchindex ist leer – es wird Gloda genutzt."
   },
   "optDbStateNotReady": {
-    "message": "NovaBird-DB gefunden, der Erstaufbau des Index ist aber noch nicht abgeschlossen – bis dahin wird Gloda genutzt."
+    "message": "Der Erstaufbau des Suchindex ist noch nicht abgeschlossen – bis dahin wird Gloda genutzt."
   },
   "optDbStateReady": {
-    "message": "NovaBird-DB aktiv ($1 Mails im Index, Version $2)."
+    "message": "Suchindex aktiv ($1 Mails im Index, Version $2)."
   },
   "optDbStateOff": {
-    "message": "NovaBird-DB wird nicht verwendet (Einstellung „Nie“)."
+    "message": "Der eigene Suchindex wird nicht verwendet (Einstellung „Nie“)."
   },
   "optSort": {
-    "message": "Sortierung der Treffer (NovaBird-DB):"
+    "message": "Sortierung der Treffer (Suchindex):"
   },
   "optSortDate": {
     "message": "Datum (neueste zuerst)"
@@ -221,7 +221,7 @@
     "message": "Relevanz – EXPERIMENTELL (mit Bonus für neuere Mails)"
   },
   "optSortHint": {
-    "message": "Experimentell: Die Relevanz-Sortierung ist noch nicht ausgereift. Gilt nur, wenn NovaBird-DB genutzt wird. Gloda-Treffer und die schnelle Kopfzeilen-Suche bleiben nach Datum sortiert."
+    "message": "Experimentell: Die Relevanz-Sortierung ist noch nicht ausgereift. Gilt nur, wenn der eigene Suchindex genutzt wird. Gloda-Treffer und die schnelle Kopfzeilen-Suche bleiben nach Datum sortiert."
   },
   "suggest": {
     "message": "Meinten Sie: {text}?"
@@ -230,16 +230,16 @@
     "message": "Suchergebnisse"
   },
   "noteDbOff": {
-    "message": "NovaBird-DB ist OFFLINE – Gloda-Suche"
+    "message": "Suchindex ist OFFLINE – Gloda-Suche"
   },
   "noteDbMissing": {
-    "message": "NovaBird-DB ist OFFLINE – Gloda-Suche"
+    "message": "Suchindex startet – Gloda-Suche"
   },
   "noteDbBuilding": {
-    "message": "NovaBird-DB baut den Index auf – Gloda-Suche"
+    "message": "Suchindex wird aufgebaut – Gloda-Suche"
   },
   "noteDbTip": {
-    "message": "Die Suche läuft über Betterbirds eingebauten Index (Gloda) und nicht über NovaBird-DB: weniger genau, keine Umlaut-Gleichheit, kein Tippfehler-Vorschlag."
+    "message": "Die Suche läuft über Betterbirds eingebauten Index (Gloda) und nicht über den eigenen Suchindex: weniger genau, keine Umlaut-Gleichheit, kein Tippfehler-Vorschlag."
   },
   "historyTitle": {
     "message": "Zuletzt gesucht"
@@ -385,19 +385,19 @@
     "description": "Text"
   },
   "noteDbBroken": {
-    "message": "NovaBird-DB-Index defekt – Gloda-Suche",
+    "message": "Suchindex defekt – Gloda-Suche",
     "description": "Text"
   },
   "noteDbTipBroken": {
-    "message": "Der Suchindex von NovaBird-DB ist unbrauchbar. Neuaufbau in NovaBird-DB-Einstellungen („Index neu aufbauen“). Bis dahin sucht NovaBird-Search über Gloda (langsamer, weniger genau).",
+    "message": "Der Suchindex ist unbrauchbar. Neuaufbau in den Einstellungen von NovaBird-Search, Reiter „Index“ („Index neu aufbauen“). Bis dahin sucht NovaBird-Search über Gloda (langsamer, weniger genau).",
     "description": "Text"
   },
   "noteDbOutdated": {
-    "message": "NovaBird-DB veraltet – Gloda-Suche",
+    "message": "Suchindex veraltet – Gloda-Suche",
     "description": "Text"
   },
   "noteDbTipOutdated": {
-    "message": "Diese NovaBird-Search-Version braucht NovaBird-DB 1.0 oder neuer. Bitte NovaBird-DB aktualisieren. Bis dahin sucht NovaBird-Search über Gloda.",
+    "message": "Der Suchindex passt nicht zu dieser Version von NovaBird-Search. Bitte NovaBird-Search neu installieren. Bis dahin sucht NovaBird-Search über Gloda.",
     "description": "Text"
   },
   "optLimitWarn": {
@@ -409,7 +409,7 @@
     "description": "Text"
   },
   "optEsrText": {
-    "message": "NovaBird-Search und NovaBird-DB nutzen Experiment-APIs. Die laufen nur in Betterbird und in Thunderbird ESR (Extended Support Release), nicht in der normalen Thunderbird-Release. Wir empfehlen die ESR-Versionen.",
+    "message": "NovaBird-Search nutzt Experiment-APIs. Die laufen nur in Betterbird und in Thunderbird ESR (Extended Support Release), nicht in der normalen Thunderbird-Release. Wir empfehlen die ESR-Versionen.",
     "description": "Text"
   },
   "markAllRead": {
@@ -450,5 +450,650 @@
   },
   "selfTest_sharedFolders": {
     "message": "Gemeinsame Ordner oben im Ordnerbereich"
+  },
+  "uiTitle": {
+    "message": "Suchindex wird aufgebaut"
+  },
+  "uiPausedTitle": {
+    "message": "Indexaufbau angehalten"
+  },
+  "uiCount": {
+    "message": "{done} von {total} Mails"
+  },
+  "uiPause": {
+    "message": "Anhalten"
+  },
+  "uiResume": {
+    "message": "Fortsetzen"
+  },
+  "uiHide": {
+    "message": "Ausblenden"
+  },
+  "uiHint": {
+    "message": "Beim ersten Mal kann das eine ganze Weile dauern. Betterbird bleibt benutzbar, die Suche ist während der Indizierung aber eingeschränkt (NovaBird-Search nutzt in der Zeit Gloda). Anhalten und später Fortsetzen ist jederzeit möglich."
+  },
+  "rebuildTitle": {
+    "message": "Suchindex neu aufbauen?"
+  },
+  "rebuildWhyCorrupt": {
+    "message": "er ist beschädigt oder unbrauchbar"
+  },
+  "rebuildWhyNewer": {
+    "message": "er stammt von einer neueren NovaBird-Search-Version und kann hier nicht gelesen werden"
+  },
+  "rebuildText": {
+    "message": "Der Suchindex von NovaBird-Search kann nicht benutzt werden: $WHY$.\n\nOhne Index sucht NovaBird-Search nur noch über Gloda (langsamer, weniger genau). Soll der Index jetzt neu aufgebaut werden? Das dauert je nach Postfach einige Minuten, Betterbird bleibt bedienbar. Die alte Datei bleibt bis zum Ende erhalten und wird erst danach gelöscht.",
+    "placeholders": {
+      "why": {
+        "content": "$1"
+      }
+    }
+  },
+  "rebuildYes": {
+    "message": "Neu aufbauen"
+  },
+  "rebuildNo": {
+    "message": "Abbrechen"
+  },
+  "rebuildDeclinedTitle": {
+    "message": "Index wird nicht neu aufgebaut"
+  },
+  "rebuildDeclinedText": {
+    "message": "Suchgeschwindigkeit und Trefferqualität sind stark eingeschränkt, solange der Index nicht neu aufgebaut ist. Der Neuaufbau ist für die volle Funktion erforderlich und muss jetzt manuell in den Einstellungen von NovaBird-Search (Reiter „Index“) gestartet werden („Index neu aufbauen“). Beim nächsten Start fragt NovaBird-Search erneut."
+  },
+  "rebuildDeclinedOk": {
+    "message": "Verstanden"
+  },
+  "optPageTitle": {
+    "message": "NovaBird-Search – Einstellungen"
+  },
+  "optHStatus": {
+    "message": "Status"
+  },
+  "optRowMessages": {
+    "message": "Mails im Index"
+  },
+  "optRowHeadersOnly": {
+    "message": "davon ohne Volltext"
+  },
+  "optRowSize": {
+    "message": "Dateigröße"
+  },
+  "optRowFts": {
+    "message": "Volltextmodus"
+  },
+  "optFts5Loaded": {
+    "message": " (FTS5 nachgeladen)"
+  },
+  "optRowCatchUp": {
+    "message": "Zuletzt nachgeholt"
+  },
+  "optNotYet": {
+    "message": "noch nicht"
+  },
+  "optCatchUpFmt": {
+    "message": "$1 ($2 neu von $3 geprüft)"
+  },
+  "optRowPhase": {
+    "message": "Stand"
+  },
+  "optPhaseFolder": {
+    "message": "Indizierung läuft ($1)"
+  },
+  "optHIndexing": {
+    "message": "Indexierung"
+  },
+  "optPause": {
+    "message": "Anhalten"
+  },
+  "optResume": {
+    "message": "Fortsetzen"
+  },
+  "optCheckNow": {
+    "message": "Index jetzt prüfen"
+  },
+  "optIndexingHint": {
+    "message": "Angehaltene Läufe setzen später dort fort, wo sie aufgehört haben."
+  },
+  "optHLog": {
+    "message": "Protokoll"
+  },
+  "optCopy": {
+    "message": "Kopieren"
+  },
+  "optClearEvents": {
+    "message": "Leeren"
+  },
+  "optLogHint": {
+    "message": "Zeigt, was der Suchindex gerade tut (Ordner, Zahlen, Abgleich). Bleibt auch nach einem Neustart erhalten (letzte 400 Zeilen)."
+  },
+  "optLogCopied": {
+    "message": "Protokoll kopiert."
+  },
+  "optHCompound": {
+    "message": "Zusammensetzungen (Speiseplan → Wochenspeiseplan)"
+  },
+  "optCompoundLabel": {
+    "message": "Wie sollen zusammengesetzte Wörter gefunden werden?"
+  },
+  "optCompQuery": {
+    "message": "Bei der Suche (Standard)"
+  },
+  "optCompIndex": {
+    "message": "Beim Indexieren (terms_de)"
+  },
+  "optCompQueryHead": {
+    "message": "Bei der Suche (Standard):"
+  },
+  "optCompQueryText": {
+    "message": " Zu jedem Suchbegriff sucht NovaBird-Search in der Wortliste des Index nach längeren Wörtern, die ihn enthalten und deren Vorsatz selbst ein bekanntes Wort ist („Speiseplan“ → „Wochenspeiseplan“, aber „meldung“ nicht „Anmeldung“). Kein Neuaufbau nötig, lernt automatisch aus neuen Mails; die erste Suche nach einem Begriff kann bei sehr großen Postfächern einen Moment dauern, danach ist sie zwischengespeichert."
+  },
+  "optCompIndexHead": {
+    "message": "Beim Indexieren (terms_de):"
+  },
+  "optCompIndexText": {
+    "message": " Beim Einlesen jeder Mail werden zusammengesetzte Wörter schon in ihre Teile zerlegt (aus der Wortliste des eigenen Postfachs, ohne Wörterbuch) und in einem Zusatzindex abgelegt. Die Suche braucht dann keine Wortliste mehr. Beim Umschalten liest NovaBird-Search alle Mails einmal neu ein (bei 75.000 Mails ca. 6–10 Minuten, doppelt so lang bei einer frischen Installation). Nachteil: Zerlegt wird nur, wenn beide Teile im Postfach auch einzeln oft vorkommen; Tests fanden damit weniger Zusammensetzungen als im Standard. Gut zum Vergleichen."
+  },
+  "optCompNoFts": {
+    "message": "Nur mit FTS5 verfügbar (hier nicht)."
+  },
+  "optCompActiveIndex": {
+    "message": "Aktiv: Zerlegung beim Indexieren (Saatliste $1 Wörter)."
+  },
+  "optCompActiveQuery": {
+    "message": "Aktiv: Erweiterung bei der Suche."
+  },
+  "optConfirmCompound": {
+    "message": "Zerlegung beim Indexieren einschalten? Alle Mails werden dafür einmal neu eingelesen (kann einige Minuten dauern, die Suche läuft währenddessen über Gloda)."
+  },
+  "optSwitchedIndex": {
+    "message": "Umgestellt. Der Index wird neu eingelesen, Fortschritt siehe Overlay und Protokoll."
+  },
+  "optSwitchedQuery": {
+    "message": "Umgestellt auf „Bei der Suche“."
+  },
+  "optHPrivacy": {
+    "message": "Datenschutz"
+  },
+  "optPrivacyText": {
+    "message": "Der Index enthält den Text jeder Mail (bis 100.000 Zeichen) und die Namen der Anhänge im Klartext in der Datei novabird-db/index.sqlite im Betterbird-Profil, wie der Index von Betterbird selbst. Er verlässt den Rechner nie. Wer die Profilordner sichert oder die Festplatte nicht verschlüsselt, sichert und schützt damit auch den Mailtext. Verschlüsselte Mails (OpenPGP, S/MIME) werden nicht indiziert. „Index löschen“ entfernt die Datei vollständig."
+  },
+  "optHVersion": {
+    "message": "Betterbird-Version"
+  },
+  "optVersionText": {
+    "message": "NovaBird-Search nutzt Experiment-APIs. Die laufen nur in Betterbird und in Thunderbird ESR (Extended Support Release), nicht in der normalen Thunderbird-Release. Wir empfehlen die ESR-Versionen, sonst funktioniert das Add-on nicht oder nicht dauerhaft."
+  },
+  "optHMaint": {
+    "message": "Wartung"
+  },
+  "optMaintain": {
+    "message": "Aufräumen und verkleinern"
+  },
+  "optReindex": {
+    "message": "Index neu aufbauen"
+  },
+  "optDelete": {
+    "message": "Index löschen"
+  },
+  "optMaintHint": {
+    "message": "„Neu aufbauen“ legt die alte Indexdatei zur Seite, liest alle Mails erneut ein und löscht die alte Datei erst, wenn der neue Index vollständig ist. „Löschen“ entfernt die Datei, bis du neu aufbaust oder Betterbird neu startest. Die Mails selbst werden nie verändert."
+  },
+  "optMaintaining": {
+    "message": "Räume auf …"
+  },
+  "optDone": {
+    "message": "Fertig: $1 → $2"
+  },
+  "optError": {
+    "message": "Fehler: $1"
+  },
+  "optConfirmReindex": {
+    "message": "Index löschen und alle Mails neu einlesen?"
+  },
+  "optReindexStarted": {
+    "message": "Neuaufbau gestartet. Fortschritt siehst du im Overlay."
+  },
+  "optConfirmDelete": {
+    "message": "Den Index wirklich löschen?"
+  },
+  "optDeleted": {
+    "message": "Index gelöscht."
+  },
+  "optHLogging": {
+    "message": "Suchprotokoll"
+  },
+  "optLogging": {
+    "message": "Suchanfragen lokal speichern"
+  },
+  "optLoggingHint": {
+    "message": "Es werden nur Anfragen gespeichert, die du mit Enter bestätigt oder mit einem Treffer abgeschlossen hast. Nichts verlässt den Rechner. Später lässt sich daran erkennen, welche Formulierungen der Parser lernen sollte."
+  },
+  "optLogCount": {
+    "message": "$1 Anfragen gespeichert"
+  },
+  "optExport": {
+    "message": "Als Textdatei speichern"
+  },
+  "optClearLog": {
+    "message": "Protokoll löschen"
+  },
+  "optConfirmClearLog": {
+    "message": "Suchprotokoll löschen?"
+  },
+  "optHLangs": {
+    "message": "Suchsprachen"
+  },
+  "optLangsHint": {
+    "message": "In diesen Sprachen werden Suchanfragen als Satz verstanden, z. B. „Rechnungen von Jonas letzte Woche“. Standard sind Englisch und die Sprache von Betterbird. Mehrere Sprachen sind für gemischte Postfächer gedacht; kurze Wörter mit mehreren Bedeutungen (etwa „an“ auf Deutsch und auf Englisch) können dann falsch gedeutet werden. Die Kurzschreibweise (von:, from:, an:, to: …) geht immer."
+  },
+  "optHDebug": {
+    "message": "Ausführliches Indexprotokoll"
+  },
+  "optDebug": {
+    "message": "Ausführliches Protokoll beim Indexieren"
+  },
+  "optDebugHint": {
+    "message": "Schreibt zusätzlich pro Seite und bei langsamen Mails ins Protokoll (Dauer, Betreff). Nur zur Fehlersuche einschalten, es macht das Protokoll länger. Hängt der Index, meldet sich der Wächter auch ohne diese Option. Bei Problemen zuerst den betroffenen Ordner reparieren (Rechtsklick → Eigenschaften → Ordner reparieren)."
+  },
+  "optTabSearch": {
+    "message": "Suche"
+  },
+  "optTabIndex": {
+    "message": "Index"
+  },
+  "optTabSemantic": {
+    "message": "Semantische Suche (Beta)"
+  },
+  "noteSimilar": {
+    "message": "+$1 ähnlich"
+  },
+  "noteSimilarTip": {
+    "message": "Zusätzliche Treffer der semantischen Suche (Beta): Mails, die der Bedeutung nach passen, auch ohne das Suchwort. Abschalten oder strenger einstellen: Einstellungen von NovaBird-Search, Reiter „Semantische Suche“."
+  },
+  "semIntro": {
+    "message": "Findet Mails auch nach ihrer Bedeutung: „Treffen der Eltern“ findet den „Elternabend“, „Rechnung bezahlen“ die „Zahlungsaufforderung“. Die Treffer ergänzen die normale Suche und werden in der Suchleiste als „ähnlich“ gezählt. Alles läuft auf diesem Rechner; nur das Modell wird einmal von Hugging Face geladen (auf Knopfdruck, mit Prüfsumme)."
+  },
+  "semEnable": {
+    "message": "Semantische Suche einschalten"
+  },
+  "semModelHeading": {
+    "message": "Modell"
+  },
+  "semModelHint": {
+    "message": "Das Modell wird einmal geladen und im Profil gespeichert. Danach rechnet NovaBird-Search die Mails im Hintergrund durch, die neuesten zuerst (ohne Grafikkarte etwa 5 Mails pro Sekunde, mit dem NovaBird Helper deutlich schneller)."
+  },
+  "semRecommended": {
+    "message": "empfohlen"
+  },
+  "semModelMeta": {
+    "message": "Sprachen $1 · Download $2 · Arbeitsspeicher im Add-on etwa $3"
+  },
+  "semModelReady": {
+    "message": "geladen und geprüft"
+  },
+  "semModelPartial": {
+    "message": "unvollständig"
+  },
+  "semModelMissing": {
+    "message": "noch nicht geladen"
+  },
+  "semDownload": {
+    "message": "Modell laden"
+  },
+  "semCancel": {
+    "message": "Abbrechen"
+  },
+  "semRemoveModel": {
+    "message": "Modell löschen"
+  },
+  "semRemoveModelConfirm": {
+    "message": "Modell aus dem Profil löschen? Die berechneten Vektoren bleiben erhalten."
+  },
+  "semStateHeading": {
+    "message": "Status"
+  },
+  "semRowPhase": {
+    "message": "Zustand"
+  },
+  "semRowProgress": {
+    "message": "Fortschritt"
+  },
+  "semRowEngine": {
+    "message": "Rechenweg"
+  },
+  "semRowRate": {
+    "message": "Geschwindigkeit"
+  },
+  "semRowLoaded": {
+    "message": "Modell im Speicher"
+  },
+  "semProgressFmt": {
+    "message": "$1 von $2 Mails ($3 %)"
+  },
+  "semEngineHelper": {
+    "message": "NovaBird Helper ($1)"
+  },
+  "semEngineAddon": {
+    "message": "Add-on, CPU mit $1 Threads"
+  },
+  "semRateFmt": {
+    "message": "$1 Mails pro Sekunde"
+  },
+  "semYes": {
+    "message": "ja"
+  },
+  "semNo": {
+    "message": "nein"
+  },
+  "semPause": {
+    "message": "Anhalten"
+  },
+  "semResume": {
+    "message": "Fortsetzen"
+  },
+  "semDownloadFmt": {
+    "message": "$1 von $2"
+  },
+  "semPhaseOff": {
+    "message": "aus"
+  },
+  "semPhaseNoModel": {
+    "message": "Modell fehlt (oben laden)"
+  },
+  "semPhaseDownloading": {
+    "message": "Modell wird geladen"
+  },
+  "semPhaseWaitingIndex": {
+    "message": "wartet auf den Suchindex"
+  },
+  "semPhaseWaitingIdle": {
+    "message": "wartet auf Leerlauf (keine Eingabe seit einer Minute)"
+  },
+  "semPhaseIndexing": {
+    "message": "rechnet"
+  },
+  "semPhasePaused": {
+    "message": "angehalten"
+  },
+  "semPhaseDone": {
+    "message": "fertig, neue Mails folgen automatisch"
+  },
+  "semPhaseError": {
+    "message": "Fehler"
+  },
+  "semTry": {
+    "message": "Ausprobieren"
+  },
+  "semTryPlaceholder": {
+    "message": "Suchtext, z. B. Treffen der Eltern"
+  },
+  "semTryFmt": {
+    "message": "$1 Treffer in $2 ms (Wert = Ähnlichkeit, 1 = gleich)"
+  },
+  "semTryNone": {
+    "message": "Keine Treffer (oder noch keine Vektoren)."
+  },
+  "semAdvanced": {
+    "message": "Erweitert"
+  },
+  "semPath": {
+    "message": "Rechenweg:"
+  },
+  "semPathAuto": {
+    "message": "Automatisch"
+  },
+  "semPathAddon": {
+    "message": "Nur im Add-on (CPU)"
+  },
+  "semPathHelper": {
+    "message": "Nur NovaBird Helper"
+  },
+  "semPathHint": {
+    "message": "Automatisch: Läuft der NovaBird Helper und hat er das Modell bereit, rechnet er (Grafikkarte, viel schneller); sonst und bei Fehlern rechnet das Add-on auf der CPU. Ein eigener Server (Ollama …) wird nur benutzt, wenn du ihn hier auswählst."
+  },
+  "semIdleOnly": {
+    "message": "Altbestand nur im Leerlauf rechnen"
+  },
+  "semIdleOnlyHint": {
+    "message": "Gilt nur, wenn das Add-on selbst rechnet: Die ersten Mails werden sofort berechnet, der Rest nur, wenn eine Minute lang nicht getippt oder geklickt wurde. Rechnen der Helper oder ein anderer PC, läuft der Altbestand sofort durch (dieser PC liest dann nur die Texte). Neue Suchen gehen immer sofort."
+  },
+  "semThreads": {
+    "message": "Threads im Add-on:"
+  },
+  "semThreadsInfo": {
+    "message": "$1 Kerne erkannt, genutzt: $2 (0 = automatisch)"
+  },
+  "semKeep": {
+    "message": "Modell im Speicher halten:"
+  },
+  "semKeep10": {
+    "message": "10 Minuten nach der letzten Suche"
+  },
+  "semKeepAlways": {
+    "message": "immer"
+  },
+  "semKeepSearch": {
+    "message": "nur während der Suche"
+  },
+  "semKeepHint": {
+    "message": "Mit geladenem Modell braucht das Add-on etwa 2 GB Arbeitsspeicher. Beim Durchrechnen bleibt es geladen."
+  },
+  "semStrictness": {
+    "message": "Strenge:"
+  },
+  "semStrictLow": {
+    "message": "locker (mehr ähnliche Treffer)"
+  },
+  "semStrictMedium": {
+    "message": "mittel"
+  },
+  "semStrictHigh": {
+    "message": "streng (nur sehr ähnliche)"
+  },
+  "semStrictnessHint": {
+    "message": "Wie ähnlich eine Mail sein muss, um als „ähnlich“ zu erscheinen."
+  },
+  "semHelperHeading": {
+    "message": "NovaBird Helper"
+  },
+  "semHelperHint": {
+    "message": "Der NovaBird Helper (nbhelper.exe, Windows) rechnet auf der Grafikkarte über DirectML, bei 70.000 Mails etwa 20 Minuten statt mehrerer Stunden. Er wird separat installiert und startet nur, wenn NovaBird-Search ihn braucht."
+  },
+  "semHelperConnect": {
+    "message": "Helper verbinden"
+  },
+  "semHelperPrepare": {
+    "message": "Modell im Helper laden"
+  },
+  "semHelperPreparing": {
+    "message": "Der Helper lädt das Modell (einmalig, etwa 320 MB) …"
+  },
+  "semHelperOk": {
+    "message": "Helper $1 verbunden · Gerät: $2 · Modell: $3"
+  },
+  "semHelperNone": {
+    "message": "Kein Helper verbunden ($1)."
+  },
+  "semHelperNoPermission": {
+    "message": "Ohne Berechtigung kann NovaBird-Search den Helper nicht starten."
+  },
+  "semDataHeading": {
+    "message": "Vektoren"
+  },
+  "semExport": {
+    "message": "Exportieren"
+  },
+  "semImport": {
+    "message": "Importieren"
+  },
+  "semClear": {
+    "message": "Vektoren löschen"
+  },
+  "semClearConfirm": {
+    "message": "Alle berechneten Vektoren dieses Modells löschen? Sie werden danach neu berechnet."
+  },
+  "semDataHint": {
+    "message": "Die Vektoren gehören zu Message-IDs, die auf jedem PC gleich sind: Eine Exportdatei lässt sich auf einem anderen PC importieren, dort wird dann nur noch der Rest berechnet. Die Datei enthält keine Mailtexte, aber Message-IDs."
+  },
+  "semImported": {
+    "message": "$1 Vektoren übernommen."
+  },
+  "semError": {
+    "message": "Fehler: $1"
+  },
+  "semPhaseWaitingPower": {
+    "message": "Akkubetrieb: Altbestand ruht (Suchen gehen weiter)"
+  },
+  "semSyncHeading": {
+    "message": "Ordner-Sync zwischen PCs"
+  },
+  "semSyncHint": {
+    "message": "Damit nicht jeder PC alles selbst rechnet: Der Helper legt die Vektoren verschlüsselt in einen gemeinsamen Ordner (NAS, OneDrive, Nextcloud …) und übernimmt die der anderen PCs. Keine offenen Ports. Erster PC: Ordner eintragen, Code leer lassen, „Koppeln“; der Helper zeigt einen Code. Weitere PCs: denselben Ordner und diesen Code eintragen."
+  },
+  "semSyncFolder": {
+    "message": "Sync-Ordner:"
+  },
+  "semSyncFolderPlaceholder": {
+    "message": "z. B. \\\\nas\\daten\\NovaBird oder %USERPROFILE%\\OneDrive\\NovaBird"
+  },
+  "semSyncCode": {
+    "message": "Kopplungscode:"
+  },
+  "semSyncCodePlaceholder": {
+    "message": "leer = neuen Code erzeugen"
+  },
+  "semSyncSetup": {
+    "message": "Koppeln"
+  },
+  "semSyncNow": {
+    "message": "Jetzt abgleichen"
+  },
+  "semSyncLeave": {
+    "message": "Kopplung lösen"
+  },
+  "semSyncNewCode": {
+    "message": "Neuer Kopplungscode: $1 – auf den anderen PCs zusammen mit demselben Ordner eintragen."
+  },
+  "semSyncJoined": {
+    "message": "Gekoppelt."
+  },
+  "semSyncStateOk": {
+    "message": "Gekoppelt mit $1 · letzter Abgleich $2 · gesendet $3, übernommen $4"
+  },
+  "semSyncStateNone": {
+    "message": "Nicht gekoppelt."
+  },
+  "semSyncNeedsHelper": {
+    "message": "Erst den Helper verbinden."
+  },
+  "busySimilar": {
+    "message": "Suche ähnliche Mails …",
+    "description": "Tooltip des Lade-Symbols, solange die semantische Suche noch rechnet"
+  },
+  "semPathServer": {
+    "message": "Anderer PC oder Server (NovaBird Helper, Ollama, OpenAI-kompatibel)"
+  },
+  "semServerHeading": {
+    "message": "Anderer PC oder Server"
+  },
+  "semServerHint": {
+    "message": "Ollama oder ein OpenAI-kompatibler Dienst (LM Studio, llama.cpp, vLLM …) rechnet die Vektoren, auf diesem PC oder auf einem anderen Rechner im Netz. Er braucht dasselbe Modell, in Ollama „jina/jina-embeddings-v2-base-de“ (F16). Vor dem ersten Einsatz, danach stündlich und nach jedem Fehler rechnet er sechs Probetexte; nur wenn seine Vektoren zu denen des Add-ons passen, kommen sie in den Index. Ein anderes Modell oder eine stark komprimierte (quantisierte) Fassung wird abgelehnt."
+  },
+  "semServerType": {
+    "message": "Schnittstelle:"
+  },
+  "semServerTypeOpenai": {
+    "message": "OpenAI-kompatibel"
+  },
+  "semServerUrl": {
+    "message": "Adresse:"
+  },
+  "semServerModel": {
+    "message": "Modell:"
+  },
+  "semServerUser": {
+    "message": "Benutzername (optional):"
+  },
+  "semServerKey": {
+    "message": "Passwort oder API-Schlüssel (optional):"
+  },
+  "semServerKeySaved": {
+    "message": "gespeichert"
+  },
+  "semServerRemote": {
+    "message": "Achtung: Diese Adresse liegt nicht auf diesem PC. Betreff und Text deiner Mails gehen an diesen Server."
+  },
+  "semServerInsecure": {
+    "message": "Die Verbindung ist unverschlüsselt (http)."
+  },
+  "semServerCheck": {
+    "message": "Speichern und prüfen"
+  },
+  "semServerChecking": {
+    "message": "Prüfe den Server …"
+  },
+  "semServerOk": {
+    "message": "Passt: Übereinstimmung $1, größte Abweichung $2 ($3 ms). Der Server rechnet ab jetzt."
+  },
+  "semServerBad": {
+    "message": "Passt nicht: Übereinstimmung nur $1. Der Server liefert Vektoren eines anderen Modells oder einer anderen Quantisierung und wird nicht benutzt."
+  },
+  "semServerFail": {
+    "message": "Keine Verbindung: $1"
+  },
+  "semServerNoPermission": {
+    "message": "Ohne Erlaubnis für diese Adresse kann NovaBird den Server nicht erreichen."
+  },
+  "semServerBadUrl": {
+    "message": "Bitte eine Adresse mit http:// oder https:// eintragen."
+  },
+  "semEngineServer": {
+    "message": "Eigener Server ($1)"
+  },
+  "semRowCheck": {
+    "message": "Prüfung des Rechenwegs"
+  },
+  "semCheckOk": {
+    "message": "bestanden (Übereinstimmung $1, Abweichung $2)"
+  },
+  "semCheckBad": {
+    "message": "nicht bestanden (Übereinstimmung $1, Abweichung $2), nicht benutzt"
+  },
+  "semCheckDims": {
+    "message": "Passt nicht: Das Modell liefert Vektoren mit einer anderen Länge (anderes Modell). Der Server wird nicht benutzt."
+  },
+  "semServerTypeNbhelper": {
+    "message": "NovaBird Helper (Netz)"
+  },
+  "semServerNbHint": {
+    "message": "Ein anderer PC mit NovaBird Helper rechnet für diesen: dort im Startmenü „NovaBird Helper (Netz)“ starten; ein Klick auf sein Symbol im Infobereich zeigt Adresse und Kopplungscode. Anfragen und Antworten sind mit dem Code verschlüsselt. Auch hier prüfen sechs Probetexte vor dem ersten Einsatz und danach stündlich, ob die Vektoren passen."
+  },
+  "semServerCode": {
+    "message": "Kopplungscode:"
+  },
+  "semServerLabel": {
+    "message": "Name dieses PCs (optional):"
+  },
+  "semServerRemoteNb": {
+    "message": "Betreff und Text deiner Mails gehen an diesen PC, verschlüsselt mit dem Kopplungscode."
+  },
+  "semServerNbInfo": {
+    "message": "NovaBird Helper $1 auf $2, $3 PC(s) verbunden."
+  },
+  "semServerNbNoModel": {
+    "message": "Verbunden, aber der Helper auf dem Rechen-PC hat das Modell noch nicht: dort im Menü des Symbols im Infobereich „Modell laden …“ wählen."
+  },
+  "semServerNbOtherModel": {
+    "message": "Verbunden, aber der Helper auf dem Rechen-PC hat eine andere Modellversion: Helper und NovaBird-Search auf denselben Stand bringen."
+  },
+  "semRowTiming": {
+    "message": "Letztes Paket"
+  },
+  "semTimingFmt": {
+    "message": "$1 Mails: $2 ms auf die Texte gewartet, Ergebnis nach $3 ms"
+  },
+  "semServerDisabled": {
+    "message": "Die semantische Suche ist aber noch ausgeschaltet: Haken ganz oben setzen, dann wird gerechnet."
   }
 }

@@ -6,6 +6,7 @@ const DEFAULTS = {
   paneLayout: "nova",
   agendaDays: 5,
   colorMode: "theme",
+  uiTheme: "", // NovaBird-Design (sand, cobalt, springlight); "" = Theme aus dem Add-ons-Manager
   pilotEnabled: true,
   pilotLog: false,
   previewEnabled: true,
@@ -85,6 +86,45 @@ async function applyFonts(s) {
   await messenger.settingsRedesign.setFonts({ fe: f(s.fontSettings), fp: f(s.fontCompose), sub: f(s.fontSubject), lab: f(s.fontLabels), sample: f(s.fontSample) });
 }
 
+// NovaBird-Design: Sand, Cobalt oder Springlight (früher eigene Theme-Add-ons) oder "" = Theme aus dem Add-ons-Manager
+const UI_THEMES = ["sand", "cobalt", "springlight"];
+let themeShown = ""; // zuletzt gesetztes Design
+async function applyTheme(s) {
+  const key = UI_THEMES.includes(s.uiTheme) ? s.uiTheme : "";
+  if (!key) {
+    themeShown = "";
+    await messenger.novaTheme.restore();
+    return;
+  }
+  const data = await (await fetch(messenger.runtime.getURL(`themes/${key}/theme.json`))).json();
+  await messenger.novaTheme.apply(data.theme, data.dark_theme, `themes/${key}/theme.css`);
+  themeShown = key;
+}
+
+// Umstieg von den alten Theme-Add-ons (novabird-t-*): war eines aktiv, wird dasselbe Design gewählt; danach werden sie entfernt.
+// Beim Entfernen des aktiven Themes setzt Thunderbird das Standard-Theme, daher danach das Design noch einmal setzen.
+async function migrateThemes() {
+  const legacy = await messenger.novaTheme.legacyThemes();
+  if (!legacy.length) {
+    return;
+  }
+  const active = legacy.find(x => x.active);
+  const { uiTheme } = await messenger.storage.local.get({ uiTheme: null });
+  if (active && uiTheme === null) {
+    await messenger.storage.local.set({ uiTheme: active.id.replace(/^novabird-t-|@novabird$/g, "") });
+  }
+  const removed = await messenger.novaTheme.removeLegacyThemes();
+  console.log("NovaBird-Extension: alte Themes entfernt", removed);
+  setTimeout(() => safe("Design", async () => applyTheme(await messenger.storage.local.get(DEFAULTS))), 2000);
+}
+
+// Wechselt jemand im Add-ons-Manager das Theme, gilt trotzdem das hier gewählte Design (Hinweis auf der Einstellungsseite)
+messenger.theme.onUpdated.addListener(() => {
+  if (themeShown) {
+    safe("Design", async () => applyTheme(await messenger.storage.local.get(DEFAULTS)));
+  }
+});
+
 const applyScreen = s => messenger.screenScale.setConfig(s.screenEnabled === true, s.screenFhd, s.screenQhd, s.screenUhd);
 
 async function applySettings() {
@@ -105,9 +145,11 @@ async function applySettings() {
   await safe("Schriftgrößen", () => applyFonts(s));
   await safe("Hauptfenster-Stil", () => applyMain(s));
   await safe("Screen Scaling", () => applyScreen(s));
+  await safe("Design", () => applyTheme(s));
 }
 
 (async () => {
+  await safe("Alte Themes übernehmen", migrateThemes);
   await safe("Einstellungen lesen", applySettings);
   await safe("Kalender starten", () => messenger.novaCalendar.start());
   await safe("Einstellungsseiten starten", async () => {
@@ -234,6 +276,9 @@ messenger.storage.onChanged.addListener(async changes => {
   }
   if (keys.some(k => ["fontSettings", "fontCompose", "fontSubject", "fontLabels", "fontSample"].includes(k))) {
     safe("Schriftgrößen", () => applyFonts(s));
+  }
+  if (keys.includes("uiTheme")) {
+    safe("Design", () => applyTheme(s));
   }
   if (keys.some(k => k.startsWith("screen"))) {
     safe("Screen Scaling", () => applyScreen(s));

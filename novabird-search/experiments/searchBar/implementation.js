@@ -64,6 +64,7 @@ const SELF_TEST = [
   },
 ];
 const LISTENER_NAME = "novabird-search-windows";
+const LEGACY_SEARCH_ID = "novabird-search@novabird"; // bis 1.x eigenes Add-on; ab 2.0 Teil von NovaBird-Search (ID novabird-db@novabird)
 const MAIN_URL = "chrome://messenger/content/messenger.xhtml";
 const ROOT_ID = "novabird-search";
 const STYLE_ID = "novabird-search-style";
@@ -700,7 +701,9 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
       return;
     }
     nbUnloadShared(this.extension);
-    ExtensionSupport.unregisterWindowListener(LISTENER_NAME);
+    if (this._uiStarted) {
+      ExtensionSupport.unregisterWindowListener(LISTENER_NAME);
+    }
     for (const win of Services.wm.getEnumerator("mail:3pane")) {
       const tabmail = win.document.getElementById("tabmail");
       if (this._monitor && tabmail) {
@@ -1212,7 +1215,17 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
     };
     self._monitor = monitor;
 
-    ExtensionSupport.registerWindowListener(LISTENER_NAME, {
+    // Umstieg auf 2.0: Solange das alte NovaBird-Search (bis 1.x eigenes Add-on mit derselben Leiste) noch läuft, startet die
+    // Leiste nicht; background.js übernimmt dessen Einstellungen, entfernt es und ruft dann startUi() auf.
+    const startUi = () => {
+      if (self._uiStarted) {
+        return;
+      }
+      self._uiStarted = true;
+      registerWindows();
+    };
+    self._startUi = startUi;
+    const registerWindows = () => ExtensionSupport.registerWindowListener(LISTENER_NAME, {
       chromeURLs: [MAIN_URL],
       onLoadWindow(win) {
         const doc = win.document;
@@ -1244,6 +1257,9 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
         retryTabs();
       },
     });
+    if (!WebExtensionPolicy.getByID(LEGACY_SEARCH_ID)) {
+      startUi();
+    }
 
     // ---- Markierung des Suchworts im Nachrichtentext ---------------------------
 
@@ -1271,8 +1287,14 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
 
     // ---- Volltext: Kopfzeilen-Suche + Gloda, angezeigt in derselben Liste -----------
 
-    const setBusy = (barId, on) => {
-      barOf(barId)?.root.toggleAttribute("data-busy", on);
+    // title: eigener Tooltip, solange das Symbol dreht (z. B. „Suche ähnliche Mails …“); sonst der übliche
+    const setBusy = (barId, on, title) => {
+      const root = barOf(barId)?.root;
+      if (!root) {
+        return;
+      }
+      root.toggleAttribute("data-busy", on);
+      root.querySelector(".nbs-spin").title = (on && title) || strings.busy;
     };
 
     // Treffer in Von/An/Betreff aus den Kopfzeilen-Datenbanken (offline, schnell; Teilstring).
@@ -1826,6 +1848,10 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
     return {
       searchBar: {
         // Selbsttest der Betterbird-Interna (siehe SELF_TEST); Ergebnis zeigt die Optionsseite
+        async startUi() {
+          self._startUi?.();
+          return Boolean(self._uiStarted);
+        },
         async selfTest() {
           return nb.nbRunSelfTest?.(SELF_TEST) ?? null;
         },
@@ -1902,8 +1928,8 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
             dbg("invalidate failed", String(e));
           }
         },
-        async setBusy(barId, on) {
-          setBusy(barId, Boolean(on));
+        async setBusy(barId, on, title) {
+          setBusy(barId, Boolean(on), title || "");
         },
         async glodaSearch(barId, criteria, criteriaState, currentFolderId) {
           const bar = barOf(barId);

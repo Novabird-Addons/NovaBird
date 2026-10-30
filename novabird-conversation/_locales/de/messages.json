@@ -163,19 +163,19 @@
     "message": "Quelle für Konversationen"
   },
   "optEngineAuto": {
-    "message": "Automatisch (NovaBird-DB, dann Gloda, dann Suche von Betterbird)"
+    "message": "Automatisch (NovaBird-Search, dann Gloda, dann Suche von Betterbird)"
   },
   "optEngineQuery": {
     "message": "Immer Suche von Betterbird"
   },
   "optEngineHint": {
-    "message": "Der NovaBird-DB-Index findet Konversationen in wenigen Millisekunden. Fehlt er, indexiert er noch oder antwortet nicht, wird Gloda (Betterbirds eigener Index) versucht, danach die Suche von Betterbird. Die Regeln für Nachrichten ohne Antwortkette gelten für NovaBird-DB und die Suche; Gloda gruppiert nach seinen eigenen."
+    "message": "Der NovaBird-Search-Index findet Konversationen in wenigen Millisekunden. Fehlt er, indexiert er noch oder antwortet nicht, wird Gloda (Betterbirds eigener Index) versucht, danach die Suche von Betterbird. Die Regeln für Nachrichten ohne Antwortkette gelten für NovaBird-Search und die Suche; Gloda gruppiert nach seinen eigenen."
   },
   "optLimit": {
-    "message": "Höchstzahl Nachrichten je Konversation (NovaBird-DB)"
+    "message": "Höchstzahl Nachrichten je Konversation (NovaBird-Search)"
   },
   "optEngineDb": {
-    "message": "Nur NovaBird-DB (sonst Suche von Betterbird)"
+    "message": "Nur NovaBird-Search (sonst Suche von Betterbird)"
   },
   "optEngineGloda": {
     "message": "Nur Gloda (sonst Suche von Betterbird)"
@@ -367,7 +367,7 @@
     "message": "Konversation bei mehreren ausgewählten Nachrichten"
   },
   "selfTest_gloda": {
-    "message": "Suche über den Gloda-Index (Rückfall ohne NovaBird-DB)"
+    "message": "Suche über den Gloda-Index (Rückfall ohne NovaBird-Search)"
   },
   "otherConvText": {
     "message": "„Thunderbird Conversations“ ist ebenfalls aktiv. Beide Add-ons hängen sich in die Nachrichtenanzeige ein und stören sich gegenseitig; besser ist nur eines davon."

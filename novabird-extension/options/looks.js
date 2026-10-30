@@ -17,6 +17,20 @@
   const FAMILIES = ["", "system-ui", "Segoe UI", "Noto Sans", "Cantarell", "Ubuntu", "Arial", "Verdana"];
 
   const s = await messenger.storage.local.get(DEFAULTS);
+
+  // ---- Design (NovaBird-Themes in der Extension) ------------------------------------------------------
+  const themeSel = document.getElementById("uiTheme");
+  const themeDesc = () => {
+    document.getElementById("themeDesc").textContent = t[`themeDesc_${themeSel.value}`] || "";
+  };
+  themeSel.value = ["sand", "cobalt", "springlight"].includes(s.uiTheme) ? s.uiTheme : "";
+  themeDesc();
+  themeSel.addEventListener("change", async () => {
+    themeDesc();
+    await save({ uiTheme: themeSel.value });
+    // Farben des neuen Themes erst lesen, wenn background.js es gesetzt hat
+    setTimeout(() => location.reload(), 700);
+  });
   let theme = null;
   try {
     theme = await messenger.runtime.sendMessage({ type: "themeColors" });

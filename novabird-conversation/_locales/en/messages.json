@@ -163,19 +163,19 @@
     "message": "Source for conversations"
   },
   "optEngineAuto": {
-    "message": "Automatic (NovaBird-DB, then Gloda, then Betterbird's search)"
+    "message": "Automatic (NovaBird-Search, then Gloda, then Betterbird's search)"
   },
   "optEngineQuery": {
     "message": "Always Betterbird's search"
   },
   "optEngineHint": {
-    "message": "The NovaBird-DB index finds conversations in a few milliseconds. If it is missing, still indexing or does not answer, Gloda (Betterbird's own index) is tried, then Betterbird's search. The grouping rules for messages without a reply chain apply to NovaBird-DB and the search; Gloda uses its own."
+    "message": "The NovaBird-Search index finds conversations in a few milliseconds. If it is missing, still indexing or does not answer, Gloda (Betterbird's own index) is tried, then Betterbird's search. The grouping rules for messages without a reply chain apply to NovaBird-Search and the search; Gloda uses its own."
   },
   "optLimit": {
-    "message": "Maximum messages per conversation (NovaBird-DB)"
+    "message": "Maximum messages per conversation (NovaBird-Search)"
   },
   "optEngineDb": {
-    "message": "NovaBird-DB only (otherwise Betterbird's search)"
+    "message": "NovaBird-Search only (otherwise Betterbird's search)"
   },
   "optEngineGloda": {
     "message": "Gloda only (otherwise Betterbird's search)"
@@ -367,7 +367,7 @@
     "message": "Conversation when several messages are selected"
   },
   "selfTest_gloda": {
-    "message": "Lookup via the Gloda index (fallback without NovaBird-DB)"
+    "message": "Lookup via the Gloda index (fallback without NovaBird-Search)"
   },
   "otherConvText": {
     "message": "“Thunderbird Conversations” is also active. Both add-ons hook into the message display and get in each other’s way; it is better to use only one of them."
