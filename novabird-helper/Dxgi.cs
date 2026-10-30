@@ -40,6 +40,25 @@ static class Dxgi
 
     const uint SoftwareAdapter = 2;
 
+    /// <summary>Gibt es eine NVIDIA-Karte (dann braucht Ollama seine CUDA-Bibliotheken)?</summary>
+    public static bool HasNvidia()
+    {
+        try
+        {
+            var iid = typeof(IDXGIFactory1).GUID;
+            if (CreateDXGIFactory1(ref iid, out var factory) != 0) return false;
+            bool found = false;
+            for (uint i = 0; factory.EnumAdapters1(i, out var a) == 0; i++)
+            {
+                if (a.GetDesc1(out var d) == 0 && (d.Flags & SoftwareAdapter) == 0 && d.VendorId == 0x10DE) found = true;
+                Marshal.ReleaseComObject(a);
+            }
+            Marshal.ReleaseComObject(factory);
+            return found;
+        }
+        catch { return true; } // im Zweifel alles entpacken
+    }
+
     /// <summary>(DirectML-Index, Name, Grafikspeicher in MB) je Hardware-Adapter.</summary>
     public static List<(int Index, string Name, long VramMB)> Adapters()
     {

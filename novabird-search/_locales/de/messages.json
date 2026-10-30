@@ -1087,6 +1087,12 @@
   "semServerNbOtherModel": {
     "message": "Verbunden, aber der Helper auf dem Rechen-PC hat eine andere Modellversion: Helper und NovaBird-Search auf denselben Stand bringen."
   },
+  "semRowShared": {
+    "message": "Von anderen PCs"
+  },
+  "semSharedFmt": {
+    "message": "$1 Vektoren vom Helper übernommen (seit dem Start), nicht neu gerechnet"
+  },
   "semRowTiming": {
     "message": "Letztes Paket"
   },

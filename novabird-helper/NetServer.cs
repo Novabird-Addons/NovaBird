@@ -8,6 +8,10 @@
 //    Antwort  {n, d}, AAD "nbh1-res|<rid>" (gehört genau zu dieser Anfrage)
 //    Wer den Code nicht kennt, bekommt 403; nach 20 Fehlversuchen in einer Minute wird die Adresse eine Minute gesperrt.
 //  - op "hello" {label, model:{id, revision}} -> Info; op "embed" {model, texts, prio:"query"|"index"} -> {vectors}
+//  - op "vlookup" {model, items:[{id, h}]} -> {found:[Index], vectors}: schon gerechnete Vektoren anderer PCs (VectorStore.cs);
+//    op "embed" mit keys:[{id, h}] (je Text) merkt die Vektoren dafür
+//  - op "chat" {messages, maxNew, meta?} -> {id} (meta: Zielsprache und Markierungen für eine eigene Anweisung, Chat.cs); op "chatPoll" {id} -> {text (neu seit dem letzten Abholen), done, stats};
+//    op "chatCancel" {id}: KI-Zusammenfassung mit dem im Helper gewählten Sprachmodell (Chat.cs)
 //  - Reihenfolge: Suchanfragen vor Indexieren; beim Indexieren kommen die PCs abwechselnd dran (Scheduler). Auf Wunsch rechnet
 //    die CPU neben der Grafikkarte mit (Einstellung im Menü, Threads einstellbar).
 using System.Collections.Concurrent;
@@ -25,13 +29,15 @@ sealed class NetServer
     public const int DefaultPort = 47531;
     const string Path = "/nbhelper/v1";
     const int Iterations = 300_000;
-    const int MaxHeader = 16 << 10, MaxBody = 8 << 20, MaxTexts = 64, MaxChars = 20_000;
+    const int MaxHeader = 16 << 10, MaxBody = 8 << 20, MaxTexts = 64, MaxChars = 20_000, MaxLookup = 1000;
     static readonly TimeSpan Skew = TimeSpan.FromMinutes(10);
     static readonly Regex ClientId = new("^[A-Za-z0-9_-]{8,64}$");
 
     readonly TcpListener listener;
     readonly ModelSpec model;
     public readonly Scheduler Scheduler;
+    public readonly Chat Chat = new();
+    public readonly VectorStore Vectors;
     byte[] key;
     readonly ConcurrentDictionary<string, DateTime> seen = new(); // rid -> Zeit (gegen Wiederholung)
     readonly ConcurrentDictionary<string, (int Count, DateTime Since)> failures = new();
@@ -44,6 +50,7 @@ sealed class NetServer
         Port = port;
         LoopbackOnly = loopbackOnly;
         Scheduler = new Scheduler(model);
+        Vectors = new VectorStore(model);
         key = DeriveKey(Code());
         listener = new TcpListener(loopbackOnly ? IPAddress.Loopback : IPAddress.Any, port);
     }
@@ -90,6 +97,7 @@ sealed class NetServer
     {
         try { listener.Stop(); } catch { /* schon zu */ }
         Scheduler.Stop();
+        Vectors.Dispose();
     }
 
     async Task AcceptLoop()
@@ -241,7 +249,7 @@ sealed class NetServer
         switch ((string)msg["op"])
         {
             case "hello":
-                Scheduler.Touch(client, (string)msg["label"]);
+                Scheduler.Touch(client, (string)msg["label"], msg["stats"]);
                 return Info(msg["model"]);
             case "embed":
             {
@@ -249,9 +257,33 @@ sealed class NetServer
                 if (!ModelStore.Ready(model)) throw new InvalidOperationException("Modell im Helper nicht bereit");
                 var texts = msg["texts"]?.AsArray().Select(t => (string)t ?? "").Select(x => x.Length > MaxChars ? x[..MaxChars] : x).ToList();
                 if (texts == null || texts.Count == 0 || texts.Count > MaxTexts) throw new InvalidOperationException("Anzahl der Texte");
-                var vecs = await Scheduler.Embed(client, (string)msg["label"], texts, (string)msg["prio"] == "query");
+                var vecs = await Scheduler.Embed(client, (string)msg["label"], msg["stats"], texts, (string)msg["prio"] == "query");
+                Vectors.Put(msg["keys"] as JsonArray, vecs); // für andere PCs merken (Message-ID + Prüfsumme je Text)
                 return new JsonObject { ["vectors"] = Engine.ToBase64(vecs, model.Dims) };
             }
+            // Vektoren teilen: schon gerechnete Vektoren zu {id: Message-ID, h: Prüfsumme des Textes}
+            case "vlookup":
+            {
+                if (!ModelMatches(msg["model"])) throw new InvalidOperationException("anderes Modell als im Helper");
+                var items = msg["items"]?.AsArray().Select(i => ((string)i?["id"] ?? "", (string)i?["h"] ?? "")).ToList();
+                if (items == null || items.Count > MaxLookup) throw new InvalidOperationException("Anzahl der Einträge");
+                Scheduler.Touch(client, (string)msg["label"], msg["stats"]);
+                var (found, vecs) = Vectors.Lookup(items);
+                return new JsonObject
+                {
+                    ["found"] = new JsonArray(found.Select(i => (JsonNode)i).ToArray()),
+                    ["vectors"] = vecs.Length > 0 ? Engine.ToBase64(vecs, model.Dims) : "",
+                };
+            }
+            // Sprachmodell (KI-Zusammenfassung): starten, dann Stücke abholen, bis done
+            case "chat":
+                Scheduler.Touch(client, (string)msg["label"]);
+                return new JsonObject { ["id"] = Chat.Start(client, msg["messages"] as JsonArray, (int?)msg["maxNew"] ?? Chat.MaxNewDefault, msg["meta"]) };
+            case "chatPoll":
+                return await Chat.Poll(client, (string)msg["id"]);
+            case "chatCancel":
+                Chat.Cancel(client, (string)msg["id"]);
+                return new JsonObject();
             default:
                 throw new InvalidOperationException("unbekannter Befehl");
         }
@@ -272,20 +304,28 @@ sealed class NetServer
             ["paused"] = Scheduler.Paused,
             ["queue"] = Scheduler.QueueLength,
             ["clients"] = Scheduler.Clients().Count,
+            ["vecShare"] = VectorStore.Enabled,
+            ["chatModel"] = Chat.Selected,
+            ["chatModels"] = new JsonArray(Chat.Available().Select(m => (JsonNode)m.Name).ToArray()),
         };
     }
 
-    /// <summary>Adressen dieses PCs für die Anzeige (IPv4, ohne Loopback).</summary>
+    /// <summary>
+    /// Adressen dieses PCs für die Anzeige (IPv4, ohne Loopback): echte Netzwerkkarten zuerst, virtuelle Adapter (Hyper-V, WSL,
+    /// VMware, VPN …) danach – sie bleiben sichtbar, weil z. B. ein VPN auch der Weg zu den anderen PCs sein kann.
+    /// </summary>
     public static List<string> LocalAddresses()
     {
-        var list = new List<string>();
+        var list = new List<(string Ip, bool Virtual)>();
         foreach (var ni in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
         {
             if (ni.OperationalStatus != System.Net.NetworkInformation.OperationalStatus.Up || ni.NetworkInterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Loopback) continue;
+            bool real = ni.NetworkInterfaceType is System.Net.NetworkInformation.NetworkInterfaceType.Ethernet or System.Net.NetworkInformation.NetworkInterfaceType.Wireless80211
+                        && !Regex.IsMatch(ni.Name + " " + ni.Description, "virtual|hyper-v|vethernet|vmware|virtualbox|wsl|tap-|wireguard|tailscale|zerotier", RegexOptions.IgnoreCase);
             foreach (var a in ni.GetIPProperties().UnicastAddresses)
-                if (a.Address.AddressFamily == AddressFamily.InterNetwork) list.Add(a.Address.ToString());
+                if (a.Address.AddressFamily == AddressFamily.InterNetwork) list.Add((a.Address.ToString(), !real));
         }
-        return list.Distinct().ToList();
+        return list.OrderBy(x => x.Virtual).Select(x => x.Ip).Distinct().ToList();
     }
 }
 
@@ -323,9 +363,10 @@ sealed class Scheduler
     public sealed class ClientInfo
     {
         public string Id, Label;
-        public DateTime LastSeen;
-        public long Today, Total;
+        public DateTime FirstSeen, LastSeen;
+        public long Today, Total; // vom Helper gerechnet
         public DateTime Day;
+        public long? Indexed, Mails; // Stand auf dem PC (meldet NovaBird-Search): Mails mit Vektor / Mails insgesamt
     }
 
     readonly ModelSpec model;
@@ -344,7 +385,60 @@ sealed class Scheduler
     public bool Paused { get; set; }
     public string Busy { get; private set; } // Kennung des PCs, dessen Paket gerade gerechnet wird
 
-    public Scheduler(ModelSpec model) => this.model = model;
+    public Scheduler(ModelSpec model)
+    {
+        this.model = model;
+        LoadClients();
+        saver = new System.Threading.Timer(_ => SaveClients(), null, 30_000, 30_000);
+    }
+
+    // ---- PCs dauerhaft merken (clients.json im Datenordner) ----------------------------------------------------------------
+    static string ClientsPath => Path.Combine(Settings.Dir, "clients.json");
+    readonly System.Threading.Timer saver;
+    bool dirty;
+
+    void LoadClients()
+    {
+        try
+        {
+            if (!File.Exists(ClientsPath)) return;
+            foreach (var n in JsonNode.Parse(File.ReadAllText(ClientsPath)).AsArray())
+            {
+                var c = new ClientInfo
+                {
+                    Id = (string)n["id"], Label = (string)n["label"], Total = (long?)n["computed"] ?? 0, Today = (long?)n["today"] ?? 0,
+                    Indexed = (long?)n["indexed"], Mails = (long?)n["mails"],
+                    FirstSeen = DateTime.TryParse((string)n["firstSeen"], out var f) ? f : DateTime.Now,
+                    LastSeen = DateTime.TryParse((string)n["lastSeen"], out var l) ? l : DateTime.Now,
+                    Day = DateTime.TryParse((string)n["day"], out var d) ? d : DateTime.Today,
+                };
+                if (!string.IsNullOrEmpty(c.Id)) clients[c.Id] = c;
+            }
+        }
+        catch (Exception e) { Log.Write("clients.json unlesbar: " + e.Message); }
+    }
+
+    public void SaveClients()
+    {
+        JsonArray arr;
+        lock (gate)
+        {
+            if (!dirty) return;
+            dirty = false;
+            arr = new JsonArray(clients.Values.Select(c => (JsonNode)new JsonObject
+            {
+                ["id"] = c.Id, ["label"] = c.Label, ["computed"] = c.Total, ["today"] = c.Today, ["day"] = c.Day.ToString("yyyy-MM-dd"),
+                ["indexed"] = c.Indexed, ["mails"] = c.Mails, ["firstSeen"] = c.FirstSeen.ToString("o"), ["lastSeen"] = c.LastSeen.ToString("o"),
+            }).ToArray());
+        }
+        try
+        {
+            Directory.CreateDirectory(Settings.Dir);
+            File.WriteAllText(ClientsPath + ".tmp", arr.ToJsonString());
+            File.Move(ClientsPath + ".tmp", ClientsPath, true);
+        }
+        catch (Exception e) { Log.Write("clients.json: " + e.Message); }
+    }
 
     // ---- CPU mitrechnen (Einstellungen netCpu, netCpuThreads) --------------------------------------------------------------
     public static int AutoThreads => Math.Max(1, Environment.ProcessorCount / 2 - 1);
@@ -368,9 +462,9 @@ sealed class Scheduler
     public static string CpuBlocked()
     {
         var s = Settings.Load();
-        if (!((string)s["device"] ?? "cpu").StartsWith("dml:")) return "rechnet schon nur auf der CPU";
-        if (s["cpuAgree"] == null) return "erst „Geräte neu messen“";
-        if ((double)s["cpuAgree"] < MinAgreement) return $"CPU rechnet abweichend ({(double)s["cpuAgree"]:0.0000})";
+        if (!((string)s["device"] ?? "cpu").StartsWith("dml:")) return L.T("rechnet schon nur auf der CPU", "already computing on the CPU only");
+        if (s["cpuAgree"] == null) return L.T("erst „Geräte neu messen“", "first \"Measure devices again\"");
+        if ((double)s["cpuAgree"] < MinAgreement) return L.T($"CPU rechnet abweichend ({(double)s["cpuAgree"]:0.0000})", $"CPU computes differently ({(double)s["cpuAgree"]:0.0000})");
         return null;
     }
 
@@ -387,6 +481,8 @@ sealed class Scheduler
     {
         stop = true;
         lock (gate) Monitor.PulseAll(gate);
+        saver.Dispose();
+        SaveClients();
     }
 
     public int QueueLength
@@ -394,24 +490,61 @@ sealed class Scheduler
         get { lock (gate) return queries.Count + perClient.Values.Sum(q => q.Count) + open.Select(p => p.Job).Distinct().Count(); }
     }
 
-    public void Touch(string id, string label)
+    /// <summary>PC meldet sich: Name und Indexstand ({done, total} von NovaBird-Search) merken.</summary>
+    public void Touch(string id, string label, JsonNode stats = null)
     {
         lock (gate)
         {
-            if (!clients.TryGetValue(id, out var c)) clients[id] = c = new ClientInfo { Id = id };
+            if (!clients.TryGetValue(id, out var c)) clients[id] = c = new ClientInfo { Id = id, FirstSeen = DateTime.Now, Day = DateTime.Today };
             if (!string.IsNullOrWhiteSpace(label)) c.Label = label.Length > 40 ? label[..40] : label;
             c.LastSeen = DateTime.Now;
+            if (stats is JsonObject)
+            {
+                try
+                {
+                    var done = (long?)stats["done"];
+                    var total = (long?)stats["total"];
+                    if (done is >= 0) c.Indexed = done;
+                    if (total is >= 0) c.Mails = total;
+                }
+                catch { /* unvollständige Angaben ignorieren */ }
+            }
+            dirty = true;
         }
     }
 
+    /// <summary>Alle bekannten PCs, zuletzt gesehene zuerst (Kopien, für die Anzeige).</summary>
     public List<ClientInfo> Clients()
     {
-        lock (gate) return clients.Values.Where(c => DateTime.Now - c.LastSeen < TimeSpan.FromDays(1)).OrderByDescending(c => c.LastSeen).ToList();
+        lock (gate)
+        {
+            foreach (var c in clients.Values)
+                if (c.Day != DateTime.Today) { c.Day = DateTime.Today; c.Today = 0; }
+            return clients.Values.OrderByDescending(c => c.LastSeen).Select(c => new ClientInfo
+            {
+                Id = c.Id, Label = c.Label, FirstSeen = c.FirstSeen, LastSeen = c.LastSeen, Today = c.Today, Total = c.Total, Day = c.Day, Indexed = c.Indexed, Mails = c.Mails,
+            }).ToList();
+        }
+    }
+
+    public void Forget(string id)
+    {
+        lock (gate)
+        {
+            clients.Remove(id);
+            dirty = true;
+        }
+        SaveClients();
     }
 
     public void ForgetClients()
     {
-        lock (gate) clients.Clear();
+        lock (gate)
+        {
+            clients.Clear();
+            dirty = true;
+        }
+        SaveClients();
     }
 
     /// <summary>Mails pro Sekunde in der letzten Minute: gesamt, davon Grafikkarte und CPU.</summary>
@@ -433,9 +566,9 @@ sealed class Scheduler
 
     public double Rate => Rates.All;
 
-    public Task<float[][]> Embed(string client, string label, List<string> texts, bool query)
+    public Task<float[][]> Embed(string client, string label, JsonNode stats, List<string> texts, bool query)
     {
-        Touch(client, label);
+        Touch(client, label, stats);
         var job = new Job { Client = client, Texts = texts, Query = query };
         lock (gate)
         {
@@ -530,6 +663,7 @@ sealed class Scheduler
             if (c.Day != DateTime.Today) { c.Day = DateTime.Today; c.Today = 0; }
             c.Today += n;
             c.Total += n;
+            dirty = true;
         }
     }
 

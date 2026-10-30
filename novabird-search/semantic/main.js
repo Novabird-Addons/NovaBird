@@ -58,6 +58,7 @@ const state = {
   error: null,
   download: null, // {done, total, file}
   modelStatus: null,
+  shared: 0, // Vektoren, die der Helper im Netz von anderen PCs übernommen hat (seit dem Start)
 };
 
 // ---- Worker (Add-on-Rechenweg) ------------------------------------------------------------------------------------------
@@ -328,9 +329,11 @@ const serverCfg = () => ({ ...server.SERVER_DEFAULTS, ...(cfg.server || {}), cli
 let clientId = null; // Kennung dieses Thunderbird beim NovaBird Helper im Netz (zufällig, einmal erzeugt)
 
 // prio "query": Suchanfrage (der Helper im Netz rechnet sie vor dem Indexieren anderer PCs)
-function serverRaw(texts, prio = "query") {
+function serverRaw(texts, prio = "query", keys = null) {
   const m = model();
-  return server.embed(serverCfg(), texts, m.maxTokens, { model: { id: m.id, revision: m.revision }, prio });
+  const stats = { done: state.done, total: state.total }; // für die PC-Liste im Helper (Netz-Modus)
+  reported = null; // der Helper kennt jetzt einen Zwischenstand: den Endstand später wieder melden
+  return server.embed(serverCfg(), texts, m.maxTokens, { model: { id: m.id, revision: m.revision }, prio, stats, keys });
 }
 
 // Für die Einstellungsseite: was der Server über sich sagt (NovaBird Helper: Gerät, Modell; sonst die Modellliste)
@@ -338,7 +341,7 @@ async function serverInfo() {
   const c = serverCfg();
   if (c.type === "nbhelper") {
     const m = model();
-    return { info: await server.netCall(c, "hello", { model: { id: m.id, revision: m.revision } }) };
+    return { info: await server.netCall(c, "hello", { model: { id: m.id, revision: m.revision }, stats: { done: state.done, total: state.total } }) };
   }
   return { models: await server.listModels(c) };
 }
@@ -384,7 +387,8 @@ async function updateOriginFilter() {
   }
 }
 
-async function serverEmbed(texts, prio) {
+// Darf und kann der Server rechnen? Berechtigung, Origin-Filter und Probe (zwischengespeichert)
+async function serverReady() {
   if (!(await serverAllowed())) {
     throw new Error("keine Berechtigung für die Server-Adresse");
   }
@@ -392,8 +396,12 @@ async function serverEmbed(texts, prio) {
     await updateOriginFilter();
   }
   await verify("server", serverRaw);
+}
+
+async function serverEmbed(texts, prio, keys = null) {
+  await serverReady();
   try {
-    const vecs = await serverRaw(texts, prio);
+    const vecs = await serverRaw(texts, prio, keys);
     if (vecs.some(v => v.length !== model().dims)) {
       throw new ProbeError("andere Dimension");
     }
@@ -402,6 +410,23 @@ async function serverEmbed(texts, prio) {
     delete checks.server; // nach jedem Fehler neu prüfen (Modell gewechselt, Server neu gestartet …)
     throw e;
   }
+}
+
+// Helper im Netz: Endstand melden, wenn alles gerechnet ist (sonst stünde in seiner PC-Liste der Stand der letzten Anfrage).
+// Einmal je Stand; jede Anfrage mit Zwischenstand (serverRaw) gibt die Meldung wieder frei.
+let reported = null;
+
+function reportProgress() {
+  const c = serverCfg();
+  const key = `${state.done}/${state.total}`;
+  if (cfg.path !== "server" || c.type !== "nbhelper" || reported === key) {
+    return;
+  }
+  reported = key;
+  const m = model();
+  server.netCall(c, "hello", { model: { id: m.id, revision: m.revision }, stats: { done: state.done, total: state.total } }).catch(() => {
+    reported = null;
+  });
 }
 
 // ---- Vektoren berechnen: Server, Helper oder Add-on -------------------------------------------------------------------------
@@ -469,6 +494,47 @@ async function embedTexts(texts, prio = "index") {
   const vecs = await addonRaw(texts);
   state.engine = "addon";
   return vecs;
+}
+
+// Vektoren teilen (NovaBird Helper im Netz): erst fragen, was der Helper für diese Mails schon von anderen PCs hat (gleiche
+// Message-ID und gleicher Text, Prüfsumme), nur den Rest rechnen lassen und dabei Message-ID + Prüfsumme mitschicken, damit
+// andere PCs ihn später bekommen. Ältere Helper kennen das nicht: dann wie bisher alles rechnen.
+let shareUnsupported = false;
+
+async function indexEmbed(batch, texts) {
+  const c = serverCfg();
+  if (cfg.path !== "server" || c.type !== "nbhelper" || shareUnsupported) {
+    return embedTexts(texts);
+  }
+  await serverReady();
+  const m = model();
+  const keys = await Promise.all(texts.map(async (t, i) => ({ id: batch[i].header_msg_id, h: await server.textHash(t) })));
+  let hit = { found: [], vectors: [] };
+  try {
+    hit = await server.lookup(c, { id: m.id, revision: m.revision }, keys, { done: state.done, total: state.total });
+  } catch (e) {
+    if (!/unbekannter Befehl/.test(String(e?.message))) {
+      throw e;
+    }
+    shareUnsupported = true; // Helper vor 0.4
+  }
+  const out = new Array(texts.length);
+  hit.found.forEach((pos, k) => {
+    out[pos] = hit.vectors[k];
+  });
+  const missing = texts.map((_, i) => i).filter(i => !out[i]);
+  if (missing.length) {
+    const vecs = await serverEmbed(missing.map(i => texts[i]), "index", missing.map(i => keys[i]));
+    missing.forEach((pos, k) => {
+      out[pos] = vecs[k];
+    });
+  }
+  if (out.some(v => v.length !== m.dims)) {
+    throw new ProbeError("andere Dimension");
+  }
+  state.engine = "server";
+  state.shared += hit.found.length;
+  return out;
 }
 
 // ---- Vektoren im Speicher (für die Suche) --------------------------------------------------------------------------------
@@ -804,7 +870,7 @@ async function indexLoop() {
         const t0 = Date.now();
         const texts = await a.texts;
         const entry = { batch: a.batch, texts, sent: Date.now(), waitMs: Date.now() - t0 };
-        entry.result = embedTexts(texts).then(vecs => ({ vecs }), error => ({ error }));
+        entry.result = indexEmbed(a.batch, texts).then(vecs => ({ vecs }), error => ({ error }));
         inflight.push(entry);
         await fillAhead(size);
       }
@@ -813,6 +879,7 @@ async function indexLoop() {
       }
       if (!inflight.length) {
         state.phase = "done";
+        reportProgress();
         await wait(5 * 60_000); // später auf neue Mails prüfen
         continue;
       }

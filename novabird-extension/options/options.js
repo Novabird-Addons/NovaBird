@@ -128,8 +128,8 @@ const TEXTS = {
     aiDesc: "Fasst eine geöffnete Nachricht mit einem Sprachmodell zusammen. Nichts geschieht automatisch: Erst der Knopf „Mail zusammenfassen (KI)“ in der Nachrichtenansicht sendet den Mailtext an die Adresse unten. Gedacht für ein Modell auf dem eigenen Rechner (Ollama) oder einen OpenAI-kompatiblen Dienst.",
     aiCtxLabel: "Kontextlänge (Token)",
     aiPromptTitle: "Anweisung an die KI",
-    aiPromptDesc: "Das ist der Text, den das Modell zusammen mit der Mail erhält. Er steht vor dem Mailtext und lässt sich hier nicht ändern. Platzhalter: {ZIEL} wird zur gewählten Sprache, {OPEN} und {CLOSE} sind Markierungen mit zufälliger Kennung, zwischen denen der Mailtext steht.",
-    aiPromptSafe: ["Trennung: Der Mailtext steht zwischen Markierungen, die bei jeder Anfrage neu und zufällig sind. Ein Absender kann sie nicht vorhersagen und damit nicht aus dem Textteil ausbrechen.", "Fremde Daten: Das Modell erfährt ausdrücklich, dass der Mailtext von Dritten stammt und Anweisungen darin nicht befolgt werden dürfen. Das macht Fremdanweisungen unwahrscheinlicher, schließt sie bei Sprachmodellen aber nicht sicher aus.", "Begrenzte Wirkung: Das Modell hat keine Werkzeuge. Es kann nichts senden, öffnen oder löschen; seine Antwort wird nur als Text angezeigt. Im schlimmsten Fall ist eine Zusammenfassung falsch oder irreführend.", "Hinweis: Enthält eine Mail Sätze wie „ignoriere alle Anweisungen“, erscheint über der Zusammenfassung eine Warnung."],
+    aiPromptDesc: "Das ist der Text, den das Modell zusammen mit der Mail erhält. Der Hauptteil steht vor dem Mailtext, die letzten beiden Sätze dahinter (der letzte nur bei verdächtigen Mails); ändern lässt er sich hier nicht. Platzhalter: {ZIEL} wird zur gewählten Sprache, {OPEN} und {CLOSE} sind Markierungen mit zufälliger Kennung, zwischen denen der Mailtext steht.",
+    aiPromptSafe: ["Trennung: Der Mailtext steht zwischen Markierungen, die bei jeder Anfrage neu und zufällig sind. Ein Absender kann sie nicht vorhersagen und damit nicht aus dem Textteil ausbrechen.", "Fremde Daten: Das Modell erfährt ausdrücklich, dass der Mailtext von Dritten stammt und Anweisungen darin nicht befolgt werden dürfen; nach dem Mailtext wird es noch einmal daran erinnert. Das macht Fremdanweisungen unwahrscheinlicher, schließt sie bei Sprachmodellen aber nicht sicher aus.", "Begrenzte Wirkung: Das Modell hat keine Werkzeuge. Es kann nichts senden, öffnen oder löschen; seine Antwort wird nur als Text angezeigt. Im schlimmsten Fall ist eine Zusammenfassung falsch oder irreführend.", "Hinweis: Enthält eine Mail Sätze wie „ignoriere alle Anweisungen“, erscheint über der Zusammenfassung eine Warnung, und das Modell soll den Versuch in der Zusammenfassung selbst benennen."],
     aiEnabledLabel: "KI-Zusammenfassung verwenden (der Knopf „Mail zusammenfassen (KI)“ erscheint nur, wenn dies an ist)",
     aiTypeLabel: "Schnittstelle",
     aiUrlLabel: "Adresse",
@@ -142,6 +142,11 @@ const TEXTS = {
     aiTest: "Verbindung testen",
     aiTesting: "Wird geprüft …",
     aiOk: "Verbunden: $1 Modelle gefunden.",
+    aiCodeLabel: "Kopplungscode (Web-Oberfläche des Helpers → Verbindung)",
+    aiOkHelper: "Verbunden: Der Helper fasst mit $1 zusammen.",
+    aiHelperHint: "Adresse und Kopplungscode stehen in der Web-Oberfläche des Helpers unter „Verbindung“ (z. B. http://192.168.1.20:47531). Mailtext und Antwort gehen verschlüsselt durchs Netz; das Modell wählst du im Helper.",
+    aiErrCode: "Kopplungscode passt nicht.",
+    aiErrNoModel: "Im Helper ist kein Sprachmodell gewählt.",
     aiFail: "Fehlgeschlagen: $1",
     aiPerm: "Erlaubnis für diese Adresse nicht erteilt.",
     aiRemote: "Achtung: Diese Adresse liegt nicht auf diesem Rechner. Beim Zusammenfassen wird der Text der Mail dorthin gesendet.",
@@ -378,8 +383,8 @@ const TEXTS = {
     aiDesc: "Summarises an open message with a language model. Nothing happens automatically: only the button “Summarise mail (AI)” in the message view sends the mail text to the address below. Meant for a model on your own computer (Ollama) or an OpenAI-compatible service.",
     aiCtxLabel: "Context length (tokens)",
     aiPromptTitle: "Instruction to the AI",
-    aiPromptDesc: "This is the text the model receives together with the mail. It comes before the mail text and cannot be changed here. Placeholders: {ZIEL} becomes the chosen language, {OPEN} and {CLOSE} are markers with a random ID between which the mail text is placed.",
-    aiPromptSafe: ["Separation: The mail text sits between markers that are new and random for every request. A sender cannot predict them and so cannot break out of the text part.", "Third-party data: The model is told explicitly that the mail text comes from others and that instructions in it must not be followed. This makes injected instructions less likely, but with language models it cannot rule them out completely.", "Limited effect: The model has no tools. It cannot send, open or delete anything; its answer is only shown as text. In the worst case a summary is wrong or misleading.", "Notice: If a mail contains sentences such as “ignore all instructions”, a warning appears above the summary."],
+    aiPromptDesc: "This is the text the model receives together with the mail. The main part comes before the mail text, the last two sentences after it (the last one only for suspicious mails); it cannot be changed here. Placeholders: {ZIEL} becomes the chosen language, {OPEN} and {CLOSE} are markers with a random ID between which the mail text is placed.",
+    aiPromptSafe: ["Separation: The mail text sits between markers that are new and random for every request. A sender cannot predict them and so cannot break out of the text part.", "Third-party data: The model is told explicitly that the mail text comes from others and that instructions in it must not be followed; after the mail text it is reminded of this once more. This makes injected instructions less likely, but with language models it cannot rule them out completely.", "Limited effect: The model has no tools. It cannot send, open or delete anything; its answer is only shown as text. In the worst case a summary is wrong or misleading.", "Notice: If a mail contains sentences such as “ignore all instructions”, a warning appears above the summary, and the model is asked to name the attempt in the summary itself."],
     aiEnabledLabel: "Use AI summary (the button “Summarise mail (AI)” only appears when this is on)",
     aiTypeLabel: "Interface",
     aiUrlLabel: "Address",
@@ -392,6 +397,11 @@ const TEXTS = {
     aiTest: "Test connection",
     aiTesting: "Checking …",
     aiOk: "Connected: $1 models found.",
+    aiCodeLabel: "Pairing code (helper web interface → Connection)",
+    aiOkHelper: "Connected: the helper summarises with $1.",
+    aiHelperHint: "Address and pairing code are shown in the helper's web interface under “Connection” (e.g. http://192.168.1.20:47531). Mail text and answer travel encrypted; the model is chosen in the helper.",
+    aiErrCode: "Pairing code does not match.",
+    aiErrNoModel: "No language model is selected in the helper.",
     aiFail: "Failed: $1",
     aiPerm: "Permission for this address was not granted.",
     aiRemote: "Note: this address is not on this computer. When summarising, the text of the mail is sent there.",
@@ -628,8 +638,8 @@ const TEXTS = {
     aiDesc: "Résume un message ouvert avec un modèle de langage. Rien n’est automatique : seul le bouton « Résumer le message (IA) » de l’affichage du message envoie le texte à l’adresse ci-dessous. Prévu pour un modèle sur votre propre ordinateur (Ollama) ou un service compatible OpenAI.",
     aiCtxLabel: "Longueur de contexte (jetons)",
     aiPromptTitle: "Instruction donnée à l’IA",
-    aiPromptDesc: "Voici le texte que le modèle reçoit avec le message. Il précède le texte du message et ne peut pas être modifié ici. Espaces réservés : {ZIEL} devient la langue choisie, {OPEN} et {CLOSE} sont des marqueurs à identifiant aléatoire entre lesquels se trouve le texte du message.",
-    aiPromptSafe: ["Séparation : le texte du message se trouve entre des marqueurs nouveaux et aléatoires à chaque requête. Un expéditeur ne peut pas les prévoir et donc pas sortir de la partie texte.", "Données de tiers : le modèle est informé expressément que le texte provient de tiers et que les instructions qu’il contient ne doivent pas être suivies. Cela rend les instructions injectées moins probables, mais avec des modèles de langage cela ne les exclut pas avec certitude.", "Effet limité : le modèle n’a aucun outil. Il ne peut rien envoyer, ouvrir ni supprimer ; sa réponse est seulement affichée comme texte. Au pire, un résumé est faux ou trompeur.", "Avertissement : si un message contient des phrases comme « ignore toutes les instructions », un avertissement apparaît au-dessus du résumé."],
+    aiPromptDesc: "Voici le texte que le modèle reçoit avec le message. La partie principale précède le texte du message, les deux dernières phrases le suivent (la dernière seulement pour les messages suspects) ; il ne peut pas être modifié ici. Espaces réservés : {ZIEL} devient la langue choisie, {OPEN} et {CLOSE} sont des marqueurs à identifiant aléatoire entre lesquels se trouve le texte du message.",
+    aiPromptSafe: ["Séparation : le texte du message se trouve entre des marqueurs nouveaux et aléatoires à chaque requête. Un expéditeur ne peut pas les prévoir et donc pas sortir de la partie texte.", "Données de tiers : le modèle est informé expressément que le texte provient de tiers et que les instructions qu’il contient ne doivent pas être suivies ; après le texte, on le lui rappelle encore une fois. Cela rend les instructions injectées moins probables, mais avec des modèles de langage cela ne les exclut pas avec certitude.", "Effet limité : le modèle n’a aucun outil. Il ne peut rien envoyer, ouvrir ni supprimer ; sa réponse est seulement affichée comme texte. Au pire, un résumé est faux ou trompeur.", "Avertissement : si un message contient des phrases comme « ignore toutes les instructions », un avertissement apparaît au-dessus du résumé, et le modèle doit signaler la tentative dans le résumé lui-même."],
     aiEnabledLabel: "Utiliser le résumé par IA (le bouton « Résumer le message (IA) » n’apparaît que si cette option est activée)",
     aiTypeLabel: "Interface",
     aiUrlLabel: "Adresse",
@@ -642,6 +652,11 @@ const TEXTS = {
     aiTest: "Tester la connexion",
     aiTesting: "Vérification …",
     aiOk: "Connecté : $1 modèles trouvés.",
+    aiCodeLabel: "Code d’appairage (interface web du helper → Connexion)",
+    aiOkHelper: "Connecté : le helper résume avec $1.",
+    aiHelperHint: "L’adresse et le code d’appairage figurent dans l’interface web du helper sous « Connexion » (p. ex. http://192.168.1.20:47531). Le texte et la réponse circulent chiffrés ; le modèle se choisit dans le helper.",
+    aiErrCode: "Le code d’appairage ne correspond pas.",
+    aiErrNoModel: "Aucun modèle de langage n’est choisi dans le helper.",
     aiFail: "Échec : $1",
     aiPerm: "L’autorisation pour cette adresse n’a pas été accordée.",
     aiRemote: "Attention : cette adresse n’est pas sur cet ordinateur. Lors du résumé, le texte du message y est envoyé.",
@@ -878,8 +893,8 @@ const TEXTS = {
     aiDesc: "Resume un mensaje abierto con un modelo de lenguaje. Nada ocurre automáticamente: solo el botón «Resumir mensaje (IA)» de la vista del mensaje envía el texto a la dirección de abajo. Pensado para un modelo en su propio ordenador (Ollama) o un servicio compatible con OpenAI.",
     aiCtxLabel: "Longitud de contexto (tokens)",
     aiPromptTitle: "Instrucción para la IA",
-    aiPromptDesc: "Este es el texto que el modelo recibe junto con el correo. Va antes del texto del correo y aquí no se puede cambiar. Marcadores de posición: {ZIEL} pasa a ser el idioma elegido, {OPEN} y {CLOSE} son marcadores con un identificador aleatorio entre los que va el texto del correo.",
-    aiPromptSafe: ["Separación: el texto del correo va entre marcadores nuevos y aleatorios en cada solicitud. Un remitente no puede predecirlos y por tanto no puede salir de la parte de texto.", "Datos de terceros: se informa expresamente al modelo de que el texto procede de otros y de que no debe seguir las instrucciones que contenga. Esto hace menos probables las instrucciones inyectadas, pero con modelos de lenguaje no las descarta con seguridad.", "Efecto limitado: el modelo no tiene herramientas. No puede enviar, abrir ni borrar nada; su respuesta solo se muestra como texto. En el peor caso, un resumen es erróneo o engañoso.", "Aviso: si un correo contiene frases como «ignora todas las instrucciones», aparece una advertencia sobre el resumen."],
+    aiPromptDesc: "Este es el texto que el modelo recibe junto con el correo. La parte principal va antes del texto del correo y las dos últimas frases después (la última solo en correos sospechosos); aquí no se puede cambiar. Marcadores de posición: {ZIEL} pasa a ser el idioma elegido, {OPEN} y {CLOSE} son marcadores con un identificador aleatorio entre los que va el texto del correo.",
+    aiPromptSafe: ["Separación: el texto del correo va entre marcadores nuevos y aleatorios en cada solicitud. Un remitente no puede predecirlos y por tanto no puede salir de la parte de texto.", "Datos de terceros: se informa expresamente al modelo de que el texto procede de otros y de que no debe seguir las instrucciones que contenga; después del texto se le recuerda una vez más. Esto hace menos probables las instrucciones inyectadas, pero con modelos de lenguaje no las descarta con seguridad.", "Efecto limitado: el modelo no tiene herramientas. No puede enviar, abrir ni borrar nada; su respuesta solo se muestra como texto. En el peor caso, un resumen es erróneo o engañoso.", "Aviso: si un correo contiene frases como «ignora todas las instrucciones», aparece una advertencia sobre el resumen y se pide al modelo que mencione el intento en el propio resumen."],
     aiEnabledLabel: "Usar el resumen con IA (el botón «Resumir mensaje (IA)» solo aparece si esto está activado)",
     aiTypeLabel: "Interfaz",
     aiUrlLabel: "Dirección",
@@ -892,6 +907,11 @@ const TEXTS = {
     aiTest: "Probar conexión",
     aiTesting: "Comprobando …",
     aiOk: "Conectado: $1 modelos encontrados.",
+    aiCodeLabel: "Código de emparejamiento (interfaz web del helper → Conexión)",
+    aiOkHelper: "Conectado: el helper resume con $1.",
+    aiHelperHint: "La dirección y el código de emparejamiento aparecen en la interfaz web del helper, en «Conexión» (p. ej. http://192.168.1.20:47531). El texto y la respuesta viajan cifrados; el modelo se elige en el helper.",
+    aiErrCode: "El código de emparejamiento no coincide.",
+    aiErrNoModel: "No hay ningún modelo de lenguaje elegido en el helper.",
     aiFail: "Error: $1",
     aiPerm: "No se concedió el permiso para esta dirección.",
     aiRemote: "Atención: esta dirección no está en este ordenador. Al resumir, el texto del mensaje se envía allí.",
@@ -1506,6 +1526,21 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
     box.textContent = t.aiRemote;
   };
   syncRemote();
+  // NovaBird Helper: Modell wählt der Helper, kein Benutzername; das Schlüsselfeld hält den Kopplungscode
+  const syncType = () => {
+    const helper = document.getElementById("aiType").value === "nbhelper";
+    for (const id of ["aiModel", "aiUser"]) {
+      document.getElementById(id + "Label").hidden = helper;
+      (id === "aiModel" ? document.getElementById(id).parentElement : document.getElementById(id)).hidden = helper;
+    }
+    document.getElementById("aiKeyLabel").textContent = helper ? t.aiCodeLabel : t.aiKeyLabel;
+    document.getElementById("aiKey").type = helper ? "text" : "password";
+    const hint = document.getElementById("aiHelperHint");
+    hint.hidden = !helper;
+    hint.textContent = t.aiHelperHint;
+  };
+  syncType();
+  document.getElementById("aiType").addEventListener("change", syncType);
   enabled.checked = conf.aiEnabled === true;
   body.classList.toggle("off", !enabled.checked);
   enabled.addEventListener("change", () => {
@@ -1541,9 +1576,10 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
       const models = await nbAI.listModels(c);
       const list = document.getElementById("aiModels");
       list.replaceChildren(...models.map(m => Object.assign(document.createElement("option"), { value: m })));
-      status.textContent = t.aiOk.replace("$1", String(models.length));
+      status.textContent = c.aiType === "nbhelper" ? t.aiOkHelper.replace("$1", models[0]) : t.aiOk.replace("$1", String(models.length));
     } catch (e) {
-      status.textContent = t.aiFail.replace("$1", String(e.message || e));
+      const key = String(e.message || e);
+      status.textContent = t.aiFail.replace("$1", { code: t.aiErrCode, nomodel: t.aiErrNoModel }[key] || key);
     }
   });
 })();

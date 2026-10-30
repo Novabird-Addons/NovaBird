@@ -3,8 +3,12 @@
 //  - Doppelklick ohne Argumente: Installieren bzw. Entfernen anbieten (Installer.cs).
 //  - nbhelper.exe --install | --uninstall [--quiet]: dasselbe ohne Rückfrage (für Skripte).
 //  - nbhelper.exe --bench <Modellordner>: Geräte messen und Ergebnis ausgeben (Test).
-//  - nbhelper.exe --server: Netz-Modus mit Symbol im Infobereich, rechnet für andere PCs (Tray.cs, NetServer.cs).
+//  - nbhelper.exe --server: Netz-Modus im Benutzerkonto mit Symbol im Infobereich und Web-Oberfläche (Tray.cs, Core.cs).
 //  - nbhelper.exe --server-console [--loopback]: Netz-Modus ohne Oberfläche (Tests).
+//  - nbhelper.exe --service: Netz-Modus als Windows-Dienst (vom Dienststeuerungs-Manager gestartet, Service.cs).
+//  - nbhelper.exe --tray: nur das Symbol, wenn der Dienst läuft.
+//  - nbhelper.exe --service-install <Übergabedatei> | --service-remove | --service-update: Dienst einrichten, entfernen,
+//    aktualisieren (erhöht, über UAC).
 //  - nbhelper.exe --tokenize <tokenizer.json> <texte.json>: Token-IDs als JSON ausgeben (Test gegen tokenizers).
 namespace NovaBird.Helper;
 
@@ -24,6 +28,11 @@ static class Program
             bool quiet = args.Contains("--quiet");
             if (args.Contains("--install")) return Installer.Install(quiet) ? 0 : 1;
             if (args.Contains("--uninstall")) return Installer.Uninstall(quiet) ? 0 : 1;
+            if (args.Contains("--service")) return Service.RunService();
+            if (args.Length > 1 && args[0] == "--service-install") return Service.Install(args[1]);
+            if (args.Contains("--service-remove")) return Service.Remove();
+            if (args.Contains("--service-update")) return Service.Update();
+            if (args.Contains("--tray")) return Tray.RunTray();
             if (args.Contains("--server")) return Tray.Run();
             if (args.Contains("--server-console")) return Tray.RunConsole(args.Contains("--loopback"));
             if (args.Length > 2 && args[0] == "--tokenize")

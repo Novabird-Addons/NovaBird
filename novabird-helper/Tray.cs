@@ -1,35 +1,37 @@
-// Netz-Modus mit Symbol im Infobereich (nbhelper.exe --server): rechnet für die PCs im Netz (NetServer.cs).
-// Menü: Status, Warteschlange, verbundene PCs, Adresse und Kopplungscode, neuer Code, Pause, Geräte messen,
-// mit Windows starten (HKCU …\Run), Protokoll, Beenden. Läuft nur einmal je Benutzer.
-// nbhelper.exe --server-console: dasselbe ohne Oberfläche (Tests; Ausgabe als JSON-Zeilen, Ende mit stdin).
+// Symbol im Infobereich.
+//  - nbhelper.exe --server: Netz-Modus im Benutzerkonto (Kern: Core.cs). Klick auf das Symbol öffnet die Web-Oberfläche
+//    (WebServer.cs); das Kontextmenü hat nur das Nötigste. Läuft nur einmal je Benutzer.
+//  - nbhelper.exe --tray: nur das Symbol, wenn der Kern als Windows-Dienst läuft (Service.cs); fragt den Dienst über
+//    http://localhost/api/ping nach dem Zustand.
+//  - nbhelper.exe --server-console: Kern ohne Oberfläche (Tests; Ausgabe als JSON-Zeilen, Befehle auf stdin, Ende mit EOF).
 using System.Diagnostics;
+using System.Net.Http;
 using System.Text.Json.Nodes;
-using Microsoft.Win32;
 
 namespace NovaBird.Helper;
 
 static class Tray
 {
-    const string Title = "NovaBird Helper";
-    const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
-    const string RunValue = "NovaBird Helper (Netz)";
+    public const string Title = "NovaBird Helper";
 
     // NOVABIRD_NET_LOOPBACK=1: nur auf diesem PC erreichbar (Tests, keine Firewall-Abfrage)
     static bool LoopbackOnly => Environment.GetEnvironmentVariable("NOVABIRD_NET_LOOPBACK") == "1";
 
-    static int PortSetting() =>
-        int.TryParse(Environment.GetEnvironmentVariable("NOVABIRD_NET_PORT"), out var p) ? p : (int?)Settings.Load()["netPort"] ?? NetServer.DefaultPort;
+    public static int PortSetting() =>
+        int.TryParse(Environment.GetEnvironmentVariable("NOVABIRD_NET_PORT"), out var p) ? p : Core.PortSetting;
 
     // ---- ohne Oberfläche (Tests) ------------------------------------------------------------------------------------------
     public static int RunConsole(bool loopback)
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
+        Settings.Migrate();
         var model = BuiltinModels.Default;
         if (!model.Complete) { Console.WriteLine(new JsonObject { ["error"] = "Modell fehlt" }.ToJsonString()); return 1; }
-        var server = new NetServer(model, PortSetting(), loopback || LoopbackOnly);
-        server.Start();
+        var core = new Core(model, PortSetting(), loopback || LoopbackOnly);
+        core.Start();
+        var server = core.Server;
         if (!ModelStore.Ready(model)) server.Scheduler.Run(() => ModelStore.Measure(model)).Wait();
-        Console.WriteLine(new JsonObject { ["port"] = server.Port, ["code"] = NetServer.Code(), ["ready"] = ModelStore.Ready(model) }.ToJsonString());
+        Console.WriteLine(new JsonObject { ["port"] = server.Port, ["webPort"] = core.Web.Port, ["code"] = NetServer.Code(), ["ready"] = ModelStore.Ready(model) }.ToJsonString());
         Console.Out.Flush();
         // Befehle auf stdin (eine Zeile je Befehl), Ende mit EOF
         string line;
@@ -50,7 +52,7 @@ static class Tray
             Console.WriteLine(reply.ToJsonString());
             Console.Out.Flush();
         }
-        server.Stop();
+        core.Stop();
         return 0;
     }
 
@@ -73,74 +75,77 @@ static class Tray
         ["cpuAgree"] = (double?)Settings.Load()["cpuAgree"],
         ["clients"] = new JsonArray(s.Scheduler.Clients().Select(c => (JsonNode)new JsonObject
         {
-            ["id"] = c.Id, ["label"] = c.Label, ["today"] = c.Today, ["total"] = c.Total,
+            ["id"] = c.Id, ["label"] = c.Label, ["today"] = c.Today, ["total"] = c.Total, ["indexed"] = c.Indexed, ["mails"] = c.Mails,
         }).ToArray()),
     };
 
     // ---- mit Symbol im Infobereich ------------------------------------------------------------------------------------------
+    static void InitUi()
+    {
+        Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+        Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
+    }
+
     public static int Run()
     {
         using var single = new Mutex(true, @"Local\NovaBird.Helper.Net", out bool first);
         if (!first)
         {
-            MessageBox.Show("Der Netz-Modus des NovaBird Helpers läuft schon (Symbol im Infobereich).", Title, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(L.T("Der Netz-Modus des NovaBird Helpers läuft schon (Symbol im Infobereich).", "The network mode of the NovaBird Helper is already running (icon in the notification area)."), Title, MessageBoxButtons.OK, MessageBoxIcon.Information);
             return 0;
         }
-        Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-        Application.EnableVisualStyles();
-        Application.SetCompatibleTextRenderingDefault(false);
-        NetServer server;
+        if (Service.IsInstalled())
+        {
+            MessageBox.Show(L.T("Der NovaBird Helper ist als Windows-Dienst eingerichtet; der Netz-Modus läuft dort. Das Symbol startet mit „nbhelper.exe --tray“.", "The NovaBird Helper is set up as a Windows service; the network mode runs there. The icon starts with \"nbhelper.exe --tray\"."),
+                Title, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return 0;
+        }
+        InitUi();
+        Settings.Migrate();
         var model = BuiltinModels.Default;
+        var core = new Core(model, PortSetting(), LoopbackOnly);
         try
         {
-            server = new NetServer(model, PortSetting(), LoopbackOnly);
-            server.Start();
+            core.Start();
         }
         catch (Exception e)
         {
-            MessageBox.Show($"Der Netz-Modus konnte nicht starten (Port {PortSetting()}):\n{e.Message}", Title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(L.T($"Der Netz-Modus konnte nicht starten (Port {PortSetting()}):\n{e.Message}", $"The network mode could not start (port {PortSetting()}):\n{e.Message}"), Title, MessageBoxButtons.OK, MessageBoxIcon.Error);
             return 1;
         }
-        Application.Run(new TrayContext(server, model));
-        server.Stop();
+        Application.Run(new TrayContext(core));
+        core.Stop();
         return 0;
     }
 
+    public static void OpenWeb(int port) => Process.Start(new ProcessStartInfo($"http://localhost:{port}/") { UseShellExecute = true });
+
+    /// <summary>Netz-Modus im Benutzerkonto: Kern läuft in diesem Prozess.</summary>
     sealed class TrayContext : ApplicationContext
     {
-        readonly NetServer server;
-        readonly ModelSpec model;
+        readonly Core core;
         readonly NotifyIcon icon;
-        readonly ToolStripMenuItem status = new() { Enabled = false }, queue = new() { Enabled = false }, pcs = new("PCs"), pause, measure, autostart, cpu = new("CPU mitrechnen lassen"), threads = new("CPU-Threads");
+        readonly ToolStripMenuItem status = new() { Enabled = false }, pause;
         readonly System.Windows.Forms.Timer timer = new() { Interval = 2000 };
-        string preparing; // Modell laden / Geräte messen (Text für den Status)
 
-        public TrayContext(NetServer server, ModelSpec model)
+        public TrayContext(Core core)
         {
-            this.server = server;
-            this.model = model;
+            this.core = core;
+            core.Exit = ExitThread;
             var menu = new ContextMenuStrip();
-            menu.Items.Add(new ToolStripMenuItem($"{Title} {Program.Version} – Netz-Modus") { Enabled = false, Font = new Font(menu.Font, FontStyle.Bold) });
+            menu.Items.Add(new ToolStripMenuItem($"{Title} {Program.Version} – {L.T("Netz-Modus", "network mode")}") { Enabled = false });
             menu.Items.Add(status);
-            menu.Items.Add(queue);
-            menu.Items.Add(pcs);
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add("Verbinden: Adresse und Kopplungscode …", null, (_, _) => ShowConnect());
-            menu.Items.Add("Kopplungscode kopieren", null, (_, _) => Clipboard.SetText(NetServer.Code()));
-            menu.Items.Add("Neuen Kopplungscode erzeugen …", null, (_, _) => Renew());
-            menu.Items.Add(new ToolStripSeparator());
-            pause = new ToolStripMenuItem("Pause (nur Suchanfragen beantworten)", null, (_, _) => server.Scheduler.Paused = !server.Scheduler.Paused);
+            var open = new ToolStripMenuItem(L.T("Web-Oberfläche öffnen", "Open web interface"), null, (_, _) => OpenWeb(core.Web.Port));
+            open.Font = new Font(open.Font, FontStyle.Bold);
+            menu.Items.Add(open);
+            menu.Items.Add(L.T("Kopplungscode kopieren", "Copy pairing code"), null, (_, _) => Clipboard.SetText(NetServer.Code()));
+            pause = new ToolStripMenuItem(L.T("Pause (nur Suchanfragen beantworten)", "Pause (answer searches only)"), null, (_, _) => core.Server.Scheduler.Paused = !core.Server.Scheduler.Paused);
             menu.Items.Add(pause);
-            cpu.Click += (_, _) => ToggleCpu();
-            menu.Items.Add(cpu);
-            menu.Items.Add(threads);
-            measure = new ToolStripMenuItem("Geräte neu messen", null, (_, _) => Prepare(measureAgain: true));
-            menu.Items.Add(measure);
-            autostart = new ToolStripMenuItem("Mit Windows starten", null, (_, _) => ToggleAutostart());
-            menu.Items.Add(autostart);
-            menu.Items.Add("Protokoll öffnen", null, (_, _) => Process.Start(new ProcessStartInfo(Path.Combine(Settings.Dir, "helper.log")) { UseShellExecute = true }));
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add("Beenden", null, (_, _) => ExitThread());
+            menu.Items.Add(L.T("Als Windows-Dienst einrichten …", "Set up as Windows service …"), null, (_, _) => ToService());
+            menu.Items.Add(L.T("Netz-Modus beenden", "Quit network mode"), null, (_, _) => ExitThread());
             menu.Opening += (_, _) => Refresh();
             icon = new NotifyIcon
             {
@@ -148,147 +153,54 @@ static class Tray
                 ContextMenuStrip = menu,
                 Visible = true,
             };
-            icon.MouseClick += (_, e) => { if (e.Button == MouseButtons.Left) ShowConnect(); };
+            icon.MouseClick += (_, e) => { if (e.Button == MouseButtons.Left) OpenWeb(core.Web.Port); };
+            core.Notify = (text, error) => icon.ShowBalloonTip(error ? 8000 : 5000, Title, text, error ? ToolTipIcon.Error : ToolTipIcon.Info);
             timer.Tick += (_, _) => Refresh();
             timer.Start();
             Refresh();
             var s = Settings.Load();
-            if (s["netWelcomed"] == null)
+            if (s["netWelcomed"] == null || !Users.Any())
             {
                 s["netWelcomed"] = true;
                 Settings.Save(s);
-                icon.ShowBalloonTip(8000, Title, "Der Netz-Modus läuft. Adresse und Kopplungscode: Klick auf das Symbol.", ToolTipIcon.Info);
+                icon.ShowBalloonTip(8000, Title, Users.Any() ? L.T("Der Netz-Modus läuft. Bedienung: Klick auf das Symbol.", "The network mode is running. Click the icon to open it.")
+                    : L.T("Der Netz-Modus läuft. Lege in der Web-Oberfläche den ersten Admin an (öffnet sich jetzt).", "The network mode is running. Create the first admin in the web interface (opening now)."), ToolTipIcon.Info);
+                if (!Users.Any()) OpenWeb(core.Web.Port);
             }
-            Prepare(measureAgain: false);
+            if (!core.Model.Complete)
+            {
+                if (MessageBox.Show(L.T("Für den Netz-Modus braucht der Helper das Modell jina-embeddings-v2-base-de (etwa 320 MB von Hugging Face, " +
+                                        "feste Version, jede Datei mit Prüfsumme).\n\nJetzt laden?",
+                                    "For the network mode the helper needs the model jina-embeddings-v2-base-de (about 320 MB from Hugging Face, " +
+                                        "fixed version, every file with checksum).\n\nDownload now?"), Title, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    core.Prepare(measureAgain: false);
+            }
+            else core.Prepare(measureAgain: false);
         }
 
-        // Modell laden (fragt vorher) und Geräte messen; danach rechnet der Helper
-        void Prepare(bool measureAgain)
+        void ToService()
         {
-            if (preparing != null) return;
-            if (!model.Complete)
-            {
-                if (MessageBox.Show("Für den Netz-Modus braucht der Helper das Modell jina-embeddings-v2-base-de (etwa 320 MB von Hugging Face, " +
-                                    "feste Version, jede Datei mit Prüfsumme).\n\nJetzt laden?", Title, MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
-                    return;
-            }
-            else if (ModelStore.Ready(model) && !measureAgain) return;
-            preparing = "Bereite vor …";
-            Task.Run(async () =>
-            {
-                try
-                {
-                    if (!model.Complete)
-                        ModelStore.Ensure(model, (done, total) => preparing = $"Lade Modell: {done * 100 / Math.Max(1, total)} %");
-                    preparing = "Messe CPU und Grafikkarten …";
-                    await server.Scheduler.Run(() => ModelStore.Measure(model));
-                    preparing = null;
-                    var s = Settings.Load();
-                    icon.ShowBalloonTip(5000, Title, $"Bereit: rechnet auf {(string)s["deviceName"]} (etwa {(double?)s["mailsPerSec"]:0} Mails/s).", ToolTipIcon.Info);
-                }
-                catch (Exception e)
-                {
-                    preparing = null;
-                    Log.Write("Vorbereiten: " + e);
-                    icon.ShowBalloonTip(8000, Title, "Vorbereiten fehlgeschlagen: " + e.Message, ToolTipIcon.Error);
-                }
-            });
+            if (MessageBox.Show(L.T("Den Helper als Windows-Dienst einrichten?\n\nDann läuft der Netz-Modus auch ohne Anmeldung an Windows. Windows fragt gleich nach " +
+                                    "Adminrechten. Einstellungen, Kopplungscode, PC-Liste, Benutzer der Web-Oberfläche und Modelle werden übernommen.",
+                                "Set up the helper as a Windows service?\n\nThen the network mode runs even without anyone signed in to Windows. Windows will ask for " +
+                                    "admin rights. Settings, pairing code, list of PCs, users of the web interface and models are taken over."),
+                    Title, MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+            // Ports freigeben, bevor der Dienst startet; bei Fehler wieder aufnehmen
+            core.Stop();
+            var error = Service.SwitchToService();
+            if (error == null) { ExitThread(); return; }
+            MessageBox.Show(L.T("Als Dienst einrichten ", "Setting up the service ") + error + ".", Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            core.Start();
         }
 
         void Refresh()
         {
-            var sch = server.Scheduler;
-            var s = Settings.Load();
-            var clients = sch.Clients();
-            var device = (string)s["deviceName"] ?? "–";
-            string state = preparing ?? (!ModelStore.Ready(model) ? "Modell fehlt"
-                : sch.Busy != null && sch.Rate > 0 ? $"Rechnet für {Label(clients.FirstOrDefault(c => c.Id == sch.Busy), sch.Busy)} · {RateText(sch)}"
-                : sch.Paused ? "Pausiert (Suchanfragen gehen weiter)" : $"Bereit · {device}");
+            var state = core.StateText();
             status.Text = state;
-            queue.Text = $"Warteschlange: {sch.QueueLength} · letzte Minute: {RateText(sch)}";
-            pause.Checked = sch.Paused;
-            var blocked = Scheduler.CpuBlocked();
-            cpu.Checked = sch.CpuEnabled && blocked == null;
-            cpu.Text = blocked == null ? "CPU mitrechnen lassen" : $"CPU mitrechnen lassen ({blocked})";
-            BuildThreads(sch);
-            measure.Text = model.Complete ? "Geräte neu messen" : "Modell laden …";
-            measure.Enabled = preparing == null;
-            autostart.Checked = AutostartEnabled();
-            pcs.Text = $"PCs ({clients.Count})";
-            pcs.DropDownItems.Clear();
-            if (clients.Count == 0) pcs.DropDownItems.Add(new ToolStripMenuItem("noch keiner verbunden") { Enabled = false });
-            foreach (var c in clients)
-                pcs.DropDownItems.Add(new ToolStripMenuItem($"{Label(c, c.Id)} – heute {c.Today:N0} Mails, zuletzt {c.LastSeen:HH:mm}") { Enabled = false });
-            var tip = $"{Title} · {clients.Count} PC{(clients.Count == 1 ? "" : "s")} · {state}";
+            pause.Checked = core.Server.Scheduler.Paused;
+            int n = core.Server.Scheduler.Clients().Count(c => DateTime.Now - c.LastSeen < TimeSpan.FromDays(1));
+            var tip = $"{Title} · {n} PC{(n == 1 ? "" : "s")} · {state}";
             icon.Text = tip.Length > 127 ? tip[..127] : tip;
-        }
-
-        static string RateText(Scheduler sch)
-        {
-            var r = sch.Rates;
-            return r.Cpu > 0 ? $"{r.All:0.#} Mails/s (Grafikkarte {r.Gpu:0.#} + CPU {r.Cpu:0.#})" : $"{r.All:0.#} Mails/s";
-        }
-
-        void ToggleCpu()
-        {
-            var blocked = Scheduler.CpuBlocked();
-            if (blocked != null)
-            {
-                MessageBox.Show($"Die CPU kann gerade nicht mitrechnen: {blocked}.", Title, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-            server.Scheduler.CpuEnabled = !server.Scheduler.CpuEnabled;
-            Refresh();
-        }
-
-        // Threads für das Mitrechnen der CPU: automatisch oder fest; so viele Kerne bleiben für die normale Arbeit frei
-        void BuildThreads(Scheduler sch)
-        {
-            int cores = Environment.ProcessorCount, set = sch.CpuThreadsSetting;
-            threads.Text = $"CPU-Threads: {sch.CpuThreads} von {cores}";
-            threads.Enabled = Scheduler.CpuBlocked() == null;
-            threads.DropDownItems.Clear();
-            threads.DropDownItems.Add(new ToolStripMenuItem($"Automatisch ({Scheduler.AutoThreads})", null, (_, _) => { sch.CpuThreadsSetting = 0; Refresh(); }) { Checked = set == 0 });
-            foreach (var n in new[] { 1, 2, 3, 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32 }.Where(n => n <= cores))
-                threads.DropDownItems.Add(new ToolStripMenuItem($"{n}", null, (_, _) => { sch.CpuThreadsSetting = n; Refresh(); }) { Checked = set == n });
-            threads.DropDownItems.Add(new ToolStripSeparator());
-            threads.DropDownItems.Add(new ToolStripMenuItem($"Dieser PC hat {cores} logische Kerne; frei bleiben {Math.Max(0, cores - sch.CpuThreads)}.") { Enabled = false });
-        }
-
-        static string Label(Scheduler.ClientInfo c, string id) => !string.IsNullOrEmpty(c?.Label) ? c.Label : "PC " + id[..Math.Min(6, id.Length)];
-
-        void ShowConnect()
-        {
-            var addrs = NetServer.LocalAddresses().Select(a => $"   http://{a}:{server.Port}").ToList();
-            MessageBox.Show(
-                "In Thunderbird auf den anderen PCs: Einstellungen von NovaBird-Search → Semantische Suche → Erweitert → Rechenweg " +
-                "„Eigener Server“, Schnittstelle „NovaBird Helper (Netz)“, dann Adresse und Code eintragen.\n\n" +
-                $"Adresse dieses PCs:\n{(addrs.Count > 0 ? string.Join("\n", addrs) : "   (kein Netzwerk gefunden)")}\n\n" +
-                $"Kopplungscode:\n   {NetServer.Code()}\n\n" +
-                "Anfragen und Antworten sind mit dem Code verschlüsselt; ohne ihn kann niemand den Helper benutzen. " +
-                "Fragt Windows nach der Firewall: Zugriff im privaten Netzwerk erlauben (braucht einmal Adminrechte).",
-                Title, MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        void Renew()
-        {
-            if (MessageBox.Show("Neuen Kopplungscode erzeugen?\n\nAlle bisher verbundenen PCs müssen danach den neuen Code eintragen.", Title,
-                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
-            server.Renew();
-            ShowConnect();
-        }
-
-        static bool AutostartEnabled()
-        {
-            using var k = Registry.CurrentUser.OpenSubKey(RunKey);
-            return k?.GetValue(RunValue) != null;
-        }
-
-        static void ToggleAutostart()
-        {
-            using var k = Registry.CurrentUser.CreateSubKey(RunKey);
-            if (k.GetValue(RunValue) != null) k.DeleteValue(RunValue, false);
-            else k.SetValue(RunValue, $"\"{Environment.ProcessPath}\" --server");
         }
 
         protected override void ExitThreadCore()
@@ -300,10 +212,110 @@ static class Tray
         }
     }
 
-    /// <summary>Autostart-Eintrag entfernen (Deinstallation).</summary>
-    public static void RemoveAutostart()
+    // ---- nur Symbol (Dienstbetrieb) ---------------------------------------------------------------------------------------
+    public static int RunTray()
     {
-        using var k = Registry.CurrentUser.OpenSubKey(RunKey, true);
-        k?.DeleteValue(RunValue, false);
+        using var single = new Mutex(true, @"Local\NovaBird.Helper.Tray", out bool first);
+        if (!first) return 0;
+        InitUi();
+        Application.Run(new ServiceTray());
+        return 0;
     }
+
+    /// <summary>Symbol für den Dienst: Zustand alle 3 s über /api/ping (nur von diesem PC aus erreichbar).</summary>
+    sealed class ServiceTray : ApplicationContext
+    {
+        readonly NotifyIcon icon;
+        readonly ToolStripMenuItem status = new() { Enabled = false };
+        readonly System.Windows.Forms.Timer timer = new() { Interval = 3000 };
+        readonly HttpClient http = new() { Timeout = TimeSpan.FromSeconds(2) };
+        readonly int port = Core.WebPortSetting;
+        bool setupShown;
+
+        public ServiceTray()
+        {
+            http.DefaultRequestHeaders.Add("X-Lang", L.En ? "en" : "de"); // Zustand in der Sprache des Symbols
+            var menu = new ContextMenuStrip();
+            menu.Items.Add(new ToolStripMenuItem($"{Title} – {L.T("Windows-Dienst", "Windows service")}") { Enabled = false });
+            menu.Items.Add(status);
+            menu.Items.Add(new ToolStripSeparator());
+            var open = new ToolStripMenuItem(L.T("Web-Oberfläche öffnen", "Open web interface"), null, (_, _) => OpenWeb(port));
+            open.Font = new Font(open.Font, FontStyle.Bold);
+            menu.Items.Add(open);
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(L.T("Zurück zum Programm im Benutzerkonto …", "Back to the program in the user account …"), null, (_, _) => ToUser());
+            menu.Items.Add(L.T("Symbol ausblenden (Dienst läuft weiter)", "Hide icon (service keeps running)"), null, (_, _) => ExitThread());
+            icon = new NotifyIcon
+            {
+                Icon = Icon.ExtractAssociatedIcon(Environment.ProcessPath) ?? SystemIcons.Application,
+                ContextMenuStrip = menu,
+                Visible = true,
+                Text = Title,
+            };
+            icon.MouseClick += (_, e) => { if (e.Button == MouseButtons.Left) OpenWeb(port); };
+            timer.Tick += async (_, _) => await Poll();
+            timer.Start();
+            _ = Poll();
+        }
+
+        void ToUser()
+        {
+            if (MessageBox.Show(L.T("Den Windows-Dienst entfernen und den Netz-Modus wieder als Programm im Benutzerkonto starten?\n\nWindows fragt gleich nach Adminrechten. " +
+                                    "Die Daten des Dienstes bleiben erhalten; das Programm nutzt seine Einstellungen im Benutzerordner.",
+                                "Remove the Windows service and start the network mode as a program in the user account again?\n\nWindows will ask for admin rights. " +
+                                    "The data of the service is kept; the program uses its settings in the user folder."),
+                    Title, MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+            var error = Service.SwitchToUser();
+            if (error != null)
+            {
+                MessageBox.Show(L.T("Umstellen ", "Switching ") + error + ".", Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            var exe = Installer.IsInstalled() ? Installer.InstalledExePath : Environment.ProcessPath;
+            Core.SetAutostart(true, exe);
+            Process.Start(new ProcessStartInfo(exe, "--server") { UseShellExecute = false });
+            ExitThread();
+        }
+
+        async Task Poll()
+        {
+            string text;
+            try
+            {
+                var j = JsonNode.Parse(await http.GetStringAsync($"http://localhost:{port}/api/ping"));
+                int n = (int?)j["pcs"] ?? 0;
+                text = $"{(string)j["state"]} · {n} PC{(n == 1 ? "" : "s")}";
+                if ((bool?)j["setup"] == true)
+                {
+                    text = L.T("Einrichten: ersten Admin anlegen", "Setup: create the first admin");
+                    if (!setupShown)
+                    {
+                        // einmal je Start: Hinweis und Einrichtungsseite öffnen
+                        setupShown = true;
+                        icon.ShowBalloonTip(8000, Title, L.T("Der Dienst läuft. Lege in der Web-Oberfläche den ersten Admin an (öffnet sich jetzt).", "The service is running. Create the first admin in the web interface (opening now)."), ToolTipIcon.Info);
+                        OpenWeb(port);
+                    }
+                }
+            }
+            catch
+            {
+                text = L.T("Dienst nicht erreichbar", "Service not reachable");
+            }
+            status.Text = text;
+            var tip = $"{Title} · {text}";
+            icon.Text = tip.Length > 127 ? tip[..127] : tip;
+        }
+
+        protected override void ExitThreadCore()
+        {
+            timer.Stop();
+            icon.Visible = false;
+            icon.Dispose();
+            http.Dispose();
+            base.ExitThreadCore();
+        }
+    }
+
+    /// <summary>Autostart-Eintrag entfernen (Deinstallation).</summary>
+    public static void RemoveAutostart() => Core.Autostart = false;
 }

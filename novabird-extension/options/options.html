@@ -50,6 +50,7 @@
     #aiDesc { line-height: 1.5; }
     .ai-grid { display: grid; grid-template-columns: max-content minmax(14em, 28em); gap: 8px 14px; align-items: center; margin-top: 8px; }
     .ai-grid label { margin: 0; }
+    .ai-grid [hidden] { display: none; }
     .ai-grid input[type=text], .ai-grid input[type=password], .ai-grid select { width: 100%; box-sizing: border-box; }
     section[hidden] { display: none; }
     h3 { margin: 22px 0 6px; }
@@ -301,7 +302,7 @@
     <div id="aiBody">
     <div class="ai-grid">
       <label for="aiType" id="aiTypeLabel"></label>
-      <select id="aiType"><option value="ollama">Ollama</option><option value="openai">OpenAI-API</option></select>
+      <select id="aiType"><option value="ollama">Ollama</option><option value="openai">OpenAI-API</option><option value="nbhelper">NovaBird Helper</option></select>
       <label for="aiUrl" id="aiUrlLabel"></label>
       <input type="text" id="aiUrl" spellcheck="false" autocomplete="off">
       <label for="aiModel" id="aiModelLabel"></label>
@@ -315,6 +316,7 @@
       <label for="aiLang" id="aiLangLabel"></label>
       <select id="aiLang"><option value="ui"></option><option value="mail"></option></select>
     </div>
+    <p id="aiHelperHint" class="st-sub" hidden></p>
     <p id="aiRemote" class="st-sub" hidden style="color:#b3261e"></p>
     <div style="display:flex;gap:10px;align-items:center;margin:10px 0">
       <button type="button" id="aiTest"></button>

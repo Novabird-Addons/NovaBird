@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NovaBird Helper</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="app.css">
+  <script src="i18n.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><img src="favicon.ico" alt=""><span>NovaBird Helper</span><small id="version"></small></div>
+    <div class="who">
+      <button type="button" class="link" id="langSwitch" data-i18n="langSwitch"></button>
+      <span id="whoBox" hidden><span id="whoName"></span> <button type="button" class="link" id="logout" data-i18n="logout"></button></span>
+    </div>
+  </header>
+
+  <!-- Anmelden / Einrichten -->
+  <main id="auth" class="auth" hidden>
+    <form id="loginForm" class="card narrow">
+      <h1 id="authTitle"></h1>
+      <p id="authText" class="muted"></p>
+      <label><span data-i18n="name"></span> <input name="name" autocomplete="username" required></label>
+      <label><span data-i18n="password"></span> <input name="password" type="password" autocomplete="current-password" required></label>
+      <label id="confirmRow" hidden><span data-i18n="passwordRepeat"></span> <input name="confirm" type="password" autocomplete="new-password"></label>
+      <p class="error" id="authError" role="alert"></p>
+      <button type="submit" class="primary" id="authButton"></button>
+    </form>
+  </main>
+
+  <!-- Oberfläche -->
+  <div id="app" class="app" hidden>
+    <nav class="tabs" id="tabs">
+      <a href="#status" data-page="status" data-i18n="navStatus"></a>
+      <a href="#pcs" data-page="pcs" data-i18n="navPcs"></a>
+      <a href="#sprachmodell" data-page="sprachmodell" data-i18n="navLlm"></a>
+      <a href="#verbindung" data-page="verbindung" data-admin data-i18n="navConnection"></a>
+      <a href="#einstellungen" data-page="einstellungen" data-i18n="navSettings"></a>
+      <a href="#benutzer" data-page="benutzer" data-admin data-i18n="navUsers"></a>
+      <a href="#protokoll" data-page="protokoll" data-admin data-i18n="navLog"></a>
+      <a href="#konto" data-page="konto" data-i18n="navAccount"></a>
+    </nav>
+    <main class="content">
+      <p class="banner error" id="banner" hidden></p>
+
+      <section data-section="status">
+        <h1 data-i18n="statusTitle"></h1>
+        <div class="stats">
+          <div class="stat"><span class="label" data-i18n="stState"></span><span class="value" id="sState">–</span></div>
+          <div class="stat"><span class="label" data-i18n="stRate"></span><span class="value" id="sRate">–</span></div>
+          <div class="stat"><span class="label" data-i18n="stQueue"></span><span class="value" id="sQueue">–</span></div>
+          <div class="stat"><span class="label" data-i18n="stPcsToday"></span><span class="value" id="sPcs">–</span></div>
+        </div>
+        <dl class="facts">
+          <dt data-i18n="stDevice"></dt><dd id="sDevice">–</dd>
+          <dt data-i18n="stModel"></dt><dd id="sModel">–</dd>
+          <dt data-i18n="stCpu"></dt><dd id="sCpu">–</dd>
+          <dt data-i18n="stChat"></dt><dd id="sChat">–</dd>
+          <dt data-i18n="stVectors"></dt><dd id="sVec">–</dd>
+          <dt data-i18n="stMode"></dt><dd id="sMode">–</dd>
+          <dt data-i18n="stStarted"></dt><dd id="sStarted">–</dd>
+        </dl>
+        <h2 data-i18n="devicesTitle"></h2>
+        <p class="muted" data-i18n="devicesText"></p>
+        <table class="grid"><thead><tr><th data-i18n="thDevice"></th><th class="num" data-i18n="thMailsPerSec"></th><th data-i18n="thNote"></th></tr></thead><tbody id="sDevices"></tbody></table>
+        <p class="actions" data-admin><button type="button" id="measure"></button></p>
+      </section>
+
+      <section data-section="pcs" hidden>
+        <h1 data-i18n="pcsTitle"></h1>
+        <p class="muted" data-i18n="pcsText"></p>
+        <table class="grid"><thead><tr><th data-i18n="thPc"></th><th data-i18n="thIndexed"></th><th class="num" data-i18n="thComputed"></th><th class="num" data-i18n="thToday"></th><th data-i18n="thLastSeen"></th><th data-admin></th></tr></thead><tbody id="pcList"></tbody></table>
+        <p class="muted" id="pcSum"></p>
+      </section>
+
+      <section data-section="sprachmodell" hidden>
+        <h1 data-i18n="llmTitle"></h1>
+        <p class="muted" data-i18n="llmText"></p>
+        <p id="lState"></p>
+
+        <h2 data-i18n="ollamaTitle"></h2>
+        <p class="muted" data-i18n="ollamaText"></p>
+        <p id="oState"></p>
+        <p class="actions" data-admin><button type="button" id="oInstall" hidden data-i18n="ollamaInstall"></button><button type="button" id="oToggle" hidden></button></p>
+        <table class="grid" id="oTable" hidden><thead><tr><th data-i18n="thLoadedModels"></th><th class="num" data-i18n="thSize"></th><th></th></tr></thead><tbody id="oList"></tbody></table>
+        <form id="oPullForm" class="inline" data-admin hidden>
+          <label><span data-i18n="loadModel"></span> <select name="pick" id="oPick"></select></label>
+          <label id="oCustomRow" hidden><span data-i18n="ollamaName"></span> <input name="custom" data-i18n-ph="ollamaNamePh" autocomplete="off" class="wide"></label>
+          <button type="submit" id="oPullButton" data-i18n="load"></button>
+        </form>
+
+        <h2 data-i18n="winmlTitle"></h2>
+        <p class="muted" data-i18n-html="winmlText"></p>
+        <table class="grid"><thead><tr><th data-i18n="thModel"></th><th data-i18n="thType"></th><th class="num" data-i18n="thContext"></th><th class="num" data-i18n="thSize"></th><th></th></tr></thead><tbody id="lList"></tbody></table>
+        <div data-admin>
+          <h2 data-i18n="importTitle"></h2>
+          <form id="importForm" class="inline">
+            <label><span data-i18n="importPath"></span> <input name="path" class="wide" placeholder="C:\Modelle\gemma-3-4b-int4-dml" autocomplete="off"></label>
+            <button type="submit" data-i18n="importButton"></button>
+          </form>
+          <p class="muted" id="lImport"></p>
+        </div>
+
+        <h2 data-i18n="promptTitle"></h2>
+        <p class="muted" data-i18n-html="promptText"></p>
+        <p id="pState"></p>
+        <form id="promptForm" class="settings">
+          <label><span data-i18n="promptMail"></span> <textarea name="mail" rows="9" class="wide"></textarea></label>
+          <label><span data-i18n="promptThread"></span> <textarea name="thread" rows="9" class="wide"></textarea></label>
+          <p class="actions" data-admin><button type="submit" class="primary" data-i18n="promptSave"></button><button type="button" id="promptReset" data-i18n="promptReset"></button> <span class="saved" id="pSaved" hidden data-i18n="promptSaved"></span></p>
+        </form>
+
+        <div data-admin>
+          <h2 data-i18n="testTitle"></h2>
+          <form id="testForm">
+            <label><span data-i18n="testText"></span> <textarea name="text" rows="6" class="wide"></textarea></label>
+            <p class="actions"><button type="submit" id="testButton" data-i18n="summarize"></button> <span class="muted" id="testStats"></span></p>
+          </form>
+          <pre class="log" id="testOut" hidden></pre>
+        </div>
+      </section>
+
+      <section data-section="verbindung" hidden>
+        <h1 data-i18n="connTitle"></h1>
+        <p data-i18n="connText"></p>
+        <h2 data-i18n="addresses"></h2>
+        <ul class="copylist" id="cAddresses"></ul>
+        <h2 data-i18n="pairingCode"></h2>
+        <div class="copyrow"><code class="code" id="cCode">–</code><button type="button" data-copy="cCode" data-i18n="copy"></button><button type="button" id="renew" data-i18n="newCode"></button></div>
+        <p class="muted" id="cSecurity"></p>
+        <div id="cCert" hidden>
+          <h2 data-i18n="certTitle"></h2>
+          <p class="muted" data-i18n="certText"></p>
+          <code class="code small" id="cFinger"></code>
+        </div>
+      </section>
+
+      <section data-section="einstellungen" hidden>
+        <h1 data-i18n="settingsTitle"></h1>
+        <form id="settingsForm" class="settings">
+          <fieldset>
+            <legend data-i18n="compute"></legend>
+            <label class="check"><input type="checkbox" name="cpu"> <span data-i18n="cpuAlong"></span></label>
+            <p class="muted" id="eCpuBlocked"></p>
+            <label><span data-i18n="cpuThreads"></span> <input type="number" name="threads" min="0" step="1" class="short"></label>
+            <p class="muted" id="eThreads"></p>
+            <label class="check"><input type="checkbox" name="paused"> <span data-i18n="pause"></span></label>
+            <label class="check"><input type="checkbox" name="vecShare"> <span data-i18n="vecShare"></span></label>
+            <p class="muted" data-i18n="vecShareText"></p>
+            <p class="actions" data-admin><button type="button" id="vecClear" data-i18n="vecClear"></button></p>
+          </fieldset>
+          <fieldset>
+            <legend data-i18n="startTitle"></legend>
+            <label class="check" id="eAutostartRow"><input type="checkbox" name="autostart"> <span data-i18n="autostart"></span></label>
+            <p class="muted" id="eMode"></p>
+            <p class="actions" id="eServiceRow" hidden><button type="button" id="toService" data-i18n="toService"></button></p>
+            <p class="muted" id="eServiceHint"></p>
+          </fieldset>
+          <fieldset>
+            <legend data-i18n="network"></legend>
+            <label><span data-i18n="netPort"></span> <input type="number" name="netPort" min="1024" max="65535" class="short"></label>
+            <label><span data-i18n="webPort"></span> <input type="number" name="webPort" min="1024" max="65535" class="short"></label>
+            <p class="muted" id="ePorts"></p>
+            <label class="check"><input type="checkbox" name="webLan"> <span data-i18n="webLan"></span></label>
+          </fieldset>
+          <p class="actions" data-admin><button type="submit" class="primary" data-i18n="save"></button> <span class="saved" id="eSaved" hidden data-i18n="saved"></span></p>
+        </form>
+      </section>
+
+      <section data-section="benutzer" hidden>
+        <h1 data-i18n="usersTitle"></h1>
+        <p class="muted" data-i18n-html="usersText"></p>
+        <table class="grid"><thead><tr><th data-i18n="name"></th><th data-i18n="thRole"></th><th data-i18n="thCreated"></th><th></th></tr></thead><tbody id="uList"></tbody></table>
+        <h2 data-i18n="newUser"></h2>
+        <form id="userForm" class="inline">
+          <label><span data-i18n="name"></span> <input name="name" required autocomplete="off"></label>
+          <label><span data-i18n="password"></span> <input name="password" type="password" required autocomplete="new-password" minlength="10"></label>
+          <label><span data-i18n="role"></span> <select name="role"><option value="viewer" data-i18n="roleViewerOption"></option><option value="admin" data-i18n="roleAdmin"></option></select></label>
+          <button type="submit" data-i18n="create"></button>
+        </form>
+      </section>
+
+      <section data-section="protokoll" hidden>
+        <h1 data-i18n="logTitle"></h1>
+        <p class="actions"><button type="button" id="logReload" data-i18n="reload"></button></p>
+        <pre class="log" id="logText"></pre>
+      </section>
+
+      <section data-section="konto" hidden>
+        <h1 data-i18n="accountTitle"></h1>
+        <form id="meForm" class="settings">
+          <label><span data-i18n="oldPassword"></span> <input name="old" type="password" required autocomplete="current-password"></label>
+          <label><span data-i18n="newPassword"></span> <input name="password" type="password" required minlength="10" autocomplete="new-password"></label>
+          <label><span data-i18n="newPasswordRepeat"></span> <input name="confirm" type="password" required minlength="10" autocomplete="new-password"></label>
+          <p class="actions"><button type="submit" class="primary" data-i18n="changePassword"></button> <span class="saved" id="meSaved" hidden data-i18n="changed"></span></p>
+        </form>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

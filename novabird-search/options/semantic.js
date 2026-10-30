@@ -153,6 +153,7 @@
       [t("semRowCheck"), checkText(s.checks?.[s.engine])],
       [t("semRowRate"), s.rate ? t("semRateFmt", [s.rate.toLocaleString(lang)]) : "–"],
       [t("semRowTiming"), s.timing ? t("semTimingFmt", [String(s.timing.batch), s.timing.waitMs.toLocaleString(lang), s.timing.embedMs.toLocaleString(lang)]) : "–"],
+      ...(s.shared > 0 ? [[t("semRowShared"), t("semSharedFmt", [s.shared.toLocaleString(lang)])]] : []),
       [t("semRowLoaded"), s.loaded ? t("semYes") : t("semNo")],
     ];
     $("semState").replaceChildren(...rows.flatMap(([k, v]) => {

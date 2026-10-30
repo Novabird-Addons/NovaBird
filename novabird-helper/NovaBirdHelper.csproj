@@ -1,15 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- NovaBird Helper: rechnet für NovaBird-Search auf der Grafikkarte (ONNX Runtime mit DirectML), installiert sich pro Benutzer
+  <!-- NovaBird Helper: rechnet für NovaBird-Search auf der Grafikkarte (Windows ML: ONNX Runtime mit DirectML), installiert sich pro Benutzer
        als Native-Messaging-Host.
        Release (eine selbstständige Datei, braucht kein .NET auf dem Zielrechner): dotnet publish -c Release -p:NovaBirdRelease=true
        Test (braucht .NET 10 auf dem Rechner): dotnet publish -c Release -->
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <UseWindowsForms>true</UseWindowsForms>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <AssemblyName>nbhelper</AssemblyName>
     <RootNamespace>NovaBird.Helper</RootNamespace>
-    <Version>0.2.0</Version>
+    <Version>0.4.0</Version>
     <Product>NovaBird Helper</Product>
     <Company>NovaBird</Company>
     <Description>NovaBird Helper (semantische Suche, DirectML)</Description>
@@ -30,6 +30,14 @@
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.24.4" />
+    <!-- Web-Oberfläche (WebServer.cs) als Ressourcen in der exe -->
+    <EmbeddedResource Include="web\*" LogicalName="web/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="nbhelper.ico" LogicalName="web/favicon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Windows ML: ONNX Runtime 1.24 + DirectML 1.15 + GenAI 0.18 (Sprachmodelle), eine Laufzeit für alles -->
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.WinML" Version="0.18.0" />
+    <PackageReference Include="System.Management" Version="10.0.0" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.0" />
   </ItemGroup>
 </Project>

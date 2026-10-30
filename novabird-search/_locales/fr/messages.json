@@ -1003,6 +1003,12 @@
   "semServerNbOtherModel": {
     "message": "Connecté, mais le Helper du PC de calcul a une autre version du modèle : mettre à jour le Helper et NovaBird-Search."
   },
+  "semRowShared": {
+    "message": "D’autres PC"
+  },
+  "semSharedFmt": {
+    "message": "$1 vecteurs repris du helper (depuis le démarrage), non recalculés"
+  },
   "semRowTiming": {
     "message": "Dernier lot"
   },

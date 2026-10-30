@@ -8,7 +8,7 @@ const TEXTS = {
     remote: "Der Nachrichtentext wird an $1 gesendet.",
     disabled: "Die KI-Zusammenfassung ist ausgeschaltet. Sie lässt sich in den Einstellungen unter „KI“ einschalten.",
     injection: "Die Nachricht enthält Sätze, die wie Anweisungen an KI-Systeme aussehen. Die Zusammenfassung mit Vorsicht lesen.",
-    forbidden: "Der Server hat die Anfrage abgelehnt (403). Bei Ollama hilft die Umgebungsvariable OLLAMA_ORIGINS=moz-extension://*; bei anderen Diensten prüfen, ob Benutzername und Schlüssel stimmen." },
+    forbidden: "Der Server hat die Anfrage abgelehnt (403). Bei Ollama hilft die Umgebungsvariable OLLAMA_ORIGINS=moz-extension://*; bei anderen Diensten prüfen, ob Benutzername und Schlüssel stimmen.", code: "Der Kopplungscode passt nicht (Web-Oberfläche des Helpers → Verbindung).", nomodel: "Im Helper ist kein Sprachmodell gewählt (Web-Oberfläche → Sprachmodell).", answer: "Die Antwort des Helpers ließ sich nicht prüfen.", helper: "Fehler im Helper." },
   en: { title: "Summary", again: "Regenerate", copy: "Copy", copied: "Copied", settings: "Settings", working: "Summarising …",
     noMessage: "No message selected.", empty: "The message has no text.", off: "AI summary is not set up. Address and model are in the settings under “AI”.",
     truncated: "Only the beginning of the message was used (very long).", fail: "The summary failed:",
@@ -16,7 +16,7 @@ const TEXTS = {
     remote: "The message text is sent to $1.",
     disabled: "AI summary is switched off. You can switch it on in the settings under “AI”.",
     injection: "The message contains sentences that look like instructions to AI systems. Read the summary with caution.",
-    forbidden: "The server refused the request (403). For Ollama set the environment variable OLLAMA_ORIGINS=moz-extension://*; for other services check the user name and key." },
+    forbidden: "The server refused the request (403). For Ollama set the environment variable OLLAMA_ORIGINS=moz-extension://*; for other services check the user name and key.", code: "The pairing code does not match (helper web interface → Connection).", nomodel: "No language model is selected in the helper (web interface → Language model).", answer: "The helper's answer could not be verified.", helper: "Error in the helper." },
   fr: { title: "Résumé", again: "Régénérer", copy: "Copier", copied: "Copié", settings: "Paramètres", working: "Résumé en cours …",
     noMessage: "Aucun message sélectionné.", empty: "Le message ne contient pas de texte.", off: "Le résumé par IA n’est pas configuré. L’adresse et le modèle se trouvent dans les paramètres sous « IA ».",
     truncated: "Seul le début du message a été pris en compte (très long).", fail: "Le résumé a échoué :",
@@ -24,7 +24,7 @@ const TEXTS = {
     remote: "Le texte du message est envoyé à $1.",
     disabled: "Le résumé par IA est désactivé. Vous pouvez l’activer dans les paramètres sous « IA ».",
     injection: "Le message contient des phrases qui ressemblent à des instructions pour des systèmes d’IA. Lisez le résumé avec prudence.",
-    forbidden: "Le serveur a refusé la requête (403). Avec Ollama, définissez la variable d’environnement OLLAMA_ORIGINS=moz-extension://* ; pour les autres services, vérifiez le nom d’utilisateur et la clé." },
+    forbidden: "Le serveur a refusé la requête (403). Avec Ollama, définissez la variable d’environnement OLLAMA_ORIGINS=moz-extension://* ; pour les autres services, vérifiez le nom d’utilisateur et la clé.", code: "Le code d’appairage ne correspond pas (interface web du helper → Connexion).", nomodel: "Aucun modèle de langage n’est choisi dans le helper (interface web → Modèle de langage).", answer: "La réponse du helper n’a pas pu être vérifiée.", helper: "Erreur dans le helper." },
   es: { title: "Resumen", again: "Volver a generar", copy: "Copiar", copied: "Copiado", settings: "Ajustes", working: "Resumiendo …",
     noMessage: "Ningún mensaje seleccionado.", empty: "El mensaje no tiene texto.", off: "El resumen con IA no está configurado. La dirección y el modelo están en los ajustes, en «IA».",
     truncated: "Solo se usó el principio del mensaje (muy largo).", fail: "El resumen ha fallado:",
@@ -32,7 +32,7 @@ const TEXTS = {
     remote: "El texto del mensaje se envía a $1.",
     disabled: "El resumen con IA está desactivado. Puede activarlo en los ajustes, en «IA».",
     injection: "El mensaje contiene frases que parecen instrucciones para sistemas de IA. Lea el resumen con precaución.",
-    forbidden: "El servidor rechazó la solicitud (403). Con Ollama defina la variable de entorno OLLAMA_ORIGINS=moz-extension://*; en otros servicios compruebe el usuario y la clave." },
+    forbidden: "El servidor rechazó la solicitud (403). Con Ollama defina la variable de entorno OLLAMA_ORIGINS=moz-extension://*; en otros servicios compruebe el usuario y la clave.", code: "El código de emparejamiento no coincide (interfaz web del helper → Conexión).", nomodel: "No hay ningún modelo de lenguaje elegido en el helper (interfaz web → Modelo de lenguaje).", answer: "No se pudo verificar la respuesta del helper.", helper: "Error en el helper." },
 };
 const lang = (messenger.i18n.getUILanguage() || "en").slice(0, 2).toLowerCase();
 const t = TEXTS[lang] || TEXTS.en;

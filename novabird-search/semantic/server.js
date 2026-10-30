@@ -101,9 +101,11 @@ function normalized(v) {
  * Vektoren für texts (normiert, Float32Array je Text). maxTokens: Ollama kürzt wie das Add-on auf diese Tokenzahl
  * (num_ctx); OpenAI-kompatible Server kürzen nach eigener Einstellung (die Probe deckt die üblichen Längen ab).
  */
-export async function embed(c, texts, maxTokens, { model = null, prio = "index" } = {}) {
+export async function embed(c, texts, maxTokens, { model = null, prio = "index", stats = null, keys = null } = {}) {
   if (c.type === "nbhelper") {
-    const res = await netCall(c, "embed", { model, texts, prio });
+    // stats: Indexstand dieses PCs für die Liste im Helper; keys: je Text {id: Message-ID, h: Prüfsumme} – der Helper merkt
+    // sich die Vektoren dann für andere PCs (Vektoren teilen)
+    const res = await netCall(c, "embed", { model, texts, prio, stats, ...(keys ? { keys } : {}) });
     return decodeFloat32(res.vectors, texts.length).map(normalized);
   }
   if (!c.model) {
@@ -121,6 +123,22 @@ export async function embed(c, texts, maxTokens, { model = null, prio = "index" 
     throw new Error("answer");
   }
   return list.map(normalized);
+}
+
+/**
+ * Vektoren teilen (NovaBird Helper im Netz): schon gerechnete Vektoren zu items [{id: Message-ID, h: Prüfsumme des Textes}].
+ * Liefert {found: Positionen in items, vectors: Float32Array je Treffer}.
+ */
+export async function lookup(c, model, items, stats = null) {
+  const res = await netCall(c, "vlookup", { model, items, stats });
+  const found = res.found || [];
+  return { found, vectors: found.length ? decodeFloat32(res.vectors, found.length).map(normalized) : [] };
+}
+
+/** Prüfsumme eines Textes für das Teilen: die ersten 8 Byte von SHA-256 (UTF-8), hexadezimal. */
+export async function textHash(text) {
+  const d = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)));
+  return Array.from(d.subarray(0, 8), b => b.toString(16).padStart(2, "0")).join("");
 }
 
 // ---- NovaBird Helper im Netz-Modus ------------------------------------------------------------------------------------------

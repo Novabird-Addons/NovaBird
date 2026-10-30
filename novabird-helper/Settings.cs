@@ -1,5 +1,6 @@
-// Einstellungen des Helpers: %LOCALAPPDATA%\NovaBird\Helper\settings.json (gewähltes Gerät, Messwerte, Sync-Ordner,
-// Gerätekennung). Der Sync-Schlüssel liegt mit DPAPI verschlüsselt darin (nur dieser Windows-Benutzer kann ihn lesen).
+// Einstellungen des Helpers: settings.json im Datenordner (gewähltes Gerät, Messwerte, Sync-Ordner, Gerätekennung, Netz und
+// Web-Oberfläche). Datenordner: %LOCALAPPDATA%\NovaBird\Helper, als Dienst %ProgramData%\NovaBird\Helper. Schlüssel liegen
+// mit DPAPI verschlüsselt darin (nur dieser Windows-Benutzer bzw. als Dienst nur dieser Rechner kann sie lesen).
 using System.Runtime.InteropServices;
 using System.Text.Json.Nodes;
 
@@ -7,10 +8,30 @@ namespace NovaBird.Helper;
 
 static class Settings
 {
+    /// <summary>Läuft als Windows-Dienst: Daten unter %ProgramData%, Schlüssel mit DPAPI für den Rechner statt für den Benutzer.</summary>
+    public static bool ServiceMode;
+
     // NOVABIRD_HELPER_DIR nur für Tests (anderer Datenordner, z. B. zwei „PCs“ auf einem Rechner)
     public static string Dir => Environment.GetEnvironmentVariable("NOVABIRD_HELPER_DIR") is { Length: > 0 } d ? d
-        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NovaBird", "Helper");
+        : ServiceMode ? ServiceDir : UserDir;
+    public static string UserDir => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NovaBird", "Helper");
+    public static string ServiceDir => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "NovaBird", "Helper");
     static string FilePath => Path.Combine(Dir, "settings.json");
+
+    // ---- Schema: Version der Einstellungen; ältere Stände werden beim Start umgestellt ------------------------------------------
+    public const int Schema = 2; // 1 = Helper 0.1–0.3 (ohne Angabe), 2 = 0.4 (Web-Oberfläche, Dienst)
+
+    public static void Migrate()
+    {
+        var s = Load();
+        int from = (int?)s["schema"] ?? 1;
+        if (from >= Schema) return;
+        // 1 → 2: alles bleibt, neu sind nur Angaben mit Vorgabe (webPort, webLan, chatModel); Benutzer stehen in users.json
+        s["schema"] = Schema;
+        s["migratedFrom"] = $"{from} ({DateTime.Now:yyyy-MM-dd HH:mm})";
+        Save(s);
+        Log.Write($"Einstellungen umgestellt: Schema {from} → {Schema}");
+    }
 
     public static JsonObject Load()
     {
@@ -56,15 +77,18 @@ static class Settings
     [DllImport("kernel32.dll")]
     static extern IntPtr LocalFree(IntPtr mem);
 
-    const int UiForbidden = 0x1;
+    const int UiForbidden = 0x1, LocalMachine = 0x4;
 
-    public static string Protect(byte[] data)
+    // Dienst: Bereich Rechner (der Datenordner ist nur für SYSTEM, Administratoren und das Dienstkonto lesbar)
+    public static string Protect(byte[] data) => Protect(data, ServiceMode);
+
+    public static string Protect(byte[] data, bool machine)
     {
         var input = new Blob { Size = data.Length, Data = Marshal.AllocHGlobal(data.Length) };
         try
         {
             Marshal.Copy(data, 0, input.Data, data.Length);
-            if (!CryptProtectData(ref input, "NovaBird Helper", IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, UiForbidden, out var output))
+            if (!CryptProtectData(ref input, "NovaBird Helper", IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, UiForbidden | (machine ? LocalMachine : 0), out var output))
                 throw new InvalidOperationException("DPAPI: " + Marshal.GetLastWin32Error());
             var bytes = new byte[output.Size];
             Marshal.Copy(output.Data, bytes, 0, output.Size);
