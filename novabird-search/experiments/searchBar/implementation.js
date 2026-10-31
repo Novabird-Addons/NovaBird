@@ -140,6 +140,7 @@ const CSS = `
   margin-top: var(--nbs-title-top, 6.5px);
 }
 #threadPaneFolderCountContainer .thread-pane-count-info { padding-inline-start: 0; font-size: 0.85rem; opacity: 0.75; }
+#nbsHeaderNote { margin-inline-start: 0.3em; opacity: 0.8; }
 /* Konversationsansicht (Option): neueste Nachricht der Konversation hervorheben */
 tr.nbs-newest td {
   /* Textmarker: kräftiges Gelb mit Transparenz – auf hellem Grund blassgelb, auf dunklem Grund goldfarben */
@@ -1441,7 +1442,31 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
 
     const analysisHdrs = new Map(); // Analyse-Nummer -> { hdrs, ms } (für recipientsChunk)
 
-    const showHeaders = (b, hdrs, title, group, keepOrder = false, keepName = false) => {
+    // Zusatz hinter der Trefferzahl in der Kopfzeile (z. B. „· davon 38 per Bedeutungssuche“); leer = entfernen
+    const setHeaderNote = (cw, note) => {
+      try {
+        const doc = cw.document;
+        let n = doc.getElementById("nbsHeaderNote");
+        if (!note) {
+          n?.remove();
+          return;
+        }
+        const count = doc.getElementById("threadPaneFolderCount");
+        if (!count) {
+          return;
+        }
+        if (!n) {
+          n = doc.createElement("span");
+          n.id = "nbsHeaderNote";
+          count.after(n);
+        }
+        n.textContent = note;
+      } catch (e) {
+        dbg("header note failed", String(e));
+      }
+    };
+
+    const showHeaders = (b, hdrs, title, group, keepOrder = false, keepName = false, note = "") => {
       const win = b?.win;
       const cw = b?.cw;
       if (!cw?.restoreState) {
@@ -1474,7 +1499,8 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
       };
       setCount();
       setTitle();
-      win.setTimeout(() => (setCount(), setTitle()), 400);
+      setHeaderNote(cw, note);
+      win.setTimeout(() => (setCount(), setTitle(), setHeaderNote(cw, note)), 400);
       try {
         // Standard: flach (sonst steht ein alter Thread-Anfang oben); Option: nach Konversation gruppieren
         if (group) {
@@ -1986,7 +2012,7 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           const shown = showHeaders(bar, hdrs, SEARCH_FOLDER_NAME, criteriaState?.group === true);
           return shown ? hdrs.length : -2;
         },
-        async idSearch(barId, rows, criteria, criteriaState, keepOrder) {
+        async idSearch(barId, rows, criteria, criteriaState, keepOrder, headerNote) {
           const bar = barOf(barId);
           if (!bar) {
             return -2;
@@ -2000,7 +2026,7 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           if (!keepOrder) hdrs.sort((a, b) => b.date - a.date);
           dbg("id search", { rows: rows.length, shown: hdrs.length });
           Services.console.logStringMessage(`NovaBird-Search: NovaBird-DB lieferte ${rows.length} Treffer, angezeigt ${hdrs.length} (Ordner unbekannt ${lost.unknownFolder}, Papierkorb/Spam ${lost.trashSpam}, Kopfzeile fehlt ${lost.noHeader}, durch Filter ${lost.filtered})` + (unknownIds.size ? `; unbekannte Ordner: ${[...unknownIds].slice(0, 5).join(" | ")}` : ""));
-          const shown = showHeaders(bar, hdrs, SEARCH_FOLDER_NAME, criteriaState?.group === true, Boolean(keepOrder), criteriaState?.scope === "folder");
+          const shown = showHeaders(bar, hdrs, SEARCH_FOLDER_NAME, criteriaState?.group === true, Boolean(keepOrder), criteriaState?.scope === "folder", headerNote || "");
           return shown ? hdrs.length : -2;
         },
         // „In den Treffern suchen“ im Treffer-Tab: zeigt nur die Treffer der Ausgangsmenge, die auch zu den NovaBird-DB-Zeilen passen.
@@ -2031,6 +2057,7 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           cw.restoreState({ syntheticView: makeView(list), folderPaneVisible: false, title: tab._nbsTitle });
           const setCount = () => {
             try { cw.threadPaneHeader.updateMessageCount(list.length); } catch (e) { dbg("count (refine) failed", String(e)); }
+            setHeaderNote(cw, ""); // nach dem Eingrenzen stimmt die Aufteilung nicht mehr
           };
           setCount();
           win.setTimeout(setCount, 400);

@@ -1026,5 +1026,11 @@
   },
   "semSrcOther": {
     "message": "This PC or your own server (see “Advanced”)"
+  },
+  "headerSimilar": {
+    "message": "· $1 of them by meaning"
+  },
+  "semHeaderCount": {
+    "message": "Show at the top of the results how many hits come from the meaning search"
   }
 }

@@ -1026,5 +1026,11 @@
   },
   "semSrcOther": {
     "message": "Ce PC ou votre propre serveur (voir « Avancé »)"
+  },
+  "headerSimilar": {
+    "message": "· dont $1 par le sens"
+  },
+  "semHeaderCount": {
+    "message": "Afficher en haut des résultats combien proviennent de la recherche par le sens"
   }
 }

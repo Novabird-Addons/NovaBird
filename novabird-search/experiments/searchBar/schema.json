@@ -602,6 +602,12 @@
             "type": "boolean",
             "optional": true,
             "description": "true: Reihenfolge der Zeilen beibehalten (Relevanz) statt nach Datum zu sortieren."
+          },
+          {
+            "name": "headerNote",
+            "type": "string",
+            "optional": true,
+            "description": "Zusatz hinter der Trefferzahl in der Kopfzeile (z. B. wie viele Treffer aus der Bedeutungssuche kommen)."
           }
         ],
         "returns": {

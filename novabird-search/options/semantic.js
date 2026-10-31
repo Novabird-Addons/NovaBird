@@ -235,6 +235,9 @@
   }
 
   $("semEnabled").addEventListener("change", () => setConfig({ enabled: $("semEnabled").checked }));
+  // Kopfzeile der Trefferliste: „· davon N per Bedeutungssuche“ (Standard an)
+  config().then(c => ($("semHeaderCount").checked = c.headerCount !== false));
+  $("semHeaderCount").addEventListener("change", () => setConfig({ headerCount: $("semHeaderCount").checked }));
 
   // Ein Klick: NovaBird Helper, der in der NovaBird-Extension (Reiter „NovaBird Helper“) verbunden ist, oder wie bisher
   // (dieser PC bzw. eigener Server unter „Erweitert“). Ohne Extension oder ohne Verbindung bleibt die Auswahl verborgen.

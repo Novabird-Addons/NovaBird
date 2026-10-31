@@ -1026,5 +1026,11 @@
   },
   "semSrcOther": {
     "message": "Este PC o su propio servidor (ver «Avanzado»)"
+  },
+  "headerSimilar": {
+    "message": "· $1 de ellos por significado"
+  },
+  "semHeaderCount": {
+    "message": "Mostrar arriba en los resultados cuántos provienen de la búsqueda por significado"
   }
 }

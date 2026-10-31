@@ -297,7 +297,10 @@ async function semanticAugment(ctl, text, criteria, showState, gen, folderId, le
     }
     const relevance = settings.sortMode === "relevance";
     const rows = relevance ? fuseRanks(lexRows, res.rows) : [...lexRows, ...extra];
-    const count = await ctl.sb.idSearch(rows, criteria, { ...showState, group: settings.group }, relevance);
+    // Option (Suche → Semantik, Standard an): in der Kopfzeile zeigen, wie viele Treffer aus der Bedeutungssuche kommen
+    const { semantic: semCfg } = await messenger.storage.local.get({ semantic: {} });
+    const note = semCfg?.headerCount === false ? "" : messenger.i18n.getMessage("headerSimilar", [String(extra.length)]);
+    const count = await ctl.sb.idSearch(rows, criteria, { ...showState, group: settings.group }, relevance, note);
     if (count >= 0 && gen === ctl.generation) {
       showNote(ctl, messenger.i18n.getMessage("noteSimilar", [String(extra.length)]), messenger.i18n.getMessage("noteSimilarTip"), "info");
     }

@@ -1110,5 +1110,11 @@
   },
   "semSrcOther": {
     "message": "Dieser PC oder eigener Server (siehe „Erweitert“)"
+  },
+  "headerSimilar": {
+    "message": "· davon $1 per Bedeutungssuche"
+  },
+  "semHeaderCount": {
+    "message": "Oben in der Trefferliste anzeigen, wie viele Treffer aus der Bedeutungssuche kommen"
   }
 }
