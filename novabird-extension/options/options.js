@@ -168,6 +168,7 @@ const TEXTS = {
     aiPrepTitle: "Vorbereiten",
     aiPrepareLabel: "Neue Mails gleich beim Eintreffen vorbereiten",
     aiPrepareDesc: "Jede neue Mail im Posteingang wird sofort eingeordnet (Abschnitt, ein Satz, Aufgaben und Fristen), längere Mails bekommen schon ihre Zusammenfassung – ebenso eine längere Mail, die du 2 Sekunden offen hast. „Was gibt's Neues?“ ist dann sofort da. Dafür geht jede neue Mail automatisch an die KI-Adresse oben. Mit dem NovaBird Helper rechnet nur ein PC je Mail; die anderen PCs derselben Gruppe holen das Ergebnis verschlüsselt ab.",
+    aiSpeechRateLabel: "Vorlesen: Tempo",
     aiNote: "Zugangsdaten werden im Profil dieses Add-ons gespeichert (nicht verschlüsselt). Mit Benutzername wird Basic-Anmeldung verwendet, sonst das Passwort als Bearer-Schlüssel. Empfohlen: Ollama mit einem Modell wie gemma3:12b oder qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact im Kontakte-Tab",
@@ -441,6 +442,7 @@ const TEXTS = {
     aiPrepTitle: "Prepare",
     aiPrepareLabel: "Prepare new mail as soon as it arrives",
     aiPrepareDesc: "Every new message in the inbox is sorted right away (section, one sentence, tasks and deadlines); longer messages already get their summary – as does a longer message you keep open for 2 seconds. “What's new?” is then ready at once. For this, every new message is sent automatically to the AI address above. With the NovaBird Helper only one PC works on each message; the other PCs of the same group fetch the result in encrypted form.",
+    aiSpeechRateLabel: "Read aloud: speed",
     aiNote: "Credentials are stored in this add-on’s profile data (not encrypted). With a user name Basic authentication is used, otherwise the password is sent as a bearer key. Recommended: Ollama with a model such as gemma3:12b or qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact in the Contacts tab",
@@ -714,6 +716,7 @@ const TEXTS = {
     aiPrepTitle: "Préparer",
     aiPrepareLabel: "Préparer les nouveaux messages dès leur arrivée",
     aiPrepareDesc: "Chaque nouveau message de la boîte de réception est classé immédiatement (section, une phrase, tâches et échéances) ; les messages longs reçoivent déjà leur résumé – de même qu’un message long que vous gardez ouvert 2 secondes. « Quoi de neuf ? » est alors prêt tout de suite. Pour cela, chaque nouveau message est envoyé automatiquement à l’adresse IA ci-dessus. Avec NovaBird Helper, un seul PC traite chaque message ; les autres PC du même groupe récupèrent le résultat chiffré.",
+    aiSpeechRateLabel: "Lecture : vitesse",
     aiNote: "Les identifiants sont enregistrés dans les données de profil de ce module (non chiffrés). Avec un nom d’utilisateur, l’authentification Basic est utilisée, sinon le mot de passe est envoyé comme clé Bearer. Recommandé : Ollama avec un modèle comme gemma3:12b ou qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact dans l’onglet Contacts",
@@ -987,6 +990,7 @@ const TEXTS = {
     aiPrepTitle: "Preparar",
     aiPrepareLabel: "Preparar el correo nuevo en cuanto llega",
     aiPrepareDesc: "Cada correo nuevo de la bandeja de entrada se clasifica enseguida (sección, una frase, tareas y plazos); los correos largos ya reciben su resumen, igual que un correo largo que tenga abierto 2 segundos. «¿Qué hay de nuevo?» está listo al instante. Para ello, cada correo nuevo se envía automáticamente a la dirección de IA de arriba. Con NovaBird Helper solo un PC procesa cada correo; los demás PC del mismo grupo recogen el resultado cifrado.",
+    aiSpeechRateLabel: "Lectura: velocidad",
     aiNote: "Las credenciales se guardan en los datos de perfil de este complemento (sin cifrar). Con nombre de usuario se usa autenticación Basic, si no la contraseña se envía como clave Bearer. Recomendado: Ollama con un modelo como gemma3:12b o qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact en la pestaña Contactos",
@@ -1694,6 +1698,12 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
   calSel.append(...calendars.map(c => new Option(c.name, c.id)));
   calSel.value = calendars.some(c => c.id === conf.aiCalendar) ? conf.aiCalendar : "";
   calSel.addEventListener("change", () => save({ aiCalendar: calSel.value }));
+  // Vorlesen: Tempo (Tonhöhe bleibt); abgespielt wird auf diesem PC
+  const rateSel = document.getElementById("aiSpeechRate");
+  const fmtRate = r => r.toLocaleString(document.documentElement.lang, { maximumFractionDigits: 2 }) + "×";
+  rateSel.append(...nbAI.SPEECH_RATES.map(r => new Option(fmtRate(r), String(r))));
+  rateSel.value = String(nbAI.SPEECH_RATES.includes(Number(conf.aiSpeechRate)) ? Number(conf.aiSpeechRate) : 1);
+  rateSel.addEventListener("change", () => save({ aiSpeechRate: Number(rateSel.value) }));
   // Vorbereiten (ai/prep.js)
   const prepare = document.getElementById("aiPrepare");
   prepare.checked = conf.aiPrepare === true;

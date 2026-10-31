@@ -3,7 +3,7 @@
 // „Was gibt's Neues?“ (Knopf oben in der Leiste): KI-Überblick über die neuen Mails der Posteingänge. Die Nummern [n] in der
 // Antwort werden zu Knöpfen, die die jeweilige Mail öffnen.
 const TEXTS = {
-  de: { sched: "Automatisch", schedOff: "aus", schedDaily: "täglich um", schedHours: "alle … Stunden", everyFmt: "$1 Std.", stand: "Stand $1", standAuto: "Stand $1 (automatisch)", tasks: "Aufgaben für heute ($1)", tasksDone: "$1 Aufgabe(n) im Kalender „$2“ angelegt, fällig heute.", nocalendar: "Es gibt keinen eingeschalteten Kalender für Aufgaben.", fromMail: "Aus der E-Mail", todo: /^(zu erledigen|aufgaben)/i, title: "Was gibt's Neues?", period: "Zeitraum", unread: "nur ungelesene", hours: { 12: "letzte 12 Stunden", 24: "letzte 24 Stunden", 72: "letzte 3 Tage", 168: "letzte 7 Tage" },
+  de: { sched: "Automatisch", speak: "Vorlesen", speakStop: "Stopp", speakWait: "Stimme startet …", speakFail: "Vorlesen hat nicht geklappt:", schedOff: "aus", schedDaily: "täglich um", schedHours: "alle … Stunden", everyFmt: "$1 Std.", stand: "Stand $1", standAuto: "Stand $1 (automatisch)", tasks: "Aufgaben für heute ($1)", tasksDone: "$1 Aufgabe(n) im Kalender „$2“ angelegt, fällig heute.", nocalendar: "Es gibt keinen eingeschalteten Kalender für Aufgaben.", fromMail: "Aus der E-Mail", todo: /^(zu erledigen|aufgaben)/i, title: "Was gibt's Neues?", period: "Zeitraum", unread: "nur ungelesene", hours: { 12: "letzte 12 Stunden", 24: "letzte 24 Stunden", 72: "letzte 3 Tage", 168: "letzte 7 Tage" },
     again: "Aktualisieren", copy: "Kopieren", copied: "Kopiert", settings: "Einstellungen", reading: "Lese die neuen Mails …", working: "Erstelle den Überblick über $1 Mails …",
     none: "Keine neuen Mails im gewählten Zeitraum.", count: "$1 Mails berücksichtigt.", more: "$1 neue Mails, berücksichtigt sind die neuesten $2.",
     open: "Mail öffnen", remote: "Die Mailtexte werden an $1 gesendet.", injection: "Unter den Mails sind Sätze, die wie Anweisungen an KI-Systeme aussehen. Den Überblick mit Vorsicht lesen.",
@@ -11,7 +11,7 @@ const TEXTS = {
     permission: "Für diese Adresse fehlt die Erlaubnis. Bitte in den Einstellungen unter „KI“ speichern und die Erlaubnis bestätigen.", url: "Die Adresse ist ungültig.", code: "Der Kopplungscode passt nicht (Web-Oberfläche des Helpers → Verbindung).", nomodel: "Im Helper ist kein Sprachmodell gewählt (Web-Oberfläche → Sprachmodell).", answer: "Die Antwort des Helpers ließ sich nicht prüfen.", helper: "Fehler im Helper.",
     forbidden: "Der Server hat die Anfrage abgelehnt (403). Bei Ollama hilft die Umgebungsvariable OLLAMA_ORIGINS=moz-extension://*.",
     sorting: "Ordne die Mails ein: $1 von $2 …", feature: "„Was gibt's Neues?“ ist in den Einstellungen unter „KI“ ausgeschaltet." },
-  en: { sched: "Automatically", schedOff: "off", schedDaily: "daily at", schedHours: "every … hours", everyFmt: "$1 h", stand: "As of $1", standAuto: "As of $1 (automatic)", tasks: "Tasks for today ($1)", tasksDone: "$1 task(s) created in calendar “$2”, due today.", nocalendar: "There is no enabled calendar for tasks.", fromMail: "From the e-mail", todo: /^(to do|tasks)/i, title: "What's new?", period: "Period", unread: "unread only", hours: { 12: "last 12 hours", 24: "last 24 hours", 72: "last 3 days", 168: "last 7 days" },
+  en: { sched: "Automatically", speak: "Read aloud", speakStop: "Stop", speakWait: "Starting voice …", speakFail: "Reading aloud did not work:", schedOff: "off", schedDaily: "daily at", schedHours: "every … hours", everyFmt: "$1 h", stand: "As of $1", standAuto: "As of $1 (automatic)", tasks: "Tasks for today ($1)", tasksDone: "$1 task(s) created in calendar “$2”, due today.", nocalendar: "There is no enabled calendar for tasks.", fromMail: "From the e-mail", todo: /^(to do|tasks)/i, title: "What's new?", period: "Period", unread: "unread only", hours: { 12: "last 12 hours", 24: "last 24 hours", 72: "last 3 days", 168: "last 7 days" },
     again: "Refresh", copy: "Copy", copied: "Copied", settings: "Settings", reading: "Reading the new mail …", working: "Writing the overview of $1 messages …",
     none: "No new mail in the chosen period.", count: "$1 messages included.", more: "$1 new messages; the newest $2 are included.",
     open: "Open message", remote: "The message texts are sent to $1.", injection: "Some messages contain sentences that look like instructions to AI systems. Read the overview with caution.",
@@ -19,7 +19,7 @@ const TEXTS = {
     permission: "Permission for this address is missing. Please save it in the settings under “AI” and confirm the permission.", url: "The address is invalid.", code: "The pairing code does not match (helper web interface → Connection).", nomodel: "No language model is selected in the helper (web interface → Language model).", answer: "The helper's answer could not be verified.", helper: "Error in the helper.",
     forbidden: "The server refused the request (403). For Ollama set the environment variable OLLAMA_ORIGINS=moz-extension://*.",
     sorting: "Sorting the messages: $1 of $2 …", feature: "“What's new?” is switched off in the settings under “AI”." },
-  fr: { sched: "Automatique", schedOff: "désactivé", schedDaily: "chaque jour à", schedHours: "toutes les … heures", everyFmt: "$1 h", stand: "État $1", standAuto: "État $1 (automatique)", tasks: "Tâches pour aujourd’hui ($1)", tasksDone: "$1 tâche(s) créée(s) dans l’agenda « $2 », pour aujourd’hui.", nocalendar: "Aucun agenda activé pour les tâches.", fromMail: "Tiré de l’e-mail", todo: /^(à faire|tâches)/i, title: "Quoi de neuf ?", period: "Période", unread: "non lus seulement", hours: { 12: "12 dernières heures", 24: "24 dernières heures", 72: "3 derniers jours", 168: "7 derniers jours" },
+  fr: { sched: "Automatique", speak: "Lire à voix haute", speakStop: "Arrêter", speakWait: "Démarrage de la voix …", speakFail: "La lecture à voix haute n’a pas fonctionné :", schedOff: "désactivé", schedDaily: "chaque jour à", schedHours: "toutes les … heures", everyFmt: "$1 h", stand: "État $1", standAuto: "État $1 (automatique)", tasks: "Tâches pour aujourd’hui ($1)", tasksDone: "$1 tâche(s) créée(s) dans l’agenda « $2 », pour aujourd’hui.", nocalendar: "Aucun agenda activé pour les tâches.", fromMail: "Tiré de l’e-mail", todo: /^(à faire|tâches)/i, title: "Quoi de neuf ?", period: "Période", unread: "non lus seulement", hours: { 12: "12 dernières heures", 24: "24 dernières heures", 72: "3 derniers jours", 168: "7 derniers jours" },
     again: "Actualiser", copy: "Copier", copied: "Copié", settings: "Paramètres", reading: "Lecture des nouveaux messages …", working: "Rédaction de l’aperçu de $1 messages …",
     none: "Aucun nouveau message pendant la période choisie.", count: "$1 messages pris en compte.", more: "$1 nouveaux messages ; les $2 plus récents sont pris en compte.",
     open: "Ouvrir le message", remote: "Les textes des messages sont envoyés à $1.", injection: "Certains messages contiennent des phrases qui ressemblent à des instructions pour des systèmes d’IA. Lisez l’aperçu avec prudence.",
@@ -27,7 +27,7 @@ const TEXTS = {
     permission: "L’autorisation pour cette adresse manque. Enregistrez-la dans les paramètres sous « IA » et confirmez l’autorisation.", url: "L’adresse est invalide.", code: "Le code d’appairage ne correspond pas (interface web du helper → Connexion).", nomodel: "Aucun modèle de langage n’est choisi dans le helper (interface web → Modèle de langage).", answer: "La réponse du helper n’a pas pu être vérifiée.", helper: "Erreur dans le helper.",
     forbidden: "Le serveur a refusé la requête (403). Avec Ollama, définissez la variable d’environnement OLLAMA_ORIGINS=moz-extension://*.",
     sorting: "Classement des messages : $1 sur $2 …", feature: "« Quoi de neuf ? » est désactivé dans les paramètres sous « IA »." },
-  es: { sched: "Automático", schedOff: "desactivado", schedDaily: "cada día a las", schedHours: "cada … horas", everyFmt: "$1 h", stand: "Estado $1", standAuto: "Estado $1 (automático)", tasks: "Tareas para hoy ($1)", tasksDone: "$1 tarea(s) creada(s) en el calendario «$2», para hoy.", nocalendar: "No hay ningún calendario activado para tareas.", fromMail: "Del correo", todo: /^(pendiente|tareas)/i, title: "¿Qué hay de nuevo?", period: "Periodo", unread: "solo no leídos", hours: { 12: "últimas 12 horas", 24: "últimas 24 horas", 72: "últimos 3 días", 168: "últimos 7 días" },
+  es: { sched: "Automático", speak: "Leer en voz alta", speakStop: "Detener", speakWait: "Iniciando la voz …", speakFail: "La lectura en voz alta no ha funcionado:", schedOff: "desactivado", schedDaily: "cada día a las", schedHours: "cada … horas", everyFmt: "$1 h", stand: "Estado $1", standAuto: "Estado $1 (automático)", tasks: "Tareas para hoy ($1)", tasksDone: "$1 tarea(s) creada(s) en el calendario «$2», para hoy.", nocalendar: "No hay ningún calendario activado para tareas.", fromMail: "Del correo", todo: /^(pendiente|tareas)/i, title: "¿Qué hay de nuevo?", period: "Periodo", unread: "solo no leídos", hours: { 12: "últimas 12 horas", 24: "últimas 24 horas", 72: "últimos 3 días", 168: "últimos 7 días" },
     again: "Actualizar", copy: "Copiar", copied: "Copiado", settings: "Ajustes", reading: "Leyendo el correo nuevo …", working: "Preparando el resumen de $1 mensajes …",
     none: "No hay correo nuevo en el periodo elegido.", count: "$1 mensajes incluidos.", more: "$1 mensajes nuevos; se incluyen los $2 más recientes.",
     open: "Abrir mensaje", remote: "Los textos de los mensajes se envían a $1.", injection: "Algunos mensajes contienen frases que parecen instrucciones para sistemas de IA. Lea el resumen con precaución.",
@@ -206,6 +206,7 @@ async function run() {
     if (!nbAI.isLocal(nbAI.base(conf))) notes.push(t.remote.replace("$1", new URL(nbAI.base(conf)).host));
     showResult(res, notes);
     showDeadlines();
+    showSpeak();
     messenger.storage.local.set({ [LAST]: { at: Date.now(), scheduled: false, seen: true, hours, ...res } }).catch(() => {});
   } catch (e) {
     if (e.name === "AbortError") return;
@@ -287,6 +288,33 @@ const saveChoice = () => messenger.storage.local.set({ aiOverviewHours: Number($
 $("period").addEventListener("change", () => { saveChoice(); run(); });
 $("unread").addEventListener("change", () => { saveChoice(); run(); });
 $("again").addEventListener("click", run);
+
+// Vorlesen (nur mit dem NovaBird Helper und einer Stimme): wie im KI-Fenster über die Hintergrundseite (ai/speech.js),
+// liest weiter, wenn das Fenster zugeht. Vorgelesen wird der Überblick ohne die Nummern der Mails.
+let speechOk = false;
+let speech = { key: null, status: "idle", error: null };
+const speechKey = () => `overview|${plain.length}|${plain.slice(0, 40)}`;
+const speechPort = messenger.runtime.connect({ name: "nbx-speech" });
+function showSpeak() {
+  const mine = speech.key === speechKey();
+  const reading = mine && speech.status !== "idle";
+  $("speak").hidden = !reading && (!speechOk || !plain || $("out").classList.contains("busy"));
+  $("speak").textContent = !reading ? t.speak : speech.status === "loading" ? t.speakWait : t.speakStop;
+  if (mine && speech.error?.key === speech.key) {
+    $("err").hidden = false;
+    $("err").textContent = `${t.speakFail} ${t[speech.error.text] || speech.error.text}`;
+  }
+}
+speechPort.onMessage.addListener(m => {
+  if (m?.type !== "speech") return;
+  speech = m;
+  showSpeak();
+});
+$("speak").addEventListener("click", () => {
+  if (speech.status !== "idle" && speech.key === speechKey()) return speechPort.postMessage({ type: "stop" });
+  const text = plain.replace(REF, "").replace(/ +([.,;:])/g, "$1");
+  speechPort.postMessage({ type: "speak", key: speechKey(), text, lang });
+});
 $("copy").addEventListener("click", async () => {
   await navigator.clipboard.writeText(plain);
   $("copy").textContent = t.copied;
@@ -302,6 +330,14 @@ $("settings").addEventListener("click", () => {
 
 (async () => {
   fillTaskCalendars();
+  // Vorlesen anbieten? Nur mit dem Helper, wenn er eine Stimme hat und die Funktion an ist
+  messenger.storage.local.get(nbAI.DEFAULTS).then(c => {
+    if (!c.aiEnabled || c.aiType !== "nbhelper" || !nbAI.feature(c, "speech")) return;
+    nbAI.helperHello(c.aiUrl, c.aiKey).then(info => {
+      speechOk = Boolean(info.speech?.available);
+      showSpeak();
+    }).catch(() => {});
+  }).catch(() => {});
   const saved = await messenger.storage.local.get({ aiOverviewHours: 24, aiOverviewUnread: true, [SCHEDULE]: { mode: "off" }, [LAST]: null }).catch(() => ({}));
   $("period").value = String(t.hours[saved.aiOverviewHours] ? saved.aiOverviewHours : 24);
   $("unread").checked = saved.aiOverviewUnread !== false;
@@ -313,6 +349,7 @@ $("settings").addEventListener("click", () => {
     $("model").textContent = conf.aiType === "nbhelper" ? "NovaBird Helper" : conf.aiModel;
     showResult(last, [(last.scheduled ? t.standAuto : t.stand).replace("$1", time(last.at))]);
     showDeadlines();
+    showSpeak();
     messenger.storage.local.set({ [LAST]: { ...last, seen: true } }).catch(() => {});
     return;
   }

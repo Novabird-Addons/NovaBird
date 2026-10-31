@@ -10,7 +10,9 @@ const nbAI = (() => {
     aiCalendar: "", // fester Kalender für Termine und Aufgaben (id); leer = jedes Mal fragen
     aiPrepare: false, // neue Mails beim Eintreffen vorbereiten (Überblick, Fristen, Zusammenfassung längerer Mails)
     aiHelperModel: "", // NovaBird Helper: anderes Sprachmodell als dort eingestellt; leer = wie im Helper
+    aiSpeechRate: 1, // Vorlesen: Tempo (Tonhöhe bleibt, ai/speech.js)
   };
+  const SPEECH_RATES = [0.8, 0.9, 1, 1.1, 1.2, 1.35, 1.5];
   const FEATURES = ["summary", "translate", "events", "overview", "deadlines", "speech", "compose"];
   const feature = (c, name) => c?.aiFeatures?.[name] !== false;
   // Kontextlänge in Token (Einstellung): Ollama schneidet sonst lange Mails still ab. Der Mailtext wird auf etwa 3 Zeichen je Token begrenzt.
@@ -81,9 +83,25 @@ const nbAI = (() => {
     return netKeys.get(n);
   }
 
-  // Kennung dieses Thunderbird für den Helper (einmal erzeugt, bleibt gleich)
+  // Kennung dieses Thunderbird für den Helper: dieselbe wie NovaBird-Search (sonst steht der PC in der Liste des Helpers
+  // zweimal: einmal mit Index, einmal für KI und Vorlesen); ohne Search eine eigene, einmal erzeugt
+  const SEARCH_ID = "novabird-db@novabird";
+  let searchAsked = false;
   async function clientId() {
-    const { aiClientId } = await messenger.storage.local.get("aiClientId");
+    const { aiClientId, aiClientShared } = await messenger.storage.local.get({ aiClientId: "", aiClientShared: false });
+    if (aiClientId && aiClientShared) return aiClientId;
+    if (!searchAsked) {
+      searchAsked = true;
+      try {
+        const r = await messenger.runtime.sendMessage(SEARCH_ID, { type: "helper:clientId" });
+        if (/^[A-Za-z0-9_-]{8,64}$/.test(r?.clientId || "")) {
+          await messenger.storage.local.set({ aiClientId: r.clientId, aiClientShared: true });
+          return r.clientId;
+        }
+      } catch {
+        /* Search fehlt oder ist älter */
+      }
+    }
     if (aiClientId) return aiClientId;
     const id = "ai" + Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, "0")).join("");
     await messenger.storage.local.set({ aiClientId: id });
@@ -96,7 +114,8 @@ const nbAI = (() => {
     const key = await netKey(c.aiKey);
     const rid = toB64(crypto.getRandomValues(new Uint8Array(16)));
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const plain = enc(JSON.stringify({ ts: Date.now(), rid, op, label: "KI-Zusammenfassung", ...payload }));
+    // label = Name des PCs in der Liste des Helpers; leer lässt den bisherigen stehen (gesetzt von Search bzw. „Verbinden“)
+    const plain = enc(JSON.stringify({ ts: Date.now(), rid, op, label: "", ...payload }));
     const data = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: enc(`nbh1-req|${client}`) }, key, plain));
     const r = await fetch(base(c) + NET_PATH, {
       method: "POST",
@@ -124,7 +143,7 @@ const nbAI = (() => {
   // ---- Vorlesen: der Helper spricht einen Satz (Qwen3-TTS auf seiner Grafikkarte) und schickt WAV, abgespielt wird hier ----
   const TTS_LANG = { de: "german", en: "english", fr: "french", es: "spanish", it: "italian", pt: "portuguese", ru: "russian", zh: "chinese", ja: "japanese", ko: "korean" };
   async function speak(c, text, langCode, signal) {
-    const r = await netCall(c, "tts", { text, lang: TTS_LANG[langCode] || "english", label: "Vorlesen" }, signal);
+    const r = await netCall(c, "tts", { text, lang: TTS_LANG[langCode] || "english" }, signal);
     return fromB64(r.wav).buffer;
   }
   // Sprache eines Textes grob an häufigen Wörtern erkennen (Zusammenfassung „in der Sprache der Mail“); sonst fallback
@@ -1044,8 +1063,8 @@ const nbAI = (() => {
       return null; // andere Mail oder anderer Text
     }
   }
-  const shareGet = async (c, ids, claim) => (await netCall(c, "aiget", { ids, claim, label: "KI vorbereiten" })).items || {};
-  const sharePut = (c, id, data) => netCall(c, "aiput", { id, data, label: "KI vorbereiten" });
+  const shareGet = async (c, ids, claim) => (await netCall(c, "aiget", { ids, claim })).items || {};
+  const sharePut = (c, id, data) => netCall(c, "aiput", { id, data });
   const shareRelease = (c, id) => netCall(c, "airelease", { id }).catch(() => {});
 
   /** Neue Mails in den Posteingängen: der letzten hours Stunden, höchstens max, neueste zuerst; je Mail Text bis perMail Zeichen. */
@@ -1114,7 +1133,7 @@ const nbAI = (() => {
   }
 
   return {
-    DEFAULTS, FEATURES, feature, isLocal, origin, listModels, chat, helperHello, speak, sentences, guessLang, mailText, threadText, prompt, promptTemplate, suspicious, base, stats: () => lastStats,
+    DEFAULTS, FEATURES, SPEECH_RATES, feature, isLocal, origin, listModels, chat, helperHello, speak, sentences, guessLang, mailText, threadText, prompt, promptTemplate, suspicious, base, stats: () => lastStats,
     TRANSLATE_LANGS, languageName, translatePrompt, eventsPrompt, overviewPrompt, parseItems, newMails, stripQuotedText, overview,
     writePrompt, digestPrompt, parseDigest, digestOverviewText, textHash, shareId, seal, unseal, shareGet, sharePut, shareRelease, netCall,
   };

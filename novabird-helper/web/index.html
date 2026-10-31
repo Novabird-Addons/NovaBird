@@ -36,13 +36,20 @@
     <nav class="tabs" id="tabs">
       <a href="#status" data-page="status" data-i18n="navStatus"></a>
       <a href="#pcs" data-page="pcs" data-i18n="navPcs"></a>
-      <a href="#sprachmodell" data-page="sprachmodell" data-i18n="navLlm"></a>
-      <a href="#vorlesen" data-page="vorlesen" data-i18n="navTts"></a>
-      <a href="#verbindung" data-page="verbindung" data-admin data-i18n="navConnection"></a>
+      <div class="group">
+        <span class="group-title" data-i18n="navAi"></span>
+        <a class="sub" href="#sprachmodell" data-page="sprachmodell" data-i18n="navLlm"></a>
+        <a class="sub" href="#vorlesen" data-page="vorlesen" data-i18n="navTts"></a>
+        <a class="sub" href="#extern" data-page="extern" data-i18n="navExt"></a>
+      </div>
       <a href="#kalender" data-page="kalender" data-i18n="navCalendar"></a>
-      <a href="#extern" data-page="extern" data-i18n="navExt"></a>
-      <a href="#einstellungen" data-page="einstellungen" data-i18n="navSettings"></a>
-      <a href="#benutzer" data-page="benutzer" data-admin data-i18n="navUsers"></a>
+      <div class="group">
+        <span class="group-title" data-i18n="navSettings"></span>
+        <a class="sub" href="#einstellungen" data-page="einstellungen" data-i18n="navGeneral"></a>
+        <a class="sub" href="#verbindung" data-page="verbindung" data-admin data-i18n="navConnection"></a>
+        <a class="sub" href="#sicherung" data-page="sicherung" data-admin data-i18n="navBackup"></a>
+        <a class="sub" href="#benutzer" data-page="benutzer" data-admin data-i18n="navUsers"></a>
+      </div>
       <a href="#protokoll" data-page="protokoll" data-admin data-i18n="navLog"></a>
       <a href="#konto" data-page="konto" data-i18n="navAccount"></a>
     </nav>
@@ -164,6 +171,8 @@
           <label><span data-i18n="ttsVoiceDe"></span> <select name="german"></select></label>
           <label><span data-i18n="ttsVoiceEn"></span> <select name="english"></select></label>
           <p class="muted" data-i18n="ttsVoiceText"></p>
+          <label><span data-i18n="optKeep"></span> <select name="keep"></select></label>
+          <p class="muted" data-i18n="ttsKeepText"></p>
           <p class="actions" data-admin><button type="submit" data-i18n="save"></button> <span class="saved" id="tSaved" hidden data-i18n="saved"></span></p>
         </form>
         <form id="tTestForm" class="settings" hidden>
@@ -186,6 +195,16 @@
         <form id="gAdd" class="inline add">
           <label><span data-i18n="groupName"></span> <input name="name" maxlength="40" required autocomplete="off"></label>
           <button type="submit" data-i18n="groupAdd"></button>
+        </form>
+        <form id="netForm" class="settings">
+          <fieldset>
+            <legend data-i18n="network"></legend>
+            <label><span data-i18n="netPort"></span> <input type="number" name="netPort" min="1024" max="65535" class="short"></label>
+            <label><span data-i18n="webPort"></span> <input type="number" name="webPort" min="1024" max="65535" class="short"></label>
+            <p class="muted" id="ePorts"></p>
+            <label class="check"><input type="checkbox" name="webLan"> <span data-i18n="webLan"></span></label>
+          </fieldset>
+          <p class="actions" data-admin><button type="submit" class="primary" data-i18n="save"></button> <span class="saved" id="nSaved" hidden data-i18n="saved"></span></p>
         </form>
         <p class="muted" id="cSecurity"></p>
         <div id="cCert" hidden>
@@ -260,7 +279,7 @@
       </section>
 
       <section data-section="einstellungen" hidden>
-        <h1 data-i18n="settingsTitle"></h1>
+        <h1 data-i18n="generalTitle"></h1>
         <form id="settingsForm" class="settings">
           <fieldset>
             <legend data-i18n="compute"></legend>
@@ -280,15 +299,12 @@
             <p class="actions" id="eServiceRow" hidden><button type="button" id="toService" data-i18n="toService"></button></p>
             <p class="muted" id="eServiceHint"></p>
           </fieldset>
-          <fieldset>
-            <legend data-i18n="network"></legend>
-            <label><span data-i18n="netPort"></span> <input type="number" name="netPort" min="1024" max="65535" class="short"></label>
-            <label><span data-i18n="webPort"></span> <input type="number" name="webPort" min="1024" max="65535" class="short"></label>
-            <p class="muted" id="ePorts"></p>
-            <label class="check"><input type="checkbox" name="webLan"> <span data-i18n="webLan"></span></label>
-          </fieldset>
           <p class="actions" data-admin><button type="submit" class="primary" data-i18n="save"></button> <span class="saved" id="eSaved" hidden data-i18n="saved"></span></p>
         </form>
+      </section>
+
+      <section data-section="sicherung" hidden>
+        <h1 data-i18n="navBackup"></h1>
         <form id="backupForm" class="settings" data-admin>
           <fieldset>
             <legend data-i18n="backupTitle"></legend>

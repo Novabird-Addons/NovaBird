@@ -9,7 +9,8 @@
 //      stimmen\  Stimmvorlagen <name>.wav + gesprochener Text <name>.txt (5–10 s); vier synthetische aus c4bridge (MIT),
 //                eigene lassen sich dazulegen. Namen mit „en_“ sind englisch; Standard je Sprache: ttsVoiceGerman / ttsVoiceEnglish.
 //    Tests: ttsPython / ttsEngineDir zeigen auf eine andere Installation.
-//  - Startet beim ersten Satz (etwa 6 s), endet nach 15 Minuten ohne Satz (Grafikspeicher frei, etwa 0,8 GB).
+//  - Startet beim ersten Satz (etwa 6 s), endet nach 15 Minuten ohne Satz (Grafikspeicher frei, etwa 0,8 GB); einstellbar
+//    (ttsKeep: 5m, 15m, 1h oder -1 = bleibt geladen, bis der Helper endet).
 //  - Der Dienst bekommt bei jedem Start einen Zufallsschlüssel: andere Programme auf dem PC können ihn nicht benutzen.
 using System.Diagnostics;
 using System.IO.Compression;
@@ -25,7 +26,9 @@ sealed class Speech
 {
     public const int DefaultPort = 47534, MaxChars = 600;
     public const string Version = "1"; // Stand der Pakete unten; ändert er sich, ist neu einzurichten
-    static readonly TimeSpan IdleStop = TimeSpan.FromMinutes(15), StartWait = TimeSpan.FromSeconds(120);
+    static readonly TimeSpan StartWait = TimeSpan.FromSeconds(120);
+    public static readonly string[] Keeps = { "5m", "15m", "1h", "-1" };
+    public const string DefaultKeep = "15m";
     static readonly HttpClient Http = new() { Timeout = TimeSpan.FromMinutes(2) };
     static readonly HttpClient Download = new() { Timeout = Timeout.InfiniteTimeSpan };
     static readonly Regex VoiceName = new("^[A-Za-z0-9_-]{1,40}$");
@@ -94,6 +97,20 @@ sealed class Speech
         }
     }
 
+    /// <summary>Wie lange der Sprachdienst nach dem letzten Satz geladen bleibt (Grafikspeicher).</summary>
+    public static string Keep
+    {
+        get => (string)Settings.Load()["ttsKeep"] is string k && Keeps.Contains(k) ? k : DefaultKeep;
+        set
+        {
+            if (!Keeps.Contains(value)) throw new ArgumentException(L.T("Im Speicher halten: unbekannter Wert", "Keep loaded: unknown value"));
+            var s = Settings.Load();
+            s["ttsKeep"] = value;
+            Settings.Save(s);
+        }
+    }
+    static TimeSpan? IdleStop => Keep switch { "5m" => TimeSpan.FromMinutes(5), "1h" => TimeSpan.FromHours(1), "-1" => null, _ => TimeSpan.FromMinutes(15) };
+
     public bool Running => process is { HasExited: false };
     public bool Available => Installed && Enabled && Voices().Count > 0;
 
@@ -134,6 +151,8 @@ sealed class Speech
         o["downloadMb"] = DownloadBytes / 1_000_000;
         o["voiceGerman"] = (string)s["ttsVoiceGerman"];
         o["voiceEnglish"] = (string)s["ttsVoiceEnglish"];
+        o["keep"] = Keep;
+        o["keeps"] = new JsonArray(Keeps.Select(k => (JsonNode)k).ToArray());
         o["dir"] = Dir;
         return o;
     }
@@ -358,7 +377,7 @@ sealed class Speech
             if (await Healthy())
             {
                 Log.Write($"Vorlesen läuft auf 127.0.0.1:{Port}");
-                idle ??= new System.Threading.Timer(_ => { if (Running && DateTime.UtcNow - lastUse > IdleStop && gate.Wait(0)) { try { Stop(); } finally { gate.Release(); } } }, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+                idle ??= new System.Threading.Timer(_ => { if (Running && IdleStop is TimeSpan stopAfter && DateTime.UtcNow - lastUse > stopAfter && gate.Wait(0)) { try { Stop(); } finally { gate.Release(); } } }, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
                 return;
             }
             await Task.Delay(300);

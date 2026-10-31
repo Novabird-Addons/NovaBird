@@ -116,7 +116,9 @@ function showApp() {
   for (const el of document.querySelectorAll("[data-admin]")) el.hidden = !isAdmin();
   // „Nur Kalender“: nur Kalender und eigenes Konto
   if (isCalendarOnly()) for (const a of document.querySelectorAll("#tabs a")) a.hidden = !["kalender", "konto"].includes(a.dataset.page);
-  for (const el of document.querySelectorAll("#settingsForm input, #promptForm textarea")) el.disabled = !isAdmin();
+  // Gruppen (KI, Einstellungen): Überschrift nur, wenn darunter etwas sichtbar ist
+  for (const g of document.querySelectorAll("#tabs .group")) g.hidden = ![...g.querySelectorAll("a")].some(a => !a.hidden);
+  for (const el of document.querySelectorAll("#settingsForm input, #netForm input, #promptForm textarea")) el.disabled = !isAdmin();
   go(location.hash.slice(1) || homePage());
   clearInterval(timer);
   timer = setInterval(() => refresh(false), 2000);
@@ -508,6 +510,7 @@ $("testForm").addEventListener("submit", async e => {
 
 // ---- Verbindung --------------------------------------------------------------------------------------------------------
 async function showConnection() {
+  showNet().catch(err => banner(err.message));
   const c = await api("connection");
   $("cAddresses").replaceChildren(...c.addresses.map(a => {
     const li = document.createElement("li");
@@ -590,6 +593,9 @@ async function showTts(full) {
     if (want) f[lang].value = want;
     f[lang].disabled = !isAdmin();
   }
+  f.keep.replaceChildren(...s.keeps.map(k => new Option(t("keep" + k), k)));
+  f.keep.value = s.keep;
+  f.keep.disabled = !isAdmin();
   const tf = $("tTestForm");
   tf.voice.replaceChildren(...s.voices.map(v => new Option(`${v.name} (${v.lang === "german" ? t("ttsLangDe") : t("ttsLangEn")})`, v.name)));
   if (!tf.text.value) tf.text.value = t("ttsSample");
@@ -626,6 +632,7 @@ $("tVoiceForm").addEventListener("submit", async e => {
   e.preventDefault();
   try {
     await api("tts/voices", { german: e.target.german.value, english: e.target.english.value });
+    await api("tts/keep", { keep: e.target.keep.value });
     $("tSaved").hidden = false;
     setTimeout(() => ($("tSaved").hidden = true), 2500);
   } catch (err) {
@@ -961,6 +968,12 @@ async function showSettings() {
   $("eMode").textContent = s.mode === "service" ? t("modeServiceText") : t("modeUserText");
   $("eServiceRow").hidden = s.mode === "service" || !isAdmin() || !session.local;
   $("eServiceHint").textContent = s.mode === "service" ? t("serviceBack") : session.local ? t("serviceLocal") : t("serviceRemote");
+}
+
+// Verbindung: Ports und „Web-Oberfläche im Netz“ (gleiche Einstellungen, eigenes Formular)
+async function showNet() {
+  const s = await api("settings");
+  const f = $("netForm");
   f.netPort.value = s.netPort;
   f.webPort.value = s.webPort;
   const pending = [];
@@ -969,6 +982,19 @@ async function showSettings() {
   $("ePorts").textContent = pending.length ? t("portsPending", pending.join(" · ")) : t("firewall");
   f.webLan.checked = s.webLan;
 }
+
+$("netForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target;
+  try {
+    await api("settings", { netPort: Number(f.netPort.value), webPort: Number(f.webPort.value), webLan: f.webLan.checked });
+    $("nSaved").hidden = false;
+    setTimeout(() => ($("nSaved").hidden = true), 2500);
+    showConnection();
+  } catch (err) {
+    banner(err.message);
+  }
+});
 
 $("settingsForm").addEventListener("submit", async e => {
   e.preventDefault();
@@ -980,9 +1006,6 @@ $("settingsForm").addEventListener("submit", async e => {
       paused: f.paused.checked,
       vecShare: f.vecShare.checked,
       autostart: $("eAutostartRow").hidden ? undefined : f.autostart.checked,
-      netPort: Number(f.netPort.value),
-      webPort: Number(f.webPort.value),
-      webLan: f.webLan.checked,
     });
     $("eSaved").hidden = false;
     setTimeout(() => ($("eSaved").hidden = true), 2500);

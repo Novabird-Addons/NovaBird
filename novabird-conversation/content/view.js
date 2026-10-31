@@ -795,6 +795,16 @@
   root.style.setProperty("--nbc-lines", String(settings.rowLines));
   root.style.setProperty("--nbc-max", `${settings.maxHeight}vh`);
   root.style.setProperty("--nbc-pin", `${settings.maxHeight}%`);
+  // Aussehen in den Einstellungen umgeschaltet: offene Ansicht gleich mit umstellen (sonst erst bei der nächsten Mail)
+  api.storage.onChanged.addListener((changes, area) => {
+    const next = area === "local" && changes.settings?.newValue;
+    if (!next || !root.isConnected) return;
+    if (["soft", "clear", "thread"].includes(next.style)) {
+      root.classList.remove("nbc-style-soft", "nbc-style-clear", "nbc-style-thread");
+      root.classList.add(`nbc-style-${next.style}`);
+    }
+    if ("stickyHeader" in next) root.classList.toggle("nbc-sticky", next.stickyHeader === true);
+  });
   const SAFE_COLOR = /^(rgba?\([\d\s.,%/]+\)|color\(srgb [\d.\s/]+\)|#[0-9a-f]{6})$/i;
   for (const [key, prop] of [["accent", "--nbc-accent"], ["border", "--nbc-border"], ["bg", "--nbc-tint"]]) {
     if (typeof data.theme?.[key] === "string" && SAFE_COLOR.test(data.theme[key])) root.style.setProperty(prop, data.theme[key]);

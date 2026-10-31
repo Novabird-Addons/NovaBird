@@ -51,3 +51,20 @@ test("Sprache am Text erkennen, sonst Rückfall", () => {
   assert.equal(guessLang("El señor Becker pide una cita para la revisión y la factura vence a final de mes.", "de"), "es");
   assert.equal(guessLang("OK", "de"), "de");
 });
+
+test("Tempo: Länge passt, Tonhöhe bleibt (WSOLA)", () => {
+  const { nbStretch } = require(path.join(__dirname, "..", "ai", "speech.js"));
+  const sr = 24000;
+  const x = Float32Array.from({ length: sr * 2 }, (_, i) => Math.sin((2 * Math.PI * 200 * i) / sr) * 0.5);
+  const freq = y => {
+    let z = 0;
+    for (let i = 1; i < y.length; i++) if (y[i - 1] < 0 && y[i] >= 0) z++;
+    return (z / y.length) * sr;
+  };
+  for (const r of [0.8, 1.2, 1.5]) {
+    const y = nbStretch(x, r, sr);
+    assert.ok(Math.abs(y.length / sr - 2 / r) < 0.06, `${r}: ${y.length / sr} s`);
+    assert.ok(Math.abs(freq(y) - 200) < 6, `${r}: ${freq(y)} Hz`);
+  }
+  assert.equal(nbStretch(x, 1, sr), x);
+});

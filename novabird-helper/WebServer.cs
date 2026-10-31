@@ -607,6 +607,14 @@ sealed partial class WebServer
                 Audit(req, $"Vorlesen {(on ? "an" : "aus")}");
                 return Response.Json(core.Speech.Status());
             }
+            case ("POST", "/api/tts/keep"):
+            {
+                Need(req, admin: true);
+                var keep = (string)req.Json()["keep"];
+                Speech.Keep = keep;
+                Audit(req, $"Vorlesen: im Speicher halten {keep}");
+                return Response.Json(core.Speech.Status());
+            }
             case ("POST", "/api/tts/voices"):
             {
                 // Standardstimme je Sprache; nur Namen, die es im Ordner stimmen gibt

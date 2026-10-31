@@ -12,10 +12,17 @@ NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the opti
 - **Only one PC per message (NovaBird Helper):** Thunderbird forms an ID from Message-ID, text checksum, kind and language and asks the helper first (`aiget` with `claim`); the first PC computes and stores the result there encrypted with a key from Message-ID and checksum (`aiput`), the others get "pending" and fetch it later. This also applies to summaries opened by hand: on the second PC they are there at once.
 - **Settings:** every function can be switched off (summary, translate, dates, deadlines, overview, read aloud, write); tabs and buttons of switched-off functions disappear (`settingsRedesign.setAiButton` with parts). A **fixed calendar** for appointments and tasks (otherwise the dialog asks). With the NovaBird Helper: **another language model of the helper** for this PC only (list `chatChoices` from `hello`).
 - Fixed: an `async` message listener of the background page answered every message with `undefined` and could overtake the real answer.
+- **Read aloud:** adjustable speed (0.8× to 1.5×, settings → AI assistant) without changing the pitch (time stretching with WSOLA in Thunderbird, 4–11 ms per sentence; measured pitch 174 Hz at 1×, 174–180 Hz at 0.85×–1.5×); also in "What's new?" (reads the overview without the message numbers). The options of "What's new?" are in one row.
+- Fixed: every PC appeared twice in the helper's list of PCs (once with the index, once without), because NovaBird-Search and the Extension each had their own ID at the helper. The Extension now takes over the ID of NovaBird-Search (new message `helper:clientId`; without Search it keeps its own), and AI requests no longer send their purpose as the PC's name. Old duplicate rows can be removed in the helper ("remove"). Tested in Thunderbird 159: same ID in both add-ons.
+
+### NovaBird-Conversation 0.15.5: style switches at once
+- Switching the style (Soft / Clear / Thread) or the sticky header now also changes the conversation that is open; before, only the next message showed the new style. Tested in Thunderbird 159 (each style when opening a message and live while it stays open).
 
 ### NovaBird Helper: shared AI results, language model per PC
 - New network ops `aiget` / `aiput` / `airelease` (`AiCache.cs`): stores only IDs and ciphertext from Thunderbird, per group in `vectors\<group>\ai.json`, at most 10 days, 20,000 entries and 48 KB per entry; a claim ("I am computing this") lasts 3 minutes and can only be released by the PC that made it.
 - `hello` lists `chatChoices` (Windows ML folders and Ollama models without embedding models, also while Ollama is not running yet); `chat` accepts `model` from this list only; the statistics name the model actually used. A request right after the helper started waits up to 30 s for Ollama instead of failing.
+- **Web interface reorganised:** groups **AI** (Language model, Read aloud, External apps) and **Settings** (General, Connection, Backup, Users); ports and "reachable in the network" moved to Connection, backup and restore have their own page; on narrow screens the groups fold into the row of links.
+- **Read aloud: keep loaded** 5 min / 15 min (default) / 1 h / always (`ttsKeep`, page Read aloud), like the language model.
 - Test `tests/aishare.mjs` (17 checks: claim/pending/data, release, foreign release ignored, invalid IDs and sizes, model list, other model answers, kept after restart).
 
 ### NovaBird Helper + Extension: read aloud (Qwen3-TTS)

@@ -1110,7 +1110,8 @@ async function status() {
 
 // NovaBird-Extension, Reiter „NovaBird Helper“: Suche mit einem Klick auf den Helper im Netz umstellen bzw. zurück. Nur dieser
 // Absender; die Erlaubnis für die Adresse erteilt die Extension vorher (Experiment, nach dem Klick des Nutzers) – fehlt sie, bleibt
-// alles, wie es ist. helper:searchState {url} -> {use}; helper:useForSearch {use, url, code, label} -> {ok, check} oder {error}
+// alles, wie es ist. helper:searchState {url} -> {use}; helper:useForSearch {use, url, code, label} -> {ok, check} oder {error};
+// helper:clientId -> {clientId}
 const EXTENSION_ID = "novabird-extension@novabird";
 messenger.runtime.onMessageExternal.addListener((msg, sender) => {
   if (sender?.id !== EXTENSION_ID || !String(msg?.type ?? "").startsWith("helper:")) {
@@ -1123,6 +1124,11 @@ messenger.runtime.onMessageExternal.addListener((msg, sender) => {
     const usingHelper = Boolean(cfg.enabled && cfg.path === "server" && sv.type === "nbhelper");
     if (msg.type === "helper:searchState") {
       return { use: usingHelper && (!msg.url || server.base(sv) === server.base({ url: msg.url })) };
+    }
+    // Eine Kennung je Thunderbird beim Helper: die Extension (KI-Assistent, Vorlesen) übernimmt diese, sonst stünde der PC
+    // in der Liste des Helpers zweimal
+    if (msg.type === "helper:clientId") {
+      return { clientId };
     }
     if (msg.type !== "helper:useForSearch") {
       return undefined;
