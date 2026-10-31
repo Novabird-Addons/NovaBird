@@ -6,6 +6,7 @@
 //    den CSRF-Wert der Sitzung im Kopf X-CSRF; Origin muss (falls gesendet) zum Host passen.
 //  - Anmeldung: nach 10 Fehlversuchen in 10 Minuten ist die Adresse 10 Minuten gesperrt.
 //  - Seiten liegen als Ressourcen in der exe (web/index.html, app.js, app.css); die API antwortet mit JSON unter /api/.
+//  - Team-Kalender per CalDAV unter /dav/ (CalDav.cs, Anmeldung per HTTP Basic), Kalender und Sicherung: WebServer.Calendar.cs.
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Security;
@@ -32,7 +33,7 @@ sealed partial class WebServer
 
     sealed class Request
     {
-        public string Method, Path, Ip;
+        public string Method, Path, RawPath, Ip;
         public bool Local, Secure;
         public Dictionary<string, string> Headers = new(StringComparer.OrdinalIgnoreCase);
         public byte[] Body = Array.Empty<byte>();
@@ -42,7 +43,7 @@ sealed partial class WebServer
             Headers.TryGetValue("Cookie", out var c) ? c.Split(';').Select(p => p.Trim().Split('=', 2)).FirstOrDefault(p => p.Length == 2 && p[0] == name)?[1] : null;
     }
 
-    sealed record Response(int Status, string Type, byte[] Body, string SetCookie = null, string Location = null)
+    sealed record Response(int Status, string Type, byte[] Body, string SetCookie = null, string Location = null, Dictionary<string, string> Headers = null)
     {
         public static Response Json(JsonNode n, int status = 200, string cookie = null) => new(status, "application/json; charset=utf-8", Encoding.UTF8.GetBytes(n.ToJsonString()), cookie);
         public static Response Error(int status, string text) => Json(new JsonObject { ["error"] = text }, status);
@@ -57,6 +58,7 @@ sealed partial class WebServer
     X509Certificate2 cert;
     public int Port { get; }
     public bool LocalOnly { get; private set; }
+    public string Fingerprint => cert?.GetCertHashString(HashAlgorithmName.SHA256);
 
     public WebServer(Core core, int port, bool localOnly)
     {
@@ -106,10 +108,15 @@ sealed partial class WebServer
         {
             var remote = (tcp.Client.RemoteEndPoint as IPEndPoint)?.Address;
             var ip = remote?.ToString() ?? "?";
-            bool local = remote != null && IPAddress.IsLoopback(remote);
+            // NOVABIRD_TEST_REMOTE=1 nur für Tests: Anfragen von diesem PC wie aus dem Netz behandeln (Sicherheitstest)
+            bool local = remote != null && IPAddress.IsLoopback(remote) && Environment.GetEnvironmentVariable("NOVABIRD_TEST_REMOTE") != "1";
             try
             {
                 tcp.ReceiveTimeout = tcp.SendTimeout = 30_000;
+                // Gilt nur für synchrones Lesen: Wer Handshake und Anfrage nicht in 30 s vollständig schickt, fliegt raus
+                // (sonst halten halbe Anfragen die Verbindung unbegrenzt – Slowloris)
+                using var readLimit = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                using var closeOnLimit = readLimit.Token.Register(() => { try { tcp.Close(); } catch { /* schon zu */ } });
                 Stream stream = tcp.GetStream();
                 // Erstes Byte ansehen, ohne es zu verbrauchen: 0x16 = TLS-Handshake
                 var first = new byte[1];
@@ -123,6 +130,8 @@ sealed partial class WebServer
                     stream = ssl;
                 }
                 var req = await Read(stream);
+                closeOnLimit.Dispose(); // Anfrage vollständig: Antworten dürfen dauern (Streaming, Sprachmodell)
+                if (req == null) { await Write(stream, Response.Error(411, "Content-Length"), secure); return; }
                 req.Ip = ip;
                 req.Local = local;
                 req.Secure = secure;
@@ -135,11 +144,15 @@ sealed partial class WebServer
                 if (!secure && !local)
                 {
                     // Aus dem Netz nur verschlüsselt
+                    // Ziel aus Host und dem noch kodierten Pfad; nur druckbare ASCII-Zeichen (kein Zeilenumbruch im Kopf)
                     var host = req.Headers.GetValueOrDefault("Host") ?? "";
-                    res = new Response(301, "text/plain; charset=utf-8", Encoding.UTF8.GetBytes("HTTPS verwenden"), Location: $"https://{host}{req.Path}");
+                    var target = $"https://{host}{req.RawPath}";
+                    res = target.All(ch => ch > ' ' && ch < 0x7f) && req.RawPath.StartsWith('/') && !req.RawPath.StartsWith("//")
+                        ? new Response(301, "text/plain; charset=utf-8", Encoding.UTF8.GetBytes("HTTPS verwenden"), Location: target)
+                        : Response.Error(400, "HTTPS");
                 }
                 else res = await Route(req);
-                await Write(stream, res, secure);
+                await Write(stream, res, secure, req.Method == "HEAD");
             }
             catch (Exception e) when (e is IOException or AuthenticationException or SocketException or ObjectDisposedException)
             {
@@ -152,7 +165,17 @@ sealed partial class WebServer
         }
     }
 
-    static async Task<Request> Read(Stream s)
+    // Größe des Rumpfs je Pfad: externe Programme und Kalender mehr, Sicherung wiederherstellen nur für angemeldete Admins
+    long MaxBodyFor(Request req)
+    {
+        if (IsExtPath(req.Path)) return ExtMaxBody;
+        if (IsDavPath(req.Path)) return DavMaxBody;
+        if (req.Path == BackupImportPath && SessionOf(req)?.Role == Users.Admin) return Backup.MaxBytes;
+        return MaxBody;
+    }
+
+    /// <summary>Anfrage lesen; null, wenn der Rumpf ohne Content-Length kommt (chunked – nutzt hier kein Client).</summary>
+    async Task<Request> Read(Stream s)
     {
         var buf = new List<byte>(1024);
         var one = new byte[1];
@@ -167,15 +190,17 @@ sealed partial class WebServer
         var lines = Encoding.ASCII.GetString(buf.ToArray()).Split("\r\n");
         var first = lines[0].Split(' ');
         if (first.Length < 3) throw new IOException("ungültige Anfrage");
-        var req = new Request { Method = first[0], Path = Uri.UnescapeDataString(first[1].Split('?')[0]) };
+        var raw = first[1].Split('?')[0];
+        var req = new Request { Method = first[0], Path = Uri.UnescapeDataString(raw), RawPath = raw };
         foreach (var l in lines.Skip(1))
         {
             int i = l.IndexOf(':');
             if (i > 0) req.Headers[l[..i].Trim()] = l[(i + 1)..].Trim();
         }
+        if (req.Headers.TryGetValue("Transfer-Encoding", out var te) && te.Contains("chunked", StringComparison.OrdinalIgnoreCase)) return null;
         if (req.Headers.TryGetValue("Content-Length", out var len) && int.TryParse(len, out var n) && n > 0)
         {
-            if (n > (IsExtPath(req.Path) ? ExtMaxBody : MaxBody)) throw new IOException("Rumpf zu groß");
+            if (n > MaxBodyFor(req)) throw new IOException("Rumpf zu groß");
             req.Body = new byte[n];
             int got = 0;
             while (got < n)
@@ -188,22 +213,26 @@ sealed partial class WebServer
         return req;
     }
 
-    static async Task Write(Stream s, Response r, bool secure)
+    static async Task Write(Stream s, Response r, bool secure, bool headOnly = false)
     {
         var reason = r.Status switch
         {
-            200 => "OK", 301 => "Moved Permanently", 400 => "Bad Request", 401 => "Unauthorized", 403 => "Forbidden", 404 => "Not Found",
-            405 => "Method Not Allowed", 409 => "Conflict", 429 => "Too Many Requests", 502 => "Bad Gateway", 503 => "Service Unavailable", _ => "Error",
+            200 => "OK", 201 => "Created", 204 => "No Content", 207 => "Multi-Status", 301 => "Moved Permanently", 400 => "Bad Request",
+            401 => "Unauthorized", 403 => "Forbidden", 404 => "Not Found", 405 => "Method Not Allowed", 409 => "Conflict", 411 => "Length Required",
+            412 => "Precondition Failed", 413 => "Content Too Large", 507 => "Insufficient Storage", 415 => "Unsupported Media Type", 429 => "Too Many Requests",
+            502 => "Bad Gateway", 503 => "Service Unavailable", _ => "Error",
         };
         var head = new StringBuilder();
         head.Append($"HTTP/1.1 {r.Status} {reason}\r\nContent-Type: {r.Type}\r\nContent-Length: {r.Body.Length}\r\nConnection: close\r\n");
         head.Append("Cache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nX-Frame-Options: DENY\r\n");
         head.Append("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'\r\n");
         if (r.SetCookie != null) head.Append($"Set-Cookie: {r.SetCookie}\r\n");
-        if (r.Location != null) head.Append($"Location: {r.Location}\r\n");
+        if (r.Location != null) head.Append($"Location: {r.Location.Replace("\r", "").Replace("\n", "")}\r\n");
+        if (r.Headers != null)
+            foreach (var (k, v) in r.Headers) head.Append($"{k}: {v.Replace("\r", "").Replace("\n", "")}\r\n");
         head.Append("\r\n");
-        await s.WriteAsync(Encoding.ASCII.GetBytes(head.ToString()));
-        if (r.Body.Length > 0) await s.WriteAsync(r.Body);
+        await s.WriteAsync(Encoding.UTF8.GetBytes(head.ToString()));
+        if (r.Body.Length > 0 && !headOnly) await s.WriteAsync(r.Body);
         await s.FlushAsync();
     }
 
@@ -217,6 +246,7 @@ sealed partial class WebServer
             var name = host.StartsWith('[') ? host[..(host.IndexOf(']') + 1)] : host.Split(':')[0];
             if (name is not ("localhost" or "127.0.0.1" or "[::1]")) return Response.Error(400, "Host");
         }
+        if (IsDavPath(req.Path)) return await DavHandle(req);
         if (req.Method == "GET" && req.Path == "/novabird-helper.crt") return CertificateFile();
         if (req.Method == "GET" && !req.Path.StartsWith("/api/")) return Static(req.Path);
         req.Session = SessionOf(req);
@@ -271,10 +301,12 @@ sealed partial class WebServer
         return s;
     }
 
-    static void Need(Request req, bool admin = false)
+    /// <summary>Angemeldet (admin: als Admin). Die Rolle „Nur Kalender“ darf nur, wo calendar gesetzt ist.</summary>
+    static void Need(Request req, bool admin = false, bool calendar = false)
     {
         if (req.Session == null) throw new ApiError(401, L.T("Bitte anmelden", "Please sign in"));
         if (admin && req.Session.Role != Users.Admin) throw new ApiError(403, L.T("Nur für Admins", "Admins only"));
+        if (!calendar && req.Session.Role == Users.Calendar) throw new ApiError(403, L.T("Nur Kalender", "Calendar only"));
     }
 
     Response NewSession(Request req, string user, string role)
@@ -311,6 +343,7 @@ sealed partial class WebServer
     {
         var sch = core.Server.Scheduler;
         if (req.Path.StartsWith("/api/ext") && ExtManage(req) is Response ext) return ext;
+        if ((req.Path.StartsWith("/api/calendars") || req.Path.StartsWith("/api/backup")) && await CalendarApi(req) is Response calApi) return calApi;
         switch (req.Method, req.Path)
         {
             // ---- ohne Anmeldung ----
@@ -373,16 +406,40 @@ sealed partial class WebServer
             // ---- nur Admins ----
             case ("GET", "/api/connection"):
                 Need(req, admin: true);
-                return Response.Json(new JsonObject
-                {
-                    ["addresses"] = new JsonArray(core.Addresses().Select(a => (JsonNode)a).ToArray()), ["code"] = NetServer.Code(), ["port"] = core.Server.Port,
-                    ["webFingerprint"] = cert?.GetCertHashString(HashAlgorithmName.SHA256),
-                });
+                return Response.Json(Connection());
             case ("POST", "/api/connection/renew"):
+            {
                 Need(req, admin: true);
-                core.Server.Renew();
-                Audit(req, "neuer Kopplungscode");
-                return Response.Json(new JsonObject { ["ok"] = true });
+                var id = (string)req.Json()["id"];
+                core.Server.Renew(id);
+                Audit(req, $"neuer Kopplungscode für Gruppe {Groups.Get(id)?.Name}");
+                return Response.Json(Connection());
+            }
+            case ("POST", "/api/groups/add"):
+            {
+                Need(req, admin: true);
+                var g = Groups.Add((string)req.Json()["name"]);
+                core.Server.LoadGroups();
+                Audit(req, $"Gruppe {g.Name} angelegt");
+                return Response.Json(Connection());
+            }
+            case ("POST", "/api/groups/rename"):
+            {
+                Need(req, admin: true);
+                var b = req.Json();
+                Groups.Rename((string)b["id"], (string)b["name"]);
+                Audit(req, $"Gruppe umbenannt: {(string)b["name"]}");
+                return Response.Json(Connection());
+            }
+            case ("POST", "/api/groups/remove"):
+            {
+                Need(req, admin: true);
+                var id = (string)req.Json()["id"];
+                var name = Groups.Get(id)?.Name;
+                core.Server.RemoveGroup(id);
+                Audit(req, $"Gruppe {name} gelöscht");
+                return Response.Json(Connection());
+            }
             case ("POST", "/api/pcs/forget"):
                 Need(req, admin: true);
                 sch.Forget((string)req.Json()["id"]);
@@ -393,7 +450,7 @@ sealed partial class WebServer
                 return Response.Json(ChangeSettings(req));
             case ("POST", "/api/vectors/clear"):
                 Need(req, admin: true);
-                core.Server.Vectors.Clear();
+                foreach (var v in core.Server.AllVectors()) v.Clear();
                 Audit(req, "geteilte Vektoren gelöscht");
                 return Response.Json(Status());
             case ("POST", "/api/measure"):
@@ -410,6 +467,7 @@ sealed partial class WebServer
                 var j = req.Json();
                 Users.Add((string)j["name"], (string)j["password"], (string)j["role"]);
                 Audit(req, $"Benutzer {(string)j["name"]} angelegt");
+                ForgetDavLogins();
                 return Response.Json(new JsonObject { ["ok"] = true });
             }
             case ("POST", "/api/users/role"):
@@ -418,6 +476,7 @@ sealed partial class WebServer
                 var j = req.Json();
                 Users.SetRole((string)j["name"], (string)j["role"]);
                 DropSessions((string)j["name"]);
+                ForgetDavLogins();
                 return Response.Json(new JsonObject { ["ok"] = true });
             }
             case ("POST", "/api/users/password"):
@@ -426,6 +485,7 @@ sealed partial class WebServer
                 var j = req.Json();
                 Users.SetPassword((string)j["name"], (string)j["password"]);
                 DropSessions((string)j["name"], keep: req.Session);
+                ForgetDavLogins();
                 return Response.Json(new JsonObject { ["ok"] = true });
             }
             case ("POST", "/api/users/remove"):
@@ -434,16 +494,19 @@ sealed partial class WebServer
                 var j = req.Json();
                 if (string.Equals((string)j["name"], req.Session.User, StringComparison.OrdinalIgnoreCase)) throw new ApiError(400, L.T("Sich selbst nicht löschen", "You cannot delete yourself"));
                 Users.Remove((string)j["name"]);
+                Calendars.RemoveUser((string)j["name"]);
                 DropSessions((string)j["name"]);
+                ForgetDavLogins();
                 return Response.Json(new JsonObject { ["ok"] = true });
             }
             case ("POST", "/api/me/password"):
             {
-                Need(req);
+                Need(req, calendar: true);
                 var j = req.Json();
                 if (await Task.Run(() => Users.Check(req.Session.User, (string)j["old"])) == null) throw new ApiError(400, L.T("Bisheriges Passwort falsch", "Current password is wrong"));
                 Users.SetPassword(req.Session.User, (string)j["password"]);
                 DropSessions(req.Session.User, keep: req.Session);
+                ForgetDavLogins();
                 return Response.Json(new JsonObject { ["ok"] = true });
             }
             // ---- Sprachmodell ----
@@ -638,6 +701,7 @@ sealed partial class WebServer
         var sch = core.Server.Scheduler;
         var s = Settings.Load();
         var r = sch.Rates;
+        var vecs = core.Server.AllVectors();
         return new JsonObject
         {
             ["version"] = Program.Version,
@@ -661,8 +725,8 @@ sealed partial class WebServer
             ["devices"] = s["devices"]?.DeepClone(),
             ["vectors"] = new JsonObject
             {
-                ["enabled"] = VectorStore.Enabled, ["count"] = core.Server.Vectors.Count, ["bytes"] = core.Server.Vectors.Bytes,
-                ["hits"] = core.Server.Vectors.Hits, ["misses"] = core.Server.Vectors.Misses, ["stored"] = core.Server.Vectors.Stored,
+                ["enabled"] = VectorStore.Enabled, ["count"] = vecs.Sum(v => v.Count), ["bytes"] = vecs.Sum(v => v.Bytes),
+                ["hits"] = vecs.Sum(v => v.Hits), ["misses"] = vecs.Sum(v => v.Misses), ["stored"] = vecs.Sum(v => v.Stored),
             },
             ["chat"] = new JsonObject { ["selected"] = Chat.Selected, ["loaded"] = core.Server.Chat.Loaded, ["busy"] = core.Server.Chat.Busy, ["ollama"] = core.Ollama.Status },
             ["netPort"] = core.Server.Port,
@@ -776,12 +840,34 @@ sealed partial class WebServer
     JsonObject Pcs()
     {
         var list = core.Server.Scheduler.Clients();
+        var groups = Groups.List();
         return new JsonObject
         {
+            ["groups"] = groups.Count,
             ["pcs"] = new JsonArray(list.Select(c => (JsonNode)new JsonObject
             {
-                ["id"] = c.Id, ["label"] = Core.Label(c, c.Id), ["today"] = c.Today, ["total"] = c.Total, ["indexed"] = c.Indexed, ["mails"] = c.Mails,
+                ["id"] = c.Id, ["label"] = Core.Label(c, c.Id), ["group"] = groups.FirstOrDefault(g => g.Id == (c.Group ?? "g1"))?.Name, ["today"] = c.Today, ["total"] = c.Total, ["indexed"] = c.Indexed, ["mails"] = c.Mails,
                 ["firstSeen"] = c.FirstSeen.ToString("o"), ["lastSeen"] = c.LastSeen.ToString("o"),
+            }).ToArray()),
+        };
+    }
+
+    // Verbindung: Adressen und Gruppen mit Kopplungscode, Zahl der PCs und Vektoren
+    JsonObject Connection()
+    {
+        var pcs = core.Server.Scheduler.Clients();
+        return new JsonObject
+        {
+            ["addresses"] = new JsonArray(core.Addresses().Select(a => (JsonNode)a).ToArray()), ["port"] = core.Server.Port,
+            ["webFingerprint"] = cert?.GetCertHashString(HashAlgorithmName.SHA256),
+            ["groups"] = new JsonArray(Groups.List().Select(g =>
+            {
+                var v = core.Server.Vectors(g.Id);
+                return (JsonNode)new JsonObject
+                {
+                    ["id"] = g.Id, ["name"] = g.Name, ["code"] = g.Code, ["created"] = g.Created,
+                    ["pcs"] = pcs.Count(c => (c.Group ?? "g1") == g.Id), ["vectors"] = v?.Count ?? 0, ["bytes"] = v?.Bytes ?? 0,
+                };
             }).ToArray()),
         };
     }

@@ -235,6 +235,61 @@
   }
 
   $("semEnabled").addEventListener("change", () => setConfig({ enabled: $("semEnabled").checked }));
+
+  // Ein Klick: NovaBird Helper, der in der NovaBird-Extension (Reiter „NovaBird Helper“) verbunden ist, oder wie bisher
+  // (dieser PC bzw. eigener Server unter „Erweitert“). Ohne Extension oder ohne Verbindung bleibt die Auswahl verborgen.
+  let helperConn = null;
+  async function showPick() {
+    try {
+      helperConn = await messenger.runtime.sendMessage("novabird-extension@novabird", { type: "helper:conn" });
+    } catch {
+      helperConn = null;
+    }
+    $("semPick").hidden = !helperConn?.url;
+    if (!helperConn?.url) {
+      return;
+    }
+    const c = await config();
+    const on = c.path === "server" && c.server?.type === "nbhelper" && String(c.server?.url || "").replace(/\/+$/, "") === helperConn.url.replace(/\/+$/, "");
+    $("semSrcHelper").checked = on;
+    $("semSrcOther").checked = !on;
+    $("semSrcHelperLabel").textContent = t("semSrcHelper", [new URL(helperConn.url).host]);
+  }
+  showPick();
+  $("semSrcHelper").addEventListener("change", () => {
+    const url = helperConn.url.replace(/\/+$/, "");
+    const u = new URL(url);
+    // Erlaubnis direkt im Klick erfragen (vor dem ersten await)
+    const asked = messenger.permissions.request({ origins: [`${u.protocol}//${u.hostname}/*`] }).catch(() => false);
+    (async () => {
+      const out = $("semSrcState");
+      out.className = "hint";
+      if (!(await asked)) {
+        out.textContent = t("semServerNoPermission");
+        out.className = "hint bad";
+        $("semSrcOther").checked = true;
+        return;
+      }
+      out.textContent = t("semServerChecking");
+      const old = (await config()).server || {};
+      await setConfig({ enabled: true, path: "server", server: { ...old, type: "nbhelper", url, code: helperConn.code, label: helperConn.label || old.label || "" } });
+      const res = await send({ type: "semantic:serverCheck" });
+      const c = res?.check;
+      out.textContent = c?.ok ? t("semServerOk", [num(c.minCos, 4), num(c.maxShift, 3), String(c.ms)]) : t("semServerFail", [res?.error || c?.error || c?.reason || "?"]);
+      out.className = c?.ok ? "hint ok" : "hint bad";
+      last = null; // Formular (Rechenweg, Server) neu füllen
+      refresh();
+    })();
+  });
+  $("semSrcOther").addEventListener("change", async () => {
+    const c = await config();
+    if (c.path === "server" && c.server?.type === "nbhelper") {
+      await setConfig({ path: "auto" });
+    }
+    $("semSrcState").textContent = "";
+    last = null;
+    refresh();
+  });
   $("semPath").addEventListener("change", () => {
     renderServer(last);
     setConfig({ path: $("semPath").value });

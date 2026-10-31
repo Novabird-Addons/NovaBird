@@ -74,3 +74,4 @@ footer .link { border: 0; background: none; color: inherit; opacity: 0.75; text-
 .out .todo input { margin-top: 0.25em; flex: none; }
 .out .item.done { opacity: 0.6; text-decoration: line-through; }
 .bar input[type="time"], .bar select { font: inherit; }
+footer select { font: inherit; color: inherit; background: var(--soft); border: 1px solid var(--line); border-radius: 0.35rem; padding: 0.25rem 0.4rem; max-width: 12em; }

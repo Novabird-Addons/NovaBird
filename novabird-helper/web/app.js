@@ -21,7 +21,7 @@ async function api(path, body) {
   const r = await fetch("/api/" + path, { credentials: "same-origin", ...opt });
   const data = await r.json().catch(() => ({}));
   if (r.status === 401 && path !== "login") {
-    session = null;
+    session = { ...(session || {}), user: null, csrf: null }; // Sitzung abgelaufen (z. B. Helper neu gestartet): Anmelden bleibt möglich
     showAuth();
     throw new Error(data.error || t("pleaseLogin"));
   }
@@ -43,12 +43,15 @@ function banner(text) {
 }
 
 const isAdmin = () => session?.role === "admin";
+const isCalendarOnly = () => session?.role === "calendar";
+const roleText = role => t(role === "admin" ? "roleAdmin" : role === "calendar" ? "roleCalendar" : "roleViewer");
+const homePage = () => (isCalendarOnly() ? "kalender" : "status");
 
 // ---- Sprache -----------------------------------------------------------------------------------------------------------
 $("langSwitch").addEventListener("click", () => {
   setLang(LANG === "de" ? "en" : "de");
   if (session?.user) {
-    $("whoName").textContent = `${session.user} (${isAdmin() ? t("roleAdmin") : t("roleViewer")})`;
+    $("whoName").textContent = `${session.user} (${roleText(session.role)})`;
     prompts = null;
     refresh(true);
   } else if (session) showAuth();
@@ -109,17 +112,19 @@ function showApp() {
   $("auth").hidden = true;
   $("app").hidden = false;
   $("whoBox").hidden = false;
-  $("whoName").textContent = `${session.user} (${isAdmin() ? t("roleAdmin") : t("roleViewer")})`;
+  $("whoName").textContent = `${session.user} (${roleText(session.role)})`;
   for (const el of document.querySelectorAll("[data-admin]")) el.hidden = !isAdmin();
+  // „Nur Kalender“: nur Kalender und eigenes Konto
+  if (isCalendarOnly()) for (const a of document.querySelectorAll("#tabs a")) a.hidden = !["kalender", "konto"].includes(a.dataset.page);
   for (const el of document.querySelectorAll("#settingsForm input, #promptForm textarea")) el.disabled = !isAdmin();
-  go(location.hash.slice(1) || "status");
+  go(location.hash.slice(1) || homePage());
   clearInterval(timer);
   timer = setInterval(() => refresh(false), 2000);
 }
 
 function go(name) {
   const link = document.querySelector(`#tabs a[data-page="${name}"]`);
-  if (!link || link.hidden) name = "status";
+  if (!link || link.hidden) name = homePage();
   page = name;
   for (const a of document.querySelectorAll("#tabs a")) a.classList.toggle("active", a.dataset.page === name);
   for (const s of document.querySelectorAll("[data-section]")) s.hidden = s.dataset.section !== name;
@@ -135,6 +140,7 @@ async function refresh(full) {
     else if (page === "pcs") await showPcs();
     else if (page === "sprachmodell") await showLlm(full);
     else if (full && page === "verbindung") await showConnection();
+    else if (full && page === "kalender") await showCalendars();
     else if (full && page === "extern") await showExt();
     else if (full && page === "einstellungen") await showSettings();
     else if (full && page === "benutzer") await showUsers();
@@ -510,7 +516,7 @@ async function showConnection() {
     li.append(code, button(t("copy"), "", () => copy(a)));
     return li;
   }));
-  $("cCode").textContent = c.code;
+  showGroups(c);
   $("cSecurity").textContent = t("connSecurity", c.port);
   $("cCert").hidden = !c.webFingerprint;
   $("cFinger").textContent = (c.webFingerprint || "").replace(/(..)(?!$)/g, "$1:");
@@ -647,11 +653,193 @@ document.addEventListener("click", e => {
   if (id) copy($(id).textContent);
 });
 
-$("renew").addEventListener("click", async () => {
-  if (!confirm(t("confirmRenew"))) return;
-  await api("connection/renew", {});
-  showConnection();
-  toast(t("renewed"));
+// Gruppen: je Gruppe Code (kopieren), PCs, Vektoren; umbenennen, neuer Code, löschen
+function showGroups(c) {
+  const single = c.groups.length === 1;
+  $("cGroups").replaceChildren(...c.groups.map(g => {
+    const code = document.createElement("span");
+    code.className = "copyrow";
+    const text = document.createElement("code");
+    text.className = "code";
+    text.textContent = g.code;
+    code.append(text, button(t("copy"), "link", () => copy(g.code)));
+    const ren = button(t("rename"), "link", async () => {
+      const name = prompt(t("promptGroupName"), g.name);
+      if (!name || name.trim() === g.name) return;
+      showGroups(await api("groups/rename", { id: g.id, name: name.trim() }));
+    });
+    const renew = button(t("newCode"), "link", async () => {
+      if (!confirm(t("confirmRenewGroup", g.name))) return;
+      showGroups(await api("connection/renew", { id: g.id }));
+      toast(t("renewed"));
+    });
+    const del = single ? null : button(t("delete"), "link danger", async () => {
+      if (!confirm(t("confirmDeleteGroup", g.name))) return;
+      showGroups(await api("groups/remove", { id: g.id }));
+    });
+    return row([g.name, code, { text: N(g.pcs), cls: "num" }, { text: N(g.vectors), cls: "num" }, actionsCell(ren, renew, del)]);
+  }));
+}
+
+$("gAdd").addEventListener("submit", async e => {
+  e.preventDefault();
+  try {
+    showGroups(await api("groups/add", { name: e.target.name.value.trim() }));
+    e.target.reset();
+    toast(t("groupCreated"));
+  } catch (err) {
+    banner(err.message);
+  }
+});
+
+// ---- Kalender ----------------------------------------------------------------------------------------------------------
+let calData = null;
+let calEditing = null; // Kennung des Kalenders im Bearbeiten-Formular
+
+async function showCalendars() {
+  const k = (calData = await api("calendars"));
+  const admin = isAdmin();
+  $("kIntro").textContent = t(admin ? "calIntroAdmin" : "calIntroUser");
+  $("kTable").hidden = k.calendars.length === 0;
+  $("kEmpty").hidden = k.calendars.length > 0;
+  $("kEmpty").textContent = t(admin ? "calNone" : "calNoneUser");
+  $("kList").replaceChildren(...k.calendars.map(c => {
+    const name = document.createElement("span");
+    const dot = document.createElement("i");
+    dot.className = "dot";
+    dot.style.background = c.color;
+    name.append(dot, c.name);
+    const access = admin
+      ? Object.entries(c.rights || {}).map(([u, r]) => `${u}: ${t(r === "write" ? "rightWrite" : "rightRead")}`).join(", ") || t("rightNone")
+      : t(c.right === "write" ? "rightWrite" : "rightRead");
+    const dl = button(t("download"), "link", () => downloadPost("calendars/ics", { id: c.id }));
+    const edit = admin ? button(t("edit"), "link", () => editCalendar(c)) : null;
+    const del = admin ? button(t("delete"), "link danger", async () => {
+      if (!confirm(t("confirmDeleteCal", c.name, N(c.items)))) return;
+      await api("calendars/remove", { id: c.id });
+      if (calEditing === c.id) $("kEdit").hidden = true;
+      showCalendars();
+    }) : null;
+    return row([name, { text: N(c.items), cls: "num" }, access, actionsCell(edit, dl, del)]);
+  }));
+  $("kStep2").textContent = t("calStep2", k.user);
+  $("kStep4").textContent = t(admin ? "calStep4Admin" : "calStep4User");
+  $("kUrls").replaceChildren(...k.urls.map(u => {
+    const li = document.createElement("li");
+    const code = document.createElement("code");
+    code.className = "code small";
+    code.textContent = u;
+    li.append(code, button(t("copy"), "", () => copy(u)));
+    return li;
+  }));
+  $("kLan").hidden = k.lan || !admin;
+}
+
+function editCalendar(c) {
+  calEditing = c.id;
+  const f = $("kEdit");
+  $("kEditTitle").textContent = t("calEditTitle", c.name);
+  f.name.value = c.name;
+  f.color.value = c.color;
+  $("kRights").replaceChildren(...calData.users.map(u => {
+    const label = document.createElement("label");
+    const sel = document.createElement("select");
+    sel.dataset.user = u.name;
+    sel.append(new Option(t("rightNone"), ""), new Option(t("rightRead"), "read"), new Option(t("rightWrite"), "write"));
+    sel.value = c.rights?.[u.name] || "";
+    const name = document.createElement("span");
+    name.textContent = `${u.name} (${roleText(u.role)})`;
+    label.append(name, sel);
+    return label;
+  }));
+  f.hidden = false;
+  f.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+$("kEdit").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target;
+  const rights = {};
+  for (const sel of $("kRights").querySelectorAll("select")) if (sel.value) rights[sel.dataset.user] = sel.value;
+  try {
+    await api("calendars/update", { id: calEditing, name: f.name.value.trim(), color: f.color.value, rights });
+    f.hidden = true;
+    toast(t("saved"));
+    showCalendars();
+  } catch (err) {
+    banner(err.message);
+  }
+});
+
+$("kCancel").addEventListener("click", () => ($("kEdit").hidden = true));
+
+$("kAdd").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target;
+  try {
+    const { id } = await api("calendars/add", { name: f.name.value.trim(), color: f.color.value });
+    f.name.value = "";
+    await showCalendars();
+    const c = calData.calendars.find(x => x.id === id);
+    if (c) editCalendar(c);
+    toast(t("calCreated"));
+  } catch (err) {
+    banner(err.message);
+  }
+});
+
+// Datei per POST holen (Kalender als .ics, Sicherung) und speichern
+async function downloadPost(path, body) {
+  const r = await fetch("/api/" + path, {
+    method: "POST", credentials: "same-origin",
+    headers: { "X-Lang": LANG, "Content-Type": "application/json", "X-CSRF": session?.csrf || "" },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || t("errorStatus", r.status));
+  const name = /filename="([^"]+)"/.exec(r.headers.get("Content-Disposition") || "")?.[1] || "download";
+  const url = URL.createObjectURL(await r.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+// ---- Sicherung ---------------------------------------------------------------------------------------------------------
+$("backupForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target;
+  if (f.password.value !== f.confirm.value) return banner(t("passwordsDiffer"));
+  $("bBusy").hidden = false;
+  try {
+    await downloadPost("backup/export", { password: f.password.value, vectors: f.vectors.checked });
+    f.password.value = f.confirm.value = "";
+    toast(t("backupDone"));
+  } catch (err) {
+    banner(err.message);
+  } finally {
+    $("bBusy").hidden = true;
+  }
+});
+
+$("restore").addEventListener("click", async () => {
+  const f = $("backupForm");
+  const file = f.file.files[0];
+  if (!file || !f.restorePassword.value) return banner(t("restoreNeedFile"));
+  if (!confirm(t("confirmRestore", new Date(file.lastModified).toLocaleString(locale())))) return;
+  const pw = btoa(String.fromCharCode(...new TextEncoder().encode(f.restorePassword.value)));
+  const r = await fetch("/api/backup/import", {
+    method: "POST", credentials: "same-origin",
+    headers: { "X-Lang": LANG, "Content-Type": "application/octet-stream", "X-CSRF": session?.csrf || "", "X-Backup-Password": pw },
+    body: file,
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) return banner(data.error || t("errorStatus", r.status));
+  alert(t("restoreDone", data.groups, data.calendars));
+  session = await api("session");
+  showAuth();
 });
 
 // ---- Einstellungen -----------------------------------------------------------------------------------------------------
@@ -730,7 +918,7 @@ async function showUsers() {
   const users = await api("users");
   $("uList").replaceChildren(...users.map(u => {
     const role = document.createElement("select");
-    role.append(new Option(t("roleAdmin"), "admin"), new Option(t("roleViewerOption"), "viewer"));
+    role.append(new Option(t("roleAdmin"), "admin"), new Option(t("roleViewerOption"), "viewer"), new Option(t("roleCalendar"), "calendar"));
     role.value = u.role;
     role.addEventListener("change", async () => {
       try {

@@ -1017,5 +1017,14 @@
   },
   "semServerDisabled": {
     "message": "Sin embargo, la búsqueda semántica sigue desactivada: marque la casilla de arriba y empezará el cálculo."
+  },
+  "semPickHeading": {
+    "message": "¿Dónde calcular?"
+  },
+  "semSrcHelper": {
+    "message": "NovaBird Helper ($1) – conectado en NovaBird-Extension"
+  },
+  "semSrcOther": {
+    "message": "Este PC o su propio servidor (ver «Avanzado»)"
   }
 }

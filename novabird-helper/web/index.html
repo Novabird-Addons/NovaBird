@@ -38,6 +38,7 @@
       <a href="#pcs" data-page="pcs" data-i18n="navPcs"></a>
       <a href="#sprachmodell" data-page="sprachmodell" data-i18n="navLlm"></a>
       <a href="#verbindung" data-page="verbindung" data-admin data-i18n="navConnection"></a>
+      <a href="#kalender" data-page="kalender" data-i18n="navCalendar"></a>
       <a href="#extern" data-page="extern" data-i18n="navExt"></a>
       <a href="#einstellungen" data-page="einstellungen" data-i18n="navSettings"></a>
       <a href="#benutzer" data-page="benutzer" data-admin data-i18n="navUsers"></a>
@@ -157,14 +158,54 @@
         <p data-i18n="connText"></p>
         <h2 data-i18n="addresses"></h2>
         <ul class="copylist" id="cAddresses"></ul>
-        <h2 data-i18n="pairingCode"></h2>
-        <div class="copyrow"><code class="code" id="cCode">–</code><button type="button" data-copy="cCode" data-i18n="copy"></button><button type="button" id="renew" data-i18n="newCode"></button></div>
+        <h2 data-i18n="groupsTitle"></h2>
+        <p class="muted" data-i18n="groupsText"></p>
+        <table class="grid"><thead><tr><th data-i18n="thGroup"></th><th data-i18n="pairingCode"></th><th class="num" data-i18n="navPcs"></th><th class="num" data-i18n="thVectors"></th><th></th></tr></thead><tbody id="cGroups"></tbody></table>
+        <form id="gAdd" class="inline add">
+          <label><span data-i18n="groupName"></span> <input name="name" maxlength="40" required autocomplete="off"></label>
+          <button type="submit" data-i18n="groupAdd"></button>
+        </form>
         <p class="muted" id="cSecurity"></p>
         <div id="cCert" hidden>
           <h2 data-i18n="certTitle"></h2>
           <p class="muted" data-i18n="certText"></p>
           <code class="code small" id="cFinger"></code>
         </div>
+      </section>
+
+      <section data-section="kalender" hidden>
+        <h1 data-i18n="calTitle"></h1>
+        <p class="muted" id="kIntro"></p>
+        <table class="grid" id="kTable"><thead><tr><th data-i18n="thCalendar"></th><th class="num" data-i18n="thItems"></th><th data-i18n="thAccess"></th><th></th></tr></thead><tbody id="kList"></tbody></table>
+        <p class="muted" id="kEmpty" hidden></p>
+        <form id="kEdit" class="settings" hidden>
+          <fieldset>
+            <legend id="kEditTitle"></legend>
+            <div class="inline">
+              <label><span data-i18n="calName"></span> <input name="name" maxlength="60" required autocomplete="off"></label>
+              <label><span data-i18n="calColor"></span> <input name="color" type="color"></label>
+            </div>
+            <h3 data-i18n="calRights"></h3>
+            <p class="muted" data-i18n="calRightsText"></p>
+            <div class="rights" id="kRights"></div>
+            <p class="actions"><button type="submit" class="primary" data-i18n="save"></button> <button type="button" id="kCancel" data-i18n="cancel"></button></p>
+          </fieldset>
+        </form>
+        <form id="kAdd" class="inline add" data-admin>
+          <label><span data-i18n="calName"></span> <input name="name" maxlength="60" required autocomplete="off"></label>
+          <label><span data-i18n="calColor"></span> <input name="color" type="color" value="#3a76be"></label>
+          <button type="submit" data-i18n="calAdd"></button>
+        </form>
+        <h2 data-i18n="calSetupTitle"></h2>
+        <ol class="steps">
+          <li data-i18n="calStep1"></li>
+          <li id="kStep2"></li>
+          <li data-i18n="calStep3"></li>
+          <li id="kStep4"></li>
+        </ol>
+        <ul class="copylist" id="kUrls"></ul>
+        <p class="muted" id="kLan" hidden data-i18n="calLanOff"></p>
+        <p class="muted" data-i18n="calPhones"></p>
       </section>
 
       <section data-section="extern" hidden>
@@ -226,6 +267,25 @@
           </fieldset>
           <p class="actions" data-admin><button type="submit" class="primary" data-i18n="save"></button> <span class="saved" id="eSaved" hidden data-i18n="saved"></span></p>
         </form>
+        <form id="backupForm" class="settings" data-admin>
+          <fieldset>
+            <legend data-i18n="backupTitle"></legend>
+            <p class="muted" data-i18n="backupText"></p>
+            <div class="inline">
+              <label><span data-i18n="backupPassword"></span> <input name="password" type="password" minlength="10" autocomplete="new-password"></label>
+              <label><span data-i18n="passwordRepeat"></span> <input name="confirm" type="password" minlength="10" autocomplete="new-password"></label>
+            </div>
+            <label class="check"><input type="checkbox" name="vectors"> <span data-i18n="backupVectors"></span></label>
+            <p class="actions"><button type="submit" data-i18n="backupCreate"></button> <span class="muted" id="bBusy" hidden data-i18n="backupBusy"></span></p>
+            <h3 data-i18n="restoreTitle"></h3>
+            <p class="muted" data-i18n="restoreText"></p>
+            <div class="inline">
+              <label><span data-i18n="restoreFile"></span> <input name="file" type="file" accept=".nbbackup"></label>
+              <label><span data-i18n="backupPassword"></span> <input name="restorePassword" type="password" autocomplete="off"></label>
+            </div>
+            <p class="actions"><button type="button" id="restore" class="danger" data-i18n="restoreButton"></button></p>
+          </fieldset>
+        </form>
       </section>
 
       <section data-section="benutzer" hidden>
@@ -236,7 +296,7 @@
         <form id="userForm" class="inline">
           <label><span data-i18n="name"></span> <input name="name" required autocomplete="off"></label>
           <label><span data-i18n="password"></span> <input name="password" type="password" required autocomplete="new-password" minlength="10"></label>
-          <label><span data-i18n="role"></span> <select name="role"><option value="viewer" data-i18n="roleViewerOption"></option><option value="admin" data-i18n="roleAdmin"></option></select></label>
+          <label><span data-i18n="role"></span> <select name="role"><option value="viewer" data-i18n="roleViewerOption"></option><option value="calendar" data-i18n="roleCalendar"></option><option value="admin" data-i18n="roleAdmin"></option></select></label>
           <button type="submit" data-i18n="create"></button>
         </form>
       </section>

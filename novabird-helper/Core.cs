@@ -3,6 +3,7 @@
 // der Aufrufer (Symbol: Dialog, Web: Knopf).
 using System.Diagnostics;
 using Microsoft.Win32;
+using System.Text.Json.Nodes;
 
 namespace NovaBird.Helper;
 
@@ -30,6 +31,7 @@ sealed class Core
         Server = new NetServer(model, port, loopbackOnly);
         Server.Chat.Ollama = Ollama;
         Web = new WebServer(this, WebPortSetting, loopbackOnly || !WebLan);
+        Server.WebInfo = () => new JsonObject { ["port"] = Web.Port, ["lan"] = !Web.LocalOnly, ["fingerprint"] = Web.Fingerprint };
     }
 
     public void Start()

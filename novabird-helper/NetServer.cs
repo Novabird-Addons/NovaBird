@@ -2,12 +2,15 @@
 // antwortet mit Vektoren.
 //  - HTTP über einen eigenen kleinen TCP-Server (braucht keine Adminrechte und keine URL-Reservierung). Port 47531.
 //  - Kopplung: Code aus 20 Zeichen (wie beim Ordner-Sync); Schlüssel = PBKDF2-SHA256(Code, "NovaBird-Net-1", 300.000 Runden).
+//    Mehrere Gruppen mit je eigenem Code (Groups.cs): Der Helper probiert die Schlüssel der Gruppen durch (zuerst die zuletzt
+//    passende des PCs); jede Gruppe hat ihren eigenen Vektorspeicher.
 //  - Jede Anfrage und jede Antwort ist mit AES-256-GCM verschlüsselt: Mailtexte und Vektoren gehen nie lesbar durchs Netz.
 //    Anfrage  POST /nbhelper/v1 {c: Client-Kennung, n: Nonce, d: Chiffrat+Tag}, AAD "nbh1-req|<c>"
 //             Inhalt {ts, rid, op, …}: Zeitstempel (±10 min) und eine zufällige Anfrage-Kennung (nur einmal gültig)
 //    Antwort  {n, d}, AAD "nbh1-res|<rid>" (gehört genau zu dieser Anfrage)
 //    Wer den Code nicht kennt, bekommt 403; nach 20 Fehlversuchen in einer Minute wird die Adresse eine Minute gesperrt.
-//  - op "hello" {label, model:{id, revision}} -> Info; op "embed" {model, texts, prio:"query"|"index"} -> {vectors}
+//  - op "hello" {label, model:{id, revision}} -> Info (mit Gruppe und web: Port, im Netz, SHA-256 des HTTPS-Zertifikats – so
+//    kann Thunderbird den Team-Kalender ohne Zertifikatsdialog einbinden: der Fingerabdruck kommt über den gekoppelten Weg); op "embed" {model, texts, prio:"query"|"index"} -> {vectors}
 //  - op "vlookup" {model, items:[{id, h}]} -> {found:[Index], vectors}: schon gerechnete Vektoren anderer PCs (VectorStore.cs);
 //    op "embed" mit keys:[{id, h}] (je Text) merkt die Vektoren dafür
 //  - op "chat" {messages, maxNew, meta?} -> {id} (meta: Zielsprache und Markierungen für eine eigene Anweisung, Chat.cs); op "chatPoll" {id} -> {text (neu seit dem letzten Abholen), done, stats};
@@ -37,8 +40,12 @@ sealed class NetServer
     readonly ModelSpec model;
     public readonly Scheduler Scheduler;
     public readonly Chat Chat = new();
-    public readonly VectorStore Vectors;
-    byte[] key;
+    readonly object storesGate = new();
+    Dictionary<string, (byte[] Key, VectorStore Vectors)> groups = new(); // Gruppen-Kennung -> Schlüssel, Vektorspeicher
+    readonly Dictionary<string, string> codes = new(); // Gruppe -> Code, aus dem der Schlüssel stammt
+    readonly ConcurrentDictionary<string, string> clientGroup = new(); // PC -> zuletzt passende Gruppe
+    /// <summary>Web-Oberfläche (Port, im Netz?, Fingerabdruck des Zertifikats) für „hello“: Team-Kalender mit einem Klick einbinden.</summary>
+    public Func<JsonObject> WebInfo;
     readonly ConcurrentDictionary<string, DateTime> seen = new(); // rid -> Zeit (gegen Wiederholung)
     readonly ConcurrentDictionary<string, (int Count, DateTime Since)> failures = new();
     public int Port { get; }
@@ -50,35 +57,85 @@ sealed class NetServer
         Port = port;
         LoopbackOnly = loopbackOnly;
         Scheduler = new Scheduler(model);
-        Vectors = new VectorStore(model);
-        key = DeriveKey(Code());
+        VectorStore.RemoveOldFormat();
+        LoadGroups();
         listener = new TcpListener(loopbackOnly ? IPAddress.Loopback : IPAddress.Any, port);
     }
 
-    // ---- Kopplungscode (mit DPAPI in settings.json) ----------------------------------------------------------------------------
-    public static string Code()
+    // ---- Gruppen und Kopplungscodes (Groups.cs) --------------------------------------------------------------------------------
+    /// <summary>Code der ersten Gruppe (Symbol im Infobereich, Testkonsole).</summary>
+    public static string Code() => Groups.List()[0].Code;
+
+    /// <summary>Schlüssel und Vektorspeicher an die Gruppen anpassen (nach Anlegen, neuem Code, Löschen, Wiederherstellen).</summary>
+    public void LoadGroups()
     {
-        var s = Settings.Load();
-        if (s["netCode"] is JsonNode n) return Encoding.UTF8.GetString(Settings.Unprotect((string)n));
-        return NewCode();
+        lock (storesGate)
+        {
+            var old = groups;
+            var next = new Dictionary<string, (byte[], VectorStore)>();
+            foreach (var g in Groups.List())
+            {
+                old.TryGetValue(g.Id, out var o);
+                // Schlüssel nur neu ableiten, wenn sich der Code geändert hat (PBKDF2 dauert)
+                var key = o.Key != null && codes.GetValueOrDefault(g.Id) == g.Code ? o.Key : DeriveKey(g.Code);
+                codes[g.Id] = g.Code;
+                var store = o.Vectors ?? new VectorStore(model, g.Id, g.Salt);
+                next[g.Id] = (key, store);
+            }
+            foreach (var (id, o) in old)
+                if (!next.ContainsKey(id)) { o.Vectors.Dispose(); codes.Remove(id); }
+            groups = next;
+        }
     }
 
-    public static string NewCode()
+    public VectorStore Vectors(string groupId)
     {
-        var code = Sync.NewCode();
-        var s = Settings.Load();
-        s["netCode"] = Settings.Protect(Encoding.UTF8.GetBytes(code));
-        Settings.Save(s);
+        lock (storesGate) return groupId != null && groups.TryGetValue(groupId, out var g) ? g.Vectors : null;
+    }
+
+    public List<VectorStore> AllVectors()
+    {
+        lock (storesGate) return groups.Values.Select(g => g.Vectors).ToList();
+    }
+
+    /// <summary>Neuer Code für eine Gruppe (ohne Angabe: die erste): deren PCs müssen den neuen eintragen.</summary>
+    public string Renew(string groupId = null)
+    {
+        groupId ??= Groups.List()[0].Id;
+        var code = Groups.Renew(groupId);
+        LoadGroups();
+        Forget(groupId);
         return code;
     }
 
-    /// <summary>Neuer Code: alle bisher gekoppelten PCs müssen den neuen eintragen.</summary>
-    public string Renew()
+    /// <summary>Gruppe löschen: PCs vergessen, Vektoren löschen.</summary>
+    public void RemoveGroup(string groupId)
     {
-        var code = NewCode();
-        key = DeriveKey(code);
-        Scheduler.ForgetClients();
-        return code;
+        Groups.Remove(groupId);
+        LoadGroups();
+        Forget(groupId);
+        try { if (Directory.Exists(VectorStore.FolderOf(groupId))) Directory.Delete(VectorStore.FolderOf(groupId), true); }
+        catch (Exception e) { Log.Write("Vektoren der Gruppe: " + e.Message); }
+    }
+
+    void Forget(string groupId)
+    {
+        Scheduler.ForgetClients(groupId);
+        foreach (var kv in clientGroup) if (kv.Value == groupId) clientGroup.TryRemove(kv.Key, out _);
+    }
+
+    /// <summary>Für die Sicherung: Vektordateien schließen, Aktion ausführen, Gruppen und Speicher neu laden.</summary>
+    public void WithVectorsClosed(Action a)
+    {
+        lock (storesGate)
+        {
+            foreach (var g in groups.Values) g.Vectors.Dispose();
+            groups = new();
+            codes.Clear();
+            clientGroup.Clear();
+            try { a(); }
+            finally { LoadGroups(); }
+        }
     }
 
     static byte[] DeriveKey(string code) =>
@@ -97,7 +154,7 @@ sealed class NetServer
     {
         try { listener.Stop(); } catch { /* schon zu */ }
         Scheduler.Stop();
-        Vectors.Dispose();
+        lock (storesGate) foreach (var g in groups.Values) g.Vectors.Dispose();
     }
 
     async Task AcceptLoop()
@@ -119,6 +176,9 @@ sealed class NetServer
             try
             {
                 tcp.ReceiveTimeout = tcp.SendTimeout = 30_000;
+                // Anfrage muss in 30 s vollständig da sein (asynchrones Lesen kennt ReceiveTimeout nicht – Slowloris)
+                using var readLimit = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                using var closeOnLimit = readLimit.Token.Register(() => { try { tcp.Close(); } catch { /* schon zu */ } });
                 var stream = tcp.GetStream();
                 var (method, path, length) = await ReadHead(stream);
                 if (length < 0 || length > MaxBody) { await Send(stream, 400, "{\"error\":\"request\"}"); return; }
@@ -131,6 +191,7 @@ sealed class NetServer
                     if (n <= 0) return;
                     got += n;
                 }
+                closeOnLimit.Dispose();
                 if (Blocked(ip)) { await Send(stream, 429, "{\"error\":\"blocked\"}"); return; }
                 if (method == "OPTIONS") { await Send(stream, 204, ""); return; }
                 if (path != Path) { await Send(stream, 404, "{\"error\":\"path\"}"); return; }
@@ -186,8 +247,8 @@ sealed class NetServer
     async Task<(int, string)> Handle(byte[] body, string ip)
     {
         JsonNode env;
-        string client;
-        byte[] plain;
+        string client, group = null;
+        byte[] plain, key = null;
         try
         {
             env = JsonNode.Parse(body);
@@ -197,8 +258,24 @@ sealed class NetServer
             var data = Convert.FromBase64String((string)env["d"]);
             if (nonce.Length != 12 || data.Length < 16) throw new FormatException();
             plain = new byte[data.Length - 16];
-            using var aes = new AesGcm(key, 16);
-            aes.Decrypt(nonce, data.AsSpan(0, plain.Length), data.AsSpan(plain.Length), plain, Encoding.ASCII.GetBytes("nbh1-req|" + client));
+            var aad = Encoding.ASCII.GetBytes("nbh1-req|" + client);
+            // Schlüssel der Gruppen durchprobieren, zuerst die zuletzt passende dieses PCs
+            List<(string Id, byte[] Key)> keys;
+            lock (storesGate) keys = groups.Select(g => (g.Key, g.Value.Key)).ToList();
+            if (clientGroup.TryGetValue(client, out var last)) keys = keys.OrderBy(k => k.Id != last).ToList();
+            foreach (var (id, k) in keys)
+            {
+                try
+                {
+                    using var aes = new AesGcm(k, 16);
+                    aes.Decrypt(nonce, data.AsSpan(0, plain.Length), data.AsSpan(plain.Length), plain, aad);
+                    (group, key) = (id, k);
+                    break;
+                }
+                catch (AuthenticationTagMismatchException) { /* nächste Gruppe */ }
+            }
+            if (group == null) throw new CryptographicException();
+            clientGroup[client] = group;
         }
         catch
         {
@@ -219,7 +296,7 @@ sealed class NetServer
             Prune();
             try
             {
-                reply = await Dispatch(msg, client);
+                reply = await Dispatch(msg, client, group);
                 reply["ok"] = true;
             }
             catch (Exception e)
@@ -244,21 +321,22 @@ sealed class NetServer
 
     bool ModelMatches(JsonNode m) => m != null && (string)m["id"] == model.Id && (string)m["revision"] == model.Revision;
 
-    async Task<JsonObject> Dispatch(JsonNode msg, string client)
+    async Task<JsonObject> Dispatch(JsonNode msg, string client, string group)
     {
         switch ((string)msg["op"])
         {
             case "hello":
-                Scheduler.Touch(client, (string)msg["label"], msg["stats"]);
-                return Info(msg["model"]);
+                Scheduler.Touch(client, (string)msg["label"], msg["stats"], group);
+                return Info(msg["model"], group);
             case "embed":
             {
                 if (!ModelMatches(msg["model"])) throw new InvalidOperationException("anderes Modell als im Helper");
                 if (!ModelStore.Ready(model)) throw new InvalidOperationException("Modell im Helper nicht bereit");
                 var texts = msg["texts"]?.AsArray().Select(t => (string)t ?? "").Select(x => x.Length > MaxChars ? x[..MaxChars] : x).ToList();
                 if (texts == null || texts.Count == 0 || texts.Count > MaxTexts) throw new InvalidOperationException("Anzahl der Texte");
+                Scheduler.Touch(client, (string)msg["label"], msg["stats"], group);
                 var vecs = await Scheduler.Embed(client, (string)msg["label"], msg["stats"], texts, (string)msg["prio"] == "query");
-                Vectors.Put(msg["keys"] as JsonArray, vecs); // für andere PCs merken (Message-ID + Prüfsumme je Text)
+                Vectors(group)?.Put(msg["keys"] as JsonArray, vecs); // für andere PCs merken (Message-ID + Prüfsumme je Text)
                 return new JsonObject { ["vectors"] = Engine.ToBase64(vecs, model.Dims) };
             }
             // Vektoren teilen: schon gerechnete Vektoren zu {id: Message-ID, h: Prüfsumme des Textes}
@@ -267,8 +345,8 @@ sealed class NetServer
                 if (!ModelMatches(msg["model"])) throw new InvalidOperationException("anderes Modell als im Helper");
                 var items = msg["items"]?.AsArray().Select(i => ((string)i?["id"] ?? "", (string)i?["h"] ?? "")).ToList();
                 if (items == null || items.Count > MaxLookup) throw new InvalidOperationException("Anzahl der Einträge");
-                Scheduler.Touch(client, (string)msg["label"], msg["stats"]);
-                var (found, vecs) = Vectors.Lookup(items);
+                Scheduler.Touch(client, (string)msg["label"], msg["stats"], group);
+                var (found, vecs) = Vectors(group)?.Lookup(items) ?? (new List<int>(), Array.Empty<float[]>());
                 return new JsonObject
                 {
                     ["found"] = new JsonArray(found.Select(i => (JsonNode)i).ToArray()),
@@ -277,7 +355,7 @@ sealed class NetServer
             }
             // Sprachmodell (KI-Zusammenfassung): starten, dann Stücke abholen, bis done
             case "chat":
-                Scheduler.Touch(client, (string)msg["label"]);
+                Scheduler.Touch(client, (string)msg["label"], null, group);
                 return new JsonObject { ["id"] = Chat.Start(client, msg["messages"] as JsonArray, (int?)msg["maxNew"] ?? Chat.MaxNewDefault, msg["meta"]) };
             case "chatPoll":
                 return await Chat.Poll(client, (string)msg["id"]);
@@ -289,7 +367,7 @@ sealed class NetServer
         }
     }
 
-    JsonObject Info(JsonNode clientModel)
+    JsonObject Info(JsonNode clientModel, string group)
     {
         var s = Settings.Load();
         return new JsonObject
@@ -304,6 +382,8 @@ sealed class NetServer
             ["paused"] = Scheduler.Paused,
             ["queue"] = Scheduler.QueueLength,
             ["clients"] = Scheduler.Clients().Count,
+            ["group"] = Groups.Get(group)?.Name,
+            ["web"] = WebInfo?.Invoke(),
             ["vecShare"] = VectorStore.Enabled,
             ["chatModel"] = Chat.Selected,
             ["chatModels"] = new JsonArray(Chat.Available().Select(m => (JsonNode)m.Name).ToArray()),
@@ -362,7 +442,7 @@ sealed class Scheduler
 
     public sealed class ClientInfo
     {
-        public string Id, Label;
+        public string Id, Label, Group;
         public DateTime FirstSeen, LastSeen;
         public long Today, Total; // vom Helper gerechnet
         public DateTime Day;
@@ -406,7 +486,7 @@ sealed class Scheduler
             {
                 var c = new ClientInfo
                 {
-                    Id = (string)n["id"], Label = (string)n["label"], Total = (long?)n["computed"] ?? 0, Today = (long?)n["today"] ?? 0,
+                    Id = (string)n["id"], Label = (string)n["label"], Group = (string)n["group"], Total = (long?)n["computed"] ?? 0, Today = (long?)n["today"] ?? 0,
                     Indexed = (long?)n["indexed"], Mails = (long?)n["mails"],
                     FirstSeen = DateTime.TryParse((string)n["firstSeen"], out var f) ? f : DateTime.Now,
                     LastSeen = DateTime.TryParse((string)n["lastSeen"], out var l) ? l : DateTime.Now,
@@ -427,7 +507,7 @@ sealed class Scheduler
             dirty = false;
             arr = new JsonArray(clients.Values.Select(c => (JsonNode)new JsonObject
             {
-                ["id"] = c.Id, ["label"] = c.Label, ["computed"] = c.Total, ["today"] = c.Today, ["day"] = c.Day.ToString("yyyy-MM-dd"),
+                ["id"] = c.Id, ["label"] = c.Label, ["group"] = c.Group, ["computed"] = c.Total, ["today"] = c.Today, ["day"] = c.Day.ToString("yyyy-MM-dd"),
                 ["indexed"] = c.Indexed, ["mails"] = c.Mails, ["firstSeen"] = c.FirstSeen.ToString("o"), ["lastSeen"] = c.LastSeen.ToString("o"),
             }).ToArray());
         }
@@ -491,11 +571,12 @@ sealed class Scheduler
     }
 
     /// <summary>PC meldet sich: Name und Indexstand ({done, total} von NovaBird-Search) merken.</summary>
-    public void Touch(string id, string label, JsonNode stats = null)
+    public void Touch(string id, string label, JsonNode stats = null, string group = null)
     {
         lock (gate)
         {
             if (!clients.TryGetValue(id, out var c)) clients[id] = c = new ClientInfo { Id = id, FirstSeen = DateTime.Now, Day = DateTime.Today };
+            if (group != null) c.Group = group;
             if (!string.IsNullOrWhiteSpace(label)) c.Label = label.Length > 40 ? label[..40] : label;
             c.LastSeen = DateTime.Now;
             if (stats is JsonObject)
@@ -522,7 +603,7 @@ sealed class Scheduler
                 if (c.Day != DateTime.Today) { c.Day = DateTime.Today; c.Today = 0; }
             return clients.Values.OrderByDescending(c => c.LastSeen).Select(c => new ClientInfo
             {
-                Id = c.Id, Label = c.Label, FirstSeen = c.FirstSeen, LastSeen = c.LastSeen, Today = c.Today, Total = c.Total, Day = c.Day, Indexed = c.Indexed, Mails = c.Mails,
+                Id = c.Id, Label = c.Label, Group = c.Group, FirstSeen = c.FirstSeen, LastSeen = c.LastSeen, Today = c.Today, Total = c.Total, Day = c.Day, Indexed = c.Indexed, Mails = c.Mails,
             }).ToList();
         }
     }
@@ -537,11 +618,12 @@ sealed class Scheduler
         SaveClients();
     }
 
-    public void ForgetClients()
+    /// <summary>PCs einer Gruppe vergessen (neuer Code, Gruppe gelöscht); ohne Angabe alle. PCs von vor den Gruppen zählen zu g1.</summary>
+    public void ForgetClients(string group = null)
     {
         lock (gate)
         {
-            clients.Clear();
+            foreach (var id in clients.Values.Where(c => group == null || (c.Group ?? "g1") == group).Select(c => c.Id).ToList()) clients.Remove(id);
             dirty = true;
         }
         SaveClients();

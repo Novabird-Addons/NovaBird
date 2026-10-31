@@ -20,8 +20,15 @@
         "name": "openHub",
         "type": "function",
         "async": true,
-        "description": "Öffnet Einstellungen → NovaBird mit dem Reiter des Add-ons (key: extension, db, conversation, send).",
+        "description": "Öffnet Einstellungen → NovaBird mit dem Reiter (key: extension, ai, helper, db, conversation, send).",
         "parameters": [{ "name": "key", "type": "string" }]
+      },
+      {
+        "name": "grantSearchOrigin",
+        "type": "function",
+        "async": true,
+        "description": "Erlaubt NovaBird-Search die Adresse des NovaBird Helpers (http(s)://Host/*), nachdem der Nutzer im Reiter „NovaBird Helper“ die Suche eingeschaltet hat.",
+        "parameters": [{ "name": "url", "type": "string" }]
       },
       {
         "name": "setAiButton",

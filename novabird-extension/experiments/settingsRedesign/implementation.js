@@ -444,14 +444,19 @@ function injectNav(doc, undo) {
 
 // Ab 2.0 hat NovaBird-Search (mit Suchindex) die ID des früheren NovaBird-DB, daher der Schlüssel "db" für „Suche“;
 // "search" gibt es nur noch kurz beim Umstieg von 1.x (das alte Add-on wird dann entfernt).
-const HUB_ORDER = ["db", "search", "conversation", "send", "extension"];
+// Reiter nach Aufgaben statt nach Add-ons: Die Extension liefert drei Seiten (Allgemein, KI-Assistent, NovaBird Helper)
+const HUB_ORDER = ["extension", "db", "ai", "helper", "search", "conversation", "send"];
 const HUB_LABEL = {
+  extension: tr("Allgemein", "General", "Général", "General"),
+  ai: tr("KI-Assistent", "AI assistant", "Assistant IA", "Asistente IA"),
+  helper: "NovaBird Helper",
   db: tr("Suche", "Search", "Recherche", "Búsqueda"),
   search: tr("Suchleiste (alt)", "Search bar (old)", "Barre de recherche (ancienne)", "Barra de búsqueda (antigua)"),
   conversation: tr("Konversation", "Conversation", "Conversation", "Conversación"),
   send: tr("Senden", "Send", "Envoi", "Envío"),
-  extension: "Extension",
 };
+// Zusätzliche Seiten der Extension im Hub (Pfad, Ansicht)
+const HUB_EXTRA = { extension: "options/options.html?hub=1&view=general", ai: "options/options.html?hub=1&view=ai", helper: "options/helper.html?hub=1" };
 let hubLast = null; // zuletzt gewählter Reiter (bleibt beim erneuten Öffnen erhalten)
 const hubSelects = new Set(); // Reiterwahl der offenen NovaBird-Seiten (openHub)
 
@@ -466,6 +471,11 @@ function hubAddons() {
     }
     // ?hub=1: die Seite weiß, dass sie hier in voller Breite steht (in der Add-on-Verwaltung zeigt sie nur einen Verweis hierher)
     found.set(m[1], { id: p.id, key: m[1], label: HUB_LABEL[m[1]] || m[1], url: p.getURL(page) + "?hub=1", icon: p.getURL("icons/icon-48.png") });
+    if (m[1] == "extension") {
+      for (const [key, path] of Object.entries(HUB_EXTRA)) {
+        found.set(key, { id: p.id, key, label: HUB_LABEL[key], url: p.getURL(path), icon: p.getURL("icons/icon-48.png") });
+      }
+    }
   }
   const out = HUB_ORDER.filter(k => found.has(k)).map(k => found.get(k));
   for (const [k, v] of found) {
@@ -1467,6 +1477,21 @@ return class extends ExtensionCommon.ExtensionAPI {
             select(hubLast);
           }
           gotoPane("paneNovaBird");
+        },
+        // NovaBird Helper für die Suche einrichten (Klick im Reiter „NovaBird Helper“): NovaBird-Search darf genau diese
+        // Adresse ansprechen. Nur für NovaBird-Search, nur http(s)://Host/* – wie die Rückfrage in dessen eigener Seite.
+        async grantSearchOrigin(url) {
+          const { ExtensionPermissions } = ChromeUtils.importESModule("resource://gre/modules/ExtensionPermissions.sys.mjs");
+          const policy = WebExtensionPolicy.getByID("novabird-db@novabird");
+          if (!policy) {
+            return false;
+          }
+          const u = Services.io.newURI(url);
+          if (!/^https?$/.test(u.scheme)) {
+            return false;
+          }
+          await ExtensionPermissions.add(policy.id, { permissions: [], origins: [`${u.scheme}://${u.asciiHost}/*`] }, policy.extension);
+          return true;
         },
         async setAiButton(visible) {
           setAiButtonVisible(Boolean(visible));

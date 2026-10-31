@@ -190,12 +190,25 @@ messenger.runtime.onMessageExternal.addListener((message, sender) => {
   return messenger.settingsRedesign.openHub(HUB_KEYS[sender.id]).then(() => ({ ok: true }));
 });
 
+// NovaBird-Search: Verbindung zum NovaBird Helper (Reiter „NovaBird Helper“) für die Auswahl „Wo rechnen?“ – nur für Search
+// (Listener nicht async: sonst beantwortet ein Promise mit undefined auch fremde Nachrichten und überholt die richtige Antwort)
+messenger.runtime.onMessageExternal.addListener((message, sender) => {
+  if (sender?.id !== "novabird-db@novabird" || message?.type !== "helper:conn") {
+    return undefined;
+  }
+  return messenger.storage.local.get({ helperConn: null }).then(({ helperConn }) =>
+    helperConn?.url ? { url: helperConn.url, code: helperConn.code, label: helperConn.label || "" } : null);
+});
+
 // NovaBird-Conversation: Knopf „Zusammenfassen (KI)“ nur anbieten, wenn die KI eingerichtet ist; die Zusammenfassung öffnet hier
 const CONVERSATION_ID = "novabird-conversation@novabird";
-messenger.runtime.onMessageExternal.addListener(async (message, sender) => {
+messenger.runtime.onMessageExternal.addListener((message, sender) => {
   if (sender?.id !== CONVERSATION_ID) {
     return undefined;
   }
+  return conversationMessage(message);
+});
+async function conversationMessage(message) {
   if (message?.type === "aiAvailable") {
     const c = await messenger.storage.local.get({ aiEnabled: false, aiType: "", aiUrl: "", aiModel: "" });
     return { available: Boolean(c.aiEnabled && c.aiUrl && (c.aiModel || c.aiType === "nbhelper")) };
@@ -210,7 +223,7 @@ messenger.runtime.onMessageExternal.addListener(async (message, sender) => {
     return true;
   }
   return undefined;
-});
+}
 
 // Diagnose für die Optionsseite
 messenger.runtime.onMessage.addListener(async message => {

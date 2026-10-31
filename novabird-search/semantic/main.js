@@ -1108,6 +1108,51 @@ async function status() {
   };
 }
 
+// NovaBird-Extension, Reiter „NovaBird Helper“: Suche mit einem Klick auf den Helper im Netz umstellen bzw. zurück. Nur dieser
+// Absender; die Erlaubnis für die Adresse erteilt die Extension vorher (Experiment, nach dem Klick des Nutzers) – fehlt sie, bleibt
+// alles, wie es ist. helper:searchState {url} -> {use}; helper:useForSearch {use, url, code, label} -> {ok, check} oder {error}
+const EXTENSION_ID = "novabird-extension@novabird";
+messenger.runtime.onMessageExternal.addListener((msg, sender) => {
+  if (sender?.id !== EXTENSION_ID || !String(msg?.type ?? "").startsWith("helper:")) {
+    return undefined;
+  }
+  return (async () => {
+    await loadConfig();
+    const stored = (await messenger.storage.local.get({ [KEY]: {} }))[KEY];
+    const sv = cfg.server || {};
+    const usingHelper = Boolean(cfg.enabled && cfg.path === "server" && sv.type === "nbhelper");
+    if (msg.type === "helper:searchState") {
+      return { use: usingHelper && (!msg.url || server.base(sv) === server.base({ url: msg.url })) };
+    }
+    if (msg.type !== "helper:useForSearch") {
+      return undefined;
+    }
+    if (!msg.use) {
+      if (usingHelper) {
+        await messenger.storage.local.set({ [KEY]: { ...stored, path: "auto" } });
+      }
+      return { ok: true };
+    }
+    const url = String(msg.url || "").trim().replace(/\/+$/, "");
+    if (!server.validUrl(url) || String(msg.code || "").length > 64) {
+      return { error: "url" };
+    }
+    if (!(await messenger.permissions.contains({ origins: [server.originPattern(url)] }))) {
+      return { error: "permission" };
+    }
+    await messenger.storage.local.set({
+      [KEY]: { ...stored, enabled: true, path: "server", server: { ...(stored.server || {}), type: "nbhelper", url, code: String(msg.code || ""), label: String(msg.label || "").slice(0, 40) } },
+    });
+    await loadConfig();
+    delete checks.server;
+    await updateOriginFilter();
+    await verify("server", serverRaw, true).catch(() => {});
+    kick();
+    const c = checks.server;
+    return c?.ok ? { ok: true, check: c } : { error: c?.error || c?.reason || "probe", check: c };
+  })();
+});
+
 messenger.runtime.onMessage.addListener((msg, sender) => {
   if (sender.id !== messenger.runtime.id || !String(msg?.type ?? "").startsWith("semantic:")) {
     return undefined;

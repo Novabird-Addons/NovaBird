@@ -102,10 +102,42 @@
         ]
       },
       {
+        "name": "taskCalendars",
+        "type": "function",
+        "async": true,
+        "description": "Beschreibbare, eingeschaltete Kalender mit Aufgaben: [{id, name, color, selected}].",
+        "parameters": []
+      },
+      {
+        "name": "helperCalendars",
+        "type": "function",
+        "async": true,
+        "description": "Schon eingebundene Team-Kalender des NovaBird Helpers unter dieser Adresse: [{id, name, readOnly}].",
+        "parameters": [{ "name": "davUrl", "type": "string" }]
+      },
+      {
+        "name": "addHelperCalendars",
+        "type": "function",
+        "async": true,
+        "description": "Team-Kalender des NovaBird Helpers einbinden: Zertifikat nur mit passendem Fingerabdruck erlauben, Kalender erkennen, fehlende anlegen. Liefert {added, existing}; Fehler: url, cert, auth, none.",
+        "parameters": [
+          {
+            "name": "options",
+            "type": "object",
+            "properties": {
+              "davUrl": { "type": "string" },
+              "user": { "type": "string" },
+              "password": { "type": "string" },
+              "fingerprint": { "type": "string", "optional": true }
+            }
+          }
+        ]
+      },
+      {
         "name": "createTasks",
         "type": "function",
         "async": true,
-        "description": "Legt Aufgaben direkt an, fällig heute (KI-Überblick: der Nutzer hat sie per Häkchen ausgewählt). Kalender: der gewählte, sonst der erste beschreibbare mit Aufgaben. Liefert {count, calendar}.",
+        "description": "Legt Aufgaben direkt an, fällig heute (KI-Überblick: der Nutzer hat sie per Häkchen ausgewählt). Kalender: calendarId, sonst der gewählte, sonst der erste beschreibbare mit Aufgaben. Liefert {count, calendar}.",
         "parameters": [
           {
             "name": "items",
@@ -117,7 +149,8 @@
                 "description": { "type": "string", "optional": true }
               }
             }
-          }
+          },
+          { "name": "calendarId", "type": "string", "optional": true }
         ]
       },
       {

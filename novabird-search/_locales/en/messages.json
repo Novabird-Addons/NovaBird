@@ -1017,5 +1017,14 @@
   },
   "semServerDisabled": {
     "message": "Semantic search is still switched off, though: tick the box at the top and the computing starts."
+  },
+  "semPickHeading": {
+    "message": "Where to compute?"
+  },
+  "semSrcHelper": {
+    "message": "NovaBird Helper ($1) – connected in NovaBird-Extension"
+  },
+  "semSrcOther": {
+    "message": "This PC or your own server (see “Advanced”)"
   }
 }

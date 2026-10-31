@@ -46,6 +46,12 @@ static class ApiKeys
         return cache;
     }
 
+    /// <summary>Nach dem Wiederherstellen einer Sicherung: Datei neu lesen.</summary>
+    public static void Reload()
+    {
+        lock (Gate) cache = null;
+    }
+
     static void Save()
     {
         Directory.CreateDirectory(Settings.Dir);

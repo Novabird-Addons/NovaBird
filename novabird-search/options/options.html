@@ -206,6 +206,12 @@
   <section id="semanticTab" hidden>
     <p class="hint sem-intro" data-i18n="semIntro"></p>
     <div class="row"><input type="checkbox" id="semEnabled"><label for="semEnabled" data-i18n="semEnable"></label></div>
+    <div id="semPick" hidden>
+      <h2 data-i18n="semPickHeading"></h2>
+      <div class="row"><input type="radio" name="semSource" id="semSrcHelper" value="helper"><label for="semSrcHelper" id="semSrcHelperLabel"></label></div>
+      <div class="row"><input type="radio" name="semSource" id="semSrcOther" value="other"><label for="semSrcOther" data-i18n="semSrcOther"></label></div>
+      <p class="hint" id="semSrcState"></p>
+    </div>
 
     <h2 data-i18n="semModelHeading"></h2>
     <div id="semModels"></div>

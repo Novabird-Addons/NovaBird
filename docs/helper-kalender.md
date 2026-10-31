@@ -4,6 +4,12 @@ Wunsch: Aufgaben und Termine (auch die aus der KI) sollen nicht nur „für mich
 OwnCloud/Nextcloud. Der Helper soll einen Kalender bereitstellen, mit dem mehrere Thunderbird synchronisieren; wer welchen
 Kalender sieht und bearbeiten darf, wird in der Web-Oberfläche des Helpers festgelegt.
 
+**Stand 31.10.2026 abends:** Schritt 1 ist umgesetzt (`CalDav.cs`, `Calendars.cs`, Seite *Kalender* der Web-Oberfläche, Rolle
+„Nur Kalender“, Sicherung). Aufbau wie unten, mit einer Abweichung: Kalender liegen je Benutzer unter
+`/dav/<Benutzer>/<Kalender>/` (Principal und Kalender-Heimat in einem), weil manche Programme Kalender außerhalb der Heimat
+nicht anzeigen. Getestet mit Thunderbird 159 (Erkennung, Abgleich in beide Richtungen, Aufgaben, Nur-lesen). Offen: Schritte
+2–4 (Extension, Handys, CardDAV).
+
 ## Ergebnis: machbar, passt gut
 
 - **Thunderbird kann CalDAV von Haus aus** (Termine und Aufgaben, Abgleich, Offline-Zwischenspeicher). Bietet der Helper

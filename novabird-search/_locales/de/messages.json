@@ -1101,5 +1101,14 @@
   },
   "semServerDisabled": {
     "message": "Die semantische Suche ist aber noch ausgeschaltet: Haken ganz oben setzen, dann wird gerechnet."
+  },
+  "semPickHeading": {
+    "message": "Wo rechnen?"
+  },
+  "semSrcHelper": {
+    "message": "NovaBird Helper ($1) – verbunden in der NovaBird-Extension"
+  },
+  "semSrcOther": {
+    "message": "Dieser PC oder eigener Server (siehe „Erweitert“)"
   }
 }

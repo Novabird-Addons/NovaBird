@@ -1,6 +1,7 @@
 // Benutzer der Web-Oberfläche (eigene Konten, keine Windows-Benutzer): users.json im Datenordner.
-// Passwort: PBKDF2-SHA256 mit 600.000 Runden und eigenem Salz je Benutzer. Rollen: "admin" (alles) und "viewer" (nur lesen,
-// ohne Kopplungscode). Der letzte Admin kann weder gelöscht noch herabgestuft werden.
+// Passwort: PBKDF2-SHA256 mit 600.000 Runden und eigenem Salz je Benutzer. Rollen: "admin" (alles), "viewer" (nur lesen,
+// ohne Kopplungscode) und "calendar" (nur die eigenen Team-Kalender und das eigene Passwort). Der letzte Admin kann weder
+// gelöscht noch herabgestuft werden.
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -10,7 +11,8 @@ namespace NovaBird.Helper;
 
 static class Users
 {
-    public const string Admin = "admin", Viewer = "viewer";
+    public const string Admin = "admin", Viewer = "viewer", Calendar = "calendar";
+    static bool ValidRole(string role) => role is Admin or Viewer or Calendar;
     const int Iterations = 600_000;
     static readonly Regex NameRule = new("^[A-Za-z0-9._@-]{2,40}$");
     static readonly object Gate = new();
@@ -61,7 +63,7 @@ static class Users
     public static void Add(string name, string password, string role)
     {
         if (name == null || !NameRule.IsMatch(name)) throw new ArgumentException(L.T("Name: 2–40 Zeichen, Buchstaben, Ziffern und . _ @ -", "Name: 2–40 characters, letters, digits and . _ @ -"));
-        if (role != Admin && role != Viewer) throw new ArgumentException(L.T("Rolle", "Role"));
+        if (!ValidRole(role)) throw new ArgumentException(L.T("Rolle", "Role"));
         if (PasswordProblem(password) is string p) throw new ArgumentException(p);
         lock (Gate)
         {
@@ -108,7 +110,7 @@ static class Users
 
     public static void SetRole(string name, string role)
     {
-        if (role != Admin && role != Viewer) throw new ArgumentException(L.T("Rolle", "Role"));
+        if (!ValidRole(role)) throw new ArgumentException(L.T("Rolle", "Role"));
         lock (Gate)
         {
             var users = Load();

@@ -125,6 +125,7 @@ const TEXTS = {
     selfTest_mailStats: "Postfachanalyse",
     tabAi: "KI",
     aiTitle: "KI-Assistent",
+    aiSrcHelper: "NovaBird Helper ($1) – verbunden im Reiter „NovaBird Helper“", aiSrcHelperNone: "NovaBird Helper – zuerst im Reiter „NovaBird Helper“ verbinden", aiSrcOwn: "Eigener Server (Ollama, OpenAI-kompatibel)",
     aiDesc: "Fasst Nachrichten zusammen, übersetzt sie, findet Termine und Aufgaben (zum Prüfen im Termin-Dialog) und gibt mit „Was gibt's Neues?“ oben in der Leiste einen Überblick über die neuen Mails. Nichts geschieht automatisch: Erst ein Klick auf „KI-Assistent“ in der Nachrichtenansicht oder auf „Was gibt's Neues?“ sendet Mailtexte an die Adresse unten. Gedacht für ein Modell auf dem eigenen Rechner (Ollama, NovaBird Helper) oder einen OpenAI-kompatiblen Dienst.",
     aiCtxLabel: "Kontextlänge (Token)",
     aiPromptTitle: "Anweisung an die KI",
@@ -380,6 +381,7 @@ const TEXTS = {
     selfTest_mailStats: "Mailbox analysis",
     tabAi: "AI",
     aiTitle: "AI assistant",
+    aiSrcHelper: "NovaBird Helper ($1) – connected in the “NovaBird Helper” tab", aiSrcHelperNone: "NovaBird Helper – connect it first in the “NovaBird Helper” tab", aiSrcOwn: "Own server (Ollama, OpenAI-compatible)",
     aiDesc: "Summarises and translates messages, finds appointments and tasks (to review in the event dialog) and, with “What's new?” in the toolbar, gives an overview of new mail. Nothing happens automatically: only a click on “AI assistant” in the message view or on “What's new?” sends mail text to the address below. Meant for a model on your own computer (Ollama, NovaBird Helper) or an OpenAI-compatible service.",
     aiCtxLabel: "Context length (tokens)",
     aiPromptTitle: "Instruction to the AI",
@@ -635,6 +637,7 @@ const TEXTS = {
     selfTest_mailStats: "Analyse de la boîte mail",
     tabAi: "IA",
     aiTitle: "Assistant IA",
+    aiSrcHelper: "NovaBird Helper ($1) – connecté dans l’onglet « NovaBird Helper »", aiSrcHelperNone: "NovaBird Helper – à connecter d’abord dans l’onglet « NovaBird Helper »", aiSrcOwn: "Propre serveur (Ollama, compatible OpenAI)",
     aiDesc: "Résume et traduit les messages, repère les rendez-vous et les tâches (à vérifier dans la fenêtre d’événement) et donne avec « Quoi de neuf ? » dans la barre un aperçu des nouveaux messages. Rien n’est automatique : seul un clic sur « Assistant IA » dans l’affichage du message ou sur « Quoi de neuf ? » envoie des textes à l’adresse ci-dessous. Prévu pour un modèle sur votre propre ordinateur (Ollama, NovaBird Helper) ou un service compatible OpenAI.",
     aiCtxLabel: "Longueur de contexte (jetons)",
     aiPromptTitle: "Instruction donnée à l’IA",
@@ -890,6 +893,7 @@ const TEXTS = {
     selfTest_mailStats: "Análisis del buzón",
     tabAi: "IA",
     aiTitle: "Asistente IA",
+    aiSrcHelper: "NovaBird Helper ($1) – conectado en la pestaña «NovaBird Helper»", aiSrcHelperNone: "NovaBird Helper – conéctelo primero en la pestaña «NovaBird Helper»", aiSrcOwn: "Servidor propio (Ollama, compatible con OpenAI)",
     aiDesc: "Resume y traduce mensajes, encuentra citas y tareas (para revisarlas en la ventana de evento) y, con «¿Qué hay de nuevo?» en la barra, da un resumen del correo nuevo. Nada ocurre automáticamente: solo un clic en «Asistente IA» en la vista del mensaje o en «¿Qué hay de nuevo?» envía textos a la dirección de abajo. Pensado para un modelo en su propio ordenador (Ollama, NovaBird Helper) o un servicio compatible con OpenAI.",
     aiCtxLabel: "Longitud de contexto (tokens)",
     aiPromptTitle: "Instrucción para la IA",
@@ -1136,10 +1140,24 @@ function showTab(id) {
     document.getElementById(o.dataset.tab).hidden = o !== b;
   }
   try {
-    localStorage.setItem(TAB_KEY, b.dataset.tab);
+    if (VIEW !== "ai") localStorage.setItem(TAB_KEY, b.dataset.tab);
   } catch {}
   if (b.dataset.tab === "statsTab") {
     setTimeout(loadStats); // erst nach dem Laden des ganzen Skripts (Start im gemerkten Reiter)
+  }
+}
+// Im Hub zwei Ansichten derselben Seite: „Allgemein“ (ohne KI) und „KI-Assistent“ (nur KI, ohne Reiterleiste)
+const VIEW = new URLSearchParams(location.search).get("view");
+if (VIEW === "ai" || VIEW === "general") {
+  for (const b of document.querySelectorAll("nav button")) {
+    if ((b.dataset.tab === "aiTab") !== (VIEW === "ai")) {
+      document.getElementById(b.dataset.tab).hidden = true;
+      b.remove();
+    }
+  }
+  if (VIEW === "ai") {
+    document.querySelector("nav").hidden = true;
+    document.getElementById("title").hidden = true;
   }
 }
 for (const b of document.querySelectorAll("nav button")) {
@@ -1149,7 +1167,7 @@ let startTab = "listTab";
 try {
   startTab = localStorage.getItem(TAB_KEY) || startTab;
 } catch {}
-showTab(startTab);
+showTab(VIEW === "ai" ? "aiTab" : startTab);
 
 // Skizzen der drei Stile der Nachrichtenliste
 function listSvg(style) {
@@ -1541,6 +1559,53 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
   };
   syncType();
   document.getElementById("aiType").addEventListener("change", syncType);
+  // Ein Klick: Sprachmodell des verbundenen NovaBird Helpers (Reiter „NovaBird Helper“) oder ein eigener Server
+  const { helperConn } = await messenger.storage.local.get({ helperConn: null });
+  const srcHelper = document.querySelector('input[name="aiSource"][value="helper"]');
+  const srcOwn = document.querySelector('input[name="aiSource"][value="own"]');
+  let helperHost = "";
+  try {
+    helperHost = helperConn ? new URL(helperConn.url).host : "";
+  } catch { /* ungültig */ }
+  document.getElementById("aiSrcHelper").textContent = helperHost ? t.aiSrcHelper.replace("$1", helperHost) : t.aiSrcHelperNone;
+  document.getElementById("aiSrcOwn").textContent = t.aiSrcOwn;
+  srcHelper.disabled = !helperHost;
+  srcHelper.checked = Boolean(helperHost && conf.aiType === "nbhelper");
+  srcOwn.checked = !srcHelper.checked;
+  const syncSource = () => {
+    const own = srcOwn.checked;
+    document.querySelector("#aiTab .ai-grid").hidden = !own;
+    if (own) {
+      syncType();
+      syncRemote();
+    } else {
+      document.getElementById("aiHelperHint").hidden = true;
+      document.getElementById("aiRemote").hidden = true;
+    }
+  };
+  syncSource();
+  srcHelper.addEventListener("change", async () => {
+    document.getElementById("aiType").value = "nbhelper";
+    document.getElementById("aiUrl").value = helperConn.url;
+    document.getElementById("aiKey").value = helperConn.code;
+    await save(current());
+    syncSource();
+  });
+  srcOwn.addEventListener("change", async () => {
+    if (document.getElementById("aiType").value === "nbhelper") {
+      document.getElementById("aiType").value = "ollama";
+      document.getElementById("aiUrl").value = nbAI.DEFAULTS.aiUrl || "";
+      document.getElementById("aiKey").value = "";
+    }
+    await save(current());
+    syncSource();
+  });
+  // Im Hub ändert der Reiter „NovaBird Helper“ dieselben Werte: Ansicht „KI-Assistent“ dann neu laden
+  messenger.storage.onChanged.addListener((changes, area) => {
+    if (VIEW === "ai" && area === "local" && !document.hasFocus() && ["aiEnabled", "aiType", "aiUrl", "aiKey", "helperConn"].some(k => k in changes)) {
+      location.reload();
+    }
+  });
   enabled.checked = conf.aiEnabled === true;
   body.classList.toggle("off", !enabled.checked);
   enabled.addEventListener("change", () => {

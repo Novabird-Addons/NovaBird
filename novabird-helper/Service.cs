@@ -74,6 +74,7 @@ sealed class Service : ServiceBase
         var s = Settings.Load();
         var secrets = new JsonObject { ["userDir"] = Settings.UserDir };
         if (s["netCode"] is JsonNode c) secrets["netCode"] = Encoding.UTF8.GetString(Settings.Unprotect((string)c));
+        secrets["groups"] = Groups.ExportPlain(); // Codes und Salze der Gruppen (für den Rechner neu verschlüsseln)
         File.WriteAllText(handoff, secrets.ToJsonString());
         try
         {
@@ -231,7 +232,7 @@ sealed class Service : ServiceBase
             Sc($"failure {Name} reset= 86400 actions= restart/5000/restart/30000//");
             // 3) Datenordner mit eigenen Rechten, Daten übernehmen
             PrepareDataDir();
-            Migrate((string)handoff["userDir"], (string)handoff["netCode"]);
+            Migrate((string)handoff["userDir"], (string)handoff["netCode"], handoff["groups"] as JsonArray);
             // 4) Firewall: nur private Netzwerke
             Settings.ServiceMode = true;
             Firewall(Core.PortSetting, Core.WebPortSetting);
@@ -318,7 +319,7 @@ sealed class Service : ServiceBase
     }
 
     /// <summary>Daten aus dem Benutzerordner übernehmen (nur, was im Dienstordner noch fehlt bzw. älter ist).</summary>
-    static void Migrate(string userDir, string netCode)
+    static void Migrate(string userDir, string netCode, JsonArray groups)
     {
         var target = Settings.ServiceDir;
         if (string.IsNullOrEmpty(userDir) || !Directory.Exists(userDir)) return;
@@ -332,8 +333,15 @@ sealed class Service : ServiceBase
             s["migratedFromUser"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
             File.WriteAllText(Path.Combine(target, "settings.json"), s.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
         }
-        foreach (var f in new[] { "clients.json", "users.json" })
+        foreach (var f in new[] { "clients.json", "users.json", "apikeys.json" })
             if (File.Exists(Path.Combine(userDir, f)) && !File.Exists(Path.Combine(target, f))) File.Copy(Path.Combine(userDir, f), Path.Combine(target, f));
+        // Gruppen (Codes, Salze für den Rechner verschlüsselt), dazu ihre Vektoren und die Kalender
+        if (groups is { Count: > 0 } && !File.Exists(Path.Combine(target, "groups.json")))
+        {
+            Groups.ImportPlain(groups, target, machine: true);
+            CopyTree(Path.Combine(userDir, "vectors"), Path.Combine(target, "vectors"));
+        }
+        if (!Directory.Exists(Path.Combine(target, "calendars"))) CopyTree(Path.Combine(userDir, "calendars"), Path.Combine(target, "calendars"));
         // Modelle kopieren (der Native-Messaging-Host im Benutzerkonto braucht seine weiter)
         var models = Path.Combine(userDir, "models");
         if (Directory.Exists(models))
@@ -345,6 +353,17 @@ sealed class Service : ServiceBase
                 File.Copy(f, dst, true);
             }
         Log.Write("Daten aus dem Benutzerordner übernommen");
+    }
+
+    static void CopyTree(string from, string to)
+    {
+        if (!Directory.Exists(from)) return;
+        foreach (var f in Directory.GetFiles(from, "*", SearchOption.AllDirectories))
+        {
+            var dst = Path.Combine(to, Path.GetRelativePath(from, f));
+            Directory.CreateDirectory(Path.GetDirectoryName(dst));
+            File.Copy(f, dst, true);
+        }
     }
 
     static void Firewall(int netPort, int webPort)

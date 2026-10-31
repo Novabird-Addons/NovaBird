@@ -110,6 +110,9 @@ const nbAI = (() => {
     return msg;
   }
 
+  /** Reiter „NovaBird Helper“: Verbindung prüfen; liefert Version, Gerät, Gruppe, Sprachmodell und web {port, lan, fingerprint}. */
+  const helperHello = (url, code, label) => netCall({ aiUrl: url, aiKey: code }, "hello", label ? { label } : {});
+
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   let lastStats = null; // Messwerte der letzten Helper-Antwort (Modell, Token, Tempo) – fürs Testprogramm
 
@@ -718,7 +721,7 @@ const nbAI = (() => {
   }
 
   return {
-    DEFAULTS, isLocal, origin, listModels, chat, mailText, threadText, prompt, promptTemplate, suspicious, base, stats: () => lastStats,
+    DEFAULTS, isLocal, origin, listModels, chat, helperHello, mailText, threadText, prompt, promptTemplate, suspicious, base, stats: () => lastStats,
     TRANSLATE_LANGS, languageName, translatePrompt, eventsPrompt, overviewPrompt, parseItems, newMails, stripQuotedText, overview,
   };
 })();

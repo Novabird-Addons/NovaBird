@@ -130,8 +130,22 @@ function render(text) {
   updateTasksButton();
 }
 
+// Kalender für „Aufgaben für heute“ (bei mehreren wählbar, z. B. der Team-Kalender des Helpers; die Wahl wird gemerkt)
+const TASK_CAL = "aiTaskCalendar";
+async function fillTaskCalendars() {
+  const list = await messenger.novaCalendar.taskCalendars().catch(() => []);
+  const sel = $("taskCal");
+  sel.replaceChildren(...list.map(c => new Option(c.name, c.id)));
+  const { [TASK_CAL]: saved } = await messenger.storage.local.get({ [TASK_CAL]: "" });
+  sel.value = list.some(c => c.id === saved) ? saved : list.find(c => c.selected)?.id || list[0]?.id || "";
+  sel.dataset.many = list.length > 1 ? "1" : "";
+  updateTasksButton();
+}
+$("taskCal").addEventListener("change", () => messenger.storage.local.set({ [TASK_CAL]: $("taskCal").value }));
+
 function updateTasksButton() {
   const n = todos.filter(x => x.box.checked && !x.box.disabled).length;
+  $("taskCal").hidden = todos.length === 0 || !$("taskCal").dataset.many;
   $("tasks").hidden = todos.length === 0;
   $("tasks").disabled = n === 0;
   $("tasks").textContent = t.tasks.replace("$1", String(n));
@@ -201,7 +215,7 @@ $("tasks").addEventListener("click", async () => {
     description: x.refs.map(n => mails[n - 1]).filter(Boolean).map(m => `${t.fromMail}: ${m.subject || ""} – ${m.author || ""}`).join("\n"),
   }));
   try {
-    const res = await messenger.novaCalendar.createTasks(items);
+    const res = await messenger.novaCalendar.createTasks(items, $("taskCal").value || undefined);
     for (const x of chosen) {
       x.box.disabled = true;
       x.box.closest(".item")?.classList.add("done");
@@ -246,11 +260,12 @@ $("settings").addEventListener("click", () => {
   try {
     localStorage.setItem("nbxOptionsTab", "aiTab");
   } catch {}
-  messenger.settingsRedesign.openHub("extension").catch(() => messenger.runtime.openOptionsPage());
+  messenger.settingsRedesign.openHub("ai").catch(() => messenger.runtime.openOptionsPage());
   window.close();
 });
 
 (async () => {
+  fillTaskCalendars();
   const saved = await messenger.storage.local.get({ aiOverviewHours: 24, aiOverviewUnread: true, [SCHEDULE]: { mode: "off" }, [LAST]: null }).catch(() => ({}));
   $("period").value = String(t.hours[saved.aiOverviewHours] ? saved.aiOverviewHours : 24);
   $("unread").checked = saved.aiOverviewUnread !== false;

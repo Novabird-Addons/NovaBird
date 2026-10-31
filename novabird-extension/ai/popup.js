@@ -311,7 +311,7 @@ $("settings").addEventListener("click", () => {
   try {
     localStorage.setItem("nbxOptionsTab", "aiTab"); // Optionsseite öffnet im Reiter KI
   } catch {}
-  messenger.settingsRedesign.openHub("extension").catch(() => messenger.runtime.openOptionsPage());
+  messenger.settingsRedesign.openHub("ai").catch(() => messenger.runtime.openOptionsPage());
   window.close();
 });
 

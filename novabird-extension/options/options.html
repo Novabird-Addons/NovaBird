@@ -17,6 +17,9 @@
     nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
     nav button { border: 0; background: none; padding: 8px 14px; font: inherit; color: inherit; border-bottom: 2px solid transparent; cursor: pointer; }
     nav button[aria-selected="true"] { border-bottom-color: #2F6BD8; font-weight: 600; }
+    .ai-source { display: grid; gap: 0.35em; margin: 0.6em 0 0.9em; }
+    .ai-grid[hidden] { display: none; }
+    .ai-source label { display: flex; gap: 0.5em; align-items: baseline; }
     .st-sub { color: color-mix(in srgb, currentColor 65%, transparent); margin: 2px 0 12px; font-size: 0.92em; }
     .st-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(9em, 1fr)); gap: 10px; margin: 10px 0 12px; }
     .st-kpi { background: color-mix(in srgb, currentColor 6%, transparent); border-radius: 10px; padding: 10px 14px; }
@@ -300,6 +303,10 @@
     <p id="aiDesc" class="st-sub"></p>
     <label><input type="checkbox" id="aiEnabled"> <span id="aiEnabledLabel"></span></label>
     <div id="aiBody">
+    <div class="ai-source">
+      <label><input type="radio" name="aiSource" value="helper"> <span id="aiSrcHelper"></span></label>
+      <label><input type="radio" name="aiSource" value="own"> <span id="aiSrcOwn"></span></label>
+    </div>
     <div class="ai-grid">
       <label for="aiType" id="aiTypeLabel"></label>
       <select id="aiType"><option value="ollama">Ollama</option><option value="openai">OpenAI-API</option><option value="nbhelper">NovaBird Helper</option></select>

@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>NovaBird Helper</title>
+  <style>
+    :root { color-scheme: light dark; --line: color-mix(in srgb, currentColor 18%, transparent); --muted: color-mix(in srgb, currentColor 65%, transparent); }
+    html { font: message-box; }
+    /* Systemschrift wie auf der Seite der Extension 17 % größer; alles Weitere em-relativ */
+    body { font-size: 117%; margin: 16px; max-width: 52em; }
+    h2 { margin: 0 0 0.3em; }
+    h3 { font-size: 1em; margin: 0 0 0.5em; }
+    .sub { color: var(--muted); margin: 0.15em 0 0.8em; font-size: 0.92em; line-height: 1.45; }
+    .card { border: 1px solid var(--line); border-radius: 0.6em; padding: 0.9em 1.1em; margin: 0 0 1em; }
+    .state { display: flex; align-items: center; gap: 0.8em; flex-wrap: wrap; }
+    .state .dot { width: 0.8em; height: 0.8em; border-radius: 50%; background: var(--muted); flex: none; }
+    .state.ok .dot { background: #1e8e5a; }
+    .state.bad .dot { background: #c0392b; }
+    .state .txt { flex: 1 1 18em; }
+    .state b { display: block; }
+    .grid { display: grid; grid-template-columns: max-content minmax(0, 24em); gap: 0.45em 0.9em; align-items: center; margin: 0.4em 0 0.8em; }
+    input[type=text], input[type=password], input[type=url] { font: inherit; padding: 0.3em 0.45em; }
+    button { font: inherit; padding: 0.3em 0.9em; }
+    button.primary { background: AccentColor; color: AccentColorText; border: 1px solid AccentColor; border-radius: 0.3em; }
+    .use { display: flex; gap: 0.6em; align-items: flex-start; padding: 0.6em 0; border-top: 1px solid var(--line); }
+    .use:first-of-type { border-top: 0; }
+    .use .body { flex: 1; }
+    .use .note { color: var(--muted); font-size: 0.92em; margin: 0.15em 0 0; }
+    .use .note.bad { color: #c0392b; }
+    .use .note.good { color: #1e8e5a; }
+    .row { display: flex; gap: 0.6em; align-items: center; flex-wrap: wrap; margin: 0.4em 0; }
+    .off { opacity: 0.55; pointer-events: none; }
+    details summary { cursor: pointer; color: var(--muted); }
+    ul.cals { margin: 0.3em 0; padding-left: 1.2em; }
+    @media (prefers-color-scheme: dark) {
+      .state.ok .dot { background: #4cc38a; }
+      .state.bad .dot, .use .note.bad { color: #ef6b5b; background: none; }
+      .state.bad .dot { background: #ef6b5b; }
+      .use .note.good { color: #4cc38a; }
+    }
+  </style>
+</head>
+<body>
+  <h2>NovaBird Helper</h2>
+  <p class="sub" id="intro"></p>
+
+  <div class="card state" id="state">
+    <span class="dot" aria-hidden="true"></span>
+    <div class="txt"><b id="stateTitle"></b><span class="sub" id="stateSub"></span></div>
+    <button type="button" id="openWeb" hidden></button>
+  </div>
+
+  <div class="card" id="useBox">
+    <h3 id="useTitle"></h3>
+    <div class="use">
+      <input type="checkbox" id="useSearch">
+      <div class="body"><label for="useSearch" id="useSearchLabel"></label><p class="note" id="useSearchNote"></p></div>
+    </div>
+    <div class="use">
+      <input type="checkbox" id="useAi">
+      <div class="body"><label for="useAi" id="useAiLabel"></label><p class="note" id="useAiNote"></p></div>
+    </div>
+    <div class="use">
+      <span style="flex: none; width: 1.1em"></span>
+      <div class="body">
+        <span id="calLabel"></span>
+        <ul class="cals" id="calList" hidden></ul>
+        <p class="note" id="calNote"></p>
+        <div class="row" id="calForm">
+          <input type="text" id="calUser" autocomplete="username" spellcheck="false">
+          <input type="password" id="calPassword" autocomplete="current-password">
+          <button type="button" id="calAdd"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <details class="card" id="connBox">
+    <summary id="connTitle"></summary>
+    <p class="sub" id="connText"></p>
+    <div class="grid">
+      <label for="url" id="urlLabel"></label><input type="url" id="url" spellcheck="false" placeholder="http://192.168.1.20:47531">
+      <label for="code" id="codeLabel"></label><input type="text" id="code" spellcheck="false" autocomplete="off" placeholder="XXXXX-XXXXX-XXXXX-XXXXX">
+      <label for="label" id="labelLabel"></label><input type="text" id="label" maxlength="40" autocomplete="off">
+    </div>
+    <div class="row"><button type="button" class="primary" id="connect"></button> <button type="button" id="disconnect" hidden></button> <span id="connStatus"></span></div>
+  </details>
+
+  <script src="../shared/hubnote.js"></script>
+  <script src="../ai/ai.js"></script>
+  <script src="helper.js"></script>
+</body>
+</html>

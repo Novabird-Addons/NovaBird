@@ -64,6 +64,43 @@ function pick(cs, names) {
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
+// Kalender, in die Aufgaben dürfen (beschreibbar, Aufgaben unterstützt, eingeschaltet)
+const taskCalendar = cal => c =>
+  !c.getProperty("disabled") && cal.acl.isCalendarWritable(c) && cal.acl.userCanAddItemsToCalendar(c) && c.getProperty("capabilities.tasks.supported") !== false;
+
+// Adresse der Team-Kalender eines Helpers ohne Benutzer-Teil: http(s)://host:port/dav/
+const helperPrefix = davUrl => {
+  return Services.io.newURI(davUrl).prePath + "/dav/";
+};
+
+/**
+ * Selbst erzeugtes Zertifikat des Helpers erlauben, aber nur, wenn sein SHA-256-Fingerabdruck dem entspricht, den der Helper
+ * über die mit dem Kopplungscode verschlüsselte Verbindung gemeldet hat. Sonst Fehler „cert“ (nichts wird erlaubt).
+ */
+async function trustHelperCert(uri, fingerprint, ExtensionError) {
+  const want = String(fingerprint || "").replace(/[^0-9a-f]/gi, "").toUpperCase();
+  if (want.length != 64) {
+    throw new ExtensionError("cert");
+  }
+  const cert = await new Promise(resolve => {
+    const win = Services.wm.getMostRecentWindow("mail:3pane") || Services.appShell.hiddenDOMWindow;
+    const xhr = new win.XMLHttpRequest();
+    xhr.mozBackgroundRequest = true; // keine Rückfragen
+    xhr.open("HEAD", uri.prePath + "/dav/");
+    xhr.channel.loadFlags |= Ci.nsIRequest.LOAD_BYPASS_CACHE | Ci.nsIRequest.INHIBIT_CACHING;
+    xhr.timeout = 10000;
+    const done = () => resolve(xhr.channel?.securityInfo?.serverCert || null);
+    xhr.onloadend = done;
+    xhr.send();
+  });
+  const got = String(cert?.sha256Fingerprint || "").replace(/[^0-9a-f]/gi, "").toUpperCase();
+  if (!cert || got != want) {
+    throw new ExtensionError("cert");
+  }
+  const overrides = Cc["@mozilla.org/security/certoverride;1"].getService(Ci.nsICertOverrideService);
+  overrides.rememberValidityOverride(uri.asciiHost, uri.port == -1 ? 443 : uri.port, {}, cert, false);
+}
+
 function themeColors(dialogWin) {
   const win = Services.wm.getMostRecentWindow("mail:3pane") || dialogWin;
   const cs = win.getComputedStyle(win.document.documentElement);
@@ -850,17 +887,77 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
   getAPI() {
     return {
       novaCalendar: {
-        async createTasks(items) {
+        // Beschreibbare Kalender mit Aufgaben (Auswahl bei „Aufgaben für heute“): {id, name, color, selected}
+        async taskCalendars() {
+          const { cal } = ChromeUtils.importESModule("resource:///modules/calendar/calUtils.sys.mjs");
+          const selected = Services.wm.getMostRecentWindow("mail:3pane")?.getSelectedCalendar?.();
+          return cal.manager.getCalendars().filter(taskCalendar(cal)).map(c => ({
+            id: c.id, name: c.name, color: c.getProperty("color") || "", selected: c === selected,
+          }));
+        },
+        // Team-Kalender des NovaBird Helpers: welche sind unter davUrl schon eingebunden?
+        async helperCalendars(davUrl) {
+          const { cal } = ChromeUtils.importESModule("resource:///modules/calendar/calUtils.sys.mjs");
+          const prefix = helperPrefix(davUrl);
+          return cal.manager.getCalendars().filter(c => c.type === "caldav" && c.uri.spec.startsWith(prefix)).map(c => ({ id: c.id, name: c.name, readOnly: c.readOnly }));
+        },
+        // Team-Kalender mit einem Klick: Zertifikat des Helpers anhand des Fingerabdrucks (kam verschlüsselt über den gekoppelten
+        // Weg) dauerhaft erlauben, dann die Kalender erkennen wie „Neuer Kalender → Im Netzwerk“ und alle noch fehlenden
+        // einbinden (mit Offline-Zwischenspeicher). Das Passwort legt Thunderbird in seiner Passwortverwaltung ab.
+        async addHelperCalendars({ davUrl, user, password, fingerprint }) {
+          const { ExtensionError } = ChromeUtils.importESModule("resource://gre/modules/ExtensionUtils.sys.mjs");
+          const { cal } = ChromeUtils.importESModule("resource:///modules/calendar/calUtils.sys.mjs");
+          let uri;
+          try {
+            uri = Services.io.newURI(davUrl);
+          } catch {
+            throw new ExtensionError("url");
+          }
+          if (!/^https?$/.test(uri.scheme) || !uri.pathQueryRef.startsWith("/dav/")) {
+            throw new ExtensionError("url");
+          }
+          if (uri.scheme == "https") {
+            await trustHelperCert(uri, fingerprint, ExtensionError);
+          }
+          let found;
+          try {
+            found = await cal.provider.detection.detect(user, password, davUrl, true, [], {});
+          } catch (e) {
+            const what = `${e?.constructor?.name || ""} ${e?.name || ""} ${e?.message || e}`;
+            throw new ExtensionError(/Auth/.test(what) ? "auth" : /Cert/.test(what) ? "cert" : /NoneFound/.test(what) ? "none" : String(e?.message || e));
+          }
+          const prefix = helperPrefix(davUrl);
+          const have = new Set(cal.manager.getCalendars().map(c => c.uri.spec));
+          const added = [];
+          const existing = [];
+          for (const c of [...found.values()].flat()) {
+            if (c.type != "caldav" || !c.uri.spec.startsWith(prefix)) {
+              continue;
+            }
+            if (have.has(c.uri.spec)) {
+              existing.push(c.name);
+              continue;
+            }
+            c.setProperty("cache.enabled", true);
+            cal.manager.registerCalendar(c);
+            added.push(c.name);
+          }
+          if (!added.length && !existing.length) {
+            throw new ExtensionError("none");
+          }
+          return { added, existing };
+        },
+        async createTasks(items, calendarId) {
           const { ExtensionError } = ChromeUtils.importESModule("resource://gre/modules/ExtensionUtils.sys.mjs");
           const { cal } = ChromeUtils.importESModule("resource:///modules/calendar/calUtils.sys.mjs");
           const { CalTodo } = ChromeUtils.importESModule("resource:///modules/CalTodo.sys.mjs");
-          const usable = c => cal.acl.isCalendarWritable(c) && cal.acl.userCanAddItemsToCalendar(c) && c.getProperty("capabilities.tasks.supported") !== false;
-          const calendars = cal.manager.getCalendars().filter(usable);
+          const calendars = cal.manager.getCalendars().filter(taskCalendar(cal));
           if (!calendars.length) {
             throw new ExtensionError("nocalendar");
           }
           const selected = Services.wm.getMostRecentWindow("mail:3pane")?.getSelectedCalendar?.();
-          const target = selected && calendars.includes(selected) ? selected : calendars[0];
+          const chosen = calendarId && calendars.find(c => c.id == calendarId);
+          const target = chosen || (selected && calendars.includes(selected) ? selected : calendars[0]);
           let count = 0;
           for (const it of items) {
             const todo = new CalTodo();
