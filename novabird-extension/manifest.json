@@ -20,7 +20,10 @@
       "updates/updates.js",
       "ai/ai.js",
       "ai/schedule.js",
+      "ai/prep.js",
       "ai/jobs.js",
+      "ai/write.js",
+      "ai/speech.js",
       "background.js"
     ]
   },
@@ -170,6 +173,7 @@
     "storage",
     "accountsRead",
     "messagesRead",
+    "compose",
     "addressBooks",
     "theme",
     "http://localhost/*",
@@ -188,6 +192,12 @@
     "default_icon": "ai/news.svg",
     "default_popup": "ai/overview.html",
     "allowed_spaces": ["mail"]
+  },
+  "compose_action": {
+    "default_title": "__MSG_aiWriteTitle__",
+    "default_label": "__MSG_aiWrite__",
+    "default_icon": "ai/write.svg",
+    "default_popup": "ai/compose.html"
   },
   "message_display_action": {
     "default_title": "__MSG_aiButton__",

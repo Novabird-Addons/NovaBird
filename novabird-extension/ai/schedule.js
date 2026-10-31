@@ -42,10 +42,11 @@
     running = true;
     try {
       const conf = { ...nbAI.DEFAULTS, ...(await messenger.storage.local.get(nbAI.DEFAULTS)) };
-      if (!conf.aiEnabled || !conf.aiUrl || (!conf.aiModel && conf.aiType !== "nbhelper")) return;
+      if (!conf.aiEnabled || !conf.aiUrl || (!conf.aiModel && conf.aiType !== "nbhelper") || !nbAI.feature(conf, "overview")) return;
       // Mails seit dem letzten Lauf (mindestens 1, höchstens 168 Stunden; beim ersten Mal ein Tag bzw. das Intervall)
       const hours = lastRun ? Math.min(168, Math.max(1, Math.ceil((Date.now() - lastRun) / 3600_000))) : s.mode === "hours" ? Number(s.every) || 2 : 24;
-      const res = await nbAI.overview(conf, uiLang(), { hours, unreadOnly: true });
+      // „Vorbereiten“ an: aus den eingeordneten Mails (ai/prep.js), sonst ein Auftrag an die KI für alle zusammen
+      const res = conf.aiPrepare ? await nbPrep.overview(conf, uiLang(), { hours, unreadOnly: true }) : await nbAI.overview(conf, uiLang(), { hours, unreadOnly: true });
       await messenger.storage.local.set({ [LAST]: { at: Date.now(), scheduled: true, seen: false, hours, ...res } });
       if (res.total > 0) {
         await messenger.browserAction.setBadgeText({ text: String(Math.min(res.total, 99)) });

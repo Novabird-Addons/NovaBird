@@ -1255,9 +1255,14 @@ function setupWindow(win, isMain) {
 }
 
 // KI-Knopf im Nachrichtenkopf: ein Add-on kann seinen Knopf dort nicht ausblenden, daher ein Stilblatt mit der (eindeutigen) Knopf-ID
-// KI aus: KI-Knopf der Nachrichtenansicht und „Was gibt's Neues?“ in der Leiste (einheitliche Symbolleiste) ausblenden
-const AI_BUTTON_SHEET = Services.io.newURI("data:text/css," + encodeURIComponent(
-  "#novabird-extension_novabird-messageDisplayAction-toolbarbutton, li[item-id=\"ext-novabird-extension@novabird\"] { display: none !important; }"));
+// KI aus (oder die Funktion dahinter): KI-Knopf der Nachrichtenansicht, „Was gibt's Neues?“ in der Leiste (einheitliche
+// Symbolleiste) und „KI“ im Verfassen-Fenster einzeln ausblenden
+const hideSheet = selector => Services.io.newURI("data:text/css," + encodeURIComponent(`${selector} { display: none !important; }`));
+const AI_BUTTON_SHEETS = {
+  display: hideSheet("#novabird-extension_novabird-messageDisplayAction-toolbarbutton"),
+  overview: hideSheet("li[item-id=\"ext-novabird-extension@novabird\"]"),
+  compose: hideSheet("#novabird-extension_novabird-composeAction-toolbarbutton"),
+};
 // „Was gibt's Neues?“ hervorheben: Hintergrund und Rahmen in der Akzentfarbe (NovaBird-Design, sonst die von Windows)
 const AI_NEWS_SHEET = Services.io.newURI("data:text/css," + encodeURIComponent(`
 li[item-id="ext-novabird-extension@novabird"] button {
@@ -1268,16 +1273,20 @@ li[item-id="ext-novabird-extension@novabird"] button {
 li[item-id="ext-novabird-extension@novabird"] button:hover {
   background-color: color-mix(in srgb, var(--ms-accent, AccentColor) 34%, transparent) !important;
 }`));
-function setAiButtonVisible(visible) {
+// visible: alle Knöpfe; parts {display, overview, compose} schaltet einzelne aus (fehlend = wie visible)
+function setAiButtonVisible(visible, parts = {}) {
   const sss = Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
   if (!sss.sheetRegistered(AI_NEWS_SHEET, sss.USER_SHEET)) {
     sss.loadAndRegisterSheet(AI_NEWS_SHEET, sss.USER_SHEET);
   }
-  const registered = sss.sheetRegistered(AI_BUTTON_SHEET, sss.USER_SHEET);
-  if (visible && registered) {
-    sss.unregisterSheet(AI_BUTTON_SHEET, sss.USER_SHEET);
-  } else if (!visible && !registered) {
-    sss.loadAndRegisterSheet(AI_BUTTON_SHEET, sss.USER_SHEET);
+  for (const [part, sheet] of Object.entries(AI_BUTTON_SHEETS)) {
+    const show = visible && parts?.[part] !== false;
+    const registered = sss.sheetRegistered(sheet, sss.USER_SHEET);
+    if (show && registered) {
+      sss.unregisterSheet(sheet, sss.USER_SHEET);
+    } else if (!show && !registered) {
+      sss.loadAndRegisterSheet(sheet, sss.USER_SHEET);
+    }
   }
 }
 
@@ -1493,8 +1502,8 @@ return class extends ExtensionCommon.ExtensionAPI {
           await ExtensionPermissions.add(policy.id, { permissions: [], origins: [`${u.scheme}://${u.asciiHost}/*`] }, policy.extension);
           return true;
         },
-        async setAiButton(visible) {
-          setAiButtonVisible(Boolean(visible));
+        async setAiButton(visible, parts) {
+          setAiButtonVisible(Boolean(visible), parts || {});
         },
         async getThemeColors() {
           return readThemeVars();

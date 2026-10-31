@@ -139,6 +139,7 @@ async function refresh(full) {
     if (page === "status") await showStatus();
     else if (page === "pcs") await showPcs();
     else if (page === "sprachmodell") await showLlm(full);
+    else if (page === "vorlesen") await showTts(full);
     else if (full && page === "verbindung") await showConnection();
     else if (full && page === "kalender") await showCalendars();
     else if (full && page === "extern") await showExt();
@@ -561,6 +562,107 @@ $("optReset").addEventListener("click", async () => {
     await saveOptions({ reset: true });
   } catch (err) {
     banner(err.message);
+  }
+});
+
+// ---- Vorlesen (Qwen3-TTS) -------------------------------------------------------------------------------------------------
+async function showTts(full) {
+  const s = await api("tts");
+  const state = s.installing ? "" : !s.installed ? t("ttsNotInstalled", N(s.downloadMb))
+    : !s.enabled ? t("ttsOffState") : s.running ? t("ttsRunning") : t("ttsReady");
+  $("tState").textContent = state + (s.error ? ` · ${s.error}` : "");
+  progress("tInstallProg", s.installing, s.installingPct);
+  $("tInstall").hidden = !isAdmin() || !!s.installing || (s.installed && !s.error);
+  $("tInstall").textContent = s.installed ? t("ttsReinstall") : t("ttsInstall", N(s.downloadMb));
+  $("tToggle").hidden = !isAdmin() || !s.installed || !!s.installing;
+  $("tToggle").textContent = s.enabled ? t("ttsOff") : t("ttsOn");
+  $("tRemove").hidden = !isAdmin() || !s.installed || !!s.installing;
+  const ready = s.installed && s.enabled && s.voices.length > 0;
+  $("tVoiceForm").hidden = !ready;
+  $("tTestForm").hidden = !ready;
+  // Auswahllisten nur beim Öffnen füllen (Eingaben nicht überschreiben)
+  if (!full && showTts.filled === ready) return;
+  showTts.filled = ready;
+  const f = $("tVoiceForm");
+  for (const lang of ["german", "english"]) {
+    f[lang].replaceChildren(...s.voices.filter(v => v.lang === lang).map(v => new Option(v.name, v.name)));
+    const want = lang === "german" ? s.voiceGerman : s.voiceEnglish;
+    if (want) f[lang].value = want;
+    f[lang].disabled = !isAdmin();
+  }
+  const tf = $("tTestForm");
+  tf.voice.replaceChildren(...s.voices.map(v => new Option(`${v.name} (${v.lang === "german" ? t("ttsLangDe") : t("ttsLangEn")})`, v.name)));
+  if (!tf.text.value) tf.text.value = t("ttsSample");
+}
+
+$("tInstall").addEventListener("click", async () => {
+  const s = await api("tts");
+  if (!confirm(t("confirmTtsInstall", N(s.downloadMb)))) return;
+  try {
+    await api("tts/install", {});
+    showTts(true);
+  } catch (err) {
+    banner(err.message);
+  }
+});
+
+$("tToggle").addEventListener("click", async () => {
+  const s = await api("tts");
+  await api("tts/enable", { on: !s.enabled });
+  showTts(true);
+});
+
+$("tRemove").addEventListener("click", async () => {
+  if (!confirm(t("confirmTtsRemove"))) return;
+  try {
+    await api("tts/remove", {});
+    showTts(true);
+  } catch (err) {
+    banner(err.message);
+  }
+});
+
+$("tVoiceForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  try {
+    await api("tts/voices", { german: e.target.german.value, english: e.target.english.value });
+    $("tSaved").hidden = false;
+    setTimeout(() => ($("tSaved").hidden = true), 2500);
+  } catch (err) {
+    banner(err.message);
+  }
+});
+
+// Hörprobe: der Helper spricht, der Browser spielt ab (erster Satz nach dem Start etwa 6 s, danach etwa 1 s)
+let ttsAudio = null;
+$("tTestForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target;
+  const button = f.querySelector("button");
+  const voice = f.voice.value;
+  const lang = voice.startsWith("en_") ? "english" : "german";
+  button.disabled = true;
+  $("tTestInfo").textContent = t("ttsTesting");
+  const t0 = performance.now();
+  try {
+    const r = await fetch("/api/tts/test", {
+      method: "POST", credentials: "same-origin",
+      headers: { "X-Lang": LANG, "Content-Type": "application/json", "X-CSRF": session?.csrf || "" },
+      body: JSON.stringify({ text: f.text.value, lang, voice }),
+    });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
+    const blob = await r.blob();
+    ttsAudio?.pause();
+    if (ttsAudio) URL.revokeObjectURL(ttsAudio.src);
+    ttsAudio = new Audio(URL.createObjectURL(blob));
+    await ttsAudio.play();
+    $("tTestInfo").textContent = t("ttsTestDone", ((performance.now() - t0) / 1000).toFixed(1));
+  } catch (err) {
+    $("tTestInfo").textContent = "";
+    banner(err.message);
+  } finally {
+    button.disabled = false;
+    showTts(false);
   }
 });
 

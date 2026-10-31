@@ -34,8 +34,18 @@
         "name": "setAiButton",
         "type": "function",
         "async": true,
-        "description": "Zeigt oder versteckt den Knopf 'Mail zusammenfassen (KI)' im Nachrichtenkopf.",
-        "parameters": [{ "name": "visible", "type": "boolean" }]
+        "description": "Zeigt oder versteckt die KI-Knöpfe (Nachrichtenkopf, „Was gibt's Neues?“, Verfassen-Fenster); parts schaltet einzelne aus.",
+        "parameters": [
+          { "name": "visible", "type": "boolean" },
+          {
+            "name": "parts", "type": "object", "optional": true,
+            "properties": {
+              "display": { "type": "boolean", "optional": true },
+              "overview": { "type": "boolean", "optional": true },
+              "compose": { "type": "boolean", "optional": true }
+            }
+          }
+        ]
       },
       {
         "name": "getThemeColors",

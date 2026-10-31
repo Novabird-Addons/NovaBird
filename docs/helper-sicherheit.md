@@ -15,6 +15,9 @@ die Funktionstests (`tests/grouptest.mjs`: Gruppen/Vektoren/Sicherung/CalDAV 56,
 | `/v1` externe Programme | wie Web, standardmäßig aus | Schlüssel je Programm (SHA-256 gespeichert), Adressen-Freigabe, Sperre nach Fehlversuchen |
 | `/dav` Team-Kalender | wie Web | HTTP Basic über HTTPS, Rechte je Kalender und Benutzer, gleiche Sperre wie die Anmeldung |
 | Sicherung | Web, nur Admin | eigenes Passwort (PBKDF2 600.000, AES-256-GCM) |
+| KI-Ergebnisse teilen (Nachtrag 31.10.2026) | Netz-Port (op `aiget`, `aiput`, `airelease`) | wie Netz-Port; nur Kennungen `[A-Za-z0-9_-]{20,64}` (SHA-256 aus Message-ID und Textprüfsumme, von Thunderbird gebildet) und Chiffrat ≤ 48 KB, höchstens 200 Kennungen je Anfrage; verschlüsselt mit einem Schlüssel aus Message-ID und Prüfsumme, den der Helper nicht kennt; je Gruppe getrennt, ≤ 20.000 Einträge, 10 Tage; eine Anmeldung („ich rechne“) kann nur der PC zurückgeben, der sie gemacht hat |
+| Sprachmodell je PC wählen (Nachtrag 31.10.2026) | Netz-Port (op `chat` mit `model`) | nur Namen aus der Liste des Helpers (Windows-ML-Ordner, Ollama-Modelle), sonst Fehler |
+| Vorlesen (Nachtrag 31.10.2026) | Netz-Port (op `tts`), Web (Hörprobe, Einrichten nur Admin) | wie Netz-Port bzw. Web; der Sprachdienst selbst nur auf 127.0.0.1:47534 mit Zufallsschlüssel je Start (`X-NB-Token`, sonst 403), Text ≤ 600 Zeichen je Satz, Sprache aus fester Liste, Stimme nur aus dem Ordner `tts\stimmen` (Name `[A-Za-z0-9_-]`); Downloads mit fester Adresse und SHA-256, Entpacken mit Zip-Slip-Schutz |
 
 ## Ergebnis des Angriffstests: 89 von 89 abgewehrt
 

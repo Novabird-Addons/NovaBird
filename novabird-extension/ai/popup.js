@@ -15,7 +15,9 @@ const TEXTS = {
     remote: "Der Nachrichtentext wird an $1 gesendet.",
     disabled: "Die KI ist ausgeschaltet. Sie lässt sich in den Einstellungen unter „KI“ einschalten.",
     injection: "Die Nachricht enthält Sätze, die wie Anweisungen an KI-Systeme aussehen. Das Ergebnis mit Vorsicht lesen.",
-    forbidden: "Der Server hat die Anfrage abgelehnt (403). Bei Ollama hilft die Umgebungsvariable OLLAMA_ORIGINS=moz-extension://*; bei anderen Diensten prüfen, ob Benutzername und Schlüssel stimmen.", code: "Der Kopplungscode passt nicht (Web-Oberfläche des Helpers → Verbindung).", nomodel: "Im Helper ist kein Sprachmodell gewählt (Web-Oberfläche → Sprachmodell).", answer: "Die Antwort des Helpers ließ sich nicht prüfen.", helper: "Fehler im Helper." },
+    forbidden: "Der Server hat die Anfrage abgelehnt (403). Bei Ollama hilft die Umgebungsvariable OLLAMA_ORIGINS=moz-extension://*; bei anderen Diensten prüfen, ob Benutzername und Schlüssel stimmen.", code: "Der Kopplungscode passt nicht (Web-Oberfläche des Helpers → Verbindung).", nomodel: "Im Helper ist kein Sprachmodell gewählt (Web-Oberfläche → Sprachmodell).", answer: "Die Antwort des Helpers ließ sich nicht prüfen.", helper: "Fehler im Helper.",
+    speak: "Vorlesen", speakStop: "Stopp", speakWait: "Stimme startet …", speakFail: "Vorlesen hat nicht geklappt:",
+    prepared: "Schon vorbereitet – „Neu erstellen“ rechnet neu.", feature: "Diese Funktion ist in den Einstellungen unter „KI“ ausgeschaltet.", noFeature: "Alle Funktionen dieses Fensters sind in den Einstellungen unter „KI“ ausgeschaltet." },
   en: { tabSummary: "Summary", tabTranslate: "Translate", tabEvents: "Dates",
     again: "Regenerate", copy: "Copy", copied: "Copied", settings: "Settings",
     working: "Summarising …", translating: "Translating …", finding: "Looking for dates and tasks …", toLabel: "Into",
@@ -29,7 +31,9 @@ const TEXTS = {
     remote: "The message text is sent to $1.",
     disabled: "AI is switched off. You can switch it on in the settings under “AI”.",
     injection: "The message contains sentences that look like instructions to AI systems. Read the result with caution.",
-    forbidden: "The server refused the request (403). For Ollama set the environment variable OLLAMA_ORIGINS=moz-extension://*; for other services check the user name and key.", code: "The pairing code does not match (helper web interface → Connection).", nomodel: "No language model is selected in the helper (web interface → Language model).", answer: "The helper's answer could not be verified.", helper: "Error in the helper." },
+    forbidden: "The server refused the request (403). For Ollama set the environment variable OLLAMA_ORIGINS=moz-extension://*; for other services check the user name and key.", code: "The pairing code does not match (helper web interface → Connection).", nomodel: "No language model is selected in the helper (web interface → Language model).", answer: "The helper's answer could not be verified.", helper: "Error in the helper.",
+    speak: "Read aloud", speakStop: "Stop", speakWait: "Starting voice …", speakFail: "Reading aloud did not work:",
+    prepared: "Already prepared – “Regenerate” computes it again.", feature: "This function is switched off in the settings under “AI”.", noFeature: "All functions of this window are switched off in the settings under “AI”." },
   fr: { tabSummary: "Résumé", tabTranslate: "Traduire", tabEvents: "Rendez-vous",
     again: "Régénérer", copy: "Copier", copied: "Copié", settings: "Paramètres",
     working: "Résumé en cours …", translating: "Traduction en cours …", finding: "Recherche des rendez-vous et tâches …", toLabel: "Vers",
@@ -43,7 +47,9 @@ const TEXTS = {
     remote: "Le texte du message est envoyé à $1.",
     disabled: "L’IA est désactivée. Vous pouvez l’activer dans les paramètres sous « IA ».",
     injection: "Le message contient des phrases qui ressemblent à des instructions pour des systèmes d’IA. Lisez le résultat avec prudence.",
-    forbidden: "Le serveur a refusé la requête (403). Avec Ollama, définissez la variable d’environnement OLLAMA_ORIGINS=moz-extension://* ; pour les autres services, vérifiez le nom d’utilisateur et la clé.", code: "Le code d’appairage ne correspond pas (interface web du helper → Connexion).", nomodel: "Aucun modèle de langage n’est choisi dans le helper (interface web → Modèle de langage).", answer: "La réponse du helper n’a pas pu être vérifiée.", helper: "Erreur dans le helper." },
+    forbidden: "Le serveur a refusé la requête (403). Avec Ollama, définissez la variable d’environnement OLLAMA_ORIGINS=moz-extension://* ; pour les autres services, vérifiez le nom d’utilisateur et la clé.", code: "Le code d’appairage ne correspond pas (interface web du helper → Connexion).", nomodel: "Aucun modèle de langage n’est choisi dans le helper (interface web → Modèle de langage).", answer: "La réponse du helper n’a pas pu être vérifiée.", helper: "Erreur dans le helper.",
+    speak: "Lire à voix haute", speakStop: "Arrêter", speakWait: "Démarrage de la voix …", speakFail: "La lecture à voix haute n’a pas fonctionné :",
+    prepared: "Déjà préparé – « Régénérer » le recalcule.", feature: "Cette fonction est désactivée dans les paramètres sous « IA ».", noFeature: "Toutes les fonctions de cette fenêtre sont désactivées dans les paramètres sous « IA »." },
   es: { tabSummary: "Resumen", tabTranslate: "Traducir", tabEvents: "Citas",
     again: "Volver a generar", copy: "Copiar", copied: "Copiado", settings: "Ajustes",
     working: "Resumiendo …", translating: "Traduciendo …", finding: "Buscando citas y tareas …", toLabel: "Al",
@@ -57,7 +63,9 @@ const TEXTS = {
     remote: "El texto del mensaje se envía a $1.",
     disabled: "La IA está desactivada. Puede activarla en los ajustes, en «IA».",
     injection: "El mensaje contiene frases que parecen instrucciones para sistemas de IA. Lea el resultado con precaución.",
-    forbidden: "El servidor rechazó la solicitud (403). Con Ollama defina la variable de entorno OLLAMA_ORIGINS=moz-extension://*; en otros servicios compruebe el usuario y la clave.", code: "El código de emparejamiento no coincide (interfaz web del helper → Conexión).", nomodel: "No hay ningún modelo de lenguaje elegido en el helper (interfaz web → Modelo de lenguaje).", answer: "No se pudo verificar la respuesta del helper.", helper: "Error en el helper." },
+    forbidden: "El servidor rechazó la solicitud (403). Con Ollama defina la variable de entorno OLLAMA_ORIGINS=moz-extension://*; en otros servicios compruebe el usuario y la clave.", code: "El código de emparejamiento no coincide (interfaz web del helper → Conexión).", nomodel: "No hay ningún modelo de lenguaje elegido en el helper (interfaz web → Modelo de lenguaje).", answer: "No se pudo verificar la respuesta del helper.", helper: "Error en el helper.",
+    speak: "Leer en voz alta", speakStop: "Detener", speakWait: "Iniciando la voz …", speakFail: "La lectura en voz alta no ha funcionado:",
+    prepared: "Ya preparado: «Volver a generar» lo calcula de nuevo.", feature: "Esta función está desactivada en los ajustes, en «IA».", noFeature: "Todas las funciones de esta ventana están desactivadas en los ajustes, en «IA»." },
 };
 const lang = (messenger.i18n.getUILanguage() || "en").slice(0, 2).toLowerCase();
 const t = TEXTS[lang] || TEXTS.en;
@@ -82,7 +90,7 @@ for (const code of nbAI.TRANSLATE_LANGS) {
 }
 
 // Gerechnet wird im Hintergrund (ai/jobs.js); hier nur Anzeige. Ergebnis je Reiter (Wechsel ohne neues Rechnen).
-const state = Object.fromEntries(MODES.map(m => [m, { key: null, text: "", items: null, error: "", notes: [], warn: false, busy: false, done: false }]));
+const state = Object.fromEntries(MODES.map(m => [m, { key: null, text: "", items: null, error: "", notes: [], warn: false, busy: false, done: false, deadlines: null }]));
 const params = new URLSearchParams(location.search);
 const inWindow = params.has("ids") || params.has("msg"); // eigenes Fenster statt Popup
 let mode = "summary";
@@ -90,7 +98,7 @@ let source = null; // {messageId, tabId} oder {ids} – einmal ermittelt
 let opened = 0;
 const port = messenger.runtime.connect({ name: "nbx-ai" });
 const keyOf = r => [r.mode, r.ids ? `t${r.ids.join(",")}` : `m${r.messageId}`, r.mode === "translate" ? r.toLang : "", r.uiLang].join("|");
-const NOTE_TEXT = n => (n.k === "remote" ? t.remote.replace("$1", n.v) : n.k === "quoted" ? t.quotedOmitted : n.k === "truncated" ? t.truncated : "");
+const NOTE_TEXT = n => (n.k === "remote" ? t.remote.replace("$1", n.v) : n.k === "quoted" ? t.quotedOmitted : n.k === "truncated" ? t.truncated : n.k === "prepared" ? t.prepared : "");
 
 // Stand eines Auftrags aus dem Hintergrund übernehmen (nur den zuletzt angeforderten je Reiter)
 port.onMessage.addListener(j => {
@@ -104,6 +112,9 @@ port.onMessage.addListener(j => {
   s.error = j.error ? t[j.error] || `${t.fail}\n${j.error}` : "";
   s.busy = j.status === "running";
   s.done = j.status !== "running";
+  // Fristen unter der Zusammenfassung (Hintergrund liefert sie nach); „erinnert“ bleibt beim erneuten Anzeigen erhalten
+  const [subject, ...by] = (j.from || "").split(" – ");
+  s.deadlines = j.deadlines?.length ? j.deadlines.map(d => ({ ...d, msgId: j.msgKey, subject, author: by.join(" – ") })) : null;
   if (j.model) $("model").textContent = j.model;
   if (j.mode === mode) show();
 });
@@ -199,9 +210,26 @@ function show() {
   $("toCalendar").hidden = !hasItems;
   if (hasItems) updateCalendarButton();
   $("copy").hidden = isEvents;
+  if (mode === "summary" && s.done && s.deadlines) {
+    if ($("deadlines").dataset.key !== s.key) {
+      $("deadlines").dataset.key = s.key;
+      nbDeadlines.render($("deadlines"), s.deadlines, key => {
+        s.error = t[key] || `${t.fail}\n${key}`;
+        show();
+      });
+    }
+    $("deadlines").hidden = false;
+  } else {
+    $("deadlines").hidden = true;
+  }
+  // Vorlesen läuft im Hintergrund (ai/speech.js); hier nur Knopf und Zustand für den Text dieses Reiters
+  const reading = speech.status !== "idle" && speech.key === s.key;
+  $("speak").hidden = !reading && (!speechCfg || !nbAI.feature(features, "speech") || isEvents || !s.done || !s.text);
+  $("speak").textContent = !reading ? t.speak : speech.status === "loading" ? t.speakWait : t.speakStop;
+  const speakErr = speech.error && speech.error.key === s.key ? `${t.speakFail}\n${t[speech.error.text] || speech.error.text}` : "";
   $("again").disabled = s.busy && !s.text;
-  $("err").hidden = !s.error;
-  $("err").textContent = s.error;
+  $("err").hidden = !s.error && !speakErr;
+  $("err").textContent = s.error || speakErr;
   const notes = [...s.notes, ...(hasItems ? [opened ? t.opened.replace("$1", String(opened)) : t.calendarHint] : [])];
   $("note").hidden = notes.length === 0;
   $("note").textContent = notes.join(" ");
@@ -209,7 +237,21 @@ function show() {
   $("warn").textContent = s.warn ? t.injection : "";
 }
 
+// Funktionen, die in den Einstellungen aus sind: Reiter weg; ist alles aus, nur ein Hinweis
+let features = {};
+let fixedCalendar = "";
+const enabledModes = () => MODES.filter(m => nbAI.feature(features, m));
+
 function select(next) {
+  if (!enabledModes().includes(next)) {
+    next = enabledModes()[0];
+    if (!next) {
+      for (const b of tabs) b.hidden = true;
+      $("out").textContent = t.noFeature;
+      for (const id of ["again", "copy", "speak", "toCalendar", "translateBar", "detach"]) $(id).hidden = true;
+      return;
+    }
+  }
   mode = next;
   messenger.storage.local.set({ aiLastMode: mode }).catch(() => {});
   show();
@@ -261,6 +303,7 @@ async function run(which, force = false) {
     const src = await getSource();
     const r = { type: "start", mode: which, uiLang: lang, toLang: $("toLang").value, force, ...src };
     s.key = keyOf(r);
+    if (force && speech.key === s.key) speechPort.postMessage({ type: "stop" }); // neuer Text: altes Vorlesen beenden
     Object.assign(s, { text: "", items: null, error: "", notes: [], warn: false, busy: true, done: false });
     show();
     port.postMessage(r);
@@ -285,6 +328,26 @@ $("detach").addEventListener("click", async () => {
   }
 });
 
+// ---- Vorlesen (nur mit dem NovaBird Helper): Auftrag an die Hintergrundseite (ai/speech.js), die liest weiter, wenn das
+// Popup zugeht. Sprache: Zielsprache beim Übersetzen, sonst am Text erkannt (Zusammenfassung „in der Sprache der Mail“).
+let speechCfg = null; // KI-Einstellungen, wenn der Helper die Schnittstelle ist und eine Stimme hat
+let speech = { key: null, status: "idle", error: null };
+const speechPort = messenger.runtime.connect({ name: "nbx-speech" });
+speechPort.onMessage.addListener(m => {
+  if (m?.type !== "speech") return;
+  speech = m;
+  show();
+});
+
+$("speak").textContent = t.speak;
+$("speak").addEventListener("click", () => {
+  const s = state[mode];
+  if (speech.status !== "idle" && speech.key === s.key) return speechPort.postMessage({ type: "stop" });
+  const fallback = mode === "translate" ? $("toLang").value : speechCfg.aiLang && !["ui", "mail"].includes(speechCfg.aiLang) ? speechCfg.aiLang : lang;
+  const code = mode === "translate" ? fallback : nbAI.guessLang(s.text, fallback);
+  speechPort.postMessage({ type: "speak", key: s.key, text: s.text, lang: code });
+});
+
 $("again").addEventListener("click", () => run(mode, true));
 $("toLang").addEventListener("change", () => {
   messenger.storage.local.set({ aiTranslateTo: $("toLang").value }).catch(() => {});
@@ -300,7 +363,7 @@ $("toCalendar").addEventListener("click", async () => {
   try {
     const fields = ["type", "title", "start", "end", "due", "allDay", "location", "description"];
     opened = await messenger.novaCalendar.openItemDialogs(chosen.map(it =>
-      Object.fromEntries(fields.filter(k => it[k] !== undefined && it[k] !== "").map(k => [k, it[k]]))));
+      Object.fromEntries(fields.filter(k => it[k] !== undefined && it[k] !== "").map(k => [k, it[k]]))), fixedCalendar || undefined);
   } catch (e) {
     const key = String(e.message || e).replace(/^Error: /, "");
     state.events.error = t[key] || `${t.fail}\n${key}`;
@@ -316,9 +379,20 @@ $("settings").addEventListener("click", () => {
 });
 
 (async () => {
-  const saved = await messenger.storage.local.get({ aiLastMode: "summary", aiTranslateTo: "" }).catch(() => ({}));
+  const saved = await messenger.storage.local.get({ aiLastMode: "summary", aiTranslateTo: "", aiFeatures: {}, aiCalendar: "" }).catch(() => ({}));
+  features = { aiFeatures: saved.aiFeatures || {} };
+  fixedCalendar = saved.aiCalendar || "";
+  for (const b of tabs) b.hidden = !nbAI.feature(features, b.dataset.mode);
   const to = nbAI.TRANSLATE_LANGS.includes(saved.aiTranslateTo) ? saved.aiTranslateTo : nbAI.TRANSLATE_LANGS.includes(lang) ? lang : "en";
   $("toLang").value = to;
   const wanted = params.get("mode");
   select(MODES.includes(wanted) ? wanted : MODES.includes(saved.aiLastMode) ? saved.aiLastMode : "summary");
+  // Knopf „Vorlesen“ nur, wenn der Helper die KI-Schnittstelle ist und eine Stimme hat (kurze Nachfrage beim Helper)
+  const conf = { ...nbAI.DEFAULTS, ...(await messenger.storage.local.get(nbAI.DEFAULTS).catch(() => ({}))) };
+  if (conf.aiEnabled && conf.aiType === "nbhelper") {
+    nbAI.helperHello(conf.aiUrl, conf.aiKey).then(info => {
+      speechCfg = info.speech?.available ? conf : null;
+      show();
+    }).catch(() => {});
+  }
 })();

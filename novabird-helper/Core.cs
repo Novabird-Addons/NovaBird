@@ -16,6 +16,7 @@ sealed class Core
     public readonly WebServer Web;
     public readonly ModelSpec Model;
     public readonly Ollama Ollama = new();
+    public readonly Speech Speech = new();
     public readonly DateTime Started = DateTime.Now;
     // Zustände entstehen im Hintergrund und werden später in der Sprache des Betrachters angezeigt: beide Sprachen merken
     Txt preparing, lastError;
@@ -30,6 +31,7 @@ sealed class Core
         Model = model;
         Server = new NetServer(model, port, loopbackOnly);
         Server.Chat.Ollama = Ollama;
+        Server.Speech = Speech;
         Web = new WebServer(this, WebPortSetting, loopbackOnly || !WebLan);
         Server.WebInfo = () => new JsonObject { ["port"] = Web.Port, ["lan"] = !Web.LocalOnly, ["fingerprint"] = Web.Fingerprint };
     }
@@ -51,6 +53,7 @@ sealed class Core
     {
         Web.Stop();
         Ollama.Stop();
+        Speech.Stop();
         Server.Stop();
     }
 

@@ -33,6 +33,8 @@
     <!-- Web-Oberfläche (WebServer.cs) als Ressourcen in der exe -->
     <EmbeddedResource Include="web\*" LogicalName="web/%(Filename)%(Extension)" />
     <EmbeddedResource Include="nbhelper.ico" LogicalName="web/favicon.ico" />
+    <!-- Vorlesen (Speech.cs): Dienst-Skript für Qwen3-TTS -->
+    <EmbeddedResource Include="tts/nbtts.py" LogicalName="tts/nbtts.py" />
   </ItemGroup>
   <ItemGroup>
     <!-- Windows ML: ONNX Runtime 1.24 + DirectML 1.15 + GenAI 0.18 (Sprachmodelle), eine Laufzeit für alles -->

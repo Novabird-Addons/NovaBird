@@ -9,28 +9,32 @@ const TEXTS = {
     open: "Mail öffnen", remote: "Die Mailtexte werden an $1 gesendet.", injection: "Unter den Mails sind Sätze, die wie Anweisungen an KI-Systeme aussehen. Den Überblick mit Vorsicht lesen.",
     fail: "Das hat nicht geklappt:", disabled: "Die KI ist ausgeschaltet. Sie lässt sich in den Einstellungen unter „KI“ einschalten.", off: "Die KI ist nicht eingerichtet. Adresse und Modell stehen in den Einstellungen unter „KI“.", model: "Es ist kein Modell eingetragen.",
     permission: "Für diese Adresse fehlt die Erlaubnis. Bitte in den Einstellungen unter „KI“ speichern und die Erlaubnis bestätigen.", url: "Die Adresse ist ungültig.", code: "Der Kopplungscode passt nicht (Web-Oberfläche des Helpers → Verbindung).", nomodel: "Im Helper ist kein Sprachmodell gewählt (Web-Oberfläche → Sprachmodell).", answer: "Die Antwort des Helpers ließ sich nicht prüfen.", helper: "Fehler im Helper.",
-    forbidden: "Der Server hat die Anfrage abgelehnt (403). Bei Ollama hilft die Umgebungsvariable OLLAMA_ORIGINS=moz-extension://*." },
+    forbidden: "Der Server hat die Anfrage abgelehnt (403). Bei Ollama hilft die Umgebungsvariable OLLAMA_ORIGINS=moz-extension://*.",
+    sorting: "Ordne die Mails ein: $1 von $2 …", feature: "„Was gibt's Neues?“ ist in den Einstellungen unter „KI“ ausgeschaltet." },
   en: { sched: "Automatically", schedOff: "off", schedDaily: "daily at", schedHours: "every … hours", everyFmt: "$1 h", stand: "As of $1", standAuto: "As of $1 (automatic)", tasks: "Tasks for today ($1)", tasksDone: "$1 task(s) created in calendar “$2”, due today.", nocalendar: "There is no enabled calendar for tasks.", fromMail: "From the e-mail", todo: /^(to do|tasks)/i, title: "What's new?", period: "Period", unread: "unread only", hours: { 12: "last 12 hours", 24: "last 24 hours", 72: "last 3 days", 168: "last 7 days" },
     again: "Refresh", copy: "Copy", copied: "Copied", settings: "Settings", reading: "Reading the new mail …", working: "Writing the overview of $1 messages …",
     none: "No new mail in the chosen period.", count: "$1 messages included.", more: "$1 new messages; the newest $2 are included.",
     open: "Open message", remote: "The message texts are sent to $1.", injection: "Some messages contain sentences that look like instructions to AI systems. Read the overview with caution.",
     fail: "That did not work:", disabled: "AI is switched off. You can switch it on in the settings under “AI”.", off: "AI is not set up. Address and model are in the settings under “AI”.", model: "No model has been entered.",
     permission: "Permission for this address is missing. Please save it in the settings under “AI” and confirm the permission.", url: "The address is invalid.", code: "The pairing code does not match (helper web interface → Connection).", nomodel: "No language model is selected in the helper (web interface → Language model).", answer: "The helper's answer could not be verified.", helper: "Error in the helper.",
-    forbidden: "The server refused the request (403). For Ollama set the environment variable OLLAMA_ORIGINS=moz-extension://*." },
+    forbidden: "The server refused the request (403). For Ollama set the environment variable OLLAMA_ORIGINS=moz-extension://*.",
+    sorting: "Sorting the messages: $1 of $2 …", feature: "“What's new?” is switched off in the settings under “AI”." },
   fr: { sched: "Automatique", schedOff: "désactivé", schedDaily: "chaque jour à", schedHours: "toutes les … heures", everyFmt: "$1 h", stand: "État $1", standAuto: "État $1 (automatique)", tasks: "Tâches pour aujourd’hui ($1)", tasksDone: "$1 tâche(s) créée(s) dans l’agenda « $2 », pour aujourd’hui.", nocalendar: "Aucun agenda activé pour les tâches.", fromMail: "Tiré de l’e-mail", todo: /^(à faire|tâches)/i, title: "Quoi de neuf ?", period: "Période", unread: "non lus seulement", hours: { 12: "12 dernières heures", 24: "24 dernières heures", 72: "3 derniers jours", 168: "7 derniers jours" },
     again: "Actualiser", copy: "Copier", copied: "Copié", settings: "Paramètres", reading: "Lecture des nouveaux messages …", working: "Rédaction de l’aperçu de $1 messages …",
     none: "Aucun nouveau message pendant la période choisie.", count: "$1 messages pris en compte.", more: "$1 nouveaux messages ; les $2 plus récents sont pris en compte.",
     open: "Ouvrir le message", remote: "Les textes des messages sont envoyés à $1.", injection: "Certains messages contiennent des phrases qui ressemblent à des instructions pour des systèmes d’IA. Lisez l’aperçu avec prudence.",
     fail: "Cela n’a pas fonctionné :", disabled: "L’IA est désactivée. Vous pouvez l’activer dans les paramètres sous « IA ».", off: "L’IA n’est pas configurée. L’adresse et le modèle se trouvent dans les paramètres sous « IA ».", model: "Aucun modèle n’est indiqué.",
     permission: "L’autorisation pour cette adresse manque. Enregistrez-la dans les paramètres sous « IA » et confirmez l’autorisation.", url: "L’adresse est invalide.", code: "Le code d’appairage ne correspond pas (interface web du helper → Connexion).", nomodel: "Aucun modèle de langage n’est choisi dans le helper (interface web → Modèle de langage).", answer: "La réponse du helper n’a pas pu être vérifiée.", helper: "Erreur dans le helper.",
-    forbidden: "Le serveur a refusé la requête (403). Avec Ollama, définissez la variable d’environnement OLLAMA_ORIGINS=moz-extension://*." },
+    forbidden: "Le serveur a refusé la requête (403). Avec Ollama, définissez la variable d’environnement OLLAMA_ORIGINS=moz-extension://*.",
+    sorting: "Classement des messages : $1 sur $2 …", feature: "« Quoi de neuf ? » est désactivé dans les paramètres sous « IA »." },
   es: { sched: "Automático", schedOff: "desactivado", schedDaily: "cada día a las", schedHours: "cada … horas", everyFmt: "$1 h", stand: "Estado $1", standAuto: "Estado $1 (automático)", tasks: "Tareas para hoy ($1)", tasksDone: "$1 tarea(s) creada(s) en el calendario «$2», para hoy.", nocalendar: "No hay ningún calendario activado para tareas.", fromMail: "Del correo", todo: /^(pendiente|tareas)/i, title: "¿Qué hay de nuevo?", period: "Periodo", unread: "solo no leídos", hours: { 12: "últimas 12 horas", 24: "últimas 24 horas", 72: "últimos 3 días", 168: "últimos 7 días" },
     again: "Actualizar", copy: "Copiar", copied: "Copiado", settings: "Ajustes", reading: "Leyendo el correo nuevo …", working: "Preparando el resumen de $1 mensajes …",
     none: "No hay correo nuevo en el periodo elegido.", count: "$1 mensajes incluidos.", more: "$1 mensajes nuevos; se incluyen los $2 más recientes.",
     open: "Abrir mensaje", remote: "Los textos de los mensajes se envían a $1.", injection: "Algunos mensajes contienen frases que parecen instrucciones para sistemas de IA. Lea el resumen con precaución.",
     fail: "No ha funcionado:", disabled: "La IA está desactivada. Puede activarla en los ajustes, en «IA».", off: "La IA no está configurada. La dirección y el modelo están en los ajustes, en «IA».", model: "No se ha indicado ningún modelo.",
     permission: "Falta el permiso para esta dirección. Guárdela en los ajustes, en «IA», y confirme el permiso.", url: "La dirección no es válida.", code: "El código de emparejamiento no coincide (interfaz web del helper → Conexión).", nomodel: "No hay ningún modelo de lenguaje elegido en el helper (interfaz web → Modelo de lenguaje).", answer: "No se pudo verificar la respuesta del helper.", helper: "Error en el helper.",
-    forbidden: "El servidor rechazó la solicitud (403). Con Ollama defina la variable de entorno OLLAMA_ORIGINS=moz-extension://*." },
+    forbidden: "El servidor rechazó la solicitud (403). Con Ollama defina la variable de entorno OLLAMA_ORIGINS=moz-extension://*.",
+    sorting: "Clasificando los mensajes: $1 de $2 …", feature: "«¿Qué hay de nuevo?» está desactivado en los ajustes, en «IA»." },
 };
 const lang = (messenger.i18n.getUILanguage() || "en").slice(0, 2).toLowerCase();
 const t = TEXTS[lang] || TEXTS.en;
@@ -136,9 +140,10 @@ async function fillTaskCalendars() {
   const list = await messenger.novaCalendar.taskCalendars().catch(() => []);
   const sel = $("taskCal");
   sel.replaceChildren(...list.map(c => new Option(c.name, c.id)));
-  const { [TASK_CAL]: saved } = await messenger.storage.local.get({ [TASK_CAL]: "" });
-  sel.value = list.some(c => c.id === saved) ? saved : list.find(c => c.selected)?.id || list[0]?.id || "";
-  sel.dataset.many = list.length > 1 ? "1" : "";
+  const { [TASK_CAL]: saved, aiCalendar } = await messenger.storage.local.get({ [TASK_CAL]: "", aiCalendar: "" });
+  const fixed = list.some(c => c.id === aiCalendar) ? aiCalendar : "";
+  sel.value = fixed || (list.some(c => c.id === saved) ? saved : list.find(c => c.selected)?.id || list[0]?.id || "");
+  sel.dataset.many = list.length > 1 && !fixed ? "1" : ""; // fester Kalender (Einstellungen): keine Auswahl
   updateTasksButton();
 }
 $("taskCal").addEventListener("change", () => messenger.storage.local.set({ [TASK_CAL]: $("taskCal").value }));
@@ -186,17 +191,21 @@ async function run() {
     if (!conf.aiEnabled) throw new Error("disabled");
     if (!conf.aiUrl) throw new Error("off");
     if (!conf.aiModel && conf.aiType !== "nbhelper") throw new Error("model");
+    if (!nbAI.feature(conf, "overview")) throw new Error("feature");
     const hours = Number($("period").value) || 24;
     let first = true;
-    const res = await nbAI.overview(conf, lang, { hours, unreadOnly: $("unread").checked, max: MAX_MAILS, perMail: PER_MAIL }, partial => {
-      if (partial || !first) {
-        first = false;
-        render(partial);
-      }
-    }, signal);
+    const res = conf.aiPrepare
+      ? await preparedOverview({ hours, unreadOnly: $("unread").checked, max: MAX_MAILS }, signal)
+      : await nbAI.overview(conf, lang, { hours, unreadOnly: $("unread").checked, max: MAX_MAILS, perMail: PER_MAIL }, partial => {
+        if (partial || !first) {
+          first = false;
+          render(partial);
+        }
+      }, signal);
     const notes = [];
     if (!nbAI.isLocal(nbAI.base(conf))) notes.push(t.remote.replace("$1", new URL(nbAI.base(conf)).host));
     showResult(res, notes);
+    showDeadlines();
     messenger.storage.local.set({ [LAST]: { at: Date.now(), scheduled: false, seen: true, hours, ...res } }).catch(() => {});
   } catch (e) {
     if (e.name === "AbortError") return;
@@ -205,6 +214,33 @@ async function run() {
   } finally {
     $("out").classList.remove("busy");
   }
+}
+
+// „Vorbereiten“ an: Die Hintergrundseite ordnet jede Mail einzeln ein (fehlende jetzt, mit Helper auch von anderen PCs) und
+// setzt den Überblick daraus zusammen (ai/prep.js)
+function preparedOverview(opts, signal) {
+  return new Promise((resolve, reject) => {
+    const port = messenger.runtime.connect({ name: "nbx-prep" });
+    signal.addEventListener("abort", () => {
+      port.disconnect();
+      reject(new DOMException("abgebrochen", "AbortError"));
+    });
+    port.onMessage.addListener(m => {
+      if (m.type === "progress" && m.total) $("out").textContent = t.sorting.replace("$1", String(Math.min(m.done + 1, m.total))).replace("$2", String(m.total));
+      if (m.type === "result") resolve(m.res);
+      if (m.type === "error") reject(new Error(m.error));
+      if (m.type !== "progress") port.disconnect();
+    });
+    port.postMessage({ type: "overview", uiLang: lang, ...opts });
+  });
+}
+
+// Fristen der nächsten 7 Tage aus den eingeordneten Mails (Einstellung „Fristen“)
+async function showDeadlines() {
+  const conf = await messenger.storage.local.get({ aiFeatures: {} });
+  if (!nbAI.feature(conf, "deadlines")) return;
+  const list = await messenger.runtime.sendMessage({ type: "nbx-deadlines", days: 7 }).catch(() => []);
+  nbDeadlines.render($("deadlines"), list || [], key => showError(key));
 }
 
 // Ausgewählte Zeilen unter „Zu erledigen“ als Aufgaben (fällig heute) anlegen
@@ -276,6 +312,7 @@ $("settings").addEventListener("click", () => {
     const conf = { ...nbAI.DEFAULTS, ...(await messenger.storage.local.get(nbAI.DEFAULTS)) };
     $("model").textContent = conf.aiType === "nbhelper" ? "NovaBird Helper" : conf.aiModel;
     showResult(last, [(last.scheduled ? t.standAuto : t.stand).replace("$1", time(last.at))]);
+    showDeadlines();
     messenger.storage.local.set({ [LAST]: { ...last, seen: true } }).catch(() => {});
     return;
   }

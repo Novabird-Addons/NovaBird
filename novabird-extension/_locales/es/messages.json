@@ -13,5 +13,11 @@
   },
   "aiOverviewTitle": {
     "message": "Resumen IA del correo nuevo"
+  },
+  "aiWrite": {
+    "message": "IA"
+  },
+  "aiWriteTitle": {
+    "message": "Ayuda de redacción IA: respuesta, corrección, tono, traducción"
   }
 }

@@ -20,6 +20,7 @@ const DEFAULTS = {
   listAcctColors: {},
   rulesEnabled: false,
   aiEnabled: false,
+  aiFeatures: {}, // KI-Funktionen einzeln aus (false); fehlend = an
   colors: { bg: "#EEF2F8", fg: "#1B2433", border: "#D2DAE6", accent: "#2F6BD8" },
   mainColors: { light: {}, dark: {} }, // geänderte Farben des Hauptfensters (nur was vom Theme abweicht), je Hell/Dunkel
   fontFamily: "", fontRow: 100, fontPad: 100, // Schriftart, Zeilenhöhe und -abstand im Hauptfenster
@@ -27,6 +28,16 @@ const DEFAULTS = {
   fontSettings: 100, fontContact: 100, // Einstellungen/Konten, Nova-Contact
   screenEnabled: false, screenFhd: 100, screenQhd: 125, screenUhd: 150, // Screen Scaling (experimentell): Skalierung in Prozent je Auflösung
 };
+
+// KI-Knöpfe: alle nur mit eingeschalteter KI; der Knopf der Nachrichtenansicht, solange einer seiner Reiter an ist
+function applyAiButtons(s) {
+  const on = k => s.aiFeatures?.[k] !== false;
+  return messenger.settingsRedesign.setAiButton(s.aiEnabled === true, {
+    display: on("summary") || on("translate") || on("events"),
+    overview: on("overview"),
+    compose: on("compose"),
+  });
+}
 
 const ACCT_PALETTE = ["#378ADD", "#1D9E75", "#D85A30", "#7F77DD", "#BA7517", "#D4537E", "#0F6E56", "#888780"];
 
@@ -141,7 +152,7 @@ async function applySettings() {
   await safe("Vorschau", () => messenger.attachPreview.setEnabled(s.previewEnabled !== false));
   await safe("Nachrichtenliste", () => applyList(s));
   await safe("Regel-Assistent", () => messenger.mailRules.setEnabled(s.rulesEnabled === true, ruleMenuLabel()));
-  await safe("KI-Knopf", () => messenger.settingsRedesign.setAiButton(s.aiEnabled === true));
+  await safe("KI-Knopf", () => applyAiButtons(s));
   await safe("Schriftgrößen", () => applyFonts(s));
   await safe("Hauptfenster-Stil", () => applyMain(s));
   await safe("Screen Scaling", () => applyScreen(s));
@@ -210,8 +221,8 @@ messenger.runtime.onMessageExternal.addListener((message, sender) => {
 });
 async function conversationMessage(message) {
   if (message?.type === "aiAvailable") {
-    const c = await messenger.storage.local.get({ aiEnabled: false, aiType: "", aiUrl: "", aiModel: "" });
-    return { available: Boolean(c.aiEnabled && c.aiUrl && (c.aiModel || c.aiType === "nbhelper")) };
+    const c = await messenger.storage.local.get({ aiEnabled: false, aiType: "", aiUrl: "", aiModel: "", aiFeatures: {} });
+    return { available: Boolean(c.aiEnabled && c.aiUrl && (c.aiModel || c.aiType === "nbhelper") && c.aiFeatures?.summary !== false) };
   }
   if (message?.type === "summarize" && Array.isArray(message.ids) && message.ids.length <= 120 && message.ids.every(Number.isInteger)) {
     await messenger.windows.create({
@@ -225,8 +236,11 @@ async function conversationMessage(message) {
   return undefined;
 }
 
-// Diagnose für die Optionsseite
-messenger.runtime.onMessage.addListener(async message => {
+// Diagnose für die Optionsseite. Nur eigene Nachrichten beantworten: ein async-Listener lieferte sonst für jede Nachricht
+// (z. B. Fristen an ai/prep.js) zuerst undefined und überholte die richtige Antwort.
+const OPTION_MESSAGES = ["openRules", "themeColors", "screenInfo", "status"];
+messenger.runtime.onMessage.addListener(message => (OPTION_MESSAGES.includes(message?.type) ? optionMessage(message) : undefined));
+async function optionMessage(message) {
   if (message?.type === "openRules") {
     await safe("Regel-Assistent öffnen", () => openRuleWizard(null));
     return true;
@@ -254,7 +268,7 @@ messenger.runtime.onMessage.addListener(async message => {
     }
   }
   return undefined;
-});
+}
 
 messenger.storage.onChanged.addListener(async changes => {
   if (changes.resetTick) {
@@ -287,8 +301,8 @@ messenger.storage.onChanged.addListener(async changes => {
   if (keys.includes("previewEnabled")) {
     safe("Vorschau", () => messenger.attachPreview.setEnabled(s.previewEnabled !== false));
   }
-  if (keys.includes("aiEnabled")) {
-    safe("KI-Knopf", () => messenger.settingsRedesign.setAiButton(s.aiEnabled === true));
+  if (keys.includes("aiEnabled") || keys.includes("aiFeatures")) {
+    safe("KI-Knopf", () => applyAiButtons(s));
   }
   if (keys.includes("rulesEnabled")) {
     safe("Regel-Assistent", () => messenger.mailRules.setEnabled(s.rulesEnabled === true, ruleMenuLabel()));

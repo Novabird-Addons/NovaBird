@@ -95,11 +95,20 @@
                 "due": { "type": "string", "optional": true },
                 "allDay": { "type": "boolean", "optional": true },
                 "location": { "type": "string", "optional": true },
-                "description": { "type": "string", "optional": true }
+                "description": { "type": "string", "optional": true },
+                "alarm": { "type": "string", "optional": true, "description": "dayBefore: Erinnerung am Vortag um 9 Uhr (Aufgaben mit Fälligkeit)" }
               }
             }
-          }
+          },
+          { "name": "calendarId", "type": "string", "optional": true, "description": "Fester Kalender (Einstellungen); sonst wählt man im Dialog" }
         ]
+      },
+      {
+        "name": "itemCalendars",
+        "type": "function",
+        "async": true,
+        "description": "Beschreibbare, eingeschaltete Kalender: [{id, name, color, events, tasks}].",
+        "parameters": []
       },
       {
         "name": "taskCalendars",

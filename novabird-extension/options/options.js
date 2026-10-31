@@ -126,7 +126,7 @@ const TEXTS = {
     tabAi: "KI",
     aiTitle: "KI-Assistent",
     aiSrcHelper: "NovaBird Helper ($1) – verbunden im Reiter „NovaBird Helper“", aiSrcHelperNone: "NovaBird Helper – zuerst im Reiter „NovaBird Helper“ verbinden", aiSrcOwn: "Eigener Server (Ollama, OpenAI-kompatibel)",
-    aiDesc: "Fasst Nachrichten zusammen, übersetzt sie, findet Termine und Aufgaben (zum Prüfen im Termin-Dialog) und gibt mit „Was gibt's Neues?“ oben in der Leiste einen Überblick über die neuen Mails. Nichts geschieht automatisch: Erst ein Klick auf „KI-Assistent“ in der Nachrichtenansicht oder auf „Was gibt's Neues?“ sendet Mailtexte an die Adresse unten. Gedacht für ein Modell auf dem eigenen Rechner (Ollama, NovaBird Helper) oder einen OpenAI-kompatiblen Dienst.",
+    aiDesc: "Fasst Nachrichten zusammen, übersetzt sie, findet Termine und Aufgaben (zum Prüfen im Termin-Dialog) und gibt mit „Was gibt's Neues?“ oben in der Leiste einen Überblick über die neuen Mails. Ohne „Vorbereiten“ (unten) geschieht nichts automatisch: Erst ein Klick auf „KI-Assistent“ in der Nachrichtenansicht oder auf „Was gibt's Neues?“ sendet Mailtexte an die Adresse unten. Gedacht für ein Modell auf dem eigenen Rechner (Ollama, NovaBird Helper) oder einen OpenAI-kompatiblen Dienst.",
     aiCtxLabel: "Kontextlänge (Token)",
     aiPromptTitle: "Anweisung an die KI",
     aiPromptDesc: "Das ist der Text, den das Modell zusammen mit der Mail erhält. Der Hauptteil steht vor dem Mailtext, die letzten beiden Sätze dahinter (der letzte nur bei verdächtigen Mails); ändern lässt er sich hier nicht. Platzhalter: {ZIEL} wird zur gewählten Sprache, {OPEN} und {CLOSE} sind Markierungen mit zufälliger Kennung, zwischen denen der Mailtext steht.",
@@ -151,6 +151,23 @@ const TEXTS = {
     aiFail: "Fehlgeschlagen: $1",
     aiPerm: "Erlaubnis für diese Adresse nicht erteilt.",
     aiRemote: "Achtung: Diese Adresse liegt nicht auf diesem Rechner. Beim Zusammenfassen wird der Text der Mail dorthin gesendet.",
+    aiHelperModelLabel: "Sprachmodell",
+    aiHelperModelDefault: "Wie im Helper eingestellt ($1)",
+    aiHelperModelHint: "Gilt nur für diesen PC. Ein anderes Modell als im Helper lädt dort beim ersten Mal neu (einige Sekunden) und braucht Grafikspeicher.",
+    aiFeatTitle: "Funktionen",
+    aiFeatDesc: "Was ausgeschaltet ist, verschwindet aus den KI-Fenstern; sind alle drei Reiter aus, auch der Knopf „KI-Assistent“.",
+    aiFeatSummary: "Zusammenfassung",
+    aiFeatTranslate: "Übersetzen",
+    aiFeatEvents: "Termine und Aufgaben",
+    aiFeatDeadlines: "Fristen (unter der Zusammenfassung und im Überblick)",
+    aiFeatOverview: "Was gibt's Neues? (Überblick)",
+    aiFeatSpeech: "Vorlesen (nur mit NovaBird Helper)",
+    aiFeatCompose: "Schreiben (Knopf „KI“ im Verfassen-Fenster)",
+    aiCalendarLabel: "Termine und Aufgaben in",
+    aiCalendarAsk: "Jedes Mal fragen",
+    aiPrepTitle: "Vorbereiten",
+    aiPrepareLabel: "Neue Mails gleich beim Eintreffen vorbereiten",
+    aiPrepareDesc: "Jede neue Mail im Posteingang wird sofort eingeordnet (Abschnitt, ein Satz, Aufgaben und Fristen), längere Mails bekommen schon ihre Zusammenfassung – ebenso eine längere Mail, die du 2 Sekunden offen hast. „Was gibt's Neues?“ ist dann sofort da. Dafür geht jede neue Mail automatisch an die KI-Adresse oben. Mit dem NovaBird Helper rechnet nur ein PC je Mail; die anderen PCs derselben Gruppe holen das Ergebnis verschlüsselt ab.",
     aiNote: "Zugangsdaten werden im Profil dieses Add-ons gespeichert (nicht verschlüsselt). Mit Benutzername wird Basic-Anmeldung verwendet, sonst das Passwort als Bearer-Schlüssel. Empfohlen: Ollama mit einem Modell wie gemma3:12b oder qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact im Kontakte-Tab",
@@ -382,7 +399,7 @@ const TEXTS = {
     tabAi: "AI",
     aiTitle: "AI assistant",
     aiSrcHelper: "NovaBird Helper ($1) – connected in the “NovaBird Helper” tab", aiSrcHelperNone: "NovaBird Helper – connect it first in the “NovaBird Helper” tab", aiSrcOwn: "Own server (Ollama, OpenAI-compatible)",
-    aiDesc: "Summarises and translates messages, finds appointments and tasks (to review in the event dialog) and, with “What's new?” in the toolbar, gives an overview of new mail. Nothing happens automatically: only a click on “AI assistant” in the message view or on “What's new?” sends mail text to the address below. Meant for a model on your own computer (Ollama, NovaBird Helper) or an OpenAI-compatible service.",
+    aiDesc: "Summarises and translates messages, finds appointments and tasks (to review in the event dialog) and, with “What's new?” in the toolbar, gives an overview of new mail. Without “Prepare” (below) nothing happens automatically: only a click on “AI assistant” in the message view or on “What's new?” sends mail text to the address below. Meant for a model on your own computer (Ollama, NovaBird Helper) or an OpenAI-compatible service.",
     aiCtxLabel: "Context length (tokens)",
     aiPromptTitle: "Instruction to the AI",
     aiPromptDesc: "This is the text the model receives together with the mail. The main part comes before the mail text, the last two sentences after it (the last one only for suspicious mails); it cannot be changed here. Placeholders: {ZIEL} becomes the chosen language, {OPEN} and {CLOSE} are markers with a random ID between which the mail text is placed.",
@@ -407,6 +424,23 @@ const TEXTS = {
     aiFail: "Failed: $1",
     aiPerm: "Permission for this address was not granted.",
     aiRemote: "Note: this address is not on this computer. When summarising, the text of the mail is sent there.",
+    aiHelperModelLabel: "Language model",
+    aiHelperModelDefault: "As set in the helper ($1)",
+    aiHelperModelHint: "Applies to this PC only. A model other than the helper's is loaded there the first time (a few seconds) and needs graphics memory.",
+    aiFeatTitle: "Functions",
+    aiFeatDesc: "What is switched off disappears from the AI windows; if all three tabs are off, so does the “AI assistant” button.",
+    aiFeatSummary: "Summary",
+    aiFeatTranslate: "Translate",
+    aiFeatEvents: "Appointments and tasks",
+    aiFeatDeadlines: "Deadlines (below the summary and in the overview)",
+    aiFeatOverview: "What's new? (overview)",
+    aiFeatSpeech: "Read aloud (NovaBird Helper only)",
+    aiFeatCompose: "Write (“AI” button in the compose window)",
+    aiCalendarLabel: "Appointments and tasks in",
+    aiCalendarAsk: "Ask every time",
+    aiPrepTitle: "Prepare",
+    aiPrepareLabel: "Prepare new mail as soon as it arrives",
+    aiPrepareDesc: "Every new message in the inbox is sorted right away (section, one sentence, tasks and deadlines); longer messages already get their summary – as does a longer message you keep open for 2 seconds. “What's new?” is then ready at once. For this, every new message is sent automatically to the AI address above. With the NovaBird Helper only one PC works on each message; the other PCs of the same group fetch the result in encrypted form.",
     aiNote: "Credentials are stored in this add-on’s profile data (not encrypted). With a user name Basic authentication is used, otherwise the password is sent as a bearer key. Recommended: Ollama with a model such as gemma3:12b or qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact in the Contacts tab",
@@ -638,7 +672,7 @@ const TEXTS = {
     tabAi: "IA",
     aiTitle: "Assistant IA",
     aiSrcHelper: "NovaBird Helper ($1) – connecté dans l’onglet « NovaBird Helper »", aiSrcHelperNone: "NovaBird Helper – à connecter d’abord dans l’onglet « NovaBird Helper »", aiSrcOwn: "Propre serveur (Ollama, compatible OpenAI)",
-    aiDesc: "Résume et traduit les messages, repère les rendez-vous et les tâches (à vérifier dans la fenêtre d’événement) et donne avec « Quoi de neuf ? » dans la barre un aperçu des nouveaux messages. Rien n’est automatique : seul un clic sur « Assistant IA » dans l’affichage du message ou sur « Quoi de neuf ? » envoie des textes à l’adresse ci-dessous. Prévu pour un modèle sur votre propre ordinateur (Ollama, NovaBird Helper) ou un service compatible OpenAI.",
+    aiDesc: "Résume et traduit les messages, repère les rendez-vous et les tâches (à vérifier dans la fenêtre d’événement) et donne avec « Quoi de neuf ? » dans la barre un aperçu des nouveaux messages. Sans « Préparer » (ci-dessous), rien n’est automatique : seul un clic sur « Assistant IA » dans l’affichage du message ou sur « Quoi de neuf ? » envoie des textes à l’adresse ci-dessous. Prévu pour un modèle sur votre propre ordinateur (Ollama, NovaBird Helper) ou un service compatible OpenAI.",
     aiCtxLabel: "Longueur de contexte (jetons)",
     aiPromptTitle: "Instruction donnée à l’IA",
     aiPromptDesc: "Voici le texte que le modèle reçoit avec le message. La partie principale précède le texte du message, les deux dernières phrases le suivent (la dernière seulement pour les messages suspects) ; il ne peut pas être modifié ici. Espaces réservés : {ZIEL} devient la langue choisie, {OPEN} et {CLOSE} sont des marqueurs à identifiant aléatoire entre lesquels se trouve le texte du message.",
@@ -663,6 +697,23 @@ const TEXTS = {
     aiFail: "Échec : $1",
     aiPerm: "L’autorisation pour cette adresse n’a pas été accordée.",
     aiRemote: "Attention : cette adresse n’est pas sur cet ordinateur. Lors du résumé, le texte du message y est envoyé.",
+    aiHelperModelLabel: "Modèle de langage",
+    aiHelperModelDefault: "Comme dans le helper ($1)",
+    aiHelperModelHint: "Vaut uniquement pour ce PC. Un autre modèle que celui du helper y est chargé la première fois (quelques secondes) et utilise de la mémoire graphique.",
+    aiFeatTitle: "Fonctions",
+    aiFeatDesc: "Ce qui est désactivé disparaît des fenêtres IA ; si les trois onglets sont désactivés, le bouton « Assistant IA » aussi.",
+    aiFeatSummary: "Résumé",
+    aiFeatTranslate: "Traduire",
+    aiFeatEvents: "Rendez-vous et tâches",
+    aiFeatDeadlines: "Échéances (sous le résumé et dans l’aperçu)",
+    aiFeatOverview: "Quoi de neuf ? (aperçu)",
+    aiFeatSpeech: "Lire à voix haute (avec NovaBird Helper)",
+    aiFeatCompose: "Écrire (bouton « IA » dans la fenêtre de rédaction)",
+    aiCalendarLabel: "Rendez-vous et tâches dans",
+    aiCalendarAsk: "Demander à chaque fois",
+    aiPrepTitle: "Préparer",
+    aiPrepareLabel: "Préparer les nouveaux messages dès leur arrivée",
+    aiPrepareDesc: "Chaque nouveau message de la boîte de réception est classé immédiatement (section, une phrase, tâches et échéances) ; les messages longs reçoivent déjà leur résumé – de même qu’un message long que vous gardez ouvert 2 secondes. « Quoi de neuf ? » est alors prêt tout de suite. Pour cela, chaque nouveau message est envoyé automatiquement à l’adresse IA ci-dessus. Avec NovaBird Helper, un seul PC traite chaque message ; les autres PC du même groupe récupèrent le résultat chiffré.",
     aiNote: "Les identifiants sont enregistrés dans les données de profil de ce module (non chiffrés). Avec un nom d’utilisateur, l’authentification Basic est utilisée, sinon le mot de passe est envoyé comme clé Bearer. Recommandé : Ollama avec un modèle comme gemma3:12b ou qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact dans l’onglet Contacts",
@@ -894,7 +945,7 @@ const TEXTS = {
     tabAi: "IA",
     aiTitle: "Asistente IA",
     aiSrcHelper: "NovaBird Helper ($1) – conectado en la pestaña «NovaBird Helper»", aiSrcHelperNone: "NovaBird Helper – conéctelo primero en la pestaña «NovaBird Helper»", aiSrcOwn: "Servidor propio (Ollama, compatible con OpenAI)",
-    aiDesc: "Resume y traduce mensajes, encuentra citas y tareas (para revisarlas en la ventana de evento) y, con «¿Qué hay de nuevo?» en la barra, da un resumen del correo nuevo. Nada ocurre automáticamente: solo un clic en «Asistente IA» en la vista del mensaje o en «¿Qué hay de nuevo?» envía textos a la dirección de abajo. Pensado para un modelo en su propio ordenador (Ollama, NovaBird Helper) o un servicio compatible con OpenAI.",
+    aiDesc: "Resume y traduce mensajes, encuentra citas y tareas (para revisarlas en la ventana de evento) y, con «¿Qué hay de nuevo?» en la barra, da un resumen del correo nuevo. Sin «Preparar» (abajo) nada ocurre automáticamente: solo un clic en «Asistente IA» en la vista del mensaje o en «¿Qué hay de nuevo?» envía textos a la dirección de abajo. Pensado para un modelo en su propio ordenador (Ollama, NovaBird Helper) o un servicio compatible con OpenAI.",
     aiCtxLabel: "Longitud de contexto (tokens)",
     aiPromptTitle: "Instrucción para la IA",
     aiPromptDesc: "Este es el texto que el modelo recibe junto con el correo. La parte principal va antes del texto del correo y las dos últimas frases después (la última solo en correos sospechosos); aquí no se puede cambiar. Marcadores de posición: {ZIEL} pasa a ser el idioma elegido, {OPEN} y {CLOSE} son marcadores con un identificador aleatorio entre los que va el texto del correo.",
@@ -919,6 +970,23 @@ const TEXTS = {
     aiFail: "Error: $1",
     aiPerm: "No se concedió el permiso para esta dirección.",
     aiRemote: "Atención: esta dirección no está en este ordenador. Al resumir, el texto del mensaje se envía allí.",
+    aiHelperModelLabel: "Modelo de lenguaje",
+    aiHelperModelDefault: "Como en el helper ($1)",
+    aiHelperModelHint: "Solo para este PC. Un modelo distinto al del helper se carga allí la primera vez (unos segundos) y necesita memoria gráfica.",
+    aiFeatTitle: "Funciones",
+    aiFeatDesc: "Lo desactivado desaparece de las ventanas de IA; si las tres pestañas están desactivadas, también el botón «Asistente IA».",
+    aiFeatSummary: "Resumen",
+    aiFeatTranslate: "Traducir",
+    aiFeatEvents: "Citas y tareas",
+    aiFeatDeadlines: "Plazos (bajo el resumen y en el resumen general)",
+    aiFeatOverview: "¿Qué hay de nuevo? (resumen general)",
+    aiFeatSpeech: "Leer en voz alta (solo con NovaBird Helper)",
+    aiFeatCompose: "Escribir (botón «IA» en la ventana de redacción)",
+    aiCalendarLabel: "Citas y tareas en",
+    aiCalendarAsk: "Preguntar cada vez",
+    aiPrepTitle: "Preparar",
+    aiPrepareLabel: "Preparar el correo nuevo en cuanto llega",
+    aiPrepareDesc: "Cada correo nuevo de la bandeja de entrada se clasifica enseguida (sección, una frase, tareas y plazos); los correos largos ya reciben su resumen, igual que un correo largo que tenga abierto 2 segundos. «¿Qué hay de nuevo?» está listo al instante. Para ello, cada correo nuevo se envía automáticamente a la dirección de IA de arriba. Con NovaBird Helper solo un PC procesa cada correo; los demás PC del mismo grupo recogen el resultado cifrado.",
     aiNote: "Las credenciales se guardan en los datos de perfil de este complemento (sin cifrar). Con nombre de usuario se usa autenticación Basic, si no la contraseña se envía como clave Bearer. Recomendado: Ollama con un modelo como gemma3:12b o qwen3.5:9b.",
     tabPilot: "Nova-Contact",
     pilotTitle: "Nova-Contact en la pestaña Contactos",
@@ -1612,6 +1680,51 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
     body.classList.toggle("off", !enabled.checked);
     save({ aiEnabled: enabled.checked });
   });
+  // Funktionen einzeln an/aus (Reiter, Knöpfe; ai/popup.js, ai/overview.js, background.js)
+  for (const box of document.querySelectorAll("#aiTab [data-feat]")) {
+    box.checked = nbAI.feature(conf, box.dataset.feat);
+    box.addEventListener("change", async () => {
+      const { aiFeatures } = await messenger.storage.local.get({ aiFeatures: {} });
+      await save({ aiFeatures: { ...aiFeatures, [box.dataset.feat]: box.checked } });
+    });
+  }
+  // Fester Kalender für Termine und Aufgaben; leer = der Termin-Dialog fragt
+  const calSel = document.getElementById("aiCalendar");
+  const calendars = await messenger.novaCalendar.itemCalendars().catch(() => []);
+  calSel.append(...calendars.map(c => new Option(c.name, c.id)));
+  calSel.value = calendars.some(c => c.id === conf.aiCalendar) ? conf.aiCalendar : "";
+  calSel.addEventListener("change", () => save({ aiCalendar: calSel.value }));
+  // Vorbereiten (ai/prep.js)
+  const prepare = document.getElementById("aiPrepare");
+  prepare.checked = conf.aiPrepare === true;
+  prepare.addEventListener("change", () => save({ aiPrepare: prepare.checked }));
+  // NovaBird Helper: anderes Sprachmodell als dort eingestellt (nur dieser PC); Auswahl nur, wenn der Helper mehrere hat
+  const modelSel = document.getElementById("aiHelperModel");
+  async function fillHelperModels() {
+    const row = document.getElementById("aiHelperModelRow");
+    const hint = document.getElementById("aiHelperModelHint");
+    row.hidden = hint.hidden = true;
+    if (!srcHelper.checked || !helperConn) return;
+    try {
+      const info = await nbAI.helperHello(helperConn.url, helperConn.code);
+      const others = (info.chatChoices || []).filter(m => m !== info.chatModel);
+      if (!others.length) return;
+      const name = m => m.replace(/^ollama:/, "");
+      modelSel.replaceChildren(new Option(t.aiHelperModelDefault.replace("$1", info.chatModel ? name(info.chatModel) : "–"), ""), ...others.map(m => new Option(name(m), m)));
+      const { aiHelperModel } = await messenger.storage.local.get({ aiHelperModel: "" });
+      modelSel.value = others.includes(aiHelperModel) ? aiHelperModel : "";
+      row.hidden = hint.hidden = false;
+    } catch {
+      /* Helper nicht erreichbar: keine Auswahl */
+    }
+  }
+  modelSel.addEventListener("change", () => save({ aiHelperModel: modelSel.value }));
+  srcHelper.addEventListener("change", fillHelperModels);
+  srcOwn.addEventListener("change", () => {
+    save({ aiHelperModel: "" });
+    fillHelperModels();
+  });
+  fillHelperModels();
   // Anweisung an die KI anzeigen und erklären (Text aus ai/ai.js, in der Sprache der Oberfläche)
   document.getElementById("aiPromptText").textContent = nbAI.promptTemplate(document.documentElement.lang, false);
   const safeList = document.getElementById("aiPromptList");

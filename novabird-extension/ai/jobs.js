@@ -13,7 +13,7 @@
   const keyOf = r => [r.mode, r.ids ? `t${r.ids.join(",")}` : `m${r.messageId}`, r.mode === "translate" ? r.toLang : "", r.uiLang].join("|");
 
   // Zustand für Popup/Fenster (ohne Ports und Abbruch)
-  const view = j => ({ key: j.key, mode: j.mode, status: j.status, text: j.text, items: j.items, from: j.from, notes: j.notes, warn: j.warn, error: j.error, model: j.model });
+  const view = j => ({ key: j.key, mode: j.mode, status: j.status, text: j.text, items: j.items, from: j.from, notes: j.notes, warn: j.warn, error: j.error, model: j.model, deadlines: j.deadlines, msgKey: j.msgKey });
 
   function publish(j) {
     for (const p of j.ports) {
@@ -27,11 +27,14 @@
 
   async function compute(j, r) {
     const conf = { ...nbAI.DEFAULTS, ...(await messenger.storage.local.get(nbAI.DEFAULTS)) };
-    j.model = conf.aiType === "nbhelper" ? "NovaBird Helper" : conf.aiModel;
+    let deadlinesFor = null; // Mail, deren Fristen nach der Zusammenfassung nachkommen
+    let shared = null; // vorbereitete bzw. beim Helper angemeldete Zusammenfassung
+    j.model = conf.aiType === "nbhelper" ? `NovaBird Helper${conf.aiHelperModel ? " · " + conf.aiHelperModel.replace(/^ollama:/, "") : ""}` : conf.aiModel;
     try {
       if (!conf.aiEnabled) throw new Error("disabled");
       if (!conf.aiUrl) throw new Error("off");
       if (!conf.aiModel && conf.aiType !== "nbhelper") throw new Error("model");
+      if (!nbAI.feature(conf, r.mode)) throw new Error("feature");
       const thread = r.ids ? await nbAI.threadText(r.ids, conf) : null;
       const message = thread ? null : await messenger.messages.get(r.messageId);
       const limit = r.mode === "translate" ? TRANSLATE_CHARS : Infinity;
@@ -45,6 +48,12 @@
       const header = thread
         ? `Subject: ${subject}`
         : `Subject: ${subject}\nFrom: ${message.author || ""}\nDate: ${message.date ? new Date(message.date).toLocaleString() : ""}`;
+      // Einzelne Mail: vorbereitete Zusammenfassung (ai/prep.js, auch von einem anderen PC über den Helper) nehmen, sonst
+      // rechnen und für die anderen PCs ablegen. „Neu erstellen“ rechnet immer.
+      const src = !thread ? { msg: message, msgId: message.headerMessageId || `local:${message.id}`, text, hash: await nbAI.textHash(text) } : null;
+      if (src && r.mode === "summary") {
+        shared = await nbPrep.lookup(conf, "sum", nbPrep.sumVariant(conf, r.uiLang), src, { claim: true, wait: !r.force, local: !r.force }).catch(() => ({}));
+      }
       let messages;
       let opts = {};
       if (r.mode === "summary") {
@@ -56,7 +65,7 @@
         messages = nbAI.eventsPrompt(r.uiLang, thread ? new Date() : new Date(message.date), header, text);
         opts = { maxNew: 1200, json: true };
       }
-      const result = await nbAI.chat(conf, messages, partial => {
+      const result = shared?.value ?? await nbAI.chat(conf, messages, partial => {
         if (r.mode !== "events") {
           j.text = partial;
           publish(j);
@@ -68,10 +77,16 @@
       } else {
         j.text = result;
       }
+      if (shared?.value) j.notes.push({ k: "prepared" });
       if (quoted) j.notes.push({ k: "quoted" });
       if (truncated) j.notes.push({ k: "truncated" });
       j.status = "done";
+      if (src && r.mode === "summary" && result) {
+        if (!shared?.value) nbPrep.remember(conf, "sum", nbPrep.sumVariant(conf, r.uiLang), src, result, shared?.id).catch(() => {});
+        deadlinesFor = src;
+      }
     } catch (e) {
+      if (shared?.claimed) nbAI.shareRelease(conf, shared.claimed);
       if (e.name === "AbortError") {
         j.status = "aborted";
         return;
@@ -86,6 +101,22 @@
       messenger.messageDisplayAction.setBadgeText({ tabId: j.tabId, text: "✓" }).catch(() => {});
       messenger.messageDisplayAction.setBadgeBackgroundColor({ tabId: j.tabId, color: "#1e8e5a" }).catch(() => {});
     }
+    if (deadlinesFor) await addDeadlines(j, conf, r, deadlinesFor);
+  }
+
+  // Fristen der Mail unter der Zusammenfassung (Einstellung „Fristen“): aus ihrer Einordnung (ai/prep.js), ggf. jetzt gerechnet
+  async function addDeadlines(j, conf, r, src) {
+    if (!nbAI.feature(conf, "deadlines") || j.controller.signal.aborted) return;
+    try {
+      const d = await nbPrep.digestFor(conf, r.uiLang, src, { wait: true });
+      const done = await nbPrep.reminded(src.msgId);
+      j.deadlines = (d?.tasks || []).map((t, i) => ({ ...t, i, reminded: done.includes(i) })).filter(t => t.due);
+      j.msgKey = src.msgId;
+      j.from = `${src.msg.subject || ""} – ${src.msg.author || ""}`;
+      if (j.deadlines.length) publish(j);
+    } catch (e) {
+      console.warn("NovaBird-Extension: Fristen", e);
+    }
   }
 
   function start(r) {
@@ -93,7 +124,7 @@
     let j = jobs.get(key);
     if (j && !r.force && (j.status === "running" || j.status === "done")) return j;
     j?.controller.abort();
-    j = { key, mode: r.mode, status: "running", text: "", items: null, from: "", notes: [], warn: false, error: "", model: "", ports: j?.ports || new Set(), controller: new AbortController(), tabId: r.tabId };
+    j = { key, mode: r.mode, status: "running", text: "", items: null, from: "", notes: [], warn: false, error: "", model: "", deadlines: null, msgKey: "", ports: j?.ports || new Set(), controller: new AbortController(), tabId: r.tabId };
     jobs.delete(key);
     jobs.set(key, j);
     while (jobs.size > MAX_JOBS) {

@@ -31,7 +31,7 @@ sealed class Ollama
 
     static readonly HttpClient Http = new() { Timeout = Timeout.InfiniteTimeSpan };
     Process process;
-    IntPtr job;
+    static IntPtr job; // ein Job-Objekt für alle Hilfsprozesse (Ollama, Vorlesen)
     volatile bool stopping;
     int restarts;
 
@@ -70,6 +70,7 @@ sealed class Ollama
     }
 
     public bool Running => process is { HasExited: false } && running;
+    public bool Starting => process is { HasExited: false } && !running;
 
     // ---- Einrichten ------------------------------------------------------------------------------------------------------
     /// <summary>Programm laden, prüfen, entpacken und starten (im Hintergrund; Fortschritt in Installing).</summary>
@@ -213,7 +214,7 @@ sealed class Ollama
         try { return process.ExitCode; } catch { return -1; }
     }
 
-    static void Pump(StreamReader r, string path)
+    internal static void Pump(StreamReader r, string path)
     {
         // Ollama protokolliert viel: nur die letzten etwa 2 MB behalten
         string line;
@@ -240,7 +241,8 @@ sealed class Ollama
         status = new Txt("aus", "off");
     }
 
-    // Job-Objekt mit „beim Schließen beenden“: Ollama und seine Rechenprozesse enden mit dem Helper, auch bei einem Absturz
+    // Job-Objekt mit „beim Schließen beenden“: Ollama, seine Rechenprozesse und das Vorlesen (Speech.cs) enden mit dem Helper,
+    // auch bei einem Absturz
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] static extern IntPtr CreateJobObject(IntPtr attr, string name);
     [DllImport("kernel32.dll")] static extern bool SetInformationJobObject(IntPtr job, int infoClass, ref ExtendedLimit info, int size);
     [DllImport("kernel32.dll")] static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
@@ -258,11 +260,11 @@ sealed class Ollama
         public UIntPtr ProcessMemoryLimit, JobMemoryLimit, PeakProcessMemoryUsed, PeakJobMemoryUsed;
     }
 
-    void AttachToJob(Process p)
+    internal static void AttachToJob(Process p)
     {
         try
         {
-            if (job == IntPtr.Zero)
+            lock (Http) if (job == IntPtr.Zero)
             {
                 job = CreateJobObject(IntPtr.Zero, null);
                 var info = new ExtendedLimit { LimitFlags = 0x2000 }; // JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
@@ -270,10 +272,29 @@ sealed class Ollama
             }
             AssignProcessToJobObject(job, p.Handle);
         }
-        catch (Exception e) { Log.Write("Ollama Job-Objekt: " + e.Message); }
+        catch (Exception e) { Log.Write("Job-Objekt: " + e.Message); }
     }
 
     // ---- Modelle -----------------------------------------------------------------------------------------------------------
+    /// <summary>Geladene Modelle ohne laufendes Ollama: aus den Manifesten im Modellordner (Name wie bei /api/tags).</summary>
+    public static List<string> InstalledModels()
+    {
+        var root = Path.Combine(ModelDir, "manifests");
+        if (!Directory.Exists(root)) return new();
+        var list = new List<string>();
+        foreach (var f in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+        {
+            var parts = Path.GetRelativePath(root, f).Split(Path.DirectorySeparatorChar);
+            if (parts.Length < 4) continue;
+            var (host, tag) = (parts[0], parts[^1]);
+            var name = string.Join("/", parts[1..^1]);
+            if (host == "registry.ollama.ai" && name.StartsWith("library/")) name = name["library/".Length..];
+            else if (host != "registry.ollama.ai") name = host + "/" + name;
+            list.Add($"{name}:{tag}");
+        }
+        return list.OrderBy(n => n).ToList();
+    }
+
     public async Task<List<(string Name, long Bytes, string Modified)>> Models()
     {
         var j = JsonNode.Parse(await Http.GetStringAsync($"{Base}/api/tags"));

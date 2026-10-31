@@ -13,5 +13,11 @@
   },
   "aiOverviewTitle": {
     "message": "KI-Überblick über die neuen Mails"
+  },
+  "aiWrite": {
+    "message": "KI"
+  },
+  "aiWriteTitle": {
+    "message": "KI-Schreibhilfe: Antwort entwerfen, korrigieren, Ton ändern, übersetzen"
   }
 }

@@ -75,3 +75,19 @@ footer .link { border: 0; background: none; color: inherit; opacity: 0.75; text-
 .out .item.done { opacity: 0.6; text-decoration: line-through; }
 .bar input[type="time"], .bar select { font: inherit; }
 footer select { font: inherit; color: inherit; background: var(--soft); border: 1px solid var(--line); border-radius: 0.35rem; padding: 0.25rem 0.4rem; max-width: 12em; }
+
+/* Fristen (Popup unter der Zusammenfassung, Überblick) */
+.deadlines { margin: 0 1.1rem 0.6rem; padding: 0.5rem 0.75rem; border: 1px solid var(--line); border-radius: 0.6rem; }
+.deadlines h4 { margin: 0 0 0.35rem; font-size: 0.95em; }
+.deadlines .dl { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 0.6rem; align-items: center; padding: 0.2rem 0; }
+.deadlines .what { overflow: hidden; text-overflow: ellipsis; }
+.deadlines .when { font-size: 0.9em; opacity: 0.8; white-space: nowrap; }
+.deadlines .soon .when { color: var(--bad); opacity: 1; font-weight: 600; }
+.deadlines .done { opacity: 0.6; }
+.deadlines button { font: inherit; font-size: 0.9em; color: inherit; background: var(--soft); border: 1px solid var(--line); border-radius: 0.35rem; padding: 0.15rem 0.6rem; cursor: pointer; white-space: nowrap; }
+.deadlines button:disabled { cursor: default; }
+.deadlines .hint { font-size: 0.82em; opacity: 0.65; margin-top: 0.35rem; }
+
+/* Schreiben (Verfassen-Fenster) */
+.bar input.wide { flex: 1; min-width: 12em; font: inherit; padding: 0.25rem 0.4rem; }
+.bar button { font: inherit; color: inherit; background: var(--soft); border: 1px solid var(--line); border-radius: 0.35rem; padding: 0.25rem 0.8rem; cursor: pointer; white-space: nowrap; }

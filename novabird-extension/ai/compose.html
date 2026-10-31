@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="ai.css">
+</head>
+<body>
+  <header>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-kind="reply" aria-selected="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 8L5 12l5 4M5 12h9a5 5 0 0 1 5 5v1"/></svg><span></span>
+      </button>
+      <button type="button" role="tab" data-kind="fix" aria-selected="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg><span></span>
+      </button>
+      <button type="button" role="tab" data-kind="tone" aria-selected="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18c3-8 6-12 8-12s3 4 3 6-1 4 2 4 3-2 3-2"/></svg><span></span>
+      </button>
+      <button type="button" role="tab" data-kind="translate" aria-selected="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h9M8.5 3v2M6 5c.6 3 2.6 5.6 5 7M11 5c-.8 3.6-3.2 6.6-6.5 8.5M13 21l4-10 4 10M14.5 17.5h5"/></svg><span></span>
+      </button>
+    </div>
+    <span class="model" id="model"></span>
+  </header>
+  <div class="bar" id="replyBar">
+    <input type="text" id="wish" class="wide" spellcheck="true">
+    <button type="button" id="go"></button>
+  </div>
+  <div class="bar" id="toneBar" hidden>
+    <label><span id="toneLabel"></span> <select id="tone"></select></label>
+  </div>
+  <div class="bar" id="translateBar" hidden>
+    <label><span id="toLabel"></span> <select id="toLang"></select></label>
+  </div>
+  <div class="note-line" id="source"></div>
+  <div class="out" id="out" role="tabpanel"></div>
+  <div class="note-line" id="note" hidden></div>
+  <div class="err" id="err" hidden></div>
+  <footer>
+    <button type="button" class="primary" id="apply" disabled></button>
+    <button type="button" id="again"></button>
+    <button type="button" id="copy"></button>
+    <span class="spacer"></span>
+    <button type="button" class="link" id="settings"></button>
+  </footer>
+  <script src="ai.js"></script>
+  <script src="compose.js"></script>
+</body>
+</html>

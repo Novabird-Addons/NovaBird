@@ -13,5 +13,11 @@
   },
   "aiOverviewTitle": {
     "message": "Aperçu IA des nouveaux messages"
+  },
+  "aiWrite": {
+    "message": "IA"
+  },
+  "aiWriteTitle": {
+    "message": "Aide à la rédaction IA : réponse, correction, ton, traduction"
   }
 }

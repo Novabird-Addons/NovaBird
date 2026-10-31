@@ -37,6 +37,7 @@
       <a href="#status" data-page="status" data-i18n="navStatus"></a>
       <a href="#pcs" data-page="pcs" data-i18n="navPcs"></a>
       <a href="#sprachmodell" data-page="sprachmodell" data-i18n="navLlm"></a>
+      <a href="#vorlesen" data-page="vorlesen" data-i18n="navTts"></a>
       <a href="#verbindung" data-page="verbindung" data-admin data-i18n="navConnection"></a>
       <a href="#kalender" data-page="kalender" data-i18n="navCalendar"></a>
       <a href="#extern" data-page="extern" data-i18n="navExt"></a>
@@ -151,6 +152,27 @@
           </form>
           <pre class="log" id="testOut" hidden></pre>
         </div>
+      </section>
+
+      <section data-section="vorlesen" hidden>
+        <h1 data-i18n="ttsTitle"></h1>
+        <p class="muted" data-i18n="ttsText"></p>
+        <p id="tState"></p>
+        <div class="progress" id="tInstallProg" hidden><progress max="100"></progress><span></span></div>
+        <p class="actions" data-admin><button type="button" id="tInstall" class="primary" hidden></button><button type="button" id="tToggle" hidden></button><button type="button" id="tRemove" class="danger" hidden data-i18n="ttsRemove"></button></p>
+        <form id="tVoiceForm" class="settings" hidden>
+          <label><span data-i18n="ttsVoiceDe"></span> <select name="german"></select></label>
+          <label><span data-i18n="ttsVoiceEn"></span> <select name="english"></select></label>
+          <p class="muted" data-i18n="ttsVoiceText"></p>
+          <p class="actions" data-admin><button type="submit" data-i18n="save"></button> <span class="saved" id="tSaved" hidden data-i18n="saved"></span></p>
+        </form>
+        <form id="tTestForm" class="settings" hidden>
+          <h2 data-i18n="ttsTestTitle"></h2>
+          <label><span data-i18n="ttsTestText"></span> <input name="text" class="wide" autocomplete="off"></label>
+          <label><span data-i18n="ttsTestVoice"></span> <select name="voice"></select></label>
+          <p class="actions"><button type="submit" data-i18n="ttsTestButton"></button> <span class="muted" id="tTestInfo"></span></p>
+        </form>
+        <p class="muted" data-i18n-html="ttsLicense"></p>
       </section>
 
       <section data-section="verbindung" hidden>

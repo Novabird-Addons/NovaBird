@@ -225,7 +225,7 @@ sealed partial class WebServer
         var head = new StringBuilder();
         head.Append($"HTTP/1.1 {r.Status} {reason}\r\nContent-Type: {r.Type}\r\nContent-Length: {r.Body.Length}\r\nConnection: close\r\n");
         head.Append("Cache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\nX-Frame-Options: DENY\r\n");
-        head.Append("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'\r\n");
+        head.Append("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'\r\n");
         if (r.SetCookie != null) head.Append($"Set-Cookie: {r.SetCookie}\r\n");
         if (r.Location != null) head.Append($"Location: {r.Location.Replace("\r", "").Replace("\n", "")}\r\n");
         if (r.Headers != null)
@@ -589,6 +589,53 @@ sealed partial class WebServer
                 Audit(req, $"Ollama-Modell gelöscht: {name}");
                 return Response.Json(await LlmInfo());
             }
+            // ---- Vorlesen (Speech.cs) ----
+            case ("GET", "/api/tts"):
+                Need(req);
+                return Response.Json(core.Speech.Status());
+            case ("POST", "/api/tts/install"):
+                Need(req, admin: true);
+                core.Speech.Install();
+                Audit(req, $"Vorlesen einrichten (Stand {Speech.Version})");
+                return Response.Json(core.Speech.Status());
+            case ("POST", "/api/tts/enable"):
+            {
+                Need(req, admin: true);
+                bool on = (bool?)req.Json()["on"] ?? true;
+                Speech.Enabled = on;
+                if (!on) core.Speech.Stop();
+                Audit(req, $"Vorlesen {(on ? "an" : "aus")}");
+                return Response.Json(core.Speech.Status());
+            }
+            case ("POST", "/api/tts/voices"):
+            {
+                // Standardstimme je Sprache; nur Namen, die es im Ordner stimmen gibt
+                Need(req, admin: true);
+                var j = req.Json();
+                var names = Speech.Voices();
+                var s = Settings.Load();
+                foreach (var (key, lang) in new[] { ("german", "ttsVoiceGerman"), ("english", "ttsVoiceEnglish") })
+                {
+                    var v = (string)j[key];
+                    if (v != null && names.Any(x => x.Name == v && x.Lang == key)) s[lang] = v;
+                }
+                Settings.Save(s);
+                Audit(req, "Vorlesen: Standardstimmen geändert");
+                return Response.Json(core.Speech.Status());
+            }
+            case ("POST", "/api/tts/test"):
+            {
+                // Hörprobe in der Web-Oberfläche (abgespielt im Browser)
+                Need(req);
+                var j = req.Json();
+                var (wav, _) = await core.Speech.Say((string)j["text"], (string)j["lang"], (string)j["voice"]);
+                return new Response(200, "audio/wav", wav);
+            }
+            case ("POST", "/api/tts/remove"):
+                Need(req, admin: true);
+                await core.Speech.Remove();
+                Audit(req, "Vorlesen entfernt");
+                return Response.Json(core.Speech.Status());
             case ("GET", "/api/prompt"):
             {
                 Need(req);
@@ -727,6 +774,7 @@ sealed partial class WebServer
             {
                 ["enabled"] = VectorStore.Enabled, ["count"] = vecs.Sum(v => v.Count), ["bytes"] = vecs.Sum(v => v.Bytes),
                 ["hits"] = vecs.Sum(v => v.Hits), ["misses"] = vecs.Sum(v => v.Misses), ["stored"] = vecs.Sum(v => v.Stored),
+                ["aiResults"] = core.Server.AiCount,
             },
             ["chat"] = new JsonObject { ["selected"] = Chat.Selected, ["loaded"] = core.Server.Chat.Loaded, ["busy"] = core.Server.Chat.Busy, ["ollama"] = core.Ollama.Status },
             ["netPort"] = core.Server.Port,

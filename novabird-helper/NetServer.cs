@@ -15,6 +15,10 @@
 //    op "embed" mit keys:[{id, h}] (je Text) merkt die Vektoren dafür
 //  - op "chat" {messages, maxNew, meta?} -> {id} (meta: Zielsprache und Markierungen für eine eigene Anweisung, Chat.cs); op "chatPoll" {id} -> {text (neu seit dem letzten Abholen), done, stats};
 //    op "chatCancel" {id}: KI-Zusammenfassung mit dem im Helper gewählten Sprachmodell (Chat.cs)
+//  - op "aiget" {ids, claim} -> {items: {id: {data}|{pending}|{claimed}|{}}}, "aiput" {id, data}, "airelease" {id}: KI-Ergebnisse
+//    (vorbereitete Mails) zwischen PCs derselben Gruppe teilen, verschlüsselt von Thunderbird (AiCache.cs)
+//  - op "tts" {text, lang:"german"|"english"|"french"|…, voice?} -> {wav: Base64, ms}: einen Satz vorlesen (Speech.cs); abgespielt wird
+//    auf dem PC mit Thunderbird
 //  - Reihenfolge: Suchanfragen vor Indexieren; beim Indexieren kommen die PCs abwechselnd dran (Scheduler). Auf Wunsch rechnet
 //    die CPU neben der Grafikkarte mit (Einstellung im Menü, Threads einstellbar).
 using System.Collections.Concurrent;
@@ -40,10 +44,12 @@ sealed class NetServer
     readonly ModelSpec model;
     public readonly Scheduler Scheduler;
     public readonly Chat Chat = new();
+    public Speech Speech; // vom Kern gesetzt
     readonly object storesGate = new();
     Dictionary<string, (byte[] Key, VectorStore Vectors)> groups = new(); // Gruppen-Kennung -> Schlüssel, Vektorspeicher
     readonly Dictionary<string, string> codes = new(); // Gruppe -> Code, aus dem der Schlüssel stammt
     readonly ConcurrentDictionary<string, string> clientGroup = new(); // PC -> zuletzt passende Gruppe
+    readonly ConcurrentDictionary<string, AiCache> aiCaches = new(); // Gruppe -> geteilte KI-Ergebnisse
     /// <summary>Web-Oberfläche (Port, im Netz?, Fingerabdruck des Zertifikats) für „hello“: Team-Kalender mit einem Klick einbinden.</summary>
     public Func<JsonObject> WebInfo;
     readonly ConcurrentDictionary<string, DateTime> seen = new(); // rid -> Zeit (gegen Wiederholung)
@@ -93,6 +99,10 @@ sealed class NetServer
         lock (storesGate) return groupId != null && groups.TryGetValue(groupId, out var g) ? g.Vectors : null;
     }
 
+    AiCache Ai(string groupId) => groupId == null ? null : aiCaches.GetOrAdd(groupId, id => new AiCache(id));
+
+    public int AiCount => aiCaches.Values.Sum(a => a.Count);
+
     public List<VectorStore> AllVectors()
     {
         lock (storesGate) return groups.Values.Select(g => g.Vectors).ToList();
@@ -114,6 +124,7 @@ sealed class NetServer
         Groups.Remove(groupId);
         LoadGroups();
         Forget(groupId);
+        if (aiCaches.TryRemove(groupId, out var ai)) ai.Drop();
         try { if (Directory.Exists(VectorStore.FolderOf(groupId))) Directory.Delete(VectorStore.FolderOf(groupId), true); }
         catch (Exception e) { Log.Write("Vektoren der Gruppe: " + e.Message); }
     }
@@ -130,6 +141,8 @@ sealed class NetServer
         lock (storesGate)
         {
             foreach (var g in groups.Values) g.Vectors.Dispose();
+            foreach (var ai in aiCaches.Values) ai.Dispose();
+            aiCaches.Clear();
             groups = new();
             codes.Clear();
             clientGroup.Clear();
@@ -155,6 +168,7 @@ sealed class NetServer
         try { listener.Stop(); } catch { /* schon zu */ }
         Scheduler.Stop();
         lock (storesGate) foreach (var g in groups.Values) g.Vectors.Dispose();
+        foreach (var ai in aiCaches.Values) ai.Dispose();
     }
 
     async Task AcceptLoop()
@@ -326,8 +340,12 @@ sealed class NetServer
         switch ((string)msg["op"])
         {
             case "hello":
+            {
                 Scheduler.Touch(client, (string)msg["label"], msg["stats"], group);
-                return Info(msg["model"], group);
+                var info = Info(msg["model"], group);
+                info["chatChoices"] = new JsonArray((await Chat.Choices()).Select(m => (JsonNode)m).ToArray());
+                return info;
+            }
             case "embed":
             {
                 if (!ModelMatches(msg["model"])) throw new InvalidOperationException("anderes Modell als im Helper");
@@ -354,14 +372,42 @@ sealed class NetServer
                 };
             }
             // Sprachmodell (KI-Zusammenfassung): starten, dann Stücke abholen, bis done
+            // model (optional): anderes Sprachmodell als im Helper gewählt, nur aus der Liste chatChoices
             case "chat":
+            {
                 Scheduler.Touch(client, (string)msg["label"], null, group);
-                return new JsonObject { ["id"] = Chat.Start(client, msg["messages"] as JsonArray, (int?)msg["maxNew"] ?? Chat.MaxNewDefault, msg["meta"]) };
+                var want = (string)msg["model"];
+                if (string.IsNullOrEmpty(want)) want = null;
+                else if (!(await Chat.Choices()).Contains(want)) throw new InvalidOperationException(L.T("Dieses Sprachmodell gibt es im Helper nicht", "This language model is not available in the helper"));
+                return new JsonObject { ["id"] = Chat.Start(client, msg["messages"] as JsonArray, (int?)msg["maxNew"] ?? Chat.MaxNewDefault, msg["meta"], want) };
+            }
             case "chatPoll":
                 return await Chat.Poll(client, (string)msg["id"]);
             case "chatCancel":
                 Chat.Cancel(client, (string)msg["id"]);
                 return new JsonObject();
+            // KI-Ergebnisse teilen: nachsehen (und mit claim anmelden, wer rechnet), ablegen, Anmeldung zurückgeben
+            case "aiget":
+            {
+                var ids = msg["ids"]?.AsArray().Select(i => (string)i).ToList();
+                if (ids == null || ids.Count > AiCache.MaxIds) throw new InvalidOperationException("Anzahl der Einträge");
+                Scheduler.Touch(client, (string)msg["label"], null, group);
+                return new JsonObject { ["items"] = Ai(group).Get(ids, client, (bool?)msg["claim"] == true) };
+            }
+            case "aiput":
+                Ai(group).Put((string)msg["id"], (string)msg["data"], client);
+                return new JsonObject();
+            case "airelease":
+                Ai(group).Release((string)msg["id"], client);
+                return new JsonObject();
+            // Vorlesen: ein Satz je Anfrage, Thunderbird holt den nächsten, während der vorige läuft
+            case "tts":
+            {
+                if (Speech == null) throw new InvalidOperationException("Vorlesen nicht verfügbar");
+                Scheduler.Touch(client, (string)msg["label"], null, group);
+                var (wav, ms) = await Speech.Say((string)msg["text"], (string)msg["lang"], (string)msg["voice"]);
+                return new JsonObject { ["wav"] = Convert.ToBase64String(wav), ["ms"] = Math.Round(ms) };
+            }
             default:
                 throw new InvalidOperationException("unbekannter Befehl");
         }
@@ -387,6 +433,8 @@ sealed class NetServer
             ["vecShare"] = VectorStore.Enabled,
             ["chatModel"] = Chat.Selected,
             ["chatModels"] = new JsonArray(Chat.Available().Select(m => (JsonNode)m.Name).ToArray()),
+            ["speech"] = Speech?.Info(),
+            ["aiCache"] = true, // Thunderbird teilt vorbereitete KI-Ergebnisse (aiget/aiput)
         };
     }
 

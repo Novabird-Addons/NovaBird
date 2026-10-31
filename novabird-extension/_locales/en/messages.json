@@ -13,5 +13,11 @@
   },
   "aiOverviewTitle": {
     "message": "AI overview of new mail"
+  },
+  "aiWrite": {
+    "message": "AI"
+  },
+  "aiWriteTitle": {
+    "message": "AI writing help: draft a reply, correct, change tone, translate"
   }
 }

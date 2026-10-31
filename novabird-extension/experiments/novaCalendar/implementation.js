@@ -888,6 +888,16 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
     return {
       novaCalendar: {
         // Beschreibbare Kalender mit Aufgaben (Auswahl bei „Aufgaben für heute“): {id, name, color, selected}
+        // Beschreibbare Kalender für die Einstellung „Termine und Aufgaben in“: {id, name, color, events, tasks}
+        async itemCalendars() {
+          const { cal } = ChromeUtils.importESModule("resource:///modules/calendar/calUtils.sys.mjs");
+          return cal.manager.getCalendars()
+            .filter(c => !c.getProperty("disabled") && cal.acl.isCalendarWritable(c) && cal.acl.userCanAddItemsToCalendar(c))
+            .map(c => ({
+              id: c.id, name: c.name, color: c.getProperty("color") || "",
+              events: c.getProperty("capabilities.events.supported") !== false, tasks: c.getProperty("capabilities.tasks.supported") !== false,
+            }));
+        },
         async taskCalendars() {
           const { cal } = ChromeUtils.importESModule("resource:///modules/calendar/calUtils.sys.mjs");
           const selected = Services.wm.getMostRecentWindow("mail:3pane")?.getSelectedCalendar?.();
@@ -974,7 +984,7 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
           }
           return { count, calendar: target.name };
         },
-        async openItemDialogs(items) {
+        async openItemDialogs(items, calendarId) {
           // Nur ExtensionError-Meldungen erreichen die Erweiterung, andere Fehler kommen als „unexpected error“ an
           const { ExtensionError } = ChromeUtils.importESModule("resource://gre/modules/ExtensionUtils.sys.mjs");
           const win = Services.wm.getMostRecentWindow("mail:3pane");
@@ -984,6 +994,7 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
           const { cal } = ChromeUtils.importESModule("resource:///modules/calendar/calUtils.sys.mjs");
           const { CalEvent } = ChromeUtils.importESModule("resource:///modules/CalEvent.sys.mjs");
           const { CalTodo } = ChromeUtils.importESModule("resource:///modules/CalTodo.sys.mjs");
+          const { CalAlarm } = ChromeUtils.importESModule("resource:///modules/CalAlarm.sys.mjs");
           // Ohne beschreibbaren Kalender öffnet Thunderbird den Dialog stillschweigend nicht
           const writable = cal.manager.getCalendars().filter(c => cal.acl.isCalendarWritable(c) && cal.acl.userCanAddItemsToCalendar(c));
           const supports = what => writable.some(c => c.getProperty(`capabilities.${what}.supported`) !== false);
@@ -1003,6 +1014,9 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
             }
             return dt;
           };
+          // Fester Kalender aus den Einstellungen, wenn er die Art kann; sonst wählt man im Dialog (vorgewählt: der aktuelle)
+          const fixed = calendarId ? writable.find(c => c.id == calendarId) : null;
+          const target = what => (fixed && fixed.getProperty(`capabilities.${what}.supported`) !== false ? fixed : null);
           let opened = 0;
           for (const it of items) {
             const isTask = it.type === "task";
@@ -1018,8 +1032,20 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
               const due = toDateTime(it.due || it.start, true);
               if (due) {
                 item.dueDate = due;
+                // Fristen: Erinnerung am Vortag um 9 Uhr (fällig ist 0 Uhr des Tages, also 15 Stunden davor)
+                if (it.alarm === "dayBefore") {
+                  const alarm = new CalAlarm();
+                  alarm.related = Ci.calIAlarm.ALARM_RELATED_END;
+                  alarm.offset = cal.createDuration("-PT15H");
+                  alarm.action = "DISPLAY";
+                  item.addAlarm(alarm);
+                }
               }
-              win.createTodoWithDialog(null, null, null, item);
+              const calendar = target("tasks");
+              if (calendar) {
+                item.calendar = calendar;
+              }
+              win.createTodoWithDialog(calendar, null, null, item);
             } else {
               const start = toDateTime(it.start, it.allDay);
               if (!start) {
@@ -1038,7 +1064,11 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
               }
               item.startDate = start;
               item.endDate = end;
-              win.createEventWithDialog(null, null, null, null, item);
+              const calendar = target("events");
+              if (calendar) {
+                item.calendar = calendar;
+              }
+              win.createEventWithDialog(calendar, null, null, null, item);
             }
             opened++;
           }

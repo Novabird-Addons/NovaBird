@@ -23,7 +23,7 @@ sealed class Chat
 
     public sealed class Job
     {
-        public string Id, Client;
+        public string Id, Client, Model;
         public readonly StringBuilder Text = new();
         public int Sent;           // so viel Text hat der Client schon
         public bool Done;
@@ -82,6 +82,26 @@ sealed class Chat
             return new Info(System.IO.Path.GetFileName(d), d, bytes, type, ctx);
         }).OrderBy(i => i.Name).ToList();
     }
+
+    /// <summary>
+    /// Modelle, die ein PC pro Anfrage wählen darf (KI-Einstellungen in Thunderbird): Windows-ML-Ordner und die Modelle des vom
+    /// Helper verwalteten Ollama (ohne Suchmodelle). Das im Helper gewählte steht immer dabei.
+    /// </summary>
+    public async Task<List<string>> Choices()
+    {
+        var list = Available().Select(m => m.Name).ToList();
+        if (Helper.Ollama.Enabled)
+        {
+            // läuft Ollama, fragen; sonst aus dem Modellordner (Ollama startet erst beim ersten Rechnen)
+            List<string> names;
+            try { names = Ollama is { Running: true } ? (await Ollama.Models().WaitAsync(TimeSpan.FromSeconds(3))).Select(m => m.Name).ToList() : Helper.Ollama.InstalledModels(); }
+            catch { names = Helper.Ollama.InstalledModels(); }
+            list.AddRange(names.Where(n => !EmbedName.IsMatch(n)).Select(n => OllamaPrefix + n));
+        }
+        if (Selected is string sel && !list.Contains(sel)) list.Insert(0, sel);
+        return list;
+    }
+    static readonly Regex EmbedName = new(@"embed|bge|jina|minilm|(^|[-_/])e5([-_:]|$)", RegexOptions.IgnoreCase);
 
     public static string Selected
     {
@@ -192,9 +212,9 @@ sealed class Chat
 
     // ---- Antworten -----------------------------------------------------------------------------------------------------------
     /// <summary>Antwort beginnen; messages wie bei OpenAI [{role, content}]. Liefert die Kennung zum Abholen.</summary>
-    public string Start(string client, JsonArray messages, int maxNew, JsonNode meta = null)
+    public string Start(string client, JsonArray messages, int maxNew, JsonNode meta = null, string model = null)
     {
-        var name = Selected ?? throw new InvalidOperationException(L.T("Im Helper ist kein Sprachmodell gewählt", "No language model is selected in the helper"));
+        var name = model ?? Selected ?? throw new InvalidOperationException(L.T("Im Helper ist kein Sprachmodell gewählt", "No language model is selected in the helper"));
         if (messages == null || messages.Count == 0 || messages.Count > 50) throw new InvalidOperationException(L.T("Nachrichten fehlen", "Messages missing"));
         var clean = new JsonArray(messages.Select(m => (JsonNode)new JsonObject
         {
@@ -203,7 +223,7 @@ sealed class Chat
         }).ToArray());
         if (clean.Sum(m => ((string)m["content"]).Length) > 200_000) throw new InvalidOperationException(L.T("Text zu lang", "Text too long"));
         clean = ApplyPrompt(clean, meta);
-        var job = new Job { Id = Guid.NewGuid().ToString("N"), Client = client };
+        var job = new Job { Id = Guid.NewGuid().ToString("N"), Client = client, Model = name };
         jobs[job.Id] = job;
         _ = Task.Run(() => Generate(job, name, clean, Math.Clamp(maxNew, 16, 4096)));
         return job.Id;
@@ -295,6 +315,8 @@ sealed class Chat
 
     async Task GenerateOllama(Job job, string model, JsonArray messages, int maxNew, Stopwatch sw)
     {
+        // kurz nach dem Start des Helpers startet Ollama noch (einige Sekunden): warten statt gleich abzulehnen
+        for (int i = 0; i < 60 && Ollama is { Running: false, Starting: true }; i++) await Task.Delay(500, job.Cancel.Token);
         if (Ollama == null || !Ollama.Running) throw new InvalidOperationException(L.T("Ollama läuft nicht (Web-Oberfläche → Sprachmodell)", "Ollama is not running (web interface → Language model)"));
         lock (gate) if (this.model != null) Unload(); // Grafikspeicher für Ollama frei machen
         lastUse = DateTime.UtcNow;
@@ -362,7 +384,7 @@ sealed class Chat
             double genS = (job.TotalMs - job.FirstMs) / 1000;
             reply["stats"] = new JsonObject
             {
-                ["model"] = loaded ?? Selected, ["promptTokens"] = job.PromptTokens, ["newTokens"] = job.NewTokens,
+                ["model"] = job.Model ?? loaded ?? Selected, ["promptTokens"] = job.PromptTokens, ["newTokens"] = job.NewTokens,
                 ["firstMs"] = Math.Round(job.FirstMs), ["tokPerSec"] = job.TokPerSec ?? (job.NewTokens > 1 && genS > 0 ? Math.Round((job.NewTokens - 1) / genS, 1) : null),
             };
         }
