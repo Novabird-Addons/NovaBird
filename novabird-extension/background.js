@@ -178,6 +178,18 @@ messenger.webRequest.onBeforeSendHeaders.addListener(
   ["blocking", "requestHeaders"]
 );
 
+// Andere NovaBird-Add-ons: ihre Einstellungen in Einstellungen → NovaBird (volle Breite) statt in der Add-on-Verwaltung öffnen
+const HUB_KEYS = { "novabird-db@novabird": "db", "novabird-conversation@novabird": "conversation", "novabird-send@novabird": "send" };
+messenger.runtime.onMessageExternal.addListener((message, sender) => {
+  if (message?.type !== "openSettings" || !HUB_KEYS[sender?.id]) {
+    return undefined;
+  }
+  if (message.probe) {
+    return Promise.resolve({ ok: true }); // nur fragen, ob es die NovaBird-Seite gibt
+  }
+  return messenger.settingsRedesign.openHub(HUB_KEYS[sender.id]).then(() => ({ ok: true }));
+});
+
 // NovaBird-Conversation: Knopf „Zusammenfassen (KI)“ nur anbieten, wenn die KI eingerichtet ist; die Zusammenfassung öffnet hier
 const CONVERSATION_ID = "novabird-conversation@novabird";
 messenger.runtime.onMessageExternal.addListener(async (message, sender) => {
@@ -185,8 +197,8 @@ messenger.runtime.onMessageExternal.addListener(async (message, sender) => {
     return undefined;
   }
   if (message?.type === "aiAvailable") {
-    const c = await messenger.storage.local.get({ aiEnabled: false, aiUrl: "", aiModel: "" });
-    return { available: Boolean(c.aiEnabled && c.aiUrl && c.aiModel) };
+    const c = await messenger.storage.local.get({ aiEnabled: false, aiType: "", aiUrl: "", aiModel: "" });
+    return { available: Boolean(c.aiEnabled && c.aiUrl && (c.aiModel || c.aiType === "nbhelper")) };
   }
   if (message?.type === "summarize" && Array.isArray(message.ids) && message.ids.length <= 120 && message.ids.every(Number.isInteger)) {
     await messenger.windows.create({
@@ -327,7 +339,7 @@ async function updatesOnStart() {
 
 messenger.notifications.onClicked.addListener(id => {
   if (id === UPD_NOTE) {
-    messenger.runtime.openOptionsPage().catch(() => {});
+    messenger.settingsRedesign.openHub("extension").catch(() => messenger.runtime.openOptionsPage()).catch(() => {});
   }
 });
 setTimeout(() => updatesOnStart().catch(e => console.warn("NovaBird-Extension: Online-Updates", e)), 20000);

@@ -135,6 +135,7 @@ async function refresh(full) {
     else if (page === "pcs") await showPcs();
     else if (page === "sprachmodell") await showLlm(full);
     else if (full && page === "verbindung") await showConnection();
+    else if (full && page === "extern") await showExt();
     else if (full && page === "einstellungen") await showSettings();
     else if (full && page === "benutzer") await showUsers();
     else if (full && page === "protokoll") await showLog();
@@ -181,9 +182,78 @@ function actionsCell(...buttons) {
   return box;
 }
 
+// ---- Auslastung (Statusseite) ---------------------------------------------------------------------------------------------
+// Eine Zeile: Bezeichnung, Balken (Anteil 0–100, ab 85 % rot), Wert; ohne Wert „–“ ohne Balken
+function meter(label, text, pct) {
+  const row = document.createElement("div");
+  row.className = "meter";
+  const name = document.createElement("span");
+  name.textContent = label;
+  const bar = document.createElement("span");
+  bar.className = "bar";
+  const fill = document.createElement("i");
+  if (pct != null) {
+    fill.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+    fill.classList.toggle("high", pct >= 85);
+    bar.append(fill);
+  }
+  const value = document.createElement("span");
+  value.className = "num";
+  value.textContent = text ?? "–";
+  row.append(name, value, bar);
+  return row;
+}
+
+const pctText = v => (v == null ? null : `${Math.round(v)} %`);
+
+function showUsage(u) {
+  const g = u.gpu;
+  const total = g.vramTotal || 0;
+  $("uGpuName").textContent = g.name || "–";
+  $("uGpuRows").replaceChildren(
+    meter(t("uVram"), g.vramUsed == null ? null : t("uOf", GB(g.vramUsed), GB(total)), g.vramUsed == null || !total ? null : (g.vramUsed / total) * 100),
+    meter(t("uGpuLoad"), pctText(g.util), g.util),
+  );
+  // Sprachmodell
+  const l = u.llm;
+  $("uLlmName").textContent = (l.model || (l.selected || "").replace(/^ollama:/, "")) || "–";
+  let state;
+  if (l.winml) state = t("uWinml");
+  else if (!l.selected) state = t("uNoModel");
+  else if (!l.ollama) state = t("uOllamaOff");
+  else if (!l.model) state = t("uNotLoaded");
+  else {
+    const share = l.size ? Math.round((l.sizeVram / l.size) * 100) : 0;
+    const exp = l.expires ? new Date(l.expires) : null;
+    state = t("uLoadedFmt", N(l.context || 0), `${share} %`)
+      + (exp && exp.getFullYear() > 2000 && exp.getFullYear() < 2100 ? t("uUntil", exp.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" })) : exp ? t("uKeep") : "")
+      + (l.busy ? t("uWorking") : "");
+  }
+  $("uLlmState").textContent = state;
+  $("uLlmRows").replaceChildren(...(l.ollama ? [
+    meter(t("uVram"), l.gpuMem == null ? null : GB(l.gpuMem), l.gpuMem == null || !total ? null : (l.gpuMem / total) * 100),
+    meter(t("uRam"), GB(l.ram), (l.ram / u.totalRam) * 100),
+    meter(t("uGpuLoad"), pctText(l.gpuUtil), l.gpuUtil),
+    meter(t("uCpu"), pctText(l.cpu), l.cpu),
+  ] : []));
+  // Suchmodell (Helper-Prozess)
+  const e = u.embed;
+  $("uEmbedName").textContent = e.model.split("/").pop();
+  $("uEmbedState").textContent = (e.loadedOn ? t("uEmbedOn", e.deviceName || e.loadedOn) : t("uEmbedOff")) + (e.rate > 0 ? t("uRateFmt", N(e.rate)) : "");
+  $("uEmbedRows").replaceChildren(
+    meter(t("uVram"), e.gpuMem == null ? null : GB(e.gpuMem), e.gpuMem == null || !total ? null : (e.gpuMem / total) * 100),
+    meter(`${t("uRam")} (${t("uHelperTotal")})`, GB(e.ram), (e.ram / u.totalRam) * 100),
+    meter(t("uGpuLoad"), pctText(e.gpuUtil), e.gpuUtil),
+    meter(t("uCpu"), pctText(e.cpu), e.cpu),
+  );
+  $("uNote").hidden = g.util != null;
+  $("uNote").textContent = t("uNoCounters");
+}
+
 // ---- Status ------------------------------------------------------------------------------------------------------------
 async function showStatus() {
-  const [s, p] = await Promise.all([api("status"), api("pcs")]);
+  const [s, p, u] = await Promise.all([api("status"), api("pcs"), api("usage").catch(() => null)]);
+  if (u) showUsage(u);
   $("sState").textContent = s.state;
   $("sRate").textContent = s.rateCpu > 0 ? t("rateSplit", s.rate, s.rateGpu, s.rateCpu) : t("rateFmt", s.rate);
   $("sQueue").textContent = t("queueFmt", s.queue);
@@ -197,6 +267,7 @@ async function showStatus() {
   $("sVec").textContent = !v.enabled ? t("off") : t("vecFmt", N(v.count), GB(v.bytes)) + (v.hits + v.misses > 0 ? t("vecSince", N(v.hits), N(v.stored)) : "");
   $("sChat").textContent = !s.chat.selected ? t("chatNone")
     : `${s.chat.selected.replace(/^ollama:/, "")}${s.chat.loaded === s.chat.selected ? t("chatLoaded") : ""}${s.chat.busy ? t("chatBusy") : ""}`;
+  progress("sProg", s.preparing, s.preparingPct);
   $("measure").disabled = !!s.preparing;
   $("measure").textContent = s.model.complete ? t("measure") : t("measureLoad");
   banner(s.error || "");
@@ -259,8 +330,10 @@ async function showLlm(full) {
   const selText = sel ? sel.replace(/^ollama:/, "") + (sel.startsWith("ollama:") ? " (Ollama)" : " (Windows ML)") : t("none");
   $("lState").textContent = t("chosen", selText) + (l.busy ? t("busyNow") : "") + (l.waiting > 0 ? t("waitingFmt", l.waiting) : "");
   // Ollama
-  $("oState").textContent = (o.installing || (o.installed ? t("ollamaStateFmt", o.version, o.status) + (o.enabled ? "" : t("ollamaDisabled")) : t("ollamaNotInstalled"))) +
-    (o.pulling ? t("pullingFmt", o.pulling) : "") + (o.error ? ` · ${o.error}` : "");
+  $("oState").textContent = (o.installed ? t("ollamaStateFmt", o.version, o.status) + (o.enabled ? "" : t("ollamaDisabled")) : o.installing ? "" : t("ollamaNotInstalled")) +
+    (o.error ? ` · ${o.error}` : "");
+  progress("oInstallProg", o.installing, o.installingPct);
+  progress("oPullProg", o.pulling, o.pullingPct);
   $("oInstall").hidden = !isAdmin() || o.installed || !!o.installing;
   $("oToggle").hidden = !isAdmin() || !o.installed;
   $("oToggle").textContent = o.enabled ? t("ollamaOff") : t("ollamaOn");
@@ -294,9 +367,11 @@ async function showLlm(full) {
     $("oCustomRow").hidden = pick.value !== "";
   }
   showLlm.lastPull = o.pulling;
-  if (!full && !l.importing) return;
+  progress("lProg", l.importing, l.importingPct);
+  if (full) showOptions(l.options);
+  if (!full && !l.importing && !showLlm.lastImport) return;
+  showLlm.lastImport = l.importing;
   // Windows ML
-  $("lImport").textContent = l.importing || "";
   $("lList").replaceChildren(...l.models.map(m => {
     const chosen = m.name === sel;
     const btns = !isAdmin() ? [] : [
@@ -440,6 +515,123 @@ async function showConnection() {
   $("cCert").hidden = !c.webFingerprint;
   $("cFinger").textContent = (c.webFingerprint || "").replace(/(..)(?!$)/g, "$1:");
 }
+
+// Erweiterte Optionen (Ollama): Formular nur füllen, wenn nicht gerade bearbeitet
+function showOptions(opt) {
+  const f = $("optForm");
+  if (f.contains(document.activeElement)) return;
+  f.context.replaceChildren(...opt.contexts.map(c => new Option(t("ctx" + c), c)));
+  f.keepAlive.replaceChildren(...opt.keepAlives.map(k => new Option(t("keep" + k), k)));
+  f.context.value = String(opt.context);
+  f.keepAlive.value = opt.keepAlive;
+  f.temperature.value = opt.temperature;
+  f.topP.value = opt.topP;
+  f.kvCompress.checked = opt.kvCompress;
+  for (const el of f.querySelectorAll("input, select")) el.disabled = !isAdmin();
+}
+
+async function saveOptions(body) {
+  const l = await api("llm/options", body);
+  showOptions(l.options);
+  if (l.restarting) toast(t("optRestarting"));
+  else {
+    $("optSaved").hidden = false;
+    setTimeout(() => ($("optSaved").hidden = true), 2500);
+  }
+}
+
+$("optForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target;
+  try {
+    await saveOptions({ context: Number(f.context.value), temperature: Number(f.temperature.value), topP: Number(f.topP.value), keepAlive: f.keepAlive.value, kvCompress: f.kvCompress.checked });
+  } catch (err) {
+    banner(err.message);
+  }
+});
+$("optReset").addEventListener("click", async () => {
+  try {
+    document.activeElement?.blur();
+    await saveOptions({ reset: true });
+  } catch (err) {
+    banner(err.message);
+  }
+});
+
+// Fortschrittsbalken: Text + Prozent (null/-1 = läuft, Dauer unbekannt); ohne Text ausgeblendet
+function progress(id, text, pct) {
+  const box = $(id);
+  box.hidden = !text;
+  if (!text) return;
+  const bar = box.querySelector("progress");
+  if (pct == null || pct < 0) bar.removeAttribute("value");
+  else bar.value = pct;
+  box.querySelector("span").textContent = text;
+}
+
+// ---- Externe Programme (OpenAI-kompatibel) -------------------------------------------------------------------------------
+function showExtData(x) {
+  const f = $("extForm");
+  f.enabled.checked = x.enabled;
+  f.lanHttp.checked = x.lanHttp;
+  for (const el of f.querySelectorAll("input")) el.disabled = !isAdmin();
+  $("xState").textContent = !x.enabled ? t("extOff") : (x.ollamaRunning ? t("extReady") : t("extNoOllama")) + (x.webLan ? "" : " " + t("extLocalOnly"));
+  $("xUrls").replaceChildren(...x.urls.map(u => {
+    const li = document.createElement("li");
+    const code = document.createElement("code");
+    code.className = "code small";
+    code.textContent = u;
+    li.append(code, button(t("copy"), "", () => copy(u)));
+    return li;
+  }));
+  $("xModel").textContent = x.defaultModel ? t("extModelFmt", x.defaultModel) : t("extModelNone");
+  $("xCert").hidden = !x.fingerprint;
+  $("xKeys").replaceChildren(...x.keys.map(k => row([
+    k.name + (k.prefix ? ` (${k.prefix})` : ""),
+    k.ips.length ? k.ips.join(", ") : t("allAddresses"),
+    k.created,
+    k.lastUsed ? `${k.lastUsed} · ${k.lastIp}` : "–",
+    { text: N(k.uses), cls: "num" },
+    actionsCell(isAdmin() && button(t("delete"), "link danger", async () => {
+      if (!confirm(t("confirmDeleteKey", k.name))) return;
+      showExtData(await api("ext/keys/remove", { id: k.id }));
+      toast(t("keyDeleted"));
+    })),
+  ])));
+  const url = x.urls[0];
+  $("xExample").textContent =
+    `curl ${url}/chat/completions -H "Authorization: Bearer <KEY>" -H "Content-Type: application/json" \\\n` +
+    `  -d '{"model":"default","messages":[{"role":"user","content":"Hallo"}]}'\n\n` +
+    `# Python\nfrom openai import OpenAI\nclient = OpenAI(base_url="${url}", api_key="<KEY>")\n` +
+    `print(client.chat.completions.create(model="default", messages=[{"role": "user", "content": "Hallo"}]).choices[0].message.content)`;
+}
+
+async function showExt() {
+  $("xNew").hidden = true;
+  showExtData(await api("ext"));
+}
+
+$("extForm").addEventListener("change", async e => {
+  try {
+    showExtData(await api("ext/settings", { [e.target.name]: e.target.checked }));
+  } catch (err) {
+    banner(err.message);
+  }
+});
+
+$("xAdd").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target;
+  try {
+    const x = await api("ext/keys/add", { name: f.name.value.trim(), ips: f.ips.value });
+    showExtData(x);
+    $("xNewKey").textContent = x.newKey;
+    $("xNew").hidden = false;
+    f.reset();
+  } catch (err) {
+    banner(err.message);
+  }
+});
 
 async function copy(text) {
   try {

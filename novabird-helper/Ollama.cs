@@ -41,6 +41,8 @@ sealed class Ollama
     public string Status => status.ToString();
     public string Pulling => pulling?.ToString();       // "gemma4:e4b 37 %"
     public string Installing => installing?.ToString(); // "Lade Ollama: 37 %"
+    public int? InstallingPct => installing?.Pct;
+    public int? PullingPct => pulling?.Pct;
     public string LastError => lastError?.ToString();
 
     public static string Dir => Path.Combine(Settings.Dir, "ollama");
@@ -51,6 +53,7 @@ sealed class Ollama
 
     public static int Port => (int?)Settings.Load()["ollamaPort"] ?? DefaultPort;
     string Base => $"http://127.0.0.1:{Port}";
+    public string BaseUrl => Base; // nur dieser PC; für die OpenAI-kompatible Schnittstelle des Helpers
 
     public static bool Installed => File.Exists(Exe) && File.Exists(VersionFile) && File.ReadAllText(VersionFile).Trim() == Version;
 
@@ -135,7 +138,7 @@ sealed class Ollama
             {
                 await dst.WriteAsync(buf.AsMemory(0, n));
                 have += n;
-                installing = new Txt($"Lade Ollama: {have * 100 / Math.Max(1, total)} % von {total / 1_000_000} MB", $"Downloading Ollama: {have * 100 / Math.Max(1, total)} % of {total / 1_000_000} MB");
+                installing = new Txt($"Lade Ollama: {have * 100 / Math.Max(1, total)} % von {total / 1_000_000} MB", $"Downloading Ollama: {have * 100 / Math.Max(1, total)} % of {total / 1_000_000} MB", (int)(have * 100 / Math.Max(1, total)));
             }
         }
         File.Move(part, zip, true);
@@ -163,9 +166,14 @@ sealed class Ollama
         psi.Environment["OLLAMA_MODELS"] = ModelDir;
         psi.Environment["OLLAMA_VULKAN"] = "1";            // AMD/Intel; NVIDIA nimmt trotzdem CUDA
         psi.Environment["OLLAMA_NO_CLOUD"] = "1";          // keine Cloud-Modelle
-        psi.Environment["OLLAMA_KEEP_ALIVE"] = "15m";
+        psi.Environment["OLLAMA_KEEP_ALIVE"] = LlmOptions.KeepAlive;
         psi.Environment["OLLAMA_NUM_PARALLEL"] = "1";
         psi.Environment["OLLAMA_MAX_LOADED_MODELS"] = "1";
+        // wie Chat (num_ctx): externe Programme über /v1 bekommen dieselbe Kontextlänge und lösen kein Neuladen aus
+        psi.Environment["OLLAMA_CONTEXT_LENGTH"] = LlmOptions.Context.ToString();
+        // Flash Attention spart Rechenpuffer (Ollama nutzt es nur, wo die Grafikkarte es kann); Kontextspeicher komprimieren
+        psi.Environment["OLLAMA_FLASH_ATTENTION"] = "1";
+        psi.Environment["OLLAMA_KV_CACHE_TYPE"] = LlmOptions.KvCompress ? "q8_0" : "f16";
         running = false;
         status = new Txt("startet …", "starting …");
         process = Process.Start(psi);
@@ -273,6 +281,32 @@ sealed class Ollama
     }
 
     /// <summary>Geladene Modelle mit Grafikspeicher (Bytes).</summary>
+    /// <summary>Prozesse von Ollama: Server und seine Rechenprozesse (für die Auslastung).</summary>
+    public List<int> Pids()
+    {
+        var list = new List<int>();
+        if (process is not { HasExited: false }) return list;
+        list.Add(process.Id);
+        if (DateTime.UtcNow - childrenAt > TimeSpan.FromSeconds(5))
+        {
+            try
+            {
+                using var q = new System.Management.ManagementObjectSearcher($"SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {process.Id}");
+                children = q.Get().Cast<System.Management.ManagementObject>().Select(o => Convert.ToInt32(o["ProcessId"])).ToList();
+            }
+            catch { children = new(); }
+            childrenAt = DateTime.UtcNow;
+        }
+        list.AddRange(children);
+        return list;
+    }
+    List<int> children = new();
+    DateTime childrenAt;
+
+    /// <summary>Geladene Modelle mit Größe, Anteil im Grafikspeicher, Kontextlänge und Ablauf (/api/ps).</summary>
+    public async Task<JsonArray> LoadedDetails() =>
+        JsonNode.Parse(await Http.GetStringAsync($"{Base}/api/ps"))["models"]?.AsArray().DeepClone().AsArray() ?? new JsonArray();
+
     public async Task<List<(string Name, long Vram)>> Loaded()
     {
         var j = JsonNode.Parse(await Http.GetStringAsync($"{Base}/api/ps"));
@@ -304,7 +338,7 @@ sealed class Ollama
                     var j = JsonNode.Parse(line);
                     if ((string)j["error"] is string err) throw new InvalidOperationException(err);
                     long total = (long?)j["total"] ?? 0, done = (long?)j["completed"] ?? 0;
-                    pulling = total > 0 ? new Txt($"{name}: {done * 100 / total} % von {total / 1_000_000} MB", $"{name}: {done * 100 / total} % of {total / 1_000_000} MB")
+                    pulling = total > 0 ? new Txt($"{name}: {done * 100 / total} % von {total / 1_000_000} MB", $"{name}: {done * 100 / total} % of {total / 1_000_000} MB", (int)(done * 100 / total))
                         : new Txt($"{name}: {(string)j["status"]}", $"{name}: {(string)j["status"]}");
                 }
                 Log.Write($"Ollama-Modell geladen: {name}");
@@ -339,7 +373,7 @@ sealed class Ollama
             var body = new JsonObject
             {
                 ["model"] = model, ["messages"] = messages.DeepClone(), ["stream"] = true,
-                ["options"] = new JsonObject { ["num_ctx"] = 16384, ["temperature"] = 0.2, ["num_predict"] = maxNew },
+                ["options"] = new JsonObject { ["num_ctx"] = LlmOptions.Context, ["temperature"] = LlmOptions.Temperature, ["top_p"] = LlmOptions.TopP, ["num_predict"] = maxNew },
             };
             if (think) body["think"] = false;
             var req = new HttpRequestMessage(HttpMethod.Post, $"{Base}/api/chat") { Content = new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json") };

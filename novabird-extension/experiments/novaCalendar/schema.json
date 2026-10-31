@@ -77,6 +77,50 @@
         "parameters": []
       },
       {
+        "name": "openItemDialogs",
+        "type": "function",
+        "async": true,
+        "description": "Öffnet je Eintrag den Termin- bzw. Aufgaben-Dialog von Thunderbird, vorausgefüllt (KI: Termine aus einer Mail). Eingetragen wird erst, wenn der Nutzer im Dialog speichert. Liefert die Anzahl geöffneter Dialoge.",
+        "parameters": [
+          {
+            "name": "items",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "enum": ["event", "task"] },
+                "title": { "type": "string" },
+                "start": { "type": "string", "optional": true, "description": "YYYY-MM-DD oder YYYY-MM-DDTHH:MM (Ortszeit)" },
+                "end": { "type": "string", "optional": true },
+                "due": { "type": "string", "optional": true },
+                "allDay": { "type": "boolean", "optional": true },
+                "location": { "type": "string", "optional": true },
+                "description": { "type": "string", "optional": true }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "createTasks",
+        "type": "function",
+        "async": true,
+        "description": "Legt Aufgaben direkt an, fällig heute (KI-Überblick: der Nutzer hat sie per Häkchen ausgewählt). Kalender: der gewählte, sonst der erste beschreibbare mit Aufgaben. Liefert {count, calendar}.",
+        "parameters": [
+          {
+            "name": "items",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": { "type": "string" },
+                "description": { "type": "string", "optional": true }
+              }
+            }
+          }
+        ]
+      },
+      {
         "name": "getStatus",
         "type": "function",
         "async": true,

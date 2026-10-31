@@ -206,7 +206,7 @@ sealed class NetServer
             await Task.Delay(200);
             return (403, "{\"error\":\"auth\"}"); // falscher Code oder verfälschte Anfrage
         }
-        var msg = JsonNode.Parse(plain);
+        var msg = Json.Parse(plain);
         var rid = (string)msg["rid"];
         var ts = DateTimeOffset.FromUnixTimeMilliseconds((long?)msg["ts"] ?? 0).UtcDateTime;
         JsonObject reply;

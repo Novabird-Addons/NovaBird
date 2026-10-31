@@ -124,13 +124,13 @@ const TEXTS = {
     statsMessagesN: "$1 Nachrichten",
     selfTest_mailStats: "Postfachanalyse",
     tabAi: "KI",
-    aiTitle: "KI-Zusammenfassung",
-    aiDesc: "Fasst eine geöffnete Nachricht mit einem Sprachmodell zusammen. Nichts geschieht automatisch: Erst der Knopf „Mail zusammenfassen (KI)“ in der Nachrichtenansicht sendet den Mailtext an die Adresse unten. Gedacht für ein Modell auf dem eigenen Rechner (Ollama) oder einen OpenAI-kompatiblen Dienst.",
+    aiTitle: "KI-Assistent",
+    aiDesc: "Fasst Nachrichten zusammen, übersetzt sie, findet Termine und Aufgaben (zum Prüfen im Termin-Dialog) und gibt mit „Was gibt's Neues?“ oben in der Leiste einen Überblick über die neuen Mails. Nichts geschieht automatisch: Erst ein Klick auf „KI-Assistent“ in der Nachrichtenansicht oder auf „Was gibt's Neues?“ sendet Mailtexte an die Adresse unten. Gedacht für ein Modell auf dem eigenen Rechner (Ollama, NovaBird Helper) oder einen OpenAI-kompatiblen Dienst.",
     aiCtxLabel: "Kontextlänge (Token)",
     aiPromptTitle: "Anweisung an die KI",
     aiPromptDesc: "Das ist der Text, den das Modell zusammen mit der Mail erhält. Der Hauptteil steht vor dem Mailtext, die letzten beiden Sätze dahinter (der letzte nur bei verdächtigen Mails); ändern lässt er sich hier nicht. Platzhalter: {ZIEL} wird zur gewählten Sprache, {OPEN} und {CLOSE} sind Markierungen mit zufälliger Kennung, zwischen denen der Mailtext steht.",
     aiPromptSafe: ["Trennung: Der Mailtext steht zwischen Markierungen, die bei jeder Anfrage neu und zufällig sind. Ein Absender kann sie nicht vorhersagen und damit nicht aus dem Textteil ausbrechen.", "Fremde Daten: Das Modell erfährt ausdrücklich, dass der Mailtext von Dritten stammt und Anweisungen darin nicht befolgt werden dürfen; nach dem Mailtext wird es noch einmal daran erinnert. Das macht Fremdanweisungen unwahrscheinlicher, schließt sie bei Sprachmodellen aber nicht sicher aus.", "Begrenzte Wirkung: Das Modell hat keine Werkzeuge. Es kann nichts senden, öffnen oder löschen; seine Antwort wird nur als Text angezeigt. Im schlimmsten Fall ist eine Zusammenfassung falsch oder irreführend.", "Hinweis: Enthält eine Mail Sätze wie „ignoriere alle Anweisungen“, erscheint über der Zusammenfassung eine Warnung, und das Modell soll den Versuch in der Zusammenfassung selbst benennen."],
-    aiEnabledLabel: "KI-Zusammenfassung verwenden (der Knopf „Mail zusammenfassen (KI)“ erscheint nur, wenn dies an ist)",
+    aiEnabledLabel: "KI-Assistent verwenden (die Knöpfe „KI-Assistent“ und „Was gibt's Neues?“ erscheinen nur, wenn dies an ist)",
     aiTypeLabel: "Schnittstelle",
     aiUrlLabel: "Adresse",
     aiModelLabel: "Modell",
@@ -379,13 +379,13 @@ const TEXTS = {
     statsMessagesN: "$1 messages",
     selfTest_mailStats: "Mailbox analysis",
     tabAi: "AI",
-    aiTitle: "AI summary",
-    aiDesc: "Summarises an open message with a language model. Nothing happens automatically: only the button “Summarise mail (AI)” in the message view sends the mail text to the address below. Meant for a model on your own computer (Ollama) or an OpenAI-compatible service.",
+    aiTitle: "AI assistant",
+    aiDesc: "Summarises and translates messages, finds appointments and tasks (to review in the event dialog) and, with “What's new?” in the toolbar, gives an overview of new mail. Nothing happens automatically: only a click on “AI assistant” in the message view or on “What's new?” sends mail text to the address below. Meant for a model on your own computer (Ollama, NovaBird Helper) or an OpenAI-compatible service.",
     aiCtxLabel: "Context length (tokens)",
     aiPromptTitle: "Instruction to the AI",
     aiPromptDesc: "This is the text the model receives together with the mail. The main part comes before the mail text, the last two sentences after it (the last one only for suspicious mails); it cannot be changed here. Placeholders: {ZIEL} becomes the chosen language, {OPEN} and {CLOSE} are markers with a random ID between which the mail text is placed.",
     aiPromptSafe: ["Separation: The mail text sits between markers that are new and random for every request. A sender cannot predict them and so cannot break out of the text part.", "Third-party data: The model is told explicitly that the mail text comes from others and that instructions in it must not be followed; after the mail text it is reminded of this once more. This makes injected instructions less likely, but with language models it cannot rule them out completely.", "Limited effect: The model has no tools. It cannot send, open or delete anything; its answer is only shown as text. In the worst case a summary is wrong or misleading.", "Notice: If a mail contains sentences such as “ignore all instructions”, a warning appears above the summary, and the model is asked to name the attempt in the summary itself."],
-    aiEnabledLabel: "Use AI summary (the button “Summarise mail (AI)” only appears when this is on)",
+    aiEnabledLabel: "Use the AI assistant (the buttons “AI assistant” and “What's new?” only appear when this is on)",
     aiTypeLabel: "Interface",
     aiUrlLabel: "Address",
     aiModelLabel: "Model",
@@ -634,13 +634,13 @@ const TEXTS = {
     statsMessagesN: "$1 messages",
     selfTest_mailStats: "Analyse de la boîte mail",
     tabAi: "IA",
-    aiTitle: "Résumé par IA",
-    aiDesc: "Résume un message ouvert avec un modèle de langage. Rien n’est automatique : seul le bouton « Résumer le message (IA) » de l’affichage du message envoie le texte à l’adresse ci-dessous. Prévu pour un modèle sur votre propre ordinateur (Ollama) ou un service compatible OpenAI.",
+    aiTitle: "Assistant IA",
+    aiDesc: "Résume et traduit les messages, repère les rendez-vous et les tâches (à vérifier dans la fenêtre d’événement) et donne avec « Quoi de neuf ? » dans la barre un aperçu des nouveaux messages. Rien n’est automatique : seul un clic sur « Assistant IA » dans l’affichage du message ou sur « Quoi de neuf ? » envoie des textes à l’adresse ci-dessous. Prévu pour un modèle sur votre propre ordinateur (Ollama, NovaBird Helper) ou un service compatible OpenAI.",
     aiCtxLabel: "Longueur de contexte (jetons)",
     aiPromptTitle: "Instruction donnée à l’IA",
     aiPromptDesc: "Voici le texte que le modèle reçoit avec le message. La partie principale précède le texte du message, les deux dernières phrases le suivent (la dernière seulement pour les messages suspects) ; il ne peut pas être modifié ici. Espaces réservés : {ZIEL} devient la langue choisie, {OPEN} et {CLOSE} sont des marqueurs à identifiant aléatoire entre lesquels se trouve le texte du message.",
     aiPromptSafe: ["Séparation : le texte du message se trouve entre des marqueurs nouveaux et aléatoires à chaque requête. Un expéditeur ne peut pas les prévoir et donc pas sortir de la partie texte.", "Données de tiers : le modèle est informé expressément que le texte provient de tiers et que les instructions qu’il contient ne doivent pas être suivies ; après le texte, on le lui rappelle encore une fois. Cela rend les instructions injectées moins probables, mais avec des modèles de langage cela ne les exclut pas avec certitude.", "Effet limité : le modèle n’a aucun outil. Il ne peut rien envoyer, ouvrir ni supprimer ; sa réponse est seulement affichée comme texte. Au pire, un résumé est faux ou trompeur.", "Avertissement : si un message contient des phrases comme « ignore toutes les instructions », un avertissement apparaît au-dessus du résumé, et le modèle doit signaler la tentative dans le résumé lui-même."],
-    aiEnabledLabel: "Utiliser le résumé par IA (le bouton « Résumer le message (IA) » n’apparaît que si cette option est activée)",
+    aiEnabledLabel: "Utiliser l’assistant IA (les boutons « Assistant IA » et « Quoi de neuf ? » n’apparaissent que si cette option est activée)",
     aiTypeLabel: "Interface",
     aiUrlLabel: "Adresse",
     aiModelLabel: "Modèle",
@@ -889,13 +889,13 @@ const TEXTS = {
     statsMessagesN: "$1 mensajes",
     selfTest_mailStats: "Análisis del buzón",
     tabAi: "IA",
-    aiTitle: "Resumen con IA",
-    aiDesc: "Resume un mensaje abierto con un modelo de lenguaje. Nada ocurre automáticamente: solo el botón «Resumir mensaje (IA)» de la vista del mensaje envía el texto a la dirección de abajo. Pensado para un modelo en su propio ordenador (Ollama) o un servicio compatible con OpenAI.",
+    aiTitle: "Asistente IA",
+    aiDesc: "Resume y traduce mensajes, encuentra citas y tareas (para revisarlas en la ventana de evento) y, con «¿Qué hay de nuevo?» en la barra, da un resumen del correo nuevo. Nada ocurre automáticamente: solo un clic en «Asistente IA» en la vista del mensaje o en «¿Qué hay de nuevo?» envía textos a la dirección de abajo. Pensado para un modelo en su propio ordenador (Ollama, NovaBird Helper) o un servicio compatible con OpenAI.",
     aiCtxLabel: "Longitud de contexto (tokens)",
     aiPromptTitle: "Instrucción para la IA",
     aiPromptDesc: "Este es el texto que el modelo recibe junto con el correo. La parte principal va antes del texto del correo y las dos últimas frases después (la última solo en correos sospechosos); aquí no se puede cambiar. Marcadores de posición: {ZIEL} pasa a ser el idioma elegido, {OPEN} y {CLOSE} son marcadores con un identificador aleatorio entre los que va el texto del correo.",
     aiPromptSafe: ["Separación: el texto del correo va entre marcadores nuevos y aleatorios en cada solicitud. Un remitente no puede predecirlos y por tanto no puede salir de la parte de texto.", "Datos de terceros: se informa expresamente al modelo de que el texto procede de otros y de que no debe seguir las instrucciones que contenga; después del texto se le recuerda una vez más. Esto hace menos probables las instrucciones inyectadas, pero con modelos de lenguaje no las descarta con seguridad.", "Efecto limitado: el modelo no tiene herramientas. No puede enviar, abrir ni borrar nada; su respuesta solo se muestra como texto. En el peor caso, un resumen es erróneo o engañoso.", "Aviso: si un correo contiene frases como «ignora todas las instrucciones», aparece una advertencia sobre el resumen y se pide al modelo que mencione el intento en el propio resumen."],
-    aiEnabledLabel: "Usar el resumen con IA (el botón «Resumir mensaje (IA)» solo aparece si esto está activado)",
+    aiEnabledLabel: "Usar el asistente IA (los botones «Asistente IA» y «¿Qué hay de nuevo?» solo aparecen si esto está activado)",
     aiTypeLabel: "Interfaz",
     aiUrlLabel: "Dirección",
     aiModelLabel: "Modelo",
@@ -1562,12 +1562,21 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
   document.getElementById("aiUrl").addEventListener("input", syncRemote);
   document.getElementById("aiTest").addEventListener("click", async () => {
     const c = current();
+    // Erlaubnis für Adressen außerhalb des eigenen Rechners: muss direkt im Klick erfragt werden, vor dem ersten await
+    // (sonst „permissions.request may only be called from a user input handler“)
+    let asked = null;
+    try {
+      if (/^https?:/i.test(c.aiUrl) && !nbAI.isLocal(c.aiUrl)) {
+        asked = messenger.permissions.request({ origins: [nbAI.origin(c.aiUrl)] }).catch(() => false);
+      }
+    } catch {
+      /* ungültige Adresse: listModels meldet es */
+    }
     status.textContent = t.aiTesting;
     try {
       await save(c);
-      // Erlaubnis für Adressen außerhalb des eigenen Rechners (muss aus einem Klick heraus erfragt werden)
-      if (/^https?:/i.test(c.aiUrl) && !nbAI.isLocal(c.aiUrl)) {
-        const ok = await messenger.permissions.request({ origins: [nbAI.origin(c.aiUrl)] });
+      if (asked) {
+        const ok = await asked;
         if (!ok) {
           status.textContent = t.aiFail.replace("$1", t.aiPerm);
           return;
@@ -1583,3 +1592,6 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
     }
   });
 })();
+
+// In der Add-on-Verwaltung (schmal): Verweis auf Einstellungen → NovaBird statt der Seite
+nbHubNote("NovaBird-Extension", () => messenger.settingsRedesign.openHub("extension"));

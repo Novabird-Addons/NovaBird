@@ -63,7 +63,7 @@ sealed class Host
         if (len <= 0 || len > 512 << 20) return null;
         var body = new byte[len];
         if (!ReadExactly(body)) return null;
-        return JsonNode.Parse(body);
+        return Json.Parse(body);
     }
 
     bool ReadExactly(byte[] buf)

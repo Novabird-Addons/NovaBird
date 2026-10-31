@@ -19,6 +19,7 @@ sealed class Core
     // Zustände entstehen im Hintergrund und werden später in der Sprache des Betrachters angezeigt: beide Sprachen merken
     Txt preparing, lastError;
     public string Preparing => preparing?.ToString(); // Modell laden / Geräte messen (Text für den Status)
+    public int? PreparingPct => preparing?.Pct;
     public string LastError => lastError?.ToString();
     public Action Exit = () => { };
     public Action<string, bool> Notify = (_, _) => { };
@@ -84,7 +85,7 @@ sealed class Core
             try
             {
                 if (!Model.Complete)
-                    ModelStore.Ensure(Model, (done, total) => preparing = new Txt($"Lade Modell: {done * 100 / Math.Max(1, total)} %", $"Downloading model: {done * 100 / Math.Max(1, total)} %"));
+                    ModelStore.Ensure(Model, (done, total) => preparing = new Txt($"Lade Modell: {done * 100 / Math.Max(1, total)} %", $"Downloading model: {done * 100 / Math.Max(1, total)} %", (int)(done * 100 / Math.Max(1, total))));
                 preparing = new Txt("Messe CPU und Grafikkarten …", "Measuring CPU and graphics cards …");
                 await Server.Scheduler.Run(() => ModelStore.Measure(Model));
                 preparing = null;

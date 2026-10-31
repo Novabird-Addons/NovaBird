@@ -6,6 +6,12 @@
     "message": "Complemento de los temas NovaBird: navegación unificada de la configuración (incluidas las cuentas), ventana de redacción moderna, diseño del calendario y diálogos con los colores del tema."
   },
   "aiButton": {
-    "message": "Resumir mensaje (IA)"
+    "message": "Asistente IA: resumir, traducir, citas"
+  },
+  "aiOverview": {
+    "message": "¿Qué hay de nuevo?"
+  },
+  "aiOverviewTitle": {
+    "message": "Resumen IA del correo nuevo"
   }
 }

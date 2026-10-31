@@ -2,32 +2,38 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <style>
-    :root { color-scheme: light dark; }
-    body { font: message-box; font-size: 0.95rem; margin: 0; width: 36rem; }
-    body.win { width: auto; }
-    body.win #out { max-height: calc(100vh - 10rem); }
-    header { display: flex; align-items: center; gap: 8px; padding: 12px 18px 6px; }
-    header b { font-size: 1.1em; }
-    #model { margin-inline-start: auto; font-size: .85em; opacity: .6; }
-    #out { padding: 4px 18px 12px; line-height: 1.5; white-space: pre-wrap; min-height: 10em; max-height: 32rem; overflow-y: auto; user-select: text; }
-    #warn { margin: 0 18px 8px; padding: 6px 10px; border-radius: 8px; background: color-mix(in srgb, #b3261e 14%, transparent); color: inherit; font-size: .9em; }
-    #note { padding: 0 18px 8px; font-size: .85em; opacity: .7; }
-    #err { padding: 4px 18px 10px; color: #b3261e; white-space: pre-wrap; }
-    footer { display: flex; gap: 8px; padding: 10px 18px 14px; border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
-    [hidden] { display: none !important; }
-  </style>
+  <link rel="stylesheet" href="ai.css">
 </head>
 <body>
-  <header><b id="title"></b><span id="model"></span></header>
-  <div id="out"></div>
-  <div id="warn" hidden></div>
-  <div id="note" hidden></div>
-  <div id="err" hidden></div>
+  <header>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-mode="summary" aria-selected="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span></span>
+      </button>
+      <button type="button" role="tab" data-mode="translate" aria-selected="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h9M8.5 3v2M6 5c.6 3 2.6 5.6 5 7M11 5c-.8 3.6-3.2 6.6-6.5 8.5M13 21l4-10 4 10M14.5 17.5h5"/></svg><span></span>
+      </button>
+      <button type="button" role="tab" data-mode="events" aria-selected="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span></span>
+      </button>
+    </div>
+    <span class="model" id="model"></span>
+    <button type="button" class="icon-btn" id="detach"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7.5" width="13" height="13" rx="2"/><path d="M8 4h11.5a1 1 0 0 1 1 1V16.5"/></svg></button>
+  </header>
+  <div class="bar" id="translateBar" hidden>
+    <label><span id="toLabel"></span> <select id="toLang"></select></label>
+  </div>
+  <div class="out" id="out" role="tabpanel"></div>
+  <ul class="items" id="items" hidden></ul>
+  <div class="warn" id="warn" hidden></div>
+  <div class="note-line" id="note" hidden></div>
+  <div class="err" id="err" hidden></div>
   <footer>
+    <button type="button" class="primary" id="toCalendar" hidden></button>
     <button type="button" id="again"></button>
     <button type="button" id="copy"></button>
-    <button type="button" id="settings"></button>
+    <span class="spacer"></span>
+    <button type="button" class="link" id="settings"></button>
   </footer>
   <script src="ai.js"></script>
   <script src="popup.js"></script>

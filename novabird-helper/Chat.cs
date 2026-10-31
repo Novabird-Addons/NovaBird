@@ -276,7 +276,7 @@ sealed class Chat
         }
     }
 
-    const string OllamaPrefix = "ollama:";
+    public const string OllamaPrefix = "ollama:";
     public Ollama Ollama; // vom Kern gesetzt
 
     /// <summary>Sichtbaren Text übernehmen (abgeholter Anfang bleibt gültig) und wartende Abholer wecken.</summary>

@@ -217,7 +217,8 @@
     busy = true;
     try {
       const s = await send({ type: "semantic:status" });
-      if (!s || s.error) {
+      // s.error mit Status (cfg) ist der letzte Fehler beim Indizieren – steht in der Zeile „Zustand“, Status trotzdem zeigen
+      if (!s || (s.error && !s.cfg)) {
         note(t("semError", [s?.error || "?"]));
         return;
       }

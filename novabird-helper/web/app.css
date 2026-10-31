@@ -120,3 +120,27 @@ pre.log { background: var(--panel); border: 1px solid var(--line); border-radius
   .content { padding: 1rem; }
   .grid { font-size: 0.85rem; }
 }
+
+/* Fortschritt beim Laden (Ollama, Modelle, Suchmodell, Übernehmen) */
+.progress { display: flex; align-items: center; gap: 0.6rem; margin: 0.4rem 0 0.6rem; }
+.progress progress { flex: 0 1 26rem; min-width: 8rem; height: 0.65rem; accent-color: var(--accent); }
+.progress span { color: var(--muted); font-size: 0.9em; }
+
+/* Aufklappbare erweiterte Optionen */
+details.advanced { margin: 1.25rem 0; border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.5rem 0.9rem; background: var(--panel); }
+details.advanced summary { cursor: pointer; font-weight: 600; padding: 0.2rem 0; }
+details.advanced[open] summary { margin-bottom: 0.4rem; }
+
+/* Auslastung: drei Karten, auf schmalen Bildschirmen untereinander */
+.usage { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 0.8rem; margin: 0.5rem 0 1rem; }
+.usage .card { border: 1px solid var(--line); border-radius: 0.6rem; background: var(--panel); padding: 0.7rem 0.9rem 0.8rem; min-width: 0; }
+.usage .card header { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.3rem; }
+.usage .card .sub { color: var(--muted); font-size: 0.88em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.usage .state { margin: 0 0 0.5rem; color: var(--muted); font-size: 0.88em; min-height: 1.3em; }
+/* je Wert: Bezeichnung links, Zahl rechts, darunter der Balken über die ganze Breite */
+.meter { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0.15rem 0.6rem; margin: 0.45rem 0; font-size: 0.92em; }
+.meter .bar { grid-column: 1 / -1; display: block; }
+.meter .bar { height: 0.5rem; border-radius: 0.25rem; background: var(--line); overflow: hidden; }
+.meter .bar i { display: block; height: 100%; background: var(--accent); border-radius: 0.25rem; transition: width 0.4s; }
+.meter .bar i.high { background: var(--danger); }
+.meter .num { text-align: end; font-variant-numeric: tabular-nums; }

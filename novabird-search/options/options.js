@@ -99,3 +99,11 @@ messenger.storage.local.get(SETTINGS_KEY).then(() => {
   showDbState();
   document.getElementById("novabirdDb").addEventListener("change", showDbState);
 });
+
+// In der Add-on-Verwaltung (schmal): Verweis auf Einstellungen → NovaBird (gibt es nur mit NovaBird-Extension)
+const NB_EXTENSION = "novabird-extension@novabird";
+nbHubNote(
+  "NovaBird-Search",
+  () => messenger.runtime.sendMessage(NB_EXTENSION, { type: "openSettings" }),
+  () => messenger.runtime.sendMessage(NB_EXTENSION, { type: "openSettings", probe: true }).then(r => r?.ok === true)
+);

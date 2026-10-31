@@ -13,6 +13,8 @@ static class Engine
     static InferenceSession session;
     static string sessionKey; // Gerät + Modelldatei
     public static bool FellBack { get; private set; }
+    /// <summary>Gerät, auf dem das Suchmodell gerade geladen ist ("dml:1", "cpu"), sonst null.</summary>
+    public static string LoadedOn => session == null ? null : sessionKey?.Split('|')[0];
 
     static int CpuThreads => Math.Max(1, Math.Min(16, Environment.ProcessorCount / 2));
 

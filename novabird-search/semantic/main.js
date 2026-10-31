@@ -696,10 +696,20 @@ async function nextBatch(have, size, skip) {
   return out;
 }
 
+// Auf TEXT_CHARS kürzen, ohne ein Zeichenpaar (Emoji) zu zerschneiden; halbe Paare aus kaputten Mails durch U+FFFD
+// ersetzen (der Helper und die JSON-Leser mancher Server lehnen sie ab; TextEncoder macht für die Prüfsumme dasselbe)
+function clip(text) {
+  let t = text.slice(0, TEXT_CHARS);
+  if (/[\ud800-\udbff]$/.test(t)) {
+    t = t.slice(0, -1);
+  }
+  return t.toWellFormed();
+}
+
 // Text einer Mail: Betreff + bereinigter Text. Liegt die Mail nicht lokal vor (IMAP ohne Offline-Kopie), nur der Betreff,
 // sonst würde Thunderbird jede Mail einzeln vom Server laden.
 async function textOf(row) {
-  const head = `${row.subject || ""}\n`;
+  const head = clip(`${row.subject || ""}\n`);
   try {
     let list = null;
     try {
@@ -716,7 +726,7 @@ async function textOf(row) {
       return head;
     }
     const body = cleanBody(textFromParts(await messenger.messages.getFull(msg.id)));
-    return (head + body).slice(0, TEXT_CHARS);
+    return clip(head + body);
   } catch {
     return head;
   }
@@ -724,13 +734,13 @@ async function textOf(row) {
 
 // Text einer schon aufgelösten Mail ({id, offline}); nicht lokal: nur der Betreff (wie textOf)
 async function bodyOf(row, ref) {
-  const head = `${row.subject || ""}\n`;
+  const head = clip(`${row.subject || ""}\n`);
   if (!ref.offline) {
     return head;
   }
   try {
     const body = cleanBody(textFromParts(await messenger.messages.getFull(ref.id)));
-    return (head + body).slice(0, TEXT_CHARS);
+    return clip(head + body);
   } catch {
     return head;
   }

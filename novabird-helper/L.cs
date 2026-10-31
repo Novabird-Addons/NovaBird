@@ -22,7 +22,8 @@ static class L
     public static string T(string de, string en) => En ? en : de;
 }
 
-sealed record Txt(string De, string En)
+// Pct: Fortschritt 0–100 für einen Balken in der Web-Oberfläche (-1 = läuft, Dauer unbekannt)
+sealed record Txt(string De, string En, int Pct = -1)
 {
     public override string ToString() => L.En ? En : De;
 }

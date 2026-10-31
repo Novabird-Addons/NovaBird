@@ -662,7 +662,10 @@ async function handleAnalysisMessage(msg) {
 }
 
 messenger.searchBar.onOpenSettings.addListener(() => {
-  messenger.runtime.openOptionsPage().catch(e => console.error("NovaBird-Search: Einstellungen", e));
+  // Einstellungen → NovaBird (volle Breite, über NovaBird-Extension); ohne Extension die Seite in der Add-on-Verwaltung
+  messenger.runtime.sendMessage("novabird-extension@novabird", { type: "openSettings" })
+    .catch(() => messenger.runtime.openOptionsPage())
+    .catch(e => console.error("NovaBird-Search: Einstellungen", e));
 });
 
 // ---- Suchhistorie ----------------------------------------------------------------------------------

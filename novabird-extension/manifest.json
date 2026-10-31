@@ -18,6 +18,9 @@
     "scripts": [
       "shared/selftest-bg.js",
       "updates/updates.js",
+      "ai/ai.js",
+      "ai/schedule.js",
+      "ai/jobs.js",
       "background.js"
     ]
   },
@@ -179,6 +182,13 @@
     "http://*/*",
     "https://*/*"
   ],
+  "browser_action": {
+    "default_title": "__MSG_aiOverviewTitle__",
+    "default_label": "__MSG_aiOverview__",
+    "default_icon": "ai/news.svg",
+    "default_popup": "ai/overview.html",
+    "allowed_spaces": ["mail"]
+  },
   "message_display_action": {
     "default_title": "__MSG_aiButton__",
     "default_icon": "ai/summary.svg",

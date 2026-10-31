@@ -18,7 +18,7 @@ using System.Text.Json.Nodes;
 
 namespace NovaBird.Helper;
 
-sealed class WebServer
+sealed partial class WebServer
 {
     public const int DefaultPort = 47532;
     const int MaxHeader = 16 << 10, MaxBody = 64 << 10;
@@ -78,6 +78,7 @@ sealed class WebServer
     public void Stop()
     {
         try { listener?.Stop(); } catch { /* schon zu */ }
+        try { ApiKeys.Flush(); } catch (Exception e) { Log.Write("apikeys.json: " + e.Message); }
     }
 
     /// <summary>Im Netz erreichbar ja/nein: Listener neu binden (Sitzungen bleiben).</summary>
@@ -125,6 +126,11 @@ sealed class WebServer
                 req.Ip = ip;
                 req.Local = local;
                 req.Secure = secure;
+                if (IsExtPath(req.Path))
+                {
+                    await ExtHandle(req, stream, remote); // externe Programme (OpenAI-kompatibel), eigene Prüfung
+                    return;
+                }
                 Response res;
                 if (!secure && !local)
                 {
@@ -169,7 +175,7 @@ sealed class WebServer
         }
         if (req.Headers.TryGetValue("Content-Length", out var len) && int.TryParse(len, out var n) && n > 0)
         {
-            if (n > MaxBody) throw new IOException("Rumpf zu groß");
+            if (n > (IsExtPath(req.Path) ? ExtMaxBody : MaxBody)) throw new IOException("Rumpf zu groß");
             req.Body = new byte[n];
             int got = 0;
             while (got < n)
@@ -187,7 +193,7 @@ sealed class WebServer
         var reason = r.Status switch
         {
             200 => "OK", 301 => "Moved Permanently", 400 => "Bad Request", 401 => "Unauthorized", 403 => "Forbidden", 404 => "Not Found",
-            409 => "Conflict", 429 => "Too Many Requests", _ => "Error",
+            405 => "Method Not Allowed", 409 => "Conflict", 429 => "Too Many Requests", 502 => "Bad Gateway", 503 => "Service Unavailable", _ => "Error",
         };
         var head = new StringBuilder();
         head.Append($"HTTP/1.1 {r.Status} {reason}\r\nContent-Type: {r.Type}\r\nContent-Length: {r.Body.Length}\r\nConnection: close\r\n");
@@ -211,6 +217,7 @@ sealed class WebServer
             var name = host.StartsWith('[') ? host[..(host.IndexOf(']') + 1)] : host.Split(':')[0];
             if (name is not ("localhost" or "127.0.0.1" or "[::1]")) return Response.Error(400, "Host");
         }
+        if (req.Method == "GET" && req.Path == "/novabird-helper.crt") return CertificateFile();
         if (req.Method == "GET" && !req.Path.StartsWith("/api/")) return Static(req.Path);
         req.Session = SessionOf(req);
         // Sprache der Antworten: X-Lang der Oberfläche, sonst Accept-Language
@@ -303,6 +310,7 @@ sealed class WebServer
     async Task<Response> Api(Request req)
     {
         var sch = core.Server.Scheduler;
+        if (req.Path.StartsWith("/api/ext") && ExtManage(req) is Response ext) return ext;
         switch (req.Method, req.Path)
         {
             // ---- ohne Anmeldung ----
@@ -352,6 +360,9 @@ sealed class WebServer
             case ("GET", "/api/status"):
                 Need(req);
                 return Response.Json(Status());
+            case ("GET", "/api/usage"):
+                Need(req);
+                return Response.Json(await UsageInfo());
             case ("GET", "/api/pcs"):
                 Need(req);
                 return Response.Json(Pcs());
@@ -461,6 +472,28 @@ sealed class WebServer
                 Audit(req, $"Sprachmodell gelöscht: {name}");
                 return Response.Json(await LlmInfo());
             }
+            case ("POST", "/api/llm/options"):
+            {
+                // Erweiterte Optionen; Kontextlänge/Speicherzeit gelten über die Umgebung von Ollama: dann Ollama neu starten
+                Need(req, admin: true);
+                var j = req.Json();
+                string summary = "Standardwerte";
+                bool restart = (bool?)j["reset"] == true ? LlmOptions.Reset() : LlmOptions.Change(j, out summary);
+                Audit(req, "Sprachmodell-Optionen: " + summary);
+                if (restart && core.Ollama.Running)
+                {
+                    var o = core.Ollama;
+                    _ = Task.Run(async () =>
+                    {
+                        o.Stop();
+                        await Task.Delay(1500); // Port freigeben lassen
+                        o.Start();
+                    });
+                }
+                var info = await LlmInfo();
+                info["restarting"] = restart;
+                return Response.Json(info);
+            }
             case ("POST", "/api/ollama/install"):
                 Need(req, admin: true);
                 core.Ollama.Install();
@@ -535,7 +568,7 @@ sealed class WebServer
                 {
                     try
                     {
-                        var name = Chat.Import(path, (d, t) => importing = new Txt($"Übernehme: {d * 100 / Math.Max(1, t)} %", $"Taking over: {d * 100 / Math.Max(1, t)} %"));
+                        var name = Chat.Import(path, (d, t) => importing = new Txt($"Übernehme: {d * 100 / Math.Max(1, t)} %", $"Taking over: {d * 100 / Math.Max(1, t)} %", (int)(d * 100 / Math.Max(1, t))));
                         Chat.Selected ??= name;
                         importing = null;
                     }
@@ -612,6 +645,7 @@ sealed class WebServer
             ["started"] = core.Started.ToString("o"),
             ["state"] = core.StateText(),
             ["preparing"] = core.Preparing,
+            ["preparingPct"] = core.PreparingPct,
             ["error"] = core.LastError,
             ["device"] = (string)s["device"],
             ["deviceName"] = (string)s["deviceName"],
@@ -636,6 +670,66 @@ sealed class WebServer
         };
     }
 
+    // Auslastung für die Statusseite: Grafikkarte (die des Suchmodells), Sprachmodell (Ollama), Suchmodell (dieser Prozess)
+    async Task<JsonObject> UsageInfo()
+    {
+        var s = Settings.Load();
+        var device = Engine.LoadedOn ?? (string)s["device"];
+        var adapters = Dxgi.Adapters();
+        var adapter = device != null && device.StartsWith("dml:") && int.TryParse(device[4..], out var idx)
+            ? adapters.FirstOrDefault(a => a.Index == idx) : adapters.OrderByDescending(a => a.VramMB).FirstOrDefault();
+        var luid = adapter.Name != null ? Dxgi.Luid(adapter.Index) : null;
+        var g = Usage.ForAdapter(luid);
+        var info = new JsonObject
+        {
+            ["gpu"] = new JsonObject { ["name"] = adapter.Name, ["vramTotal"] = adapter.VramMB << 20, ["vramUsed"] = g.Mem, ["util"] = g.Util },
+            ["totalRam"] = Usage.TotalRam,
+        };
+        // Sprachmodell
+        var o = core.Ollama;
+        var chat = core.Server.Chat;
+        var llm = new JsonObject { ["selected"] = Chat.Selected, ["ollama"] = o.Running, ["busy"] = chat.Busy };
+        if (o.Running)
+        {
+            try
+            {
+                if ((await o.LoadedDetails()).FirstOrDefault() is JsonNode m)
+                {
+                    llm["model"] = (string)m["name"];
+                    llm["size"] = (long?)m["size"];
+                    llm["sizeVram"] = (long?)m["size_vram"];
+                    llm["context"] = (int?)m["context_length"];
+                    llm["expires"] = (string)m["expires_at"];
+                }
+            }
+            catch { /* Ollama antwortet gerade nicht */ }
+            var pids = o.Pids();
+            var gp = Usage.ForProcesses(pids, null);
+            var cp = Usage.ForCpu(pids);
+            llm["gpuUtil"] = gp.Util;
+            llm["gpuMem"] = gp.Mem;
+            llm["ram"] = cp.Ram;
+            llm["cpu"] = cp.Cpu;
+        }
+        else if (chat.Loaded is string winml && !winml.StartsWith(Chat.OllamaPrefix))
+        {
+            llm["model"] = winml;
+            llm["winml"] = true; // läuft im Helper-Prozess: Werte stehen beim Suchmodell mit
+        }
+        info["llm"] = llm;
+        // Suchmodell (dieser Prozess; ein Windows-ML-Sprachmodell zählt hier mit)
+        var me = new[] { Environment.ProcessId };
+        var ge = Usage.ForProcesses(me, null);
+        var ce = Usage.ForCpu(me);
+        info["embed"] = new JsonObject
+        {
+            ["model"] = core.Model.Id, ["loadedOn"] = Engine.LoadedOn, ["deviceName"] = Engine.LoadedOn is string d ? Engine.DeviceName(d) : null,
+            ["gpuUtil"] = ge.Util, ["gpuMem"] = ge.Mem, ["ram"] = ce.Ram, ["cpu"] = ce.Cpu,
+            ["rate"] = core.Server.Scheduler.Rates.All, ["busy"] = core.Server.Scheduler.Busy != null,
+        };
+        return info;
+    }
+
     volatile Txt importing;
 
     async Task<JsonObject> LlmInfo()
@@ -646,6 +740,7 @@ sealed class WebServer
         {
             ["version"] = Ollama.Version, ["installed"] = Ollama.Installed, ["enabled"] = Ollama.Enabled, ["running"] = o.Running,
             ["status"] = o.Status, ["installing"] = o.Installing, ["pulling"] = o.Pulling, ["error"] = o.LastError,
+            ["installingPct"] = o.InstallingPct, ["pullingPct"] = o.PullingPct,
             ["catalog"] = new JsonArray(Ollama.Catalog.Select(c => (JsonNode)new JsonObject { ["name"] = c.Tag, ["label"] = c.Label, ["gb"] = c.Gb }).ToArray()),
         };
         if (o.Running)
@@ -672,6 +767,8 @@ sealed class WebServer
             ["busy"] = chat.Busy,
             ["waiting"] = chat.Waiting,
             ["importing"] = importing?.ToString(),
+            ["importingPct"] = importing?.Pct,
+            ["options"] = LlmOptions.Info(),
             ["dir"] = Chat.Dir,
         };
     }

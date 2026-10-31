@@ -6,6 +6,12 @@
     "message": "Begleiter zu den NovaBird-Themes: Einstellungen mit einheitlicher Navigation (inkl. Konten), modernes Verfassen-Fenster, Kalender-Layout und Dialoge in Theme-Farben."
   },
   "aiButton": {
-    "message": "Mail zusammenfassen (KI)"
+    "message": "KI-Assistent: Zusammenfassen, Übersetzen, Termine"
+  },
+  "aiOverview": {
+    "message": "Was gibt's Neues?"
+  },
+  "aiOverviewTitle": {
+    "message": "KI-Überblick über die neuen Mails"
   }
 }

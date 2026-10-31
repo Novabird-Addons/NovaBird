@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="ai.css">
+</head>
+<body>
+  <header>
+    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7l9 6 9-6M3.5 5h17v14h-17z"/></svg>
+    <b id="title"></b>
+    <span class="model" id="model"></span>
+  </header>
+  <div class="bar">
+    <label><span id="periodLabel"></span> <select id="period"></select></label>
+    <label><input type="checkbox" id="unread"> <span id="unreadLabel"></span></label>
+  </div>
+  <div class="bar">
+    <label><span id="schedLabel"></span> <select id="sched"></select></label>
+    <input type="time" id="schedTime" hidden>
+    <select id="schedEvery" hidden></select>
+  </div>
+  <div class="out" id="out"></div>
+  <div class="warn" id="warn" hidden></div>
+  <div class="note-line" id="note" hidden></div>
+  <div class="err" id="err" hidden></div>
+  <footer>
+    <button type="button" class="primary" id="tasks" hidden></button>
+    <button type="button" id="again"></button>
+    <button type="button" id="copy"></button>
+    <span class="spacer"></span>
+    <button type="button" class="link" id="settings"></button>
+  </footer>
+  <script src="ai.js"></script>
+  <script src="overview.js"></script>
+</body>
+</html>

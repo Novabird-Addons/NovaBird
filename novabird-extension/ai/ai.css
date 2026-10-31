@@ -1,0 +1,76 @@
+/* KI-Fenster (Popup in der Nachrichtenansicht, Überblick oben in der Leiste): gleiche Gestaltung, Maße relativ */
+:root {
+  color-scheme: light dark;
+  --line: color-mix(in srgb, currentColor 18%, transparent);
+  --soft: color-mix(in srgb, currentColor 7%, transparent);
+  --accent: AccentColor;
+  --accent-text: AccentColorText;
+  --bad: #b3261e;
+}
+body { font: message-box; font-size: 0.95rem; margin: 0; width: 38rem; }
+body.win { width: auto; }
+body.win .out { max-height: calc(100vh - 12rem); }
+[hidden] { display: none !important; }
+
+header { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.1rem 0.4rem; }
+header b { font-size: 1.1em; }
+.icon-btn { border: 0; background: none; color: inherit; padding: 0.25rem; border-radius: 0.35rem; cursor: pointer; opacity: 0.75; display: inline-flex; }
+.icon-btn:hover { background: var(--soft); opacity: 1; }
+.icon-btn svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.model { margin-inline-start: auto; font-size: 0.85em; opacity: 0.6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 14rem; }
+
+/* Reiter */
+.tabs { display: flex; gap: 0.25rem; padding: 0.2rem; border-radius: 0.6rem; background: var(--soft); }
+.tabs button {
+  display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.8rem; border: 0; border-radius: 0.45rem;
+  background: transparent; color: inherit; font: inherit; cursor: pointer;
+}
+.tabs button:hover { background: var(--soft); }
+.tabs button[aria-selected="true"] { background: Canvas; box-shadow: 0 0 0 1px var(--line); font-weight: 600; }
+.tabs svg, .icon { width: 1.05em; height: 1.05em; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Leiste unter den Reitern (Zielsprache, Zeitraum …) */
+.bar { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; padding: 0.3rem 1.1rem 0.4rem; font-size: 0.92em; }
+.bar select { font: inherit; }
+
+.out { padding: 0.3rem 1.1rem 0.75rem; line-height: 1.5; white-space: pre-wrap; min-height: 10em; max-height: 32rem; overflow-y: auto; user-select: text; }
+.out.busy { opacity: 0.7; }
+.ref {
+  display: inline-block; margin-inline: 0.1em; padding: 0 0.35em; border: 0; border-radius: 0.6em; font: inherit; font-size: 0.85em;
+  background: var(--soft); color: inherit; cursor: pointer;
+}
+.ref:hover { background: var(--accent); color: var(--accent-text); }
+
+/* Termine und Aufgaben */
+.items { list-style: none; margin: 0; padding: 0.3rem 1.1rem 0.6rem; display: grid; gap: 0.5rem; max-height: 30rem; overflow-y: auto; }
+.items li { display: grid; grid-template-columns: auto auto 1fr; gap: 0.15rem 0.6rem; align-items: start; padding: 0.55rem 0.7rem; border: 1px solid var(--line); border-radius: 0.6rem; }
+.items li.off { opacity: 0.55; }
+.items input { margin: 0.2rem 0 0; }
+.items .icon { margin-top: 0.15rem; }
+.items .what { font-weight: 600; }
+.items .when, .items .where, .items .note { grid-column: 3; font-size: 0.9em; }
+.items .note { opacity: 0.75; }
+.empty { padding: 1.5rem 1.1rem; text-align: center; opacity: 0.7; }
+
+.warn { margin: 0 1.1rem 0.5rem; padding: 0.4rem 0.65rem; border-radius: 0.5rem; background: color-mix(in srgb, var(--bad) 14%, transparent); font-size: 0.9em; }
+.note-line { padding: 0 1.1rem 0.5rem; font-size: 0.85em; opacity: 0.7; }
+.err { padding: 0.25rem 1.1rem 0.6rem; color: var(--bad); white-space: pre-wrap; }
+
+footer { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.1rem 0.85rem; border-top: 1px solid var(--line); }
+footer .spacer { flex: 1; }
+footer button:not(.link) { white-space: nowrap; font: inherit; color: inherit; background: var(--soft); border: 1px solid var(--line); border-radius: 0.35rem; padding: 0.3rem 0.8rem; cursor: pointer; }
+footer button:not(.link):hover { background: color-mix(in srgb, currentColor 12%, transparent); }
+footer button.primary, footer button.primary:hover { background: var(--accent); color: var(--accent-text); border-color: transparent; }
+footer .primary:disabled { opacity: 0.5; }
+footer .link { border: 0; background: none; color: inherit; opacity: 0.75; text-decoration: underline; cursor: pointer; font: inherit; }
+
+/* Überblick: Überschriften, jeder Stichpunkt ein Block mit Abstand, Aufgaben mit Häkchen */
+.out h3 { font-size: 1em; margin: 0.9em 0 0.45em; }
+.out h3:first-child { margin-top: 0.2em; }
+.out .item, .out .para { white-space: normal; margin: 0 0 0.7em; }
+.out .item { padding-inline-start: 1em; text-indent: -1em; }
+.out .item:has(.todo) { padding-inline-start: 0; text-indent: 0; }
+.out .todo { display: flex; gap: 0.5em; align-items: flex-start; cursor: pointer; }
+.out .todo input { margin-top: 0.25em; flex: none; }
+.out .item.done { opacity: 0.6; text-decoration: line-through; }
+.bar input[type="time"], .bar select { font: inherit; }

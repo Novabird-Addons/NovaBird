@@ -850,6 +850,103 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
   getAPI() {
     return {
       novaCalendar: {
+        async createTasks(items) {
+          const { ExtensionError } = ChromeUtils.importESModule("resource://gre/modules/ExtensionUtils.sys.mjs");
+          const { cal } = ChromeUtils.importESModule("resource:///modules/calendar/calUtils.sys.mjs");
+          const { CalTodo } = ChromeUtils.importESModule("resource:///modules/CalTodo.sys.mjs");
+          const usable = c => cal.acl.isCalendarWritable(c) && cal.acl.userCanAddItemsToCalendar(c) && c.getProperty("capabilities.tasks.supported") !== false;
+          const calendars = cal.manager.getCalendars().filter(usable);
+          if (!calendars.length) {
+            throw new ExtensionError("nocalendar");
+          }
+          const selected = Services.wm.getMostRecentWindow("mail:3pane")?.getSelectedCalendar?.();
+          const target = selected && calendars.includes(selected) ? selected : calendars[0];
+          let count = 0;
+          for (const it of items) {
+            const todo = new CalTodo();
+            todo.title = String(it.title || "").slice(0, 300);
+            if (it.description) {
+              todo.setProperty("DESCRIPTION", String(it.description).slice(0, 4000));
+            }
+            const due = cal.dtz.now();
+            due.isDate = true; // fällig heute (ganzer Tag)
+            todo.dueDate = due;
+            todo.calendar = target;
+            await target.addItem(todo);
+            count++;
+          }
+          return { count, calendar: target.name };
+        },
+        async openItemDialogs(items) {
+          // Nur ExtensionError-Meldungen erreichen die Erweiterung, andere Fehler kommen als „unexpected error“ an
+          const { ExtensionError } = ChromeUtils.importESModule("resource://gre/modules/ExtensionUtils.sys.mjs");
+          const win = Services.wm.getMostRecentWindow("mail:3pane");
+          if (!win?.createEventWithDialog) {
+            throw new ExtensionError("Kein Hauptfenster mit Kalender");
+          }
+          const { cal } = ChromeUtils.importESModule("resource:///modules/calendar/calUtils.sys.mjs");
+          const { CalEvent } = ChromeUtils.importESModule("resource:///modules/CalEvent.sys.mjs");
+          const { CalTodo } = ChromeUtils.importESModule("resource:///modules/CalTodo.sys.mjs");
+          // Ohne beschreibbaren Kalender öffnet Thunderbird den Dialog stillschweigend nicht
+          const writable = cal.manager.getCalendars().filter(c => cal.acl.isCalendarWritable(c) && cal.acl.userCanAddItemsToCalendar(c));
+          const supports = what => writable.some(c => c.getProperty(`capabilities.${what}.supported`) !== false);
+          if (items.some(it => !supports(it.type === "task" ? "tasks" : "events"))) {
+            throw new ExtensionError("nocalendar");
+          }
+          // "2026-11-03" (ganztägig) oder "2026-11-03T19:30" in der Zeitzone des Kalenders
+          const toDateTime = (text, allDay) => {
+            const m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?$/.exec(text || "");
+            if (!m) {
+              return null;
+            }
+            const dt = cal.createDateTime();
+            dt.resetTo(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0), 0, cal.dtz.defaultTimezone);
+            if (allDay || !m[4]) {
+              dt.isDate = true;
+            }
+            return dt;
+          };
+          let opened = 0;
+          for (const it of items) {
+            const isTask = it.type === "task";
+            const item = isTask ? new CalTodo() : new CalEvent();
+            item.title = String(it.title || "").slice(0, 300);
+            if (it.location) {
+              item.setProperty("LOCATION", String(it.location).slice(0, 300));
+            }
+            if (it.description) {
+              item.setProperty("DESCRIPTION", String(it.description).slice(0, 4000));
+            }
+            if (isTask) {
+              const due = toDateTime(it.due || it.start, true);
+              if (due) {
+                item.dueDate = due;
+              }
+              win.createTodoWithDialog(null, null, null, item);
+            } else {
+              const start = toDateTime(it.start, it.allDay);
+              if (!start) {
+                continue;
+              }
+              let end = toDateTime(it.end, start.isDate);
+              if (!end || end.compare(start) <= 0 || end.isDate !== start.isDate) {
+                end = start.clone();
+                if (start.isDate) {
+                  end.day += 1; // ganztägig: Ende ist 00:00 des Folgetags
+                } else {
+                  end.hour += 1;
+                }
+              } else if (end.isDate) {
+                end.day += 1; // letzter Tag einschließlich
+              }
+              item.startDate = start;
+              item.endDate = end;
+              win.createEventWithDialog(null, null, null, null, item);
+            }
+            opened++;
+          }
+          return opened;
+        },
         async setColors(colors) {
           const valid =
             colors &&

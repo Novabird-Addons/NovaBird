@@ -11,6 +11,6 @@ rm -f "$OUT"
 python3 ../tools/vendor-semantic.py >/dev/null
 zip -r -q "$OUT" manifest.json background.html settings.js parser.js background.js _locales icons experiments options analysis db/background.js db/src db/api db/debug semantic
 # Gemeinsamer Code aus Source/shared (im Paket unter shared/)
-(cd .. && zip -q "$OUT" shared/selftest.js shared/selftest-bg.js shared/selftest-ui.js)
+(cd .. && zip -q "$OUT" shared/selftest.js shared/selftest-bg.js shared/selftest-ui.js shared/hubnote.js)
 echo "Gebaut: $OUT"
 unzip -l "$OUT" | tail -n +4 | head -n -2

@@ -6,6 +6,12 @@
     "message": "Compagnon des thèmes NovaBird : navigation unifiée des paramètres (comptes inclus), fenêtre de rédaction moderne, disposition de l'agenda et boîtes de dialogue aux couleurs du thème."
   },
   "aiButton": {
-    "message": "Résumer le message (IA)"
+    "message": "Assistant IA : résumer, traduire, rendez-vous"
+  },
+  "aiOverview": {
+    "message": "Quoi de neuf ?"
+  },
+  "aiOverviewTitle": {
+    "message": "Aperçu IA des nouveaux messages"
   }
 }

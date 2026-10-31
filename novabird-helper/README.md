@@ -48,6 +48,16 @@ Der Helper fasst Mails für die NovaBird-Extension zusammen (Einstellungen der E
 - **Ollama (empfohlen):** „Ollama einrichten“ lädt das offizielle Paket Ollama 0.40.4 von GitHub (etwa 1,5 GB, Prüfsumme wird geprüft; CUDA-Teile nur bei NVIDIA, AMD/Intel rechnen über Vulkan) in den Datenordner (`ollama\programm`, Modelle in `ollama\modelle`). Der Helper startet es nur auf 127.0.0.1 (Port 47533, aus dem Netz nicht erreichbar), beendet es mit sich selbst und startet es nach einem Absturz neu. Empfohlene Modelle mit einem Klick laden (Gemma 4 E4B, Gemma 3 4B, Qwen3.5-4B) oder ein anderes per Name; Fortschritt und belegter Grafikspeicher stehen dabei.
 - **Windows ML (Modellordner):** selbst gebautes Modell im Format von ONNX Runtime GenAI (`genai_config.json`, int4 für DirectML) übernehmen, wählen, testen; bleibt geladen, bis 15 Minuten nichts kam. Gemessen etwas schwächer als dasselbe Modell über Ollama; Gemma 4 E4B lässt sich dafür noch nicht bauen.
 
+- **Erweiterte Optionen** (Sprachmodell, aufklappbar): Kontextlänge 8.192 / 16.384 (Standard) / 32.768 Token, Temperatur (0,2), Top-p (0,9), wie lange das Modell geladen bleibt (5 min / 15 min / 1 h / immer). Kontextlänge und Speicherzeit gelten für alles über Ollama und starten es kurz neu.
+- „Kontextspeicher komprimieren“ (Standard an): Flash Attention + KV-Cache q8_0, gemessen mit Gemma 4 E4B bei 16k Kontext 3,8 statt 4,2 GB (ohne Flash Attention 5,0 GB) Grafikspeicher.
+- Beim Laden (Ollama, Modelle, Suchmodell, Übernehmen) zeigt die Web-Oberfläche einen Fortschrittsbalken.
+- **Status → Auslastung:** Grafikkarte (Speicher, Last), Sprachmodell (Ollama: geladen, Kontext, Anteil auf der Grafikkarte, Speicher, GPU-Last, CPU) und Suchmodell (Helper-Prozess), Werte wie im Task-Manager.
+
+## Externe Programme (OpenAI-kompatibel, optional)
+Unter *Externe Programme* lässt sich das Sprachmodell auch von anderen Programmen nutzen (Open WebUI, Continue, eigene Skripte mit der `openai`-Bibliothek): Base URL `http://localhost:47532/v1` auf diesem PC, aus dem Netz `https://<PC>:47532/v1` (nur mit „Web-Oberfläche im Netz“; das Zertifikat lässt sich herunterladen, auf Wunsch auch unverschlüsseltes HTTP). Unterstützt: `/v1/models`, `/v1/chat/completions` (auch gestreamt), `/v1/completions`, `/v1/embeddings`. Modell `default` = das in der Web-Oberfläche gewählte Ollama-Modell.
+- Jedes Programm bekommt einen eigenen Schlüssel (`Authorization: Bearer nbh-…`), nur einmal sichtbar, gespeichert nur als SHA-256; je Schlüssel optional **nur von bestimmten Adressen** (z. B. `192.168.1.20, 192.168.1.0/24`). Nutzung (Anzahl, zuletzt, Adresse) steht in der Tabelle; löschen sperrt sofort. 10 falsche Schlüssel in 10 Minuten sperren die Adresse.
+- Ollama selbst bleibt nur auf 127.0.0.1; Modelle laden oder löschen geht über diese Schnittstelle nicht.
+
 ## Ordner-Sync zwischen PCs
 Der Helper legt neue Vektoren **verschlüsselt** (AES-256-GCM) in einen gemeinsamen Ordner (NAS, OneDrive, Nextcloud …) und übernimmt die der anderen PCs; so rechnet nicht jeder PC alles selbst. Schlüssel aus dem **Kopplungscode** (20 Zeichen, PBKDF2-SHA256 mit 300.000 Runden); im Ordner liegen nur Salz und Prüfwert, auf dem PC der Schlüssel mit DPAPI geschützt. Inhalt der Pakete: Message-ID und Vektor, keine Mailtexte.
 

@@ -453,6 +453,7 @@ const HUB_LABEL = {
   extension: "Extension",
 };
 let hubLast = null; // zuletzt gewählter Reiter (bleibt beim erneuten Öffnen erhalten)
+const hubSelects = new Set(); // Reiterwahl der offenen NovaBird-Seiten (openHub)
 
 /** Aktive NovaBird-Add-ons mit Optionsseite, in fester Reihenfolge; unbekannte (`…@novabird`) folgen. */
 function hubAddons() {
@@ -463,7 +464,8 @@ function hubAddons() {
     if (!m || !page) {
       continue;
     }
-    found.set(m[1], { id: p.id, key: m[1], label: HUB_LABEL[m[1]] || m[1], url: p.getURL(page), icon: p.getURL("icons/icon-48.png") });
+    // ?hub=1: die Seite weiß, dass sie hier in voller Breite steht (in der Add-on-Verwaltung zeigt sie nur einen Verweis hierher)
+    found.set(m[1], { id: p.id, key: m[1], label: HUB_LABEL[m[1]] || m[1], url: p.getURL(page) + "?hub=1", icon: p.getURL("icons/icon-48.png") });
   }
   const out = HUB_ORDER.filter(k => found.has(k)).map(k => found.get(k));
   for (const [k, v] of found) {
@@ -636,6 +638,8 @@ function setupHub(doc, undo) {
   if (list.length) {
     select(pages.has(hubLast) ? hubLast : list[0].key);
   }
+  const selectKnown = key => pages.has(key) && select(key);
+  hubSelects.add(selectKnown);
   const onPane = () => {
     for (const page of pages.values()) {
       if (page.browser && !page.box.hidden) {
@@ -645,6 +649,7 @@ function setupHub(doc, undo) {
   };
   doc.addEventListener("paneSelected", onPane);
   undo.push(() => {
+    hubSelects.delete(selectKnown);
     doc.removeEventListener("paneSelected", onPane);
     item.remove();
     pane.remove();
@@ -1240,9 +1245,24 @@ function setupWindow(win, isMain) {
 }
 
 // KI-Knopf im Nachrichtenkopf: ein Add-on kann seinen Knopf dort nicht ausblenden, daher ein Stilblatt mit der (eindeutigen) Knopf-ID
-const AI_BUTTON_SHEET = Services.io.newURI("data:text/css," + encodeURIComponent("#novabird-extension_novabird-messageDisplayAction-toolbarbutton { display: none !important; }"));
+// KI aus: KI-Knopf der Nachrichtenansicht und „Was gibt's Neues?“ in der Leiste (einheitliche Symbolleiste) ausblenden
+const AI_BUTTON_SHEET = Services.io.newURI("data:text/css," + encodeURIComponent(
+  "#novabird-extension_novabird-messageDisplayAction-toolbarbutton, li[item-id=\"ext-novabird-extension@novabird\"] { display: none !important; }"));
+// „Was gibt's Neues?“ hervorheben: Hintergrund und Rahmen in der Akzentfarbe (NovaBird-Design, sonst die von Windows)
+const AI_NEWS_SHEET = Services.io.newURI("data:text/css," + encodeURIComponent(`
+li[item-id="ext-novabird-extension@novabird"] button {
+  background-color: color-mix(in srgb, var(--ms-accent, AccentColor) 20%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--ms-accent, AccentColor) 55%, transparent) !important;
+  border-radius: 6px !important;
+}
+li[item-id="ext-novabird-extension@novabird"] button:hover {
+  background-color: color-mix(in srgb, var(--ms-accent, AccentColor) 34%, transparent) !important;
+}`));
 function setAiButtonVisible(visible) {
   const sss = Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
+  if (!sss.sheetRegistered(AI_NEWS_SHEET, sss.USER_SHEET)) {
+    sss.loadAndRegisterSheet(AI_NEWS_SHEET, sss.USER_SHEET);
+  }
   const registered = sss.sheetRegistered(AI_BUTTON_SHEET, sss.USER_SHEET);
   if (visible && registered) {
     sss.unregisterSheet(AI_BUTTON_SHEET, sss.USER_SHEET);
@@ -1392,6 +1412,10 @@ function teardown() {
   } catch (e) {}
   try {
     setAiButtonVisible(true);
+    const sss = Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
+    if (sss.sheetRegistered(AI_NEWS_SHEET, sss.USER_SHEET)) {
+      sss.unregisterSheet(AI_NEWS_SHEET, sss.USER_SHEET);
+    }
   } catch (e) {}
   for (const [tab] of states) {
     try {
@@ -1437,6 +1461,13 @@ return class extends ExtensionCommon.ExtensionAPI {
     }
     return {
       settingsRedesign: {
+        async openHub(key) {
+          hubLast = String(key);
+          for (const select of hubSelects) {
+            select(hubLast);
+          }
+          gotoPane("paneNovaBird");
+        },
         async setAiButton(visible) {
           setAiButtonVisible(Boolean(visible));
         },

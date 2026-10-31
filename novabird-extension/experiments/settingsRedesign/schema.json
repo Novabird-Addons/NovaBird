@@ -17,6 +17,13 @@
         ]
       },
       {
+        "name": "openHub",
+        "type": "function",
+        "async": true,
+        "description": "Öffnet Einstellungen → NovaBird mit dem Reiter des Add-ons (key: extension, db, conversation, send).",
+        "parameters": [{ "name": "key", "type": "string" }]
+      },
+      {
         "name": "setAiButton",
         "type": "function",
         "async": true,

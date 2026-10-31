@@ -59,6 +59,25 @@ static class Dxgi
         catch { return true; } // im Zweifel alles entpacken
     }
 
+    /// <summary>Kennung der Grafikkarte, wie sie in den Leistungsindikatoren steht („luid_0x00000000_0x0000D1A5“).</summary>
+    public static string Luid(int index)
+    {
+        try
+        {
+            var iid = typeof(IDXGIFactory1).GUID;
+            if (CreateDXGIFactory1(ref iid, out var factory) != 0) return null;
+            string luid = null;
+            if (factory.EnumAdapters1((uint)index, out var a) == 0)
+            {
+                if (a.GetDesc1(out var d) == 0) luid = $"luid_0x{d.LuidHigh:X8}_0x{d.LuidLow:X8}";
+                Marshal.ReleaseComObject(a);
+            }
+            Marshal.ReleaseComObject(factory);
+            return luid;
+        }
+        catch { return null; }
+    }
+
     /// <summary>(DirectML-Index, Name, Grafikspeicher in MB) je Hardware-Adapter.</summary>
     public static List<(int Index, string Name, long VramMB)> Adapters()
     {

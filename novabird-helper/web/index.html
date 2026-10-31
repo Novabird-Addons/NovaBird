@@ -38,6 +38,7 @@
       <a href="#pcs" data-page="pcs" data-i18n="navPcs"></a>
       <a href="#sprachmodell" data-page="sprachmodell" data-i18n="navLlm"></a>
       <a href="#verbindung" data-page="verbindung" data-admin data-i18n="navConnection"></a>
+      <a href="#extern" data-page="extern" data-i18n="navExt"></a>
       <a href="#einstellungen" data-page="einstellungen" data-i18n="navSettings"></a>
       <a href="#benutzer" data-page="benutzer" data-admin data-i18n="navUsers"></a>
       <a href="#protokoll" data-page="protokoll" data-admin data-i18n="navLog"></a>
@@ -63,6 +64,14 @@
           <dt data-i18n="stMode"></dt><dd id="sMode">–</dd>
           <dt data-i18n="stStarted"></dt><dd id="sStarted">–</dd>
         </dl>
+        <div class="progress" id="sProg" hidden><progress max="100"></progress><span></span></div>
+        <h2 data-i18n="usageTitle"></h2>
+        <div class="usage">
+          <article class="card"><header><b data-i18n="uGpu"></b><span class="sub" id="uGpuName"></span></header><div id="uGpuRows"></div></article>
+          <article class="card"><header><b data-i18n="uLlm"></b><span class="sub" id="uLlmName"></span></header><p class="state" id="uLlmState"></p><div id="uLlmRows"></div></article>
+          <article class="card"><header><b data-i18n="uEmbed"></b><span class="sub" id="uEmbedName"></span></header><p class="state" id="uEmbedState"></p><div id="uEmbedRows"></div></article>
+        </div>
+        <p class="muted" id="uNote" hidden></p>
         <h2 data-i18n="devicesTitle"></h2>
         <p class="muted" data-i18n="devicesText"></p>
         <table class="grid"><thead><tr><th data-i18n="thDevice"></th><th class="num" data-i18n="thMailsPerSec"></th><th data-i18n="thNote"></th></tr></thead><tbody id="sDevices"></tbody></table>
@@ -84,6 +93,8 @@
         <h2 data-i18n="ollamaTitle"></h2>
         <p class="muted" data-i18n="ollamaText"></p>
         <p id="oState"></p>
+        <div class="progress" id="oInstallProg" hidden><progress max="100"></progress><span></span></div>
+        <div class="progress" id="oPullProg" hidden><progress max="100"></progress><span></span></div>
         <p class="actions" data-admin><button type="button" id="oInstall" hidden data-i18n="ollamaInstall"></button><button type="button" id="oToggle" hidden></button></p>
         <table class="grid" id="oTable" hidden><thead><tr><th data-i18n="thLoadedModels"></th><th class="num" data-i18n="thSize"></th><th></th></tr></thead><tbody id="oList"></tbody></table>
         <form id="oPullForm" class="inline" data-admin hidden>
@@ -91,6 +102,24 @@
           <label id="oCustomRow" hidden><span data-i18n="ollamaName"></span> <input name="custom" data-i18n-ph="ollamaNamePh" autocomplete="off" class="wide"></label>
           <button type="submit" id="oPullButton" data-i18n="load"></button>
         </form>
+
+        <details class="advanced" id="optBox">
+          <summary data-i18n="optTitle"></summary>
+          <p class="muted" data-i18n="optText"></p>
+          <form id="optForm" class="settings">
+            <label><span data-i18n="optContext"></span> <select name="context"></select></label>
+            <p class="muted" data-i18n="optContextText"></p>
+            <label class="check"><input type="checkbox" name="kvCompress"> <span data-i18n="optKv"></span></label>
+            <p class="muted" data-i18n="optKvText"></p>
+            <label><span data-i18n="optTemperature"></span> <input type="number" name="temperature" min="0" max="2" step="0.05" class="short"></label>
+            <p class="muted" data-i18n="optTemperatureText"></p>
+            <label><span data-i18n="optTopP"></span> <input type="number" name="topP" min="0.05" max="1" step="0.05" class="short"></label>
+            <p class="muted" data-i18n="optTopPText"></p>
+            <label><span data-i18n="optKeep"></span> <select name="keepAlive"></select></label>
+            <p class="muted" data-i18n="optKeepText"></p>
+            <p class="actions" data-admin><button type="submit" class="primary" data-i18n="save"></button><button type="button" id="optReset" data-i18n="optReset"></button> <span class="saved" id="optSaved" hidden data-i18n="saved"></span></p>
+          </form>
+        </details>
 
         <h2 data-i18n="winmlTitle"></h2>
         <p class="muted" data-i18n-html="winmlText"></p>
@@ -101,7 +130,7 @@
             <label><span data-i18n="importPath"></span> <input name="path" class="wide" placeholder="C:\Modelle\gemma-3-4b-int4-dml" autocomplete="off"></label>
             <button type="submit" data-i18n="importButton"></button>
           </form>
-          <p class="muted" id="lImport"></p>
+          <div class="progress" id="lProg" hidden><progress max="100"></progress><span></span></div>
         </div>
 
         <h2 data-i18n="promptTitle"></h2>
@@ -136,6 +165,35 @@
           <p class="muted" data-i18n="certText"></p>
           <code class="code small" id="cFinger"></code>
         </div>
+      </section>
+
+      <section data-section="extern" hidden>
+        <h1 data-i18n="extTitle"></h1>
+        <p class="muted" data-i18n="extText"></p>
+        <form id="extForm" class="settings">
+          <label class="check"><input type="checkbox" name="enabled"> <span data-i18n="extEnabled"></span></label>
+          <label class="check"><input type="checkbox" name="lanHttp"> <span data-i18n="extLanHttp"></span></label>
+          <p class="muted" data-i18n="extLanHttpText"></p>
+        </form>
+        <p id="xState"></p>
+        <h2 data-i18n="extUrls"></h2>
+        <ul class="copylist" id="xUrls"></ul>
+        <p class="muted" id="xModel"></p>
+        <p class="muted" id="xCert" hidden><span data-i18n="extCert"></span> <a href="/novabird-helper.crt" download data-i18n="extCertLink"></a></p>
+        <h2 data-i18n="extKeys"></h2>
+        <p class="muted" data-i18n="extKeysText"></p>
+        <table class="grid"><thead><tr><th data-i18n="thName"></th><th data-i18n="thAllowed"></th><th data-i18n="thCreated"></th><th data-i18n="thLastUsed"></th><th class="num" data-i18n="thRequests"></th><th data-admin></th></tr></thead><tbody id="xKeys"></tbody></table>
+        <form id="xAdd" class="inline" data-admin>
+          <label><span data-i18n="name"></span> <input name="name" maxlength="40" autocomplete="off" required></label>
+          <label><span data-i18n="extOnlyFrom"></span> <input name="ips" class="wide" placeholder="192.168.1.20, 192.168.1.0/24" autocomplete="off"></label>
+          <button type="submit" data-i18n="extAddKey"></button>
+        </form>
+        <div id="xNew" hidden>
+          <p><b data-i18n="extNewKey"></b></p>
+          <div class="copyrow"><code class="code" id="xNewKey"></code><button type="button" data-copy="xNewKey" data-i18n="copy"></button></div>
+        </div>
+        <h2 data-i18n="extExample"></h2>
+        <pre class="log" id="xExample"></pre>
       </section>
 
       <section data-section="einstellungen" hidden>
