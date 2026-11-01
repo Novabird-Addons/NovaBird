@@ -23,6 +23,7 @@ user_pref("mail.shell.checkDefaultClient", false);
 user_pref("mail.winsearch.firstRunDone", true);
 user_pref("mail.spotlight.firstRunDone", true);
 user_pref("ldap_2.servers.osx.dirType", -1);
+user_pref("extensions.novabird.setup.auto", false);
 user_pref("mailnews.start_page.enabled", false);
 user_pref("app.update.enabled", false);
 user_pref("app.update.disabledForTesting", true);

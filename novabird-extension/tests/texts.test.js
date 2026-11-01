@@ -33,3 +33,24 @@ test("Manifest-Texte in allen Sprachen, Icons vorhanden", () => {
   assert.deepEqual(L.structureProblems(L.loadLocales(root)), []);
   assert.deepEqual(L.manifestProblems(root), []);
 });
+
+test("Einrichtungs-Assistent: vier Sprachen, gleiche Schlüssel und Platzhalter, jeder benutzte Text vorhanden", () => {
+  const code = L.readAll(root, ["setup/setup.js"]);
+  const T = vm.runInNewContext("(" + code.match(/const T = (\{[\s\S]*?\n {2}\});/)[1] + ")");
+  const problems = [];
+  // Verschachtelte Texte (Objekte, Listen) als Pfad → Text
+  const flat = (o, pre = "") => Object.entries(o).flatMap(([k, v]) => (typeof v === "string" ? [[pre + k, v]] : flat(v, `${pre}${k}.`)));
+  const ph = s => [...s.matchAll(/\$\d/g)].map(m => m[0]).sort().join();
+  const en = new Map(flat(T.en));
+  for (const lang of ["de", "fr", "es"]) {
+    const map = new Map(flat(T[lang] ?? {}));
+    for (const k of en.keys()) if (!map.has(k)) problems.push(`${lang}: fehlt ${k}`);
+    for (const [k, v] of map) {
+      if (!en.has(k)) problems.push(`${lang}: nicht in en: ${k}`);
+      else if (ph(v) !== ph(en.get(k))) problems.push(`${lang}/${k}: andere Platzhalter als en`);
+      if (!v.trim()) problems.push(`${lang}/${k} ist leer`);
+    }
+  }
+  for (const [, k] of code.matchAll(/\bt\.(\w+)/g)) if (!(k in T.en)) problems.push(`benutzt, aber nicht vorhanden: t.${k}`);
+  assert.deepEqual(problems, []);
+});

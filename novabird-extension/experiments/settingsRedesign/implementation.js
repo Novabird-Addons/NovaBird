@@ -445,10 +445,11 @@ function injectNav(doc, undo) {
 // Ab 2.0 hat NovaBird-Search (mit Suchindex) die ID des früheren NovaBird-DB, daher der Schlüssel "db" für „Suche“;
 // "search" gibt es nur noch kurz beim Umstieg von 1.x (das alte Add-on wird dann entfernt).
 // Reiter nach Aufgaben statt nach Add-ons: Die Extension liefert drei Seiten (Allgemein, KI-Assistent, NovaBird Helper)
-const HUB_ORDER = ["extension", "db", "ai", "helper", "search", "conversation", "send", "phishing"];
+const HUB_ORDER = ["setup", "extension", "db", "ai", "helper", "search", "conversation", "send", "phishing"];
 // Add-ons mit einer ID außerhalb des Musters novabird-…@novabird (ID lässt sich nicht mehr ändern, sonst verwaisen Einstellungen)
 const HUB_IDS = { "phishing-addon@novabird": "phishing" };
 const HUB_LABEL = {
+  setup: tr("Einrichtung", "Setup", "Configuration", "Configuración"),
   extension: tr("Allgemein", "General", "Général", "General"),
   ai: tr("KI-Assistent", "AI assistant", "Assistant IA", "Asistente IA"),
   helper: "NovaBird Helper",
@@ -459,7 +460,7 @@ const HUB_LABEL = {
   phishing: tr("Phishing-Schutz", "Phishing protection", "Protection anti-hameçonnage", "Protección antiphishing"),
 };
 // Zusätzliche Seiten der Extension im Hub (Pfad, Ansicht)
-const HUB_EXTRA = { extension: "options/options.html?hub=1&view=general", ai: "options/options.html?hub=1&view=ai", helper: "options/helper.html?hub=1" };
+const HUB_EXTRA = { setup: "setup/setup.html?hub=1", extension: "options/options.html?hub=1&view=general", ai: "options/options.html?hub=1&view=ai", helper: "options/helper.html?hub=1" };
 let hubLast = null; // zuletzt gewählter Reiter (bleibt beim erneuten Öffnen erhalten)
 const hubSelects = new Set(); // Reiterwahl der offenen NovaBird-Seiten (openHub)
 
@@ -607,7 +608,9 @@ function setupHub(doc, undo) {
   const applyScheme = browser => {
     try {
       const sc = scheme();
-      if (sc && browser.browsingContext) {
+      // Nur bei Seiten im Erweiterungsprozess: laufen Add-on-Seiten im Hauptprozess (extensions.webextensions.remote = false,
+      // z. B. in den Tests), beendet das Setzen Thunderbird hart (CanSet failed: PrefersColorSchemeOverride)
+      if (sc && browser.browsingContext && browser.isRemoteBrowser) {
         browser.browsingContext.prefersColorSchemeOverride = sc;
       }
     } catch (e) {
@@ -1489,6 +1492,9 @@ return class extends ExtensionCommon.ExtensionAPI {
             select(hubLast);
           }
           gotoPane("paneNovaBird");
+        },
+        async setupAutoOpen() {
+          return Services.prefs.getBoolPref("extensions.novabird.setup.auto", true);
         },
         // NovaBird Helper für die Suche einrichten (Klick im Reiter „NovaBird Helper“): NovaBird-Search darf genau diese
         // Adresse ansprechen. Nur für NovaBird-Search, nur http(s)://Host/* – wie die Rückfrage in dessen eigener Seite.

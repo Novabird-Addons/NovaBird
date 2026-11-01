@@ -173,7 +173,32 @@ async function applySettings() {
   });
   await safe("Hauptfenster-Stil", async () => applyMain(await messenger.storage.local.get(DEFAULTS))); // jetzt ist das Hauptfenster sicher da (Zeilenhöhe)
   console.log("NovaBird-Extension: gestartet");
+  setTimeout(() => safe("Einrichtung", setupStart), 4000);
 })();
+
+// ---- Einrichtungs-Assistent (setup/setup.html, Reiter „Einrichtung“ in Einstellungen → NovaBird) -------------------------
+// Geht einmal von selbst auf: nach einer Neuinstallation oder dem Umstieg von 1.x. onInstalled merkt sich nur, woher das Update
+// kam; entschieden wird beim Start (setupStart), dann steht „setup“ im Speicher und der Assistent geht nicht wieder von selbst auf.
+messenger.runtime.onInstalled.addListener(({ reason, previousVersion }) => {
+  if (reason === "install" || reason === "update") {
+    messenger.storage.local.set({ setupInstalled: { reason, previousVersion: previousVersion || "" } }).catch(() => {});
+  }
+});
+
+async function setupStart() {
+  const { setup, setupInstalled } = await messenger.storage.local.get({ setup: null, setupInstalled: null });
+  if (setup) {
+    return;
+  }
+  // Umstieg: Vorversion 1.x oder schon gespeicherte Einstellungen (dann war die Extension vorher da)
+  const stored = await messenger.storage.local.get(null);
+  const major = parseInt(setupInstalled?.previousVersion || "", 10);
+  const upgrade = (major > 0 && major < 2) || Object.keys(DEFAULTS).some(k => k in stored);
+  await messenger.storage.local.set({ setup: { mode: upgrade ? "upgrade" : "new", from: setupInstalled?.previousVersion || "", at: Date.now(), wizard: true, steps: {} } });
+  if (await messenger.settingsRedesign.setupAutoOpen()) {
+    await messenger.settingsRedesign.openHub("setup");
+  }
+}
 
 // KI-Zusammenfassung: Ollama lehnt Anfragen mit dem Absender „moz-extension://…“ ab (403, OLLAMA_ORIGINS). Bei Anfragen
 // unserer eigenen Seiten an den eigenen Rechner wird der Origin-Kopf deshalb weggelassen; der Nutzer muss nichts einstellen.
@@ -274,7 +299,7 @@ messenger.storage.onChanged.addListener(async changes => {
   if (changes.resetTick) {
     safe("Teiler zurücksetzen", () => messenger.novaCalendar.resetAttachHeight());
   }
-  const keys = Object.keys(changes).filter(k => k !== "resetTick" && !k.startsWith("selfTest"));
+  const keys = Object.keys(changes).filter(k => k !== "resetTick" && !k.startsWith("selfTest") && !k.startsWith("setup"));
   if (!keys.length) {
     return;
   }

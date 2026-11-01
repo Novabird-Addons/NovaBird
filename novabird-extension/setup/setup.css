@@ -1,0 +1,119 @@
+/* Einrichtungs-Assistent (Reiter „Einrichtung“ in Einstellungen → NovaBird). Alles em-relativ; hell/dunkel setzt der Hub. */
+:root {
+  color-scheme: light dark;
+  --line: color-mix(in srgb, currentColor 14%, transparent);
+  --muted: color-mix(in srgb, currentColor 64%, transparent);
+  --soft: color-mix(in srgb, currentColor 5%, transparent);
+  --accent: AccentColor;
+  --accent-soft: color-mix(in srgb, AccentColor 12%, transparent);
+  --ok: #1e8e5a;
+  --ok-soft: color-mix(in srgb, #1e8e5a 12%, transparent);
+  --warn: #9a5b00;
+  --warn-soft: color-mix(in srgb, #d98a00 14%, transparent);
+}
+@media (prefers-color-scheme: dark) {
+  :root { --ok: #4cc38a; --ok-soft: color-mix(in srgb, #4cc38a 16%, transparent); --warn: #f0b45a; --warn-soft: color-mix(in srgb, #f0b45a 14%, transparent); }
+}
+html { font: message-box; }
+/* Systemschrift wie auf den anderen Seiten der Extension 17 % größer */
+body { font-size: 117%; margin: 16px; max-width: 54em; line-height: 1.45; }
+h1 { font-size: 1.45em; margin: 0 0 0.15em; }
+h2 { font-size: 1.15em; margin: 0 0 0.3em; }
+h3 { font-size: 1em; margin: 0 0 0.2em; }
+p { margin: 0 0 0.6em; }
+.muted { color: var(--muted); }
+.small { font-size: 0.9em; }
+a { color: var(--accent); }
+
+.hero { display: flex; align-items: center; gap: 1em; margin: 0.2em 0 1.1em; }
+.hero .mark { width: 3.2em; height: 3.2em; flex: none; border-radius: 0.7em; }
+.lead { color: var(--muted); margin: 0; max-width: 40em; }
+
+/* Schrittleiste */
+.stepper { display: flex; flex-wrap: wrap; gap: 0.3em; margin: 0 0 1.1em; padding: 0 0 0.9em; border-bottom: 1px solid var(--line); }
+.stepper[hidden] { display: none; }
+.stepper button { display: inline-flex; align-items: center; gap: 0.5em; padding: 0.3em 0.75em 0.3em 0.35em; border: 1px solid transparent; border-radius: 2em;
+  background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.stepper button:hover { background: var(--soft); }
+.stepper .num { display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; border-radius: 50%; font-size: 0.85em; font-weight: 600;
+  border: 1px solid var(--line); color: var(--muted); }
+.stepper .done .num { background: var(--ok-soft); border-color: transparent; color: var(--ok); }
+.stepper [aria-current="step"] { background: var(--accent-soft); font-weight: 600; }
+.stepper [aria-current="step"] .num { background: var(--accent); border-color: transparent; color: AccentColorText; }
+
+/* Karten */
+.card { border: 1px solid var(--line); border-radius: 0.75em; padding: 1em 1.15em; margin: 0 0 0.9em; }
+.card.flat { background: var(--soft); border-color: transparent; }
+.features { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20em), 1fr)); gap: 0.75em; margin: 0 0 0.9em; }
+/* ungerade Anzahl: die letzte Karte über die ganze Breite (zwei Spalten) */
+.features .feature:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.feature { display: flex; gap: 0.75em; align-items: flex-start; border: 1px solid var(--line); border-radius: 0.75em; padding: 0.85em 1em; }
+.feature p { margin: 0; color: var(--muted); font-size: 0.93em; }
+.icon { flex: none; width: 2.2em; height: 2.2em; border-radius: 0.6em; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+.icon svg { width: 1.25em; height: 1.25em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Umgezogen: früher → jetzt */
+.moves { width: 100%; border-collapse: collapse; }
+.moves td { padding: 0.6em 0.5em; border-top: 1px solid var(--line); vertical-align: middle; }
+.moves tr:first-child td { border-top: 0; }
+.moves .was { color: var(--muted); width: 38%; }
+.moves .arrow { color: var(--muted); width: 1.5em; text-align: center; }
+.moves .go { text-align: end; white-space: nowrap; }
+.tag { display: inline-block; margin-inline-start: 0.4em; padding: 0 0.5em; border-radius: 1em; font-size: 0.8em; font-weight: 600; background: var(--accent-soft); color: var(--accent); vertical-align: 0.1em; }
+
+#searchLive h3 { margin: 1.2em 0 0.2em; }
+
+/* Knöpfe */
+button { font: inherit; padding: 0.35em 1em; border-radius: 0.4em; }
+button.primary { background: var(--accent); color: AccentColorText; border: 1px solid var(--accent); }
+button.link { border: 0; background: none; padding: 0; color: var(--accent); cursor: pointer; text-decoration: underline; }
+.row { display: flex; gap: 0.6em; align-items: center; flex-wrap: wrap; margin: 0.7em 0 0.2em; }
+.choice { display: flex; gap: 0.5em; flex-wrap: wrap; margin: 0.4em 0 0.8em; }
+.choice button[aria-pressed="true"] { background: var(--accent-soft); border: 1px solid var(--accent); font-weight: 600; }
+
+/* Kennzahlen und Fortschritt */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(10em, 1fr)); gap: 0.6em; margin: 0.4em 0 0.9em; }
+.stat { background: var(--soft); border-radius: 0.6em; padding: 0.6em 0.8em; }
+.stat b { display: block; font-size: 1.3em; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: 0.88em; }
+.progress { height: 0.5em; border-radius: 1em; background: var(--line); overflow: hidden; margin: 0.4em 0; }
+.progress > div { height: 100%; background: var(--accent); border-radius: 1em; transition: width 0.4s; }
+.spin { display: inline-block; width: 0.9em; height: 0.9em; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.9s linear infinite; vertical-align: -0.1em; margin-inline-end: 0.4em; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Hinweise */
+.note { border-radius: 0.6em; padding: 0.7em 0.9em; margin: 0.6em 0; display: flex; gap: 0.6em; align-items: flex-start; }
+.note.ok { background: var(--ok-soft); }
+.note.warn { background: var(--warn-soft); }
+.note.info { background: var(--accent-soft); }
+.note .sym { flex: none; font-weight: 700; }
+.note.ok .sym { color: var(--ok); }
+.note.warn .sym { color: var(--warn); }
+.note.info .sym { color: var(--accent); }
+.note p:last-child { margin: 0; }
+ul.plain { margin: 0.3em 0 0.6em; padding-inline-start: 1.2em; }
+ul.plain li { margin: 0.2em 0; }
+ol.how { margin: 0.3em 0 0.6em; padding-inline-start: 1.4em; }
+ol.how li { margin: 0.35em 0; }
+
+/* KI-Funktionen */
+.checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(16em, 1fr)); gap: 0.35em 1em; margin: 0.4em 0; }
+.checks label { display: flex; gap: 0.5em; align-items: flex-start; }
+
+/* Übersicht */
+.overview { display: grid; grid-template-columns: repeat(auto-fill, minmax(19em, 1fr)); gap: 0.8em; }
+.item { border: 1px solid var(--line); border-radius: 0.75em; padding: 0.95em 1.05em; display: flex; flex-direction: column; gap: 0.4em; }
+.item .head { display: flex; align-items: center; gap: 0.7em; }
+.item .head h3 { flex: 1; margin: 0; }
+.item p { margin: 0; color: var(--muted); font-size: 0.93em; }
+.item .actions { margin-top: auto; padding-top: 0.4em; }
+.pill { flex: none; padding: 0.1em 0.65em; border-radius: 1em; font-size: 0.82em; font-weight: 600; white-space: nowrap; }
+.pill.done { background: var(--ok-soft); color: var(--ok); }
+.pill.open { background: var(--warn-soft); color: var(--warn); }
+.pill.run { background: var(--accent-soft); color: var(--accent); }
+.pill.none { background: var(--soft); color: var(--muted); }
+
+/* Leiste unten */
+.bar { display: flex; gap: 0.6em; align-items: center; margin-top: 1.1em; padding-top: 0.9em; border-top: 1px solid var(--line); }
+.bar .space { flex: 1; }
+.bar:empty { display: none; }

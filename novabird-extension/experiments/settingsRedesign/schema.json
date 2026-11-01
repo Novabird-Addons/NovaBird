@@ -20,8 +20,15 @@
         "name": "openHub",
         "type": "function",
         "async": true,
-        "description": "Öffnet Einstellungen → NovaBird mit dem Reiter (key: extension, ai, helper, db, conversation, send).",
+        "description": "Öffnet Einstellungen → NovaBird mit dem Reiter (key: setup, extension, ai, helper, db, conversation, send).",
         "parameters": [{ "name": "key", "type": "string" }]
+      },
+      {
+        "name": "setupAutoOpen",
+        "type": "function",
+        "async": true,
+        "description": "Darf der Einrichtungs-Assistent von selbst aufgehen? Nein in Testprofilen (Einstellung extensions.novabird.setup.auto = false).",
+        "parameters": []
       },
       {
         "name": "grantSearchOrigin",

@@ -644,6 +644,7 @@ let paused = false;
 let doneIds = null; // Message-IDs mit Vektor (aktuelles Modell)
 let offset = 0; // Position im Durchlauf (neueste zuerst)
 let wake = null; // weckt die Schleife vorzeitig (Einstellung geändert, Fortsetzen)
+let measureTarget = 0; // Messung des Einrichtungs-Assistenten: bis zu dieser Anzahl ohne Leerlauf rechnen
 
 const wait = ms => new Promise(r => {
   const t = setTimeout(r, ms);
@@ -855,7 +856,7 @@ async function indexLoop() {
             continue;
           }
         }
-        if (cfg.idleOnly && !remoteEngine() && state.done > 0 && !(await isIdle())) {
+        if (cfg.idleOnly && !remoteEngine() && state.done > 0 && state.done >= measureTarget && !(await isIdle())) {
           // Rechnet das Add-on selbst: die ersten Mails sofort, danach nur im Leerlauf
           state.phase = "waiting-idle";
           await wait(30_000);
@@ -1158,6 +1159,87 @@ messenger.runtime.onMessageExternal.addListener((msg, sender) => {
   })();
 });
 
+async function downloadModel() {
+  state.download = { done: 0, total: modelBytes(model()) };
+  state.phase = "downloading";
+  state.error = null;
+  try {
+    const { semanticTestBase } = await messenger.storage.local.get({ semanticTestBase: "" }); // nur Tests (localhost)
+    state.modelStatus = await call("download", { model: cfg.model, testBase: semanticTestBase });
+  } catch (e) {
+    state.error = String(e?.message ?? e);
+  }
+  state.download = null;
+  state.phase = cfg.enabled ? "waiting-index" : "off";
+  kick();
+}
+
+// Einrichtungs-Assistent der Extension: Geschwindigkeit an echten Mails messen, neueste zuerst (die Vektoren bleiben im
+// Index). Das erste Paket lädt das Modell und zählt nicht mit. Ergebnis: Mails pro Sekunde und womit gerechnet wurde.
+const MEASURE_MAILS = 64;
+async function measure() {
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const t0 = Date.now();
+  const start = state.done;
+  measureTarget = start + MEASURE_MAILS;
+  kick();
+  let from = null;
+  while (Date.now() - t0 < 4 * 60_000) {
+    await sleep(500);
+    if (!from && state.done > start) {
+      from = { done: state.done, at: Date.now() };
+    }
+    // Phase erst nach 3 s werten: aus dem Warten nach „done“ geweckt, steht die Phase bis zum nächsten gelesenen Paket noch auf „done“
+    if (state.done >= measureTarget || (Date.now() - t0 > 3000 && ["done", "off", "no-model", "waiting-index", "error", "paused"].includes(state.phase))) {
+      break;
+    }
+  }
+  measureTarget = 0;
+  const secs = from ? (Date.now() - from.at) / 1000 : 0;
+  const n = from ? state.done - from.done : 0;
+  return { rate: n > 0 && secs > 0 ? +(n / secs).toFixed(2) : null, mails: n, engine: state.engine, phase: state.phase, error: state.error, done: state.done };
+}
+
+// Einrichtungs-Assistent (Reiter „Einrichtung“ der Extension): setup:state, setup:enable (einschalten, Modell laden),
+// setup:measure. Nur dieser Absender.
+messenger.runtime.onMessageExternal.addListener((msg, sender) => {
+  if (sender?.id !== EXTENSION_ID || !String(msg?.type ?? "").startsWith("setup:")) {
+    return undefined;
+  }
+  return (async () => {
+    await loadConfig();
+    if (msg.type === "setup:state") {
+      const m = model();
+      const { migratedFromSearch } = await messenger.storage.local.get({ migratedFromSearch: false });
+      if (!state.modelStatus && state.phase !== "downloading") {
+        state.modelStatus = await call("status", { model: m.id }).catch(() => null);
+      }
+      return {
+        enabled: cfg.enabled, path: cfg.path, netHelper: cfg.path === "server" && cfg.server?.type === "nbhelper", phase: state.phase, done: state.done, total: state.total, rate: state.rate,
+        engine: state.engine, error: state.error, download: state.download, modelReady: Boolean(state.modelStatus?.complete),
+        bytes: modelBytes(m), ramMB: m.ramMB, cores: navigator.hardwareConcurrency || null, migrated: migratedFromSearch,
+        wordIndex: await internal().usable().catch(() => false),
+      };
+    }
+    if (msg.type === "setup:enable") {
+      const stored = (await messenger.storage.local.get({ [KEY]: {} }))[KEY];
+      if (!stored.enabled) {
+        await messenger.storage.local.set({ [KEY]: { ...stored, enabled: true } });
+        await loadConfig();
+      }
+      if (state.phase !== "downloading" && !(await canCompute())) {
+        downloadModel();
+      }
+      kick();
+      return { ok: true };
+    }
+    if (msg.type === "setup:measure") {
+      return measure();
+    }
+    return undefined;
+  })();
+});
+
 messenger.runtime.onMessage.addListener((msg, sender) => {
   if (sender.id !== messenger.runtime.id || !String(msg?.type ?? "").startsWith("semantic:")) {
     return undefined;
@@ -1167,18 +1249,7 @@ messenger.runtime.onMessage.addListener((msg, sender) => {
       case "semantic:status":
         return status();
       case "semantic:download":
-        state.download = { done: 0, total: modelBytes(model()) };
-        state.phase = "downloading";
-        state.error = null;
-        try {
-          const { semanticTestBase } = await messenger.storage.local.get({ semanticTestBase: "" }); // nur Tests (localhost)
-          state.modelStatus = await call("download", { model: cfg.model, testBase: semanticTestBase });
-        } catch (e) {
-          state.error = String(e?.message ?? e);
-        }
-        state.download = null;
-        state.phase = cfg.enabled ? "waiting-index" : "off";
-        kick();
+        await downloadModel();
         return status();
       case "semantic:cancelDownload":
         worker?.postMessage({ type: "cancel" });
