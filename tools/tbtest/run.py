@@ -42,6 +42,7 @@ user_pref("mail.identity.id1.fullName", "Test Konto");
 user_pref("mail.accountmanager.defaultaccount", "account1");
 user_pref("intl.locale.requested", "de");
 user_pref("extensions.webextensions.remote", false);
+user_pref("remote.log.level", "Trace");
 user_pref("browser.dom.window.dump.enabled", true);
 user_pref("devtools.console.stdout.chrome", true);
 user_pref("devtools.console.stdout.content", true);

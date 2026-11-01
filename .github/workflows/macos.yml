@@ -3,7 +3,9 @@
 #  - ui: Oberfläche von 2.0 (Extension + Search) und 1.4 (Extension aus Branch testing): Bildschirmfotos, nichts ragt
 #    über den Rand, Verfassen-Leiste unter den Fensterknöpfen; Gegenprobe ohne den Mac-Fix muss dabei scheitern.
 # Ergebnisse als Tabelle in der Übersicht, Dateien (JSON, Bilder, Protokoll) als Artefakt.
-# Thunderbird ohne Fenster: so lief der Vortest auf macOS mit jedem Add-on durch; mit Fenster und Add-on blieb das Testskript stehen (01.11.).
+# Stand 01.11.: Der Vortest läuft auf macOS mit jedem Add-on durch; ui.js und semantic.js blieben dort nach „start“
+# stehen (mit und ohne Fenster). Der Vortest grenzt die Ursache mit Varianten ein (tools/tbtest/bisect), search und ui
+# sind bis dahin ausgesetzt.
 name: macOS
 
 on:
@@ -45,25 +47,35 @@ jobs:
           python tools/tbtest/build.py novabird-extension xpi/novabird-extension.xpi
           python tools/tbtest/build.py novabird-search xpi/novabird-search.xpi
 
-      - name: Vortest (ohne Add-on, Extension, Search)
+      - name: Vortest (ohne Add-on, Extension, Search) und Eingrenzung (Varianten mit Extension)
         run: |
           mkdir -p out
-          for cfg in ohne extension search; do
-            xpi=$([ "$cfg" = ohne ] || echo "xpi/novabird-$cfg.xpi")
+          run() { # name, skript, add-on
             (
-              sleep 60
-              pid=$(pgrep -f "profile-new-smoke-$cfg" | head -1)
-              screencapture -x "out/screen-60s-$cfg.png" || true
-              [ -n "$pid" ] && sample "$pid" 3 -file "out/sample-$cfg.txt" > /dev/null 2>&1 || true
+              sleep 50
+              pid=$(pgrep -f "profile-new-smoke-$1" | head -1)
+              screencapture -x "out/screen-50s-$1.png" || true
+              [ -n "$pid" ] && sample "$pid" 3 -file "out/sample-$1.txt" > /dev/null 2>&1 || true
             ) &
-            python -u tools/tbtest/run.py --timeout 120 --port 2828 --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
-              --profile "$RUNNER_TEMP/profile-new-smoke-$cfg" --mbox tools/tbtest/sem.mbox --js tools/tbtest/smoke.js \
-              --out "out/smoke-$cfg.json" --log "out/smoke-$cfg.log" --env NBPROGRESS="$GITHUB_WORKSPACE/out/smoke-$cfg-progress.json" $xpi || true
+            python -u tools/tbtest/run.py --timeout 70 --port 2828 --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
+              --profile "$RUNNER_TEMP/profile-new-smoke-$1" --mbox tools/tbtest/sem.mbox --js "$2" \
+              --out "out/smoke-$1.json" --log "out/smoke-$1.log" --env NBPROGRESS="$GITHUB_WORKSPACE/out/smoke-$1-progress.json" $3 || true
             wait
-            echo "== $cfg"; cat "out/smoke-$cfg-progress.json" 2>/dev/null || echo "keine Marke"
-          done
-          python tools/tbtest/summary.py "Vortest" out/smoke-ohne.json >> "$GITHUB_STEP_SUMMARY" || true
-          python -c "import json,os,sys; ok=[os.path.exists(f'out/smoke-{c}.json') and (json.load(open(f'out/smoke-{c}.json')) or {}).get('pass') for c in ('ohne','extension','search')]; print('Vortest ohne/extension/search:', ok); sys.exit(0 if all(ok) else 1)"
+            ok=$(python -c "import json,sys; r=json.load(open(sys.argv[1])) if __import__('os').path.exists(sys.argv[1]) else None; print('ja' if r and r.get('pass') else 'nein')" "out/smoke-$1.json")
+            last=$(python -c "import json,sys; print(json.load(open(sys.argv[1])).get('step'))" "out/smoke-$1-progress.json" 2>/dev/null || echo "keine Marke")
+            echo "| $1 | $(basename "$2") | $ok | $last |" | tee -a out/tabelle.md
+          }
+          echo "| Lauf | Skript | fertig | letzte Marke |" > out/tabelle.md
+          echo "|---|---|---|---|" >> out/tabelle.md
+          run ohne tools/tbtest/smoke.js ""
+          run extension tools/tbtest/smoke.js xpi/novabird-extension.xpi
+          run search tools/tbtest/smoke.js xpi/novabird-search.xpi
+          run v2 tools/tbtest/bisect/v2-import-oben.js xpi/novabird-extension.xpi
+          run v3 tools/tbtest/bisect/v3-frist-oben.js xpi/novabird-extension.xpi
+          run v4 tools/tbtest/bisect/v4-ui-anfang.js xpi/novabird-extension.xpi
+          run ui tools/tbtest/ui.js xpi/novabird-extension.xpi
+          { echo "### Vortest und Eingrenzung"; cat out/tabelle.md; } >> "$GITHUB_STEP_SUMMARY"
+          grep -q "| nein |" out/tabelle.md && exit 1 || exit 0
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -73,6 +85,7 @@ jobs:
 
   search:
     needs: smoke
+    if: false # ausgesetzt, bis der Vortest die Ursache für das Stehenbleiben auf macOS eingegrenzt hat
     strategy:
       fail-fast: false
       matrix:
@@ -144,6 +157,7 @@ jobs:
 
   ui:
     needs: smoke
+    if: false # ausgesetzt, siehe search
     strategy:
       fail-fast: false
       matrix:
