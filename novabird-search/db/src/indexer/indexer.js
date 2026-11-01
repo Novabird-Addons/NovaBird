@@ -296,7 +296,6 @@ export class Indexer {
     this.log.info(`[novabird-db] Erstlauf: ${todo.length} von ${folders.length} Ordnern, ${this.progress.total ?? "?"} Mails zu lesen`);
     for (const folder of todo) {
       if (this.stopped) break;
-      const fid = folderIdOf(folder);
       try {
         await this.enqueue(() => this.indexFolder(folder));
       } catch (e) {

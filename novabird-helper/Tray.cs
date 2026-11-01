@@ -5,7 +5,6 @@
 //    http://localhost/api/ping nach dem Zustand.
 //  - nbhelper.exe --server-console: Kern ohne Oberfläche (Tests; Ausgabe als JSON-Zeilen, Befehle auf stdin, Ende mit EOF).
 using System.Diagnostics;
-using System.Net.Http;
 using System.Text.Json.Nodes;
 
 namespace NovaBird.Helper;

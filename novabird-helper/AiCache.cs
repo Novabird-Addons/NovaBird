@@ -67,7 +67,7 @@ sealed class AiCache : IDisposable
         return res;
     }
 
-    public void Put(string id, string data, string client)
+    public void Put(string id, string data)
     {
         if (!ValidId(id) || string.IsNullOrEmpty(data) || data.Length > MaxData) throw new InvalidOperationException("Eintrag ungültig");
         lock (gate)

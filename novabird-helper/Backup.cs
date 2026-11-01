@@ -22,7 +22,7 @@ static class Backup
     const int Iterations = 600_000;
     static readonly byte[] Magic = Encoding.ASCII.GetBytes("NBBK1");
 
-    public static byte[] Create(NetServer server, string password, bool vectors)
+    public static byte[] Create(string password, bool vectors)
     {
         if (Users.PasswordProblem(password) is string p) throw new ArgumentException(p);
         using var ms = new MemoryStream();

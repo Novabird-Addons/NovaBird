@@ -14,7 +14,6 @@
 //  - Der Dienst bekommt bei jedem Start einen Zufallsschlüssel: andere Programme auf dem PC können ihn nicht benutzen.
 using System.Diagnostics;
 using System.IO.Compression;
-using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;

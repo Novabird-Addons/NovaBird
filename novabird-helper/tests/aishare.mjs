@@ -4,14 +4,12 @@
 // (settings.json: ollamaEnabled, ollamaPort, chatModel "ollama:…"). Zwei Clients spielen zwei PCs derselben Gruppe.
 import { spawn } from "node:child_process";
 import { createInterface } from "node:readline";
-import fs from "node:fs";
 import crypto from "node:crypto";
 const S = new URL("../../novabird-search/semantic/", import.meta.url).href;
 const server = await import(S + "server.js");
 const [exe, dir, netPort, webPort] = process.argv.slice(2);
 const out = {};
 const ok = (name, cond, info) => { out[name] = cond ? "ok" : { fail: info }; };
-const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function startHelper() {
   const child = spawn(exe, ["--server-console", "--loopback"], { env: { ...process.env, NOVABIRD_HELPER_DIR: dir, NOVABIRD_NET_PORT: netPort, NOVABIRD_WEB_PORT: webPort } });

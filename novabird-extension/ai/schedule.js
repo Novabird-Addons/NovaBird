@@ -84,5 +84,4 @@
   setTimeout(() => check().catch(() => {}), 120_000); // nach dem Start nachholen, was fällig ist
   setInterval(() => check().catch(() => {}), 5 * 60_000);
 
-  globalThis.nbOverviewSchedule = { due };
 })();

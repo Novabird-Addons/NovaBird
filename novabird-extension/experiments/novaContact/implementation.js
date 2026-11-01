@@ -12,7 +12,7 @@ const { ExtensionSupport } = ChromeUtils.importESModule("resource:///modules/Ext
 const { MailServices } = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
 const ABQueryUtils = ChromeUtils.importESModule("resource:///modules/ABQueryUtils.sys.mjs");
 const { AddrBookCard } = ChromeUtils.importESModule("resource:///modules/AddrBookCard.sys.mjs");
-const { VCardProperties, VCardPropertyEntry } = ChromeUtils.importESModule("resource:///modules/VCardUtils.sys.mjs");
+const { VCardPropertyEntry } = ChromeUtils.importESModule("resource:///modules/VCardUtils.sys.mjs");
 
 const LISTENER = "novabird-extension-contacts";
 const MAIN_URL = "chrome://messenger/content/messenger.xhtml";

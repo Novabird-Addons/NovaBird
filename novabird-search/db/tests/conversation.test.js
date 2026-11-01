@@ -93,7 +93,7 @@ describe("Speicherung der Verweise", () => {
     const db = createNodeAdapter();
     const caps = await migrate(db);
     const fake = createFakeMessenger();
-    const m1 = fake.addMessage("inbox", { subject: "Start", headerMessageId: "m1@x" });
+    fake.addMessage("inbox", { subject: "Start", headerMessageId: "m1@x" });
     const m2 = fake.addMessage("inbox", { subject: "AW: Start", headerMessageId: "m2@x" });
     fake.api.novabirdDb = { references: async (ids) => ids.map((id) => (id === m2.id ? ["m1@x"] : [])) };
     const indexer = new Indexer({ db, caps, api: fake.api, pauseMs: 0, batchSize: 2, log: silent });

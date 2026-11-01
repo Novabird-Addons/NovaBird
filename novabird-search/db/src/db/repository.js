@@ -192,9 +192,18 @@ export async function headerIdsInFolder(db, folderId) {
 export async function updateFlags(db, headerMessageId, folderId, { isRead, isFlagged, tags }) {
   const sets = [];
   const params = [];
-  if (isRead !== undefined) (sets.push("is_read = ?"), params.push(isRead ? 1 : 0));
-  if (isFlagged !== undefined) (sets.push("is_flagged = ?"), params.push(isFlagged ? 1 : 0));
-  if (tags !== undefined) (sets.push("tags = ?"), params.push(toListField(tags)));
+  if (isRead !== undefined) {
+    sets.push("is_read = ?");
+    params.push(isRead ? 1 : 0);
+  }
+  if (isFlagged !== undefined) {
+    sets.push("is_flagged = ?");
+    params.push(isFlagged ? 1 : 0);
+  }
+  if (tags !== undefined) {
+    sets.push("tags = ?");
+    params.push(toListField(tags));
+  }
   if (!sets.length) return;
   await db.execute(
     `UPDATE messages SET ${sets.join(", ")} WHERE header_msg_id = ? AND folder_id = ?`,

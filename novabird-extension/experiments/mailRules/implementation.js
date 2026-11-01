@@ -50,10 +50,6 @@ function filterServers() {
   return out;
 }
 
-function accountByKey(key) {
-  return filterServers().find(x => x.account.key === key) ?? null;
-}
-
 function inboxOf(server) {
   try {
     return server.rootFolder.getFolderWithFlags(Ci.nsMsgFolderFlags.Inbox);

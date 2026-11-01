@@ -6,7 +6,6 @@
 //  - Ein Job-Objekt beendet Ollama zusammen mit dem Helper; stürzt Ollama ab, startet der Helper es neu.
 using System.Diagnostics;
 using System.IO.Compression;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;

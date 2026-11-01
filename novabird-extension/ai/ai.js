@@ -1206,7 +1206,7 @@ const nbAI = (() => {
 
   return {
     DEFAULTS, FEATURES, SPEECH_RATES, feature, isLocal, origin, listModels, chat, helperHello, speak, sentences, guessLang, mailText, threadText, prompt, promptTemplate, suspicious, base, stats: () => lastStats,
-    TRANSLATE_LANGS, languageName, translatePrompt, eventsPrompt, overviewPrompt, parseItems, newMails, stripQuotedText, overview,
-    writePrompt, digestPrompt, parseDigest, digestOverviewText, PHISH_VARIANT, phishPrompt, parsePhish, privateHost, phishLocal, textHash, shareId, seal, unseal, shareGet, sharePut, shareRelease, netCall,
+    TRANSLATE_LANGS, languageName, translatePrompt, eventsPrompt, parseItems, newMails, stripQuotedText, overview,
+    writePrompt, digestPrompt, parseDigest, digestOverviewText, PHISH_VARIANT, phishPrompt, parsePhish, privateHost, phishLocal, textHash, shareId, seal, unseal, shareGet, sharePut, shareRelease,
   };
 })();

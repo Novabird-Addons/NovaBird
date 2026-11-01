@@ -47,7 +47,7 @@
     let nodes = [];
     try { nodes = await CP_API.contacts.list(book.id); } catch (e) { alert(e.message); }
     C.contacts = nodes.filter(n => !n.type || n.type === "contact").map(n => parse(n, book));
-    const byMail = new Map(), seenMail = new Map();
+    const byMail = new Map();
     for (const c of C.contacts) for (const e of c.emails) { if (!byMail.has(e)) byMail.set(e, []); byMail.get(e).push(c); }
     for (const c of C.contacts) c.dup = c.emails.some(e => byMail.get(e).length > 1);
     let msgs = 0;

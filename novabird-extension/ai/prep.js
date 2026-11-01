@@ -447,5 +447,5 @@
 
   const reminded = async msgId => (await load())[msgId]?.reminded || [];
 
-  globalThis.nbPrep = { source, lookup, remember, digestFor, overview, deadlines, reminded, sumVariant, ready, PENDING };
+  globalThis.nbPrep = { lookup, remember, digestFor, overview, reminded, sumVariant };
 })();

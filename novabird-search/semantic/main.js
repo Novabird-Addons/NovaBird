@@ -44,7 +44,6 @@ const HELPER_API = 1;
 const SKIP_FOLDERS = "('trash','junk')";
 
 const internal = () => globalThis.novabirdDbInternal;
-const sleep = ms => new Promise(r => setTimeout(r, ms));
 let cfg = { ...DEFAULTS };
 const model = () => MODELS[cfg.model] ?? MODELS[DEFAULT_MODEL];
 

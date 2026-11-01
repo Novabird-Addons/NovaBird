@@ -50,7 +50,7 @@ sealed partial class WebServer
     async Task ExtHandle(Request req, Stream stream, IPAddress remote)
     {
         var res = await ExtRoute(req, stream, remote);
-        if (res != null) await Write(stream, res, req.Secure);
+        if (res != null) await Write(stream, res);
     }
 
     /// <summary>Liefert eine Antwort oder null, wenn die Antwort schon (gestreamt) geschrieben wurde.</summary>

@@ -15,7 +15,7 @@ import {
 } from "./dates.js";
 import { stemWith } from "./stem.js";
 import { norm, sanitizeTerm } from "../util/normalize.js";
-import { alt, fragments, B, E } from "./lang/common.js";
+import { alt, fragments, B } from "./lang/common.js";
 import { resolvePacks } from "./lang/index.js";
 
 const re = (src) => new RegExp(src, "giu");
@@ -310,7 +310,7 @@ function extractPhrases(rest, q) {
 
 function extractDates(rest, q, ctx, entry) {
   const { today } = ctx;
-  const { pack, f, p } = entry;
+  const { pack, p } = entry;
   const d = p.dates;
   const range = (a, b) => {
     const ra = parseTimeAnchor(a, ctx);

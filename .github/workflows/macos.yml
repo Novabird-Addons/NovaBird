@@ -3,9 +3,9 @@
 #  - ui: Oberfläche von 2.0 (Extension + Search) und 1.4 (Extension aus Branch testing): Bildschirmfotos, nichts ragt
 #    über den Rand, Verfassen-Leiste unter den Fensterknöpfen; Gegenprobe ohne den Mac-Fix muss dabei scheitern.
 # Ergebnisse als Tabelle in der Übersicht, Dateien (JSON, Bilder, Protokoll) als Artefakt.
-# Stand 01.11.: Auf macOS blieben ui.js und semantic.js stehen, weil macOS nach dem Zugriff auf die Kontakte fragte
-# (macOS-Adressbuch, Bildschirmfoto im Vortest); run.py schaltet es im Testprofil ab. Der Vortest (smoke, Varianten in
-# tools/tbtest/bisect) läuft vor search und ui und holt bei Hängern Bildschirmfoto und Stack-Abzug.
+# Ein frisches Profil auf macOS öffnete Systemdialoge (Systemintegration, Zugriff auf die Kontakte), die Thunderbird
+# anhielten; run.py schaltet beide im Testprofil ab. Der Vortest (smoke) läuft vor search und ui und holt bei Hängern
+# Bildschirmfoto und Stack-Abzug.
 name: macOS
 
 on:
@@ -47,7 +47,7 @@ jobs:
           python tools/tbtest/build.py novabird-extension xpi/novabird-extension.xpi
           python tools/tbtest/build.py novabird-search xpi/novabird-search.xpi
 
-      - name: Vortest (ohne Add-on, Extension, Search) und Eingrenzung (Varianten mit Extension)
+      - name: Vortest (ohne Add-on, Extension, Search)
         run: |
           mkdir -p out
           run() { # name, skript, add-on
@@ -70,11 +70,7 @@ jobs:
           run ohne tools/tbtest/smoke.js ""
           run extension tools/tbtest/smoke.js xpi/novabird-extension.xpi
           run search tools/tbtest/smoke.js xpi/novabird-search.xpi
-          run v2 tools/tbtest/bisect/v2-import-oben.js xpi/novabird-extension.xpi
-          run v3 tools/tbtest/bisect/v3-frist-oben.js xpi/novabird-extension.xpi
-          run v4 tools/tbtest/bisect/v4-ui-anfang.js xpi/novabird-extension.xpi
-          run ui tools/tbtest/ui.js xpi/novabird-extension.xpi
-          { echo "### Vortest und Eingrenzung"; cat out/tabelle.md; } >> "$GITHUB_STEP_SUMMARY"
+          { echo "### Vortest"; cat out/tabelle.md; } >> "$GITHUB_STEP_SUMMARY"
           grep -q "| nein |" out/tabelle.md && exit 1 || exit 0
 
       - uses: actions/upload-artifact@v4

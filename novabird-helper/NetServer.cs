@@ -395,7 +395,7 @@ sealed class NetServer
                 return new JsonObject { ["items"] = Ai(group).Get(ids, client, (bool?)msg["claim"] == true) };
             }
             case "aiput":
-                Ai(group).Put((string)msg["id"], (string)msg["data"], client);
+                Ai(group).Put((string)msg["id"], (string)msg["data"]);
                 return new JsonObject();
             case "airelease":
                 Ai(group).Release((string)msg["id"], client);

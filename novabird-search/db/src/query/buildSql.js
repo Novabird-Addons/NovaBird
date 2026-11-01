@@ -193,8 +193,14 @@ export function buildSearchSql(q, caps, options = {}) {
   }
 
   // Zeitraum
-  if (q.dateFrom != null) (where.push("m.date >= ?"), params.push(q.dateFrom));
-  if (q.dateTo != null) (where.push("m.date < ?"), params.push(q.dateTo));
+  if (q.dateFrom != null) {
+    where.push("m.date >= ?");
+    params.push(q.dateFrom);
+  }
+  if (q.dateTo != null) {
+    where.push("m.date < ?");
+    params.push(q.dateTo);
+  }
 
   // Anhänge
   if (q.hasAttachment === true) where.push("m.has_attachment = 1");

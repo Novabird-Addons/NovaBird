@@ -131,7 +131,7 @@ sealed partial class WebServer
                 }
                 var req = await Read(stream);
                 closeOnLimit.Dispose(); // Anfrage vollständig: Antworten dürfen dauern (Streaming, Sprachmodell)
-                if (req == null) { await Write(stream, Response.Error(411, "Content-Length"), secure); return; }
+                if (req == null) { await Write(stream, Response.Error(411, "Content-Length")); return; }
                 req.Ip = ip;
                 req.Local = local;
                 req.Secure = secure;
@@ -152,7 +152,7 @@ sealed partial class WebServer
                         : Response.Error(400, "HTTPS");
                 }
                 else res = await Route(req);
-                await Write(stream, res, secure, req.Method == "HEAD");
+                await Write(stream, res, req.Method == "HEAD");
             }
             catch (Exception e) when (e is IOException or AuthenticationException or SocketException or ObjectDisposedException)
             {
@@ -213,7 +213,7 @@ sealed partial class WebServer
         return req;
     }
 
-    static async Task Write(Stream s, Response r, bool secure, bool headOnly = false)
+    static async Task Write(Stream s, Response r, bool headOnly = false)
     {
         var reason = r.Status switch
         {

@@ -46,7 +46,6 @@ async function login(name, pw) {
   csrf = (await api("login", { name, password: pw })).csrf;
 }
 const C = (code, id) => ({ type: "nbhelper", url: `http://127.0.0.1:${netPort}`, code, clientId: id, label: `Test-${id.slice(0, 5)}` });
-const vec = () => Array.from({ length: m.dims }, (_, i) => Math.sin(i));
 
 // DAV
 const basic = (u, p) => "Basic " + Buffer.from(`${u}:${p}`).toString("base64");

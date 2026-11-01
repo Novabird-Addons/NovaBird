@@ -83,5 +83,5 @@ const nbUpdates = (() => {
     return results;
   }
 
-  return { DEFAULTS, NAMES, ORDER, SELF, cmp, check, pending, apply };
+  return { DEFAULTS, SELF, check, pending, apply };
 })();

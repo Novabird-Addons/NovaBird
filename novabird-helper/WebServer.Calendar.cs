@@ -76,7 +76,7 @@ sealed partial class WebServer
                 Need(req, admin: true);
                 var j = req.Json();
                 bool vectors = (bool?)j["vectors"] ?? false;
-                var data = await Task.Run(() => Backup.Create(core.Server, (string)j["password"], vectors));
+                var data = await Task.Run(() => Backup.Create((string)j["password"], vectors));
                 Audit(req, $"Sicherung erstellt{(vectors ? " (mit Vektoren)" : "")}");
                 return FileResponse("application/octet-stream", data, $"novabird-helper-{DateTime.Now:yyyy-MM-dd}.nbbackup");
             }

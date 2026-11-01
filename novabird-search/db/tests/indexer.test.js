@@ -31,7 +31,7 @@ describe("Indexer (mit nachgebauter messenger-API)", () => {
   it("mit getFull: ein Abruf je Mail für Text und Anhänge", async () => {
     const { fake, indexer, db, caps } = await setup();
     let full = 0;
-    fake.api.messages.getFull = async (id) => {
+    fake.api.messages.getFull = async () => {
       full++;
       return { contentType: "multipart/mixed", parts: [
         { contentType: "text/plain", body: "Speiseplan der Woche" },
@@ -388,7 +388,7 @@ describe("Hänger: Zeitgrenzen und Wächter", () => {
 
   it("mehrere Hänger nacheinander: Ordner wird aufgegeben, der nächste Ordner läuft", async () => {
     const { lines, log } = capture();
-    const { fake, indexer, count, db } = await setup({ log, limits: { mail: 20, watch: 1000, stuck: 3 } });
+    const { fake, indexer, db } = await setup({ log, limits: { mail: 20, watch: 1000, stuck: 3 } });
     const hung = new Set();
     for (let i = 0; i < 6; i++) hung.add(fake.addMessage("inbox", { subject: `kaputt ${i}`, body: "x" }).id);
     fake.addMessage("sent", { subject: "gesund", body: "Text" });
