@@ -136,6 +136,33 @@ function go(name) {
 
 window.addEventListener("hashchange", () => session?.user && go(location.hash.slice(1)));
 
+// Gruppen der Navigation (KI, Einstellungen) ein- und ausklappen; gemerkt im Browser (nur Bequemlichkeit, darf fehlen)
+const NAV_KEY = "nbNavCollapsed";
+function navCollapsed() {
+  try {
+    return JSON.parse(localStorage.getItem(NAV_KEY) || "{}") || {};
+  } catch {
+    return {};
+  }
+}
+for (const g of document.querySelectorAll("#tabs .group")) {
+  const title = g.querySelector(".group-title");
+  const set = closed => {
+    g.classList.toggle("collapsed", closed);
+    title.setAttribute("aria-expanded", String(!closed));
+  };
+  set(Boolean(navCollapsed()[title.dataset.i18n]));
+  title.addEventListener("click", () => {
+    const closed = !g.classList.contains("collapsed");
+    set(closed);
+    try {
+      localStorage.setItem(NAV_KEY, JSON.stringify({ ...navCollapsed(), [title.dataset.i18n]: closed }));
+    } catch {
+      /* ohne Speicher: gilt nur bis zum Neuladen */
+    }
+  });
+}
+
 async function refresh(full) {
   try {
     if (page === "status") await showStatus();

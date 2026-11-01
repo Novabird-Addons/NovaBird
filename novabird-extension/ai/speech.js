@@ -4,7 +4,8 @@
  * spielt ab. So liest Thunderbird weiter, wenn das Popup zugeht; beim erneuten Öffnen zeigt der Knopf „Stopp“.
  * Der nächste Satz wird geholt, während der vorige läuft (der Helper rechnet etwa 4-mal so schnell, wie gesprochen wird),
  * höchstens 20 s voraus. Ein AudioContext je Vorlesen; die Sätze liegen lückenlos mit kurzer Pause hintereinander.
- * Popup und eigenes Fenster verbinden sich über runtime.connect("nbx-speech"): {type:"speak", key, text, lang} / {type:"stop"};
+ * Popup und eigenes Fenster verbinden sich über runtime.connect("nbx-speech"): {type:"speak", key, text, lang, follow} / {type:"stop"};
+ * follow: Vorlesen beginnt, während die KI noch schreibt, und folgt dem Auftrag key in ai/jobs.js Satz für Satz.
  * zurück kommt {type:"speech", key, status:"idle"|"loading"|"playing", error:{key, text}}. */
 // Tempo ohne andere Tonhöhe (WSOLA): Stücke von 40 ms werden mit einem anderen Abstand aus dem Ton genommen, als sie
 // hineingelegt werden; jedes Stück wird dort genommen, wo es am besten an das vorige anschließt (Kreuzkorrelation).
@@ -81,7 +82,10 @@ if (typeof module !== "undefined") module.exports = { nbStretch };
     publish();
   }
 
-  async function speak(key, text, lang) {
+  // follow: Die KI schreibt den Text noch (ai/jobs.js). Gesprochen wird jeder fertige Satz sofort; der letzte Satz wartet,
+  // bis danach etwas kommt oder der Auftrag fertig ist. sentences() ändert beim Wachsen nur den letzten Satz, die schon
+  // gesprochenen bleiben gleich (kurze Sätze hängt es an den vorigen, der ist dann aber noch der letzte).
+  async function speak(key, text, lang, follow = false) {
     stop();
     lastError = null;
     const ctx = new AudioContext();
@@ -93,7 +97,22 @@ if (typeof module !== "undefined") module.exports = { nbStretch };
       if (!conf.aiEnabled || conf.aiType !== "nbhelper") throw new Error("helper");
       const rate = nbAI.SPEECH_RATES.includes(Number(conf.aiSpeechRate)) ? Number(conf.aiSpeechRate) : 1; // Tempo (Einstellungen)
       if (ctx.state === "suspended") await ctx.resume().catch(() => {});
-      for (const sentence of nbAI.sentences(text)) {
+      for (let spoken = 0; ; ) {
+        let cur = text, done = true;
+        const job = follow ? globalThis.nbJobs?.peek(key) : null;
+        if (job) {
+          cur = job.text || cur;
+          done = job.status !== "running";
+        }
+        const all = nbAI.sentences(cur);
+        if (job && all.length + 1 < spoken) break; // Auftrag neu gestartet (Text wieder kürzer): nicht weiterlesen
+        if (spoken >= (done ? all.length : all.length - 1)) {
+          if (done) break;
+          await new Promise(r => setTimeout(r, 200)); // auf den nächsten Satz der KI warten
+          if (reader !== me) return;
+          continue;
+        }
+        const sentence = all[spoken++];
         // nicht zu weit vorrechnen: der Helper bedient auch andere PCs
         while (reader === me && at - ctx.currentTime > AHEAD_S) await new Promise(r => setTimeout(r, 500));
         if (reader !== me) return;
@@ -132,7 +151,7 @@ if (typeof module !== "undefined") module.exports = { nbStretch };
     port.postMessage(view());
     port.onMessage.addListener(msg => {
       if (msg?.type === "speak" && typeof msg.text === "string" && msg.text.length <= MAX_TEXT) {
-        speak(String(msg.key || ""), msg.text, String(msg.lang || "en"));
+        speak(String(msg.key || ""), msg.text, String(msg.lang || "en"), msg.follow === true);
       } else if (msg?.type === "stop") {
         stop();
       }

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <link rel="stylesheet" href="ai.css">
 </head>
-<body>
+<body class="overview">
   <header>
     <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7l9 6 9-6M3.5 5h17v14h-17z"/></svg>
     <b id="title"></b>
@@ -18,11 +18,13 @@
     <input type="time" id="schedTime" hidden>
     <select id="schedEvery" hidden></select>
   </div>
-  <div class="out" id="out"></div>
-  <div class="deadlines" id="deadlines" hidden></div>
-  <div class="warn" id="warn" hidden></div>
-  <div class="note-line" id="note" hidden></div>
-  <div class="err" id="err" hidden></div>
+  <div class="scroll">
+    <div class="out" id="out"></div>
+    <div class="deadlines" id="deadlines" hidden></div>
+    <div class="warn" id="warn" hidden></div>
+    <div class="note-line" id="note" hidden></div>
+    <div class="err" id="err" hidden></div>
+  </div>
   <footer>
     <button type="button" class="primary" id="tasks" hidden></button>
     <select id="taskCal" hidden></select>

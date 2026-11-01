@@ -39,6 +39,8 @@ const TEXTS = {
 const lang = (messenger.i18n.getUILanguage() || "en").slice(0, 2).toLowerCase();
 const t = TEXTS[lang] || TEXTS.en;
 const $ = id => document.getElementById(id);
+// eigenes Fenster (Zeitplan „Automatisch“): ganze Fensterhöhe nutzen, nur der Inhalt rollt (ai.css body.overview)
+if (new URLSearchParams(location.search).get("win") === "1") document.body.classList.add("win");
 const MAX_MAILS = 40; // passt mit je 700 Zeichen sicher in 16.384 Token
 const PER_MAIL = 700;
 

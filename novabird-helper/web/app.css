@@ -161,11 +161,20 @@ ol.steps li { margin: 0.25rem 0; }
 
 /* Navigation mit Gruppen (KI, Einstellungen) */
 .tabs .group { display: flex; flex-direction: column; gap: 0.15rem; margin-top: 0.4rem; }
-.tabs .group-title { padding: 0.3rem 0.8rem 0.1rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--muted); }
+.tabs .group-title { padding: 0.3rem 0.8rem 0.1rem; font: inherit; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--muted);
+  background: none; border: 0; border-radius: 0.4rem; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 0.4em; }
+.tabs .group-title:hover { color: var(--text); }
+/* Pfeil: zeigt nach unten (aufgeklappt) bzw. nach rechts (eingeklappt) */
+.tabs .group-title::after { content: ""; width: 0.4em; height: 0.4em; border: solid currentColor; border-width: 0 0.12em 0.12em 0; transform: rotate(45deg); margin-top: -0.2em; transition: transform 0.15s; }
+.tabs .group.collapsed .group-title::after { transform: rotate(-45deg); margin-top: 0; }
 .tabs a.sub { padding-left: 1.4rem; }
+/* eingeklappt: nur die gerade offene Seite der Gruppe bleibt sichtbar (schmal sind die Gruppen ohnehin aufgelöst) */
+@media (min-width: 45.01rem) {
+  .tabs .group.collapsed a.sub:not(.active) { display: none; }
+}
 .tabs .group + a { margin-top: 0.4rem; }
 @media (max-width: 45rem) {
   .tabs .group { display: contents; }
-  .tabs .group-title { display: none; }
+  .tabs .group-title, .tabs .group-title::after { display: none; }
   .tabs a.sub { padding-left: 0.8rem; }
 }

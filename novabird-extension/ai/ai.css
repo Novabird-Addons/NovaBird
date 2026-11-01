@@ -12,6 +12,13 @@ body.win { width: auto; }
 body.win .out { max-height: calc(100vh - 12rem); }
 [hidden] { display: none !important; }
 
+/* „Was gibt's Neues?“: Kopf, Leiste und Knöpfe bleiben stehen, nur Überblick, Fristen und Hinweise rollen.
+   Als Popup am Knopf begrenzt Thunderbird die Höhe auf 600 px (feste Grenze, daher px); als eigenes Fenster die Fensterhöhe. */
+body.overview { display: flex; flex-direction: column; max-height: 600px; }
+body.overview.win { height: 100vh; max-height: none; }
+body.overview .scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+body.overview .out, body.overview.win .out { max-height: none; overflow: visible; }
+
 header { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.1rem 0.4rem; }
 header b { font-size: 1.1em; }
 .icon-btn { border: 0; background: none; color: inherit; padding: 0.25rem; border-radius: 0.35rem; cursor: pointer; opacity: 0.75; display: inline-flex; }

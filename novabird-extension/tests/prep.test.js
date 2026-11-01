@@ -109,3 +109,22 @@ test("Phishing-Prüfung: nur KI im eigenen Netz, Schalter erst an, wenn eingesch
   assert.equal(nbAI.feature({ aiFeatures: {} }, "summary"), true);
   assert.ok(nbAI.FEATURES.includes("phish"));
 });
+
+test("Vorlesen beim Mitschreiben: Sätze aus dem wachsenden Text = Sätze des fertigen Textes", () => {
+  const texts = [
+    "Die Stadtwerke schicken die Rechnung für Oktober. Ok. Der Betrag von 142,80 Euro ist bis zum 5. November fällig, z. B. per Überweisung.\n\n- Zählerstand bis Montag melden\n- Kundennummer 4711 angeben\nBei Fragen hilft Dr. Meier unter Tel. 0123 weiter! Danke.",
+    "Kurz. Ja. Nein. Das ist ein längerer Satz, der danach kommt und die kurzen aufnimmt. " + "Ein sehr langer Satz mit vielen Teilen, ".repeat(12) + "und Ende.",
+  ];
+  for (const full of texts) {
+    for (const step of [1, 3, 7, 19]) {
+      const spoken = [];
+      for (let n = step; n < full.length + step; n += step) {
+        const cur = full.slice(0, n);
+        const done = n >= full.length;
+        const all = nbAI.sentences(cur);
+        while (spoken.length < (done ? all.length : all.length - 1)) spoken.push(all[spoken.length]);
+      }
+      assert.equal(JSON.stringify(spoken), JSON.stringify(nbAI.sentences(full)), `Schritt ${step}`);
+    }
+  }
+});

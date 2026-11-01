@@ -224,7 +224,8 @@ function show() {
   }
   // Vorlesen läuft im Hintergrund (ai/speech.js); hier nur Knopf und Zustand für den Text dieses Reiters
   const reading = speech.status !== "idle" && speech.key === s.key;
-  $("speak").hidden = !reading && (!speechCfg || !nbAI.feature(features, "speech") || isEvents || !s.done || !s.text);
+  // schon während die KI schreibt: Vorlesen beginnt mit den fertigen Sätzen und folgt dem Text (ai/speech.js, follow)
+  $("speak").hidden = !reading && (!speechCfg || !nbAI.feature(features, "speech") || isEvents || !s.text || Boolean(s.error));
   $("speak").textContent = !reading ? t.speak : speech.status === "loading" ? t.speakWait : t.speakStop;
   const speakErr = speech.error && speech.error.key === s.key ? `${t.speakFail}\n${t[speech.error.text] || speech.error.text}` : "";
   $("again").disabled = s.busy && !s.text;
@@ -345,7 +346,7 @@ $("speak").addEventListener("click", () => {
   if (speech.status !== "idle" && speech.key === s.key) return speechPort.postMessage({ type: "stop" });
   const fallback = mode === "translate" ? $("toLang").value : speechCfg.aiLang && !["ui", "mail"].includes(speechCfg.aiLang) ? speechCfg.aiLang : lang;
   const code = mode === "translate" ? fallback : nbAI.guessLang(s.text, fallback);
-  speechPort.postMessage({ type: "speak", key: s.key, text: s.text, lang: code });
+  speechPort.postMessage({ type: "speak", key: s.key, text: s.text, lang: code, follow: !s.done });
 });
 
 $("again").addEventListener("click", () => run(mode, true));

@@ -445,7 +445,9 @@ function injectNav(doc, undo) {
 // Ab 2.0 hat NovaBird-Search (mit Suchindex) die ID des früheren NovaBird-DB, daher der Schlüssel "db" für „Suche“;
 // "search" gibt es nur noch kurz beim Umstieg von 1.x (das alte Add-on wird dann entfernt).
 // Reiter nach Aufgaben statt nach Add-ons: Die Extension liefert drei Seiten (Allgemein, KI-Assistent, NovaBird Helper)
-const HUB_ORDER = ["extension", "db", "ai", "helper", "search", "conversation", "send"];
+const HUB_ORDER = ["extension", "db", "ai", "helper", "search", "conversation", "send", "phishing"];
+// Add-ons mit einer ID außerhalb des Musters novabird-…@novabird (ID lässt sich nicht mehr ändern, sonst verwaisen Einstellungen)
+const HUB_IDS = { "phishing-addon@novabird": "phishing" };
 const HUB_LABEL = {
   extension: tr("Allgemein", "General", "Général", "General"),
   ai: tr("KI-Assistent", "AI assistant", "Assistant IA", "Asistente IA"),
@@ -454,17 +456,18 @@ const HUB_LABEL = {
   search: tr("Suchleiste (alt)", "Search bar (old)", "Barre de recherche (ancienne)", "Barra de búsqueda (antigua)"),
   conversation: tr("Konversation", "Conversation", "Conversation", "Conversación"),
   send: tr("Senden", "Send", "Envoi", "Envío"),
+  phishing: tr("Phishing-Schutz", "Phishing protection", "Protection anti-hameçonnage", "Protección antiphishing"),
 };
 // Zusätzliche Seiten der Extension im Hub (Pfad, Ansicht)
 const HUB_EXTRA = { extension: "options/options.html?hub=1&view=general", ai: "options/options.html?hub=1&view=ai", helper: "options/helper.html?hub=1" };
 let hubLast = null; // zuletzt gewählter Reiter (bleibt beim erneuten Öffnen erhalten)
 const hubSelects = new Set(); // Reiterwahl der offenen NovaBird-Seiten (openHub)
 
-/** Aktive NovaBird-Add-ons mit Optionsseite, in fester Reihenfolge; unbekannte (`…@novabird`) folgen. */
+/** Aktive NovaBird-Add-ons mit Optionsseite (novabird-…@novabird und HUB_IDS), in fester Reihenfolge; unbekannte folgen. */
 function hubAddons() {
   const found = new Map();
   for (const p of WebExtensionPolicy.getActiveExtensions()) {
-    const m = /^novabird-([a-z0-9-]+)@novabird$/.exec(p.id);
+    const m = /^novabird-([a-z0-9-]+)@novabird$/.exec(p.id) || (HUB_IDS[p.id] && [p.id, HUB_IDS[p.id]]);
     const page = p.extension?.manifest?.options_ui?.page;
     if (!m || !page) {
       continue;

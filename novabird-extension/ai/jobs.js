@@ -159,6 +159,9 @@
     });
   });
 
+  // Vorlesen (ai/speech.js) folgt einem noch laufenden Auftrag: aktueller Text und Zustand
+  globalThis.nbJobs = { peek: key => (jobs.has(key) ? { text: jobs.get(key).text, status: jobs.get(key).status } : null) };
+
   // Andere Mail im Tab: Häkchen weg (es gehörte zur vorigen)
   const displayed = messenger.messageDisplay.onMessagesDisplayed || messenger.messageDisplay.onMessageDisplayed;
   displayed?.addListener(tab => messenger.messageDisplayAction.setBadgeText({ tabId: tab.id, text: "" }).catch(() => {}));

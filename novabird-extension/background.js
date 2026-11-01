@@ -190,7 +190,7 @@ messenger.webRequest.onBeforeSendHeaders.addListener(
 );
 
 // Andere NovaBird-Add-ons: ihre Einstellungen in Einstellungen → NovaBird (volle Breite) statt in der Add-on-Verwaltung öffnen
-const HUB_KEYS = { "novabird-db@novabird": "db", "novabird-conversation@novabird": "conversation", "novabird-send@novabird": "send" };
+const HUB_KEYS = { "novabird-db@novabird": "db", "novabird-conversation@novabird": "conversation", "novabird-send@novabird": "send", "phishing-addon@novabird": "phishing" };
 messenger.runtime.onMessageExternal.addListener((message, sender) => {
   if (message?.type !== "openSettings" || !HUB_KEYS[sender?.id]) {
     return undefined;

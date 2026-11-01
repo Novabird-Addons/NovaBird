@@ -331,9 +331,29 @@
     return { ok: false, error: "busy", injection };
   }
 
+  // Erreichbar? Kurz bei der KI nachfragen (Modellliste, höchstens 2 s), Ergebnis 30 s gemerkt (grünes Symbol im Phishing-Schutz)
+  let reach = { key: "", at: 0, value: null };
+  async function phishReach(c) {
+    const key = [c.aiType, c.aiUrl, c.aiModel, c.aiHelperModel].join("|");
+    if (reach.key === key && Date.now() - reach.at < 30_000) return reach.value;
+    let value = { reachable: false, model: c.aiType === "nbhelper" ? c.aiHelperModel : c.aiModel };
+    try {
+      const models = await Promise.race([nbAI.listModels(c), sleep(2000).then(() => [])]);
+      const model = c.aiType === "nbhelper" ? c.aiHelperModel || models[0] || "" : c.aiModel;
+      value = { reachable: models.length > 0 && (c.aiType === "nbhelper" || models.includes(model)), model };
+    } catch {
+      /* nicht erreichbar */
+    }
+    reach = { key, at: Date.now(), value };
+    return value;
+  }
+
   async function phishAvailable() {
     const c = await config();
-    return { available: ready(c) && nbAI.feature(c, "phish"), local: nbAI.phishLocal(c) };
+    const available = ready(c) && nbAI.feature(c, "phish");
+    const local = nbAI.phishLocal(c);
+    const r = available && local ? await phishReach(c) : { reachable: false, model: "" };
+    return { available, local, reachable: r.reachable, model: r.model || "" };
   }
 
   // Kein async-Listener: nur eigene Nachrichten des Phishing-Add-ons beantworten
