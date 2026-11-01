@@ -6,13 +6,18 @@
  * Einträgen zusammen, die Fristen stehen im Überblick und unter der Zusammenfassung.
  * Mit dem NovaBird Helper rechnet nur ein PC je Mail: Wer sie zuerst sieht, meldet sie beim Helper an und legt das Ergebnis
  * dort verschlüsselt ab (Schlüssel aus Message-ID und Prüfsumme des Textes); die anderen PCs holen es ab.
- * Einträge (storage.local aiDigests, je Message-ID) bleiben 10 Tage. */
+ * Einträge (storage.local aiDigests, je Message-ID) bleiben 10 Tage.
+ * Phishing-Prüfung (Schalter, unabhängig von „Vorbereiten“): Fakten zu jeder neuen Mail für das Add-on NovaBird
+ * Phishing-Schutz, abgefragt mit phish:extract, nachgereicht als phish:result (docs/ki-anbindung.md). */
 (() => {
   const STORE = "aiDigests";
   const KEEP_MS = 10 * 86400_000;
   const MAX_ENTRIES = 3000;
   const LONG = 1200; // ab so vielen Zeichen (neuer Teil der Mail) wird die Zusammenfassung vorbereitet
   const DIGEST_CHARS = 6000;
+  const PHISH_CHARS = 4000;
+  const PHISH_WAIT = 2500; // so lange wartet eine Anfrage des Phishing-Add-ons, sonst „busy“ und das Ergebnis kommt nach
+  const PHISH_ADDON = "phishing-addon@novabird";
   const RETRY_MS = 45_000; // ein anderer PC rechnet gerade: später abholen
   const OPEN_DELAY = 2000;
   const PENDING = Symbol("pending");
@@ -66,12 +71,14 @@
 
   function localValue(e, kind, variant) {
     if (kind === "digest") return e.digest && e.digestLang === variant ? e.digest : null;
+    if (kind === "phish") return e.phish && e.phish.v === variant ? e.phish.value : null;
     return e.sum && e.sum.v === variant ? e.sum.text : null;
   }
 
   async function putLocal(src, kind, variant, value) {
     const e = await entry(src);
     if (kind === "digest") Object.assign(e, { digest: value, digestLang: variant });
+    else if (kind === "phish") e.phish = { v: variant, value };
     else e.sum = { v: variant, text: value };
     save();
   }
@@ -159,6 +166,27 @@
     return v === PENDING ? null : v;
   }
 
+  // Phishing-Prüfung: nur Fakten (ai.js parsePhish); je Mail höchstens eine Rechnung zugleich (Warteschlange und Anfrage des
+  // Phishing-Add-ons beim Öffnen treffen sich hier)
+  const phishOn = c => nbAI.feature(c, "phish") && nbAI.phishLocal(c);
+  const modelName = c => (c.aiType === "nbhelper" ? c.aiHelperModel || nbAI.stats()?.model || "helper" : c.aiModel);
+  async function computePhish(c, src) {
+    const text = await nbAI.chat(c, nbAI.phishPrompt(header(src), src.text.slice(0, PHISH_CHARS)), () => {}, undefined, { maxNew: 150, json: true });
+    return { ...nbAI.parsePhish(text), model: modelName(c) };
+  }
+  const phishRuns = new Map(); // msgId → Promise {value, cached} | PENDING
+  function phishFor(c, src, { wait = false } = {}) {
+    let run = phishRuns.get(src.msgId);
+    if (!run) {
+      let computed = false;
+      run = obtain(c, "phish", nbAI.PHISH_VARIANT, src, () => ((computed = true), computePhish(c, src)), { wait })
+        .then(v => (v === PENDING ? PENDING : { value: v, cached: !computed }))
+        .finally(() => phishRuns.delete(src.msgId));
+      phishRuns.set(src.msgId, run);
+    }
+    return run;
+  }
+
   // ---- Warteschlange: neue Mails und geöffnete längere Mails --------------------------------------------------------------
   const queue = []; // {messageId, tries, due}
   let busy = false;
@@ -198,11 +226,23 @@
 
   async function prepare(messageId) {
     const c = await config();
-    if (!ready(c) || !c.aiPrepare) return null;
+    if (!ready(c) || !(c.aiPrepare || phishOn(c))) return null;
     const lang = uiLang();
     const src = await source(c, messageId);
     if (!src.text) return null;
     let pending = false;
+    // zuerst die Phishing-Prüfung: kurz, und der Phishing-Schutz wartet beim Öffnen höchstens 2,5 s
+    if (phishOn(c)) {
+      try {
+        const r = await phishFor(c, src);
+        if (r === PENDING) pending = true;
+        else deliver(messageId, r, src);
+      } catch (e) {
+        deliver(messageId, e, src);
+        throw e;
+      }
+    }
+    if (!c.aiPrepare) return pending ? PENDING : null;
     if (nbAI.feature(c, "overview") || nbAI.feature(c, "deadlines")) {
       if ((await obtain(c, "digest", lang, src, () => computeDigest(c, lang, src))) === PENDING) pending = true;
     }
@@ -214,7 +254,7 @@
 
   async function newMessages(folder, list) {
     const c = await config();
-    if (!ready(c) || !c.aiPrepare) return;
+    if (!ready(c) || !(c.aiPrepare || phishOn(c))) return;
     const inbox = folder?.type === "inbox" || (folder?.specialUse || []).includes("inbox");
     if (!inbox) return;
     let page = list;
@@ -245,6 +285,63 @@
         /* Tab zu */
       }
     }, OPEN_DELAY);
+  });
+
+  // ---- Phishing-Schutz (Add-on phishing-addon@novabird): Fakten zu einer Mail (Vertrag: docs/ki-anbindung.md)
+  const phishWanted = new Map(); // messageId → injection: Anfragen mit Antwort „busy“, das Ergebnis kommt als phish:result nach
+  const errorCode = e => {
+    const m = String(e?.message || e);
+    if (e?.name === "AbortError" || /timeout|timed out/i.test(m)) return "timeout";
+    if (["code", "permission", "url", "disabled", "off", "model", "nomodel", "forbidden"].includes(m)) return "off";
+    return "error";
+  };
+  const phishAnswer = (r, injection) => {
+    const v = r.value;
+    return { ok: true, claimedOrg: v.claimedOrg, claimedDomain: v.claimedDomain, asksFor: v.asksFor, urgency: v.urgency, injection, model: v.model || "", cached: r.cached };
+  };
+
+  /** Ergebnis (oder Fehler) an das Phishing-Add-on nachreichen, wenn es auf diese Mail wartet. */
+  function deliver(messageId, r, src) {
+    if (!phishWanted.has(messageId)) return;
+    const injection = phishWanted.get(messageId) ?? nbAI.suspicious(src?.text || "");
+    phishWanted.delete(messageId);
+    const res = r instanceof Error || !r?.value ? { ok: false, error: errorCode(r), injection } : phishAnswer(r, injection);
+    messenger.runtime.sendMessage(PHISH_ADDON, { type: "phish:result", messageId, ...res }).catch(() => {}); // Add-on fehlt oder aus
+  }
+
+  async function phishExtract(messageId) {
+    if (!Number.isInteger(messageId)) return { ok: false, error: "error" };
+    const c = await config();
+    const src = await source(c, messageId);
+    const injection = nbAI.suspicious(src.text); // regelbasiert, ohne Modell: auch wenn die KI aus ist
+    if (!ready(c)) return { ok: false, error: "off", injection };
+    if (!nbAI.feature(c, "phish")) return { ok: false, error: "feature", injection };
+    if (!nbAI.phishLocal(c)) return { ok: false, error: "cloud", injection };
+    if (!src.text) return { ok: true, claimedOrg: null, claimedDomain: null, asksFor: "none", urgency: false, injection, model: "", cached: false };
+    const local = localValue(await entry(src), "phish", nbAI.PHISH_VARIANT);
+    if (local) return phishAnswer({ value: local, cached: true }, injection);
+    const TIMEOUT = Symbol("timeout");
+    const run = phishFor(c, src);
+    const r = await Promise.race([run, sleep(PHISH_WAIT).then(() => TIMEOUT)]);
+    if (r !== TIMEOUT && r !== PENDING) return phishAnswer(r, injection);
+    phishWanted.set(messageId, injection);
+    // ein anderer PC rechnet: auf ihn warten (bis 2 min), dann notfalls selbst rechnen
+    const later = x => (x === PENDING ? phishFor(c, src, { wait: true }).then(y => (y === PENDING ? new Error("timeout") : y)) : x);
+    (r === PENDING ? Promise.resolve(PENDING) : run).then(later).then(x => deliver(messageId, x, src), e => deliver(messageId, e, src));
+    return { ok: false, error: "busy", injection };
+  }
+
+  async function phishAvailable() {
+    const c = await config();
+    return { available: ready(c) && nbAI.feature(c, "phish"), local: nbAI.phishLocal(c) };
+  }
+
+  // Kein async-Listener: nur eigene Nachrichten des Phishing-Add-ons beantworten
+  messenger.runtime.onMessageExternal.addListener((msg, sender) => {
+    if (sender?.id !== PHISH_ADDON) return undefined;
+    if (msg?.type === "phish:extract") return phishExtract(msg.messageId).catch(e => ({ ok: false, error: errorCode(e) }));
+    if (msg?.type === "aiAvailable" && msg.feature === "phish") return phishAvailable();
+    return undefined;
   });
 
   // ---- Überblick aus den Einträgen ----------------------------------------------------------------------------------------
