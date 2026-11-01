@@ -13,7 +13,9 @@ const OUT = join(ROOT, "novabird-helper", "web", "prompts.json");
 export function prompts() {
   const ctx = { crypto: globalThis.crypto, console, URL, TextEncoder, TextDecoder };
   vm.createContext(ctx);
-  vm.runInContext(readFileSync(join(ROOT, "novabird-extension", "ai", "ai.js"), "utf8") + "\nglobalThis.nbAI = nbAI;", ctx);
+  // wie im Add-on: shared/nbnet.js vor ai/ai.js
+  const src = [join(ROOT, "shared", "nbnet.js"), join(ROOT, "novabird-extension", "ai", "ai.js")].map(f => readFileSync(f, "utf8")).join("\n");
+  vm.runInContext(src + "\nglobalThis.nbAI = nbAI;", ctx);
   const out = {};
   for (const lang of ["de", "en", "fr", "es"]) {
     // promptTemplate liefert Hauptteil + Erinnerung + Warnauftrag; der Hauptteil ist alles vor der Erinnerung

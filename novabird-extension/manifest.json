@@ -18,6 +18,7 @@
     "scripts": [
       "shared/selftest-bg.js",
       "updates/updates.js",
+      "shared/nbnet.js",
       "ai/ai.js",
       "ai/schedule.js",
       "ai/prep.js",

@@ -4,6 +4,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
+// wie im Add-on (background.html): Kopplungscode und Verschlüsselung für den Helper aus shared/nbnet.js
+globalThis.nbNet = require("../../shared/nbnet.js");
+
 test("Modellkatalog: feste Revision, jede Datei mit Größe und Prüfsumme, Adresse wie transformers.js", async () => {
   const { MODELS, DEFAULT_MODEL, fileUrl } = await import("../semantic/models.js");
   const m = MODELS[DEFAULT_MODEL];
@@ -100,4 +103,44 @@ test("Kopplungscode: Groß/klein, Leerzeichen und Bindestriche egal, verwechselb
   const { normalizeCode } = await import("../semantic/server.js");
   assert.equal(normalizeCode("abcde-fghjk lmnpq_rstuv"), "ABCDEFGHJKLMNPQRSTUV");
   assert.equal(normalizeCode("O0I1 x"), "X");
+});
+
+test("Helper-Netzprotokoll (shared/nbnet.js): Anfrage wie der Helper entschlüsselbar, Antwort geprüft, Fehler", async () => {
+  const { webcrypto } = require("node:crypto");
+  const server = await import("../semantic/server.js");
+  const enc = t => new TextEncoder().encode(t);
+  const raw = await webcrypto.subtle.importKey("raw", enc("ABCDEFGHJKLMNPQRSTUV"), "PBKDF2", false, ["deriveKey"]);
+  const key = await webcrypto.subtle.deriveKey({ name: "PBKDF2", hash: "SHA-256", salt: enc("NovaBird-Net-1"), iterations: 300000 }, raw,
+    { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+  const b64 = b => Buffer.from(b).toString("base64");
+  const unb64 = s => new Uint8Array(Buffer.from(s, "base64"));
+  let mode = "ok";
+  let seen = null;
+  // wie NovaBird Helper (NetServer.cs): Zusatzdaten nbh1-req|<Client> bzw. nbh1-res|<rid>
+  globalThis.fetch = async (url, init) => {
+    const body = JSON.parse(init.body);
+    seen = { url, client: body.c, req: JSON.parse(new TextDecoder().decode(await webcrypto.subtle.decrypt(
+      { name: "AES-GCM", iv: unb64(body.n), additionalData: enc(`nbh1-req|${body.c}`) }, key, unb64(body.d)))) };
+    if (mode === "403") return { ok: false, status: 403, json: async () => ({}) };
+    const iv = new Uint8Array(12).fill(3);
+    const msg = mode === "fail" ? { ok: false, error: "nein" } : { ok: true, echo: seen.req.op };
+    const rid = mode === "falsch" ? "x" : seen.req.rid;
+    const d = await webcrypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: enc(`nbh1-res|${rid}`) }, key, enc(JSON.stringify(msg)));
+    return { ok: true, status: 200, json: async () => ({ n: b64(iv), d: b64(new Uint8Array(d)) }) };
+  };
+  const c = { type: "nbhelper", url: "http://h:1/", code: "abcde-fghjk-lmnpq-rstuv", clientId: "test-client-1", label: "PC" };
+  assert.equal((await server.netCall(c, "hello", { x: 1 })).echo, "hello");
+  assert.equal(seen.url, "http://h:1/nbhelper/v1");
+  assert.equal(seen.client, "test-client-1");
+  assert.equal(seen.req.label, "PC");
+  assert.equal(seen.req.x, 1);
+  mode = "fail";
+  await assert.rejects(server.netCall(c, "hello"), /nein/);
+  mode = "falsch";
+  await assert.rejects(server.netCall(c, "hello"), /lässt sich nicht prüfen/);
+  mode = "403";
+  await assert.rejects(server.netCall(c, "hello"), /Kopplungscode passt nicht/);
+  await assert.rejects(server.netCall({ ...c, code: "ABC" }, "hello"), /code/);
+  await assert.rejects(server.netCall({ ...c, clientId: "x" }, "hello"), /client/);
+  assert.equal(await server.textHash("Hallo Welt – Grüße"), "3cbe33e6423c385d"); // gleich der Prüfsumme der Extension
 });

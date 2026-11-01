@@ -135,41 +135,18 @@ export async function lookup(c, model, items, stats = null) {
   return { found, vectors: found.length ? decodeFloat32(res.vectors, found.length).map(normalized) : [] };
 }
 
-/** Prüfsumme eines Textes für das Teilen: die ersten 8 Byte von SHA-256 (UTF-8), hexadezimal. */
-export async function textHash(text) {
-  const d = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)));
-  return Array.from(d.subarray(0, 8), b => b.toString(16).padStart(2, "0")).join("");
-}
+/** Prüfsumme eines Textes für das Teilen: die ersten 8 Byte von SHA-256 (UTF-8), hexadezimal (shared/nbnet.js). */
+export const textHash = text => net().textHash(text);
 
 // ---- NovaBird Helper im Netz-Modus ------------------------------------------------------------------------------------------
-// Schlüssel aus dem Kopplungscode wie im Helper (PBKDF2-SHA256, 300.000 Runden, fester Salt); einmal je Code berechnet.
-const NET_PATH = "/nbhelper/v1";
-const NET_ITERATIONS = 300_000;
-const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-const enc = text => new TextEncoder().encode(text);
-const keys = new Map();
+// Kopplungscode, Schlüssel und Verschlüsselung gemeinsam mit NovaBird-Extension in shared/nbnet.js (klassisches Skript,
+// background.html lädt es vor diesem Modul); hier nur Versand (request: Zeitgrenze) und Fehlertexte.
+const net = () => globalThis.nbNet;
 
-export const normalizeCode = code => [...String(code || "").toUpperCase()].filter(ch => CODE_ALPHABET.includes(ch)).join("");
-
-function toB64(bytes) {
-  let bin = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) {
-    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-  }
-  return btoa(bin);
-}
-
-function fromB64(b64) {
-  const bin = atob(b64);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) {
-    out[i] = bin.charCodeAt(i);
-  }
-  return out;
-}
+export const normalizeCode = code => net().normalizeCode(code);
 
 function decodeFloat32(b64, count) {
-  const all = new Float32Array(fromB64(b64).buffer);
+  const all = new Float32Array(net().fromB64(b64).buffer);
   const dims = count ? all.length / count : 0;
   if (!Number.isInteger(dims) || dims <= 0) {
     throw new Error("answer");
@@ -177,49 +154,20 @@ function decodeFloat32(b64, count) {
   return Array.from({ length: count }, (_, i) => all.subarray(i * dims, (i + 1) * dims));
 }
 
-function netKey(code) {
-  const n = normalizeCode(code);
-  if (!keys.has(n)) {
-    keys.set(n, (async () => {
-      const raw = await crypto.subtle.importKey("raw", enc(n), "PBKDF2", false, ["deriveKey"]);
-      return crypto.subtle.deriveKey({ name: "PBKDF2", hash: "SHA-256", salt: enc("NovaBird-Net-1"), iterations: NET_ITERATIONS }, raw,
-        { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
-    })());
-  }
-  return keys.get(n);
-}
-
 /** Verschlüsselte Anfrage an den Helper im Netz-Modus; Antwort entschlüsselt (wirft bei ok:false). */
 export async function netCall(c, op, payload = {}) {
-  if (normalizeCode(c.code).length !== 20) {
-    throw new Error("code");
-  }
-  if (!/^[A-Za-z0-9_-]{8,64}$/.test(c.clientId || "")) {
-    throw new Error("client");
-  }
-  const key = await netKey(c.code);
-  const rid = toB64(crypto.getRandomValues(new Uint8Array(16)));
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const plain = enc(JSON.stringify({ ts: Date.now(), rid, op, label: c.label || "", ...payload }));
-  const data = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: enc(`nbh1-req|${c.clientId}`) }, key, plain));
-  let res;
   try {
-    res = await request(c, base(c) + NET_PATH, { c: c.clientId, n: toB64(iv), d: toB64(data) });
+    return await net().call({ url: base(c), code: c.code, client: c.clientId, op, payload, label: c.label || "", post: (url, body) => request(c, url, body) });
   } catch (e) {
     if (e.status === 403) {
       throw new Error("Kopplungscode passt nicht");
     }
+    if (e.message === "answer") {
+      throw new Error("Antwort des Helpers lässt sich nicht prüfen");
+    }
+    if (e.message === "helper") {
+      throw new Error("Helper-Fehler");
+    }
     throw e;
   }
-  let msg;
-  try {
-    const out = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromB64(res.n), additionalData: enc(`nbh1-res|${rid}`) }, key, fromB64(res.d));
-    msg = JSON.parse(new TextDecoder().decode(out));
-  } catch {
-    throw new Error("Antwort des Helpers lässt sich nicht prüfen");
-  }
-  if (!msg.ok) {
-    throw new Error(msg.error || "Helper-Fehler");
-  }
-  return msg;
 }

@@ -8,7 +8,8 @@ const path = require("node:path");
 const fs = require("node:fs");
 const vm = require("node:vm");
 
-const src = fs.readFileSync(path.join(__dirname, "..", "ai", "ai.js"), "utf8");
+// wie im Add-on: shared/nbnet.js vor ai/ai.js
+const src = ["../../shared/nbnet.js", "../ai/ai.js"].map(f => fs.readFileSync(path.join(__dirname, f), "utf8")).join("\n");
 const ctx = vm.createContext({ crypto, TextEncoder, TextDecoder, btoa, atob, console, Intl, URL });
 vm.runInContext(src + "\nthis.nbAI = nbAI;", ctx);
 const nbAI = ctx.nbAI;

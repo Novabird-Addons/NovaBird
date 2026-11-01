@@ -7,6 +7,8 @@ import { createInterface } from "node:readline";
 import fs from "node:fs";
 import path from "node:path";
 const S = new URL("../../novabird-search/semantic/", import.meta.url).href;
+// wie im Add-on: Kopplungscode und Verschlüsselung für den Helper aus shared/nbnet.js (vor server.js)
+globalThis.nbNet = (await import(new URL("../../shared/nbnet.js", import.meta.url).href)).default;
 const server = await import(S + "server.js");
 const [exe, dir, netPort, webPort] = process.argv.slice(2);
 const ADMIN_PW = "Ext-Test-Passwort-1";

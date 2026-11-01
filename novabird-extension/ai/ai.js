@@ -57,32 +57,11 @@ const nbAI = (() => {
 
   const openaiPath = (c, tail) => (/\/v1$/.test(base(c)) ? base(c) + tail : base(c) + "/v1" + tail);
 
-  // ---- NovaBird Helper (Netz-Modus): verschlüsselt mit dem Kopplungscode, wie die semantische Suche in NovaBird-Search ----
-  // Schlüssel = PBKDF2-SHA256(Code, "NovaBird-Net-1", 300.000 Runden); jede Anfrage/Antwort AES-256-GCM, Zusatzdaten mit
-  // Client-Kennung bzw. Anfrage-Kennung. Mailtexte gehen so nie lesbar durchs Netz. Das Feld aiKey hält den Kopplungscode.
-  const NET_PATH = "/nbhelper/v1";
-  const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  // ---- NovaBird Helper (Netz-Modus): verschlüsselt mit dem Kopplungscode, gemeinsamer Teil mit NovaBird-Search in
+  // shared/nbnet.js (Schlüssel aus dem Code, AES-256-GCM je Anfrage). Mailtexte gehen so nie lesbar durchs Netz. Das Feld
+  // aiKey hält den Kopplungscode.
+  const { toB64, fromB64 } = nbNet;
   const enc = text => new TextEncoder().encode(text);
-  const netKeys = new Map();
-  const normalizeCode = code => [...String(code || "").toUpperCase()].filter(ch => CODE_ALPHABET.includes(ch)).join("");
-  const toB64 = bytes => {
-    let bin = "";
-    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-    return btoa(bin);
-  };
-  const fromB64 = b64 => Uint8Array.from(atob(b64), ch => ch.charCodeAt(0));
-
-  function netKey(code) {
-    const n = normalizeCode(code);
-    if (!netKeys.has(n)) {
-      netKeys.set(n, (async () => {
-        const raw = await crypto.subtle.importKey("raw", enc(n), "PBKDF2", false, ["deriveKey"]);
-        return crypto.subtle.deriveKey({ name: "PBKDF2", hash: "SHA-256", salt: enc("NovaBird-Net-1"), iterations: 300_000 }, raw,
-          { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
-      })());
-    }
-    return netKeys.get(n);
-  }
 
   // Kennung dieses Thunderbird für den Helper: dieselbe wie NovaBird-Search (sonst steht der PC in der Liste des Helpers
   // zweimal: einmal mit Index, einmal für KI und Vorlesen); ohne Search eine eigene, einmal erzeugt
@@ -110,32 +89,14 @@ const nbAI = (() => {
   }
 
   async function netCall(c, op, payload = {}, signal) {
-    if (normalizeCode(c.aiKey).length !== 20) throw new Error("code");
-    const client = await clientId();
-    const key = await netKey(c.aiKey);
-    const rid = toB64(crypto.getRandomValues(new Uint8Array(16)));
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    // label = Name des PCs in der Liste des Helpers; leer lässt den bisherigen stehen (gesetzt von Search bzw. „Verbinden“)
-    const plain = enc(JSON.stringify({ ts: Date.now(), rid, op, label: "", ...payload }));
-    const data = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: enc(`nbh1-req|${client}`) }, key, plain));
-    const r = await fetch(base(c) + NET_PATH, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      signal,
-      body: JSON.stringify({ c: client, n: toB64(iv), d: toB64(data) }),
-    });
-    if (r.status === 403) throw new Error("code");
-    if (!r.ok) throw new Error("http " + r.status);
-    const res = await r.json();
-    let msg;
-    try {
-      const out = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromB64(res.n), additionalData: enc(`nbh1-res|${rid}`) }, key, fromB64(res.d));
-      msg = JSON.parse(new TextDecoder().decode(out));
-    } catch (e) {
-      throw new Error("answer");
-    }
-    if (!msg.ok) throw new Error(msg.error || "helper");
-    return msg;
+    if (nbNet.normalizeCode(c.aiKey).length !== 20) throw new Error("code");
+    const post = async (url, body) => {
+      const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, signal, body: JSON.stringify(body) });
+      if (!r.ok) throw Object.assign(new Error("http " + r.status), { status: r.status });
+      return r.json();
+    };
+    // label leer: der Name des PCs in der Liste des Helpers bleibt, wie ihn Search bzw. „Verbinden“ gesetzt hat
+    return nbNet.call({ url: base(c), code: c.aiKey, client: await clientId(), op, payload, post });
   }
 
   /** Reiter „NovaBird Helper“: Verbindung prüfen; liefert Version, Gerät, Gruppe, Sprachmodell und web {port, lan, fingerprint}. */
@@ -1112,7 +1073,7 @@ const nbAI = (() => {
   const sha256 = async text => new Uint8Array(await crypto.subtle.digest("SHA-256", enc(text)));
   const b64url = bytes => toB64(bytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   /** Prüfsumme des Mailtextes (16 Hex-Zeichen). */
-  const textHash = async text => Array.from((await sha256(text)).slice(0, 8), b => b.toString(16).padStart(2, "0")).join("");
+  const textHash = nbNet.textHash;
   /** Kennung eines Ergebnisses: kind "digest" oder "sum", variant z. B. Sprache. */
   const shareId = async (kind, variant, msgId, hash) => b64url(await sha256(`nbx1|${kind}|${variant}|${msgId}|${hash}`));
   async function shareKey(msgId, hash) {
