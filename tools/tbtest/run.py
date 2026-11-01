@@ -135,6 +135,17 @@ def main():
         m.call("Marionette:SetContext", {"value": "chrome"})
         for x in a.xpis:
             say("Installiert:", m.call("Addon:Install", {"path": os.path.abspath(x), "temporary": True}).get("value"))
+        # ins Hauptfenster wechseln (auf macOS ist sonst ein verstecktes Fenster gewählt, dort lösen Timer nicht aus)
+        try:
+            handles = m.call("WebDriver:GetWindowHandles")
+            handles = handles.get("value", []) if isinstance(handles, dict) else handles
+            for h in handles or []:
+                m.call("WebDriver:SwitchToWindow", {"handle": h})
+                if m.call("Marionette:GetWindowType").get("value") == "mail:3pane":
+                    say("Hauptfenster gewählt")
+                    break
+        except Exception as e:
+            say("Fensterwahl nicht möglich:", e)
         m.sock.settimeout(a.timeout)
         say("Testskript läuft")
         with open(a.js, encoding="utf-8") as f:

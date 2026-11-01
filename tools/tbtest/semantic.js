@@ -3,6 +3,9 @@
 // Umgebung: NBTESTBASE (optional, lokaler Modellserver statt Hugging Face).
 // NBPROGRESS (optional, absoluter Pfad): Zwischenstand nach jedem Schritt; NBDEADLINE: Gesamtzeit in s (Standard 1200).
 const done = arguments[arguments.length - 1];
+// Timer aus dem Modul statt aus dem Fenster des Skripts: auf macOS läuft das Skript sonst im versteckten Fenster, dessen
+// setTimeout nie auslöste (GitHub Actions, 01.11.)
+const { setTimeout } = ChromeUtils.importESModule("resource://gre/modules/Timer.sys.mjs");
 const T0 = Date.now();
 const secs = () => Math.round((Date.now() - T0) / 1000);
 const out = { app: Services.appinfo.version, os: Services.appinfo.OS, arch: Services.sysinfo.getProperty("arch"), t: {}, checks: {} };
@@ -35,6 +38,7 @@ setTimeout(() => finish({ ...out, pass: false, error: `Zeitlimit nach ${secs()} 
     out.checks[name] = { ok: Boolean(ok), info };
     progress(name);
   };
+  progress("start");
   await sleep(3000);
   const { MailServices } = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
   const inbox = MailServices.accounts.localFoldersServer.rootFolder.getChildNamed("Inbox");

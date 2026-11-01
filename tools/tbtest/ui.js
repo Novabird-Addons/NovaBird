@@ -2,6 +2,9 @@
 // (nichts ragt über den Rand, auf macOS hält die Verfassen-Leiste 22 px für die Fensterknöpfe frei).
 // Für tools/tbtest/run.py (chrome-Kontext). NBSHOTS: Ordner für die Bilder (absolut), NBPROGRESS, NBDEADLINE wie semantic.js.
 const done = arguments[arguments.length - 1];
+// Timer aus dem Modul statt aus dem Fenster des Skripts: auf macOS läuft das Skript sonst im versteckten Fenster, dessen
+// setTimeout nie auslöste (GitHub Actions, 01.11.)
+const { setTimeout } = ChromeUtils.importESModule("resource://gre/modules/Timer.sys.mjs");
 const T0 = Date.now();
 const secs = () => Math.round((Date.now() - T0) / 1000);
 const out = { app: Services.appinfo.version, os: Services.appinfo.OS, checks: {}, shots: [] };
@@ -48,6 +51,7 @@ setTimeout(() => finish({ ...out, pass: false, error: `Zeitlimit nach ${secs()} 
   // Ragt etwas über den rechten Rand? (waagrechter Bildlauf einer Seite)
   const overflowX = doc => doc.documentElement.scrollWidth - doc.documentElement.clientWidth;
 
+  progress("start");
   await sleep(3000);
   const { MailServices } = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
   const inbox = MailServices.accounts.localFoldersServer.rootFolder.getChildNamed("Inbox");
