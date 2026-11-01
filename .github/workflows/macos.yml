@@ -1,0 +1,96 @@
+# NovaBird auf macOS (Apple Silicon): Thunderbird headless mit Testprofil, NovaBird-Search ohne Helper
+# (Modell im Add-on per WebAssembly), Bedeutungs- und Stichwortsuche. Ergebnis, Bildschirmfoto und Protokoll als Artefakt.
+name: macOS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [novabird-2.0, testing]
+    paths:
+      - "novabird-search/**"
+      - "shared/**"
+      - "tools/tbtest/**"
+      - ".github/workflows/macos.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  search:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - channel: release
+            product: thunderbird-latest-SSL
+          - channel: esr
+            product: thunderbird-esr-latest-SSL
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Thunderbird ${{ matrix.channel }} laden
+        run: |
+          curl -fsSL -o tb.dmg "https://download.mozilla.org/?product=${{ matrix.product }}&os=osx&lang=de"
+          hdiutil attach -nobrowse -quiet -mountpoint /Volumes/tb tb.dmg
+          cp -R /Volumes/tb/Thunderbird*.app "$RUNNER_TEMP/Thunderbird.app"
+          hdiutil detach -quiet /Volumes/tb
+          "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" --version
+
+      - name: Modell aus dem Cache
+        uses: actions/cache@v4
+        with:
+          path: model
+          key: jina-de-3f9eede8
+
+      - name: Modell laden (Hugging Face, feste Revision)
+        run: |
+          mkdir -p model
+          base="https://huggingface.co/jinaai/jina-embeddings-v2-base-de/resolve/3f9eede875721714945b6a99a3198299243cf2be"
+          for f in config.json tokenizer.json tokenizer_config.json onnx/model_fp16.onnx; do
+            [ -f "model/$f" ] || curl -fsSL --create-dirs -o "model/$f" "$base/$f"
+          done
+          ls -lR model
+
+      - name: NovaBird-Search bauen
+        run: python tools/tbtest/build.py novabird-search out/novabird-search.xpi
+
+      - name: Test
+        run: |
+          # Modell über einen lokalen Server wie bei Hugging Face (prüft das Add-on mit seinen Prüfsummen)
+          python tools/tbtest/modelserver.py model 18765 &
+          python tools/tbtest/run.py --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
+            --profile "$RUNNER_TEMP/profile-new-search" --mbox tools/tbtest/sem.mbox --js tools/tbtest/semantic.js \
+            --out out/result.json --shot out/screen.png --env NBTESTBASE=http://127.0.0.1:18765/ out/novabird-search.xpi
+
+      - name: Zusammenfassung
+        if: always()
+        run: |
+          python - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          import json, os
+          p = "out/result.json"
+          r = json.load(open(p)) if os.path.exists(p) else None
+          if not r:
+              print("Kein Ergebnis")
+              raise SystemExit
+          print(f"### Thunderbird {r.get('app')} · {r.get('os')} {r.get('arch')} · {r.get('cores')} Kerne")
+          print(f"Zeiten (s): {r.get('t')} · Threads: {r.get('status', {}).get('threads')} · {r.get('status', {}).get('rate')} Mails/s")
+          print("")
+          print("| Prüfung | | Wert |")
+          print("|---|---|---|")
+          for k, c in (r.get("checks") or {}).items():
+              print(f"| {k} | {'✅' if c['ok'] else '❌'} | {c.get('info')} |")
+          if r.get("error"):
+              print(f"\nFehler: {r['error']}")
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: macos-${{ matrix.channel }}
+          path: out/
