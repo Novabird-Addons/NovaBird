@@ -124,8 +124,9 @@ setTimeout(() => finish({ ...out, pass: false, error: `Zeitlimit nach ${secs()} 
     out.compose = { paddingTop: style.paddingTop, marginTop: style.marginBlockStart, barTop: Math.round(bar.getBoundingClientRect().top), sendTop: r && Math.round(r.top), sendHeight: r && Math.round(r.height) };
     check("Verfassen: „Senden“ sichtbar", r && r.height > 0 && r.width > 0, out.compose);
     if (mac) {
-      // Fensterknöpfe liegen in den oberen 22 px des Fensters; „Senden“ muss darunter beginnen
-      check("macOS: „Senden“ unter den Fensterknöpfen", r && r.top >= 22, out.compose);
+      // Thunderbird zieht die Leiste 22 px in die Titelleiste (margin -22px); die Fensterknöpfe liegen in diesen oberen
+      // 22 px der Leiste, „Senden“ muss darunter beginnen (gemessen 01.11.: mit Fix 49 px, ohne 27 px bei Leiste 21 px)
+      check("macOS: „Senden“ unter den Fensterknöpfen", r && r.top >= out.compose.barTop + 22, out.compose);
     }
     await shot(cw, "5-verfassen");
     cw.close();
