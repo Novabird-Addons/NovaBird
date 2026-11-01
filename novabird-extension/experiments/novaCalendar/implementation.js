@@ -380,11 +380,108 @@ function applyPaneLayout(win) {
 function arrangeMain(win) {
   setupAttach(win);
   applyPaneLayout(win);
+  patchEventBox(win);
 }
 
 function restoreMain(win) {
   teardownAttach(win);
   removeNovaPane(win);
+  unpatchEventBox(win);
+}
+
+
+// ---- Uhrzeit im Termin (Tages- und Wochenansicht) ----------------------------------------------
+// Thunderbird zeigt im Termin-Kästchen nur den Titel und – mit seiner Einstellung „Adresse anzeigen“
+// (calendar.view.showLocation) – den Ort. Die Uhrzeit kommt als eigene Zeile unter den Titel: setLocationLabel()
+// der Kästchen (calendar-event-box) wird ergänzt; Thunderbird ruft es bei jedem Zeichnen eines Termins auf.
+
+const EVENT_TIME_CLASS = "nbx-event-time";
+const eventBoxPatched = new WeakMap(); // Fenster -> { proto, own }
+let eventTime = true;
+
+function eventTimeText(item) {
+  const { cal } = ChromeUtils.importESModule("resource:///modules/calendar/calUtils.sys.mjs");
+  const tz = cal.dtz.defaultTimezone;
+  const start = item.startDate?.getInTimezone(tz);
+  const end = item.endDate?.getInTimezone(tz);
+  if (!start || start.isDate) {
+    return "";
+  }
+  const fmt = cal.dtz.formatter;
+  return end && end.compare(start) > 0 ? `${fmt.formatTime(start)} – ${fmt.formatTime(end)}` : fmt.formatTime(start);
+}
+
+function showEventTime(box) {
+  let line = box.querySelector(`.${EVENT_TIME_CLASS}`);
+  const text = eventTime && box.occurrence ? eventTimeText(box.occurrence) : "";
+  if (!text) {
+    line?.remove();
+    return;
+  }
+  if (!line) {
+    // Eigene Klasse statt „location-desc“: Thunderbird schreibt den Ort in das erste Element mit dieser Klasse
+    line = box.ownerDocument.createElementNS("http://www.w3.org/1999/xhtml", "div");
+    line.className = EVENT_TIME_CLASS;
+    line.style.cssText = "margin: 0 2px; font-weight: normal; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;";
+    box.querySelector(".calendar-item-flex")?.after(line);
+  }
+  line.textContent = text;
+}
+
+// Von außen gesehen sind die Kästchen „verpackt“ (Xray): Thunderbirds Methoden und occurrence sind nur am eigentlichen Objekt
+const eventBoxes = win => [...win.document.querySelectorAll("calendar-event-box")].map(box => box.wrappedJSObject ?? box);
+
+function refreshEventBoxes(win) {
+  for (const box of eventBoxes(win)) {
+    try {
+      showEventTime(box);
+    } catch (e) {
+      console.error("Nova-Calendar Uhrzeit:", e);
+    }
+  }
+}
+
+function patchEventBox(win) {
+  const apply = () => {
+    const cls = win.customElements.get("calendar-event-box");
+    if (!cls || eventBoxPatched.has(win)) {
+      return;
+    }
+    const proto = cls.prototype;
+    const own = Object.getOwnPropertyDescriptor(proto, "setLocationLabel");
+    const base = proto.setLocationLabel;
+    proto.setLocationLabel = function () {
+      base.call(this);
+      try {
+        showEventTime(this);
+      } catch (e) {
+        console.error("Nova-Calendar Uhrzeit:", e);
+      }
+    };
+    eventBoxPatched.set(win, { proto, own });
+    refreshEventBoxes(win);
+  };
+  if (win.customElements.get("calendar-event-box")) {
+    apply();
+  } else {
+    win.customElements.whenDefined("calendar-event-box").then(apply, () => {});
+  }
+}
+
+function unpatchEventBox(win) {
+  const patched = eventBoxPatched.get(win);
+  if (!patched) {
+    return;
+  }
+  if (patched.own) {
+    Object.defineProperty(patched.proto, "setLocationLabel", patched.own);
+  } else {
+    delete patched.proto.setLocationLabel;
+  }
+  eventBoxPatched.delete(win);
+  for (const line of win.document.querySelectorAll(`.${EVENT_TIME_CLASS}`)) {
+    line.remove();
+  }
 }
 
 
@@ -1131,6 +1228,31 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
           for (const win of Services.wm.getEnumerator("mail:3pane")) {
             applyPaneLayout(win);
           }
+        },
+        async setEventTime(on) {
+          eventTime = !!on;
+          for (const win of Services.wm.getEnumerator("mail:3pane")) {
+            refreshEventBoxes(win);
+          }
+        },
+        // Thunderbirds eigene Einstellung „Adresse anzeigen“ (Tages- und Wochenansicht): lesen bzw. setzen
+        async eventLocation(on) {
+          if (typeof on === "boolean") {
+            Services.prefs.setBoolPref("calendar.view.showLocation", on);
+            // Thunderbird zeichnet nur die gerade sichtbare Ansicht neu; die Kästchen der anderen gleich mit
+            for (const win of Services.wm.getEnumerator("mail:3pane")) {
+              for (const box of eventBoxes(win)) {
+                try {
+                  if (box.occurrence) {
+                    box.setLocationLabel?.();
+                  }
+                } catch (e) {
+                  console.error("Nova-Calendar Ort:", e);
+                }
+              }
+            }
+          }
+          return Services.prefs.getBoolPref("calendar.view.showLocation", false);
         },
         async setOrder() {
           // Reihenfolge ist fest (Aufgaben-Tab: Aufgaben oben, sonst Termine oben)

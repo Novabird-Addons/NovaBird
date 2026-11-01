@@ -5,6 +5,7 @@ const DEFAULTS = {
   attachPane: true,
   paneLayout: "nova",
   agendaDays: 5,
+  eventTime: true, // Uhrzeit unter dem Titel der Termine (Tages- und Wochenansicht)
   colorMode: "theme",
   uiTheme: "", // NovaBird-Design (sand, cobalt, springlight); "" = Theme aus dem Add-ons-Manager
   pilotEnabled: true,
@@ -143,6 +144,7 @@ async function applySettings() {
   const colors = s.colorMode === "custom" ? s.colors : null;
   await safe("Leistenlayout", () => messenger.novaCalendar.setPaneLayout(s.paneLayout === "default" ? "default" : "nova"));
   await safe("Tage voraus", () => messenger.novaCalendar.setAgendaDays(s.agendaDays));
+  await safe("Uhrzeit im Termin", () => messenger.novaCalendar.setEventTime(s.eventTime !== false));
   await safe("Kalenderfarben", () => messenger.novaCalendar.setColors(colors));
   await safe("Anhänge-Bereich", () => messenger.novaCalendar.setAttachPane(s.attachPane !== false));
   await safe("Einstellungsfarben", () => messenger.settingsRedesign.setColors(colors));
@@ -310,6 +312,9 @@ messenger.storage.onChanged.addListener(async changes => {
   }
   if (keys.includes("agendaDays")) {
     safe("Tage voraus", () => messenger.novaCalendar.setAgendaDays(s.agendaDays));
+  }
+  if (keys.includes("eventTime")) {
+    safe("Uhrzeit im Termin", () => messenger.novaCalendar.setEventTime(s.eventTime !== false));
   }
   if (keys.includes("attachPane")) {
     safe("Anhänge-Bereich", () => messenger.novaCalendar.setAttachPane(s.attachPane !== false));

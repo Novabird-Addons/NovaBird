@@ -132,6 +132,42 @@ setTimeout(() => finish({ ...out, pass: false, error: `Zeitlimit nach ${secs()} 
     cw.close();
   }
 
+  // 4) Kalender (Extension ab 2.0): Uhrzeit und Ort unter dem Titel des Termins in der Wochenansicht
+  const ext = WebExtensionPolicy.getByID("novabird-extension@novabird");
+  if (ext && /^2\./.test(ext.extension.version)) {
+    progress("Kalender");
+    const { cal } = ChromeUtils.importESModule("resource:///modules/calendar/calUtils.sys.mjs");
+    let calendar = cal.manager.getCalendars()[0];
+    if (!calendar) {
+      calendar = cal.manager.createCalendar("storage", Services.io.newURI("moz-storage-calendar://"));
+      calendar.name = "Test";
+      cal.manager.registerCalendar(calendar);
+    }
+    calendar.setProperty("disabled", false);
+    const ev = new win.CalEvent();
+    ev.title = "Elternabend";
+    const start = cal.dtz.now();
+    start.hour = 14;
+    start.minute = 0;
+    start.second = 0;
+    const end = start.clone();
+    end.hour = 17;
+    ev.startDate = start;
+    ev.endDate = end;
+    ev.setProperty("LOCATION", "Aula");
+    await calendar.addItem(ev);
+    Services.prefs.setBoolPref("calendar.view.showLocation", true);
+    tabmail.openTab("calendar");
+    await sleep(1500);
+    win.switchToView?.("day");
+    await sleep(2500);
+    const box = [...win.document.querySelectorAll("calendar-event-box")].find(b => b.occurrence?.title === "Elternabend" && b.querySelector(".location-desc")?.textContent);
+    const info = { time: box?.querySelector(".nbx-event-time")?.textContent, location: box?.querySelector(".location-desc")?.textContent };
+    check("Kalender: Uhrzeit und Ort im Termin", /14.*17/.test(info.time || "") && info.location === "Aula", info);
+    await shot(win, "6-kalender-tag");
+    tabmail.switchToTab(main);
+  }
+
   out.pass = Object.values(out.checks).every(c => c.ok);
   finish(out);
 })().catch(e => finish({ ...out, pass: false, error: String(e), stack: e.stack }));

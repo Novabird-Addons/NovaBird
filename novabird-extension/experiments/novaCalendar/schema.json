@@ -58,6 +58,20 @@
         ]
       },
       {
+        "name": "setEventTime",
+        "type": "function",
+        "async": true,
+        "description": "Uhrzeit als eigene Zeile unter dem Titel der Termine (Tages- und Wochenansicht) ein-/ausschalten.",
+        "parameters": [{ "name": "enabled", "type": "boolean" }]
+      },
+      {
+        "name": "eventLocation",
+        "type": "function",
+        "async": true,
+        "description": "Thunderbirds Einstellung „Adresse anzeigen“ (calendar.view.showLocation) lesen; mit Wert auch setzen.",
+        "parameters": [{ "name": "enabled", "type": "boolean", "optional": true }]
+      },
+      {
         "name": "setAttachPane",
         "type": "function",
         "async": true,

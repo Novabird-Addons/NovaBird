@@ -183,6 +183,9 @@ const TEXTS = {
     layoutDefault: "Betterbird-Standard",
     agendaTitle: "Terminliste (rechter Bereich)",
     agendaLabel: "Tage anzeigen (heute plus folgende, 1 = nur heute):",
+    eventTitle: "Termine im Kalender (Tages- und Wochenansicht)",
+    eventTimeLabel: "Uhrzeit unter dem Titel anzeigen",
+    eventLocationLabel: "Ort unter dem Titel anzeigen (Thunderbird-Einstellung „Adresse anzeigen“)",
     attachTitle: "Mailansicht – Tab rechts",
     attachLabel: "Anhänge der Nachricht oder der ganzen Unterhaltung unter dem Tagesplan auflisten (Teiler verschiebbar)",
     resetAttach: "Teiler zurücksetzen",
@@ -458,6 +461,9 @@ const TEXTS = {
     layoutDefault: "Betterbird default",
     agendaTitle: "Event list (right-hand pane)",
     agendaLabel: "Days to show (today plus following, 1 = today only):",
+    eventTitle: "Events in the calendar (day and week view)",
+    eventTimeLabel: "Show the time below the title",
+    eventLocationLabel: "Show the location below the title (Thunderbird setting “Show location”)",
     attachTitle: "Mail view – right-hand tab",
     attachLabel: "List attachments of the message or the whole conversation below the agenda (movable divider)",
     resetAttach: "Reset divider",
@@ -733,6 +739,9 @@ const TEXTS = {
     layoutDefault: "Disposition standard de Betterbird",
     agendaTitle: "Liste des événements (panneau de droite)",
     agendaLabel: "Jours à afficher (aujourd'hui et suivants, 1 = aujourd'hui seulement) :",
+    eventTitle: "Événements dans l’agenda (vues jour et semaine)",
+    eventTimeLabel: "Afficher l’heure sous le titre",
+    eventLocationLabel: "Afficher le lieu sous le titre (paramètre de Thunderbird « Afficher le lieu »)",
     attachTitle: "Vue Courrier – onglet de droite",
     attachLabel: "Lister les pièces jointes du message ou de toute la conversation sous l'agenda (séparateur déplaçable)",
     resetAttach: "Réinitialiser le séparateur",
@@ -1008,6 +1017,9 @@ const TEXTS = {
     layoutDefault: "Predeterminado de Betterbird",
     agendaTitle: "Lista de eventos (panel derecho)",
     agendaLabel: "Días que mostrar (hoy y siguientes, 1 = solo hoy):",
+    eventTitle: "Eventos en el calendario (vista de día y semana)",
+    eventTimeLabel: "Mostrar la hora bajo el título",
+    eventLocationLabel: "Mostrar el lugar bajo el título (ajuste de Thunderbird «Mostrar ubicación»)",
     attachTitle: "Vista de correo – pestaña derecha",
     attachLabel: "Mostrar los adjuntos del mensaje o de toda la conversación bajo la agenda (divisor movible)",
     resetAttach: "Restablecer el divisor",
@@ -1107,6 +1119,7 @@ const DEFAULTS = {
   attachPane: true,
   paneLayout: "nova",
   agendaDays: 5,
+  eventTime: true,
   colorMode: "theme",
   uiTheme: "", // NovaBird-Design (sand, cobalt, springlight); "" = Theme aus dem Add-ons-Manager
   pilotEnabled: true,
@@ -1337,6 +1350,13 @@ const save = patch => messenger.storage.local.set(patch);
     ad.value = n;
     save({ agendaDays: n });
   });
+  const et = document.getElementById("eventTime");
+  et.checked = s.eventTime !== false;
+  et.addEventListener("change", () => save({ eventTime: et.checked }));
+  // Ort: Thunderbirds eigene Einstellung, hier nur gelesen und gesetzt (kein eigener Wert)
+  const el = document.getElementById("eventLocation");
+  messenger.novaCalendar.eventLocation().then(on => (el.checked = on), () => (el.disabled = true));
+  el.addEventListener("change", () => messenger.novaCalendar.eventLocation(el.checked).catch(() => {}));
   const ap = document.getElementById("attachPane");
   ap.checked = s.attachPane !== false;
   ap.addEventListener("change", () => {

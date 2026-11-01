@@ -5,6 +5,12 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.5 · Helper 0.3.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### NovaBird-Extension: time and location in calendar events (issue #5)
+- **Day and week view show the time below the event title** (e.g. "14:00 – 17:00", in the time format and time zone of Thunderbird), like other calendars. Setting in General → Calendar → "Events in the calendar": "Show the time below the title" (on by default).
+- **Location:** Thunderbird can already show it (Settings → Calendar → "Show location", off by default); the second checkbox there switches exactly this Thunderbird setting, so there is no second switch. Both take effect at once in all views, also in the ones not visible right now.
+- How: the experiment `novaCalendar` extends `setLocationLabel()` of the event boxes (`calendar-event-box`), which Thunderbird calls whenever it draws an event; the time is a line of its own (`.nbx-event-time`) between title and location and is removed again when the add-on is switched off. Same structure in Thunderbird 153 and 159.
+- Tested in Thunderbird 159: time, location, order title – time – location, switching off and on; the macOS test (`tools/tbtest/ui.js`) now checks time and location in the day view on ESR 153 and the current release.
+
 ### NovaBird-Extension + Search: setup assistant
 - **New first tab "Setup" in Settings → NovaBird** (`setup/`). After a fresh install or the switch from 1.x it opens once by itself (decided at start-up: previous version 1.x or settings already stored; never again after that; test profiles switch it off with `extensions.novabird.setup.auto = false`). Steps: New · Moved (upgrade only) · Meaning search · NovaBird Helper · AI assistant · Done; every step can be skipped. Afterwards the same tab shows an overview with the state of search, Helper and AI (done / open / running, index progress) and can start the assistant again.
 - **Moved:** what changed place since 1.x (AI tab, theme add-ons → Design, Search + DB → one tab "Search", tabs by task), marked "concerns you" when it does (AI was set up, a theme add-on was active, the old search bar was taken over), each with a button to that tab.
