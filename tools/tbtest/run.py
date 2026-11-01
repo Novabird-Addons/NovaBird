@@ -97,6 +97,7 @@ def main():
     ap.add_argument("--log", help="Ausgabe von Thunderbird (Konsole) in diese Datei")
     ap.add_argument("--port", type=int, default=2828)
     ap.add_argument("--timeout", type=int, default=1800)
+    ap.add_argument("--headed", action="store_true", help="mit Fenster (macOS in GitHub Actions: ohne Fenster öffnet das Hauptfenster nicht)")
     ap.add_argument("--env", action="append", default=[])
     ap.add_argument("xpis", nargs="*")
     a = ap.parse_args()
@@ -118,18 +119,27 @@ def main():
         k, v = kv.split("=", 1)
         env[k] = v
     log = open(a.log, "w", encoding="utf-8", errors="replace") if a.log else subprocess.DEVNULL
-    p = subprocess.Popen([a.tb, "-profile", prof, "-headless", "-marionette", "-remote-allow-system-access", "-no-remote"],
-                         env=env, stdout=log, stderr=subprocess.STDOUT)
+    args = [a.tb, "-profile", prof, "-marionette", "-remote-allow-system-access", "-no-remote"]
+    if not a.headed:
+        args.insert(3, "-headless")
+    say = lambda *x: print(time.strftime("%H:%M:%S"), *x, flush=True)  # sofort sichtbar, auch wenn danach etwas hängt
+    p = subprocess.Popen(args, env=env, stdout=log, stderr=subprocess.STDOUT)
+    say("Thunderbird gestartet", "mit Fenster" if a.headed else "ohne Fenster")
     res = None
     try:
-        m = Marionette(a.port, a.timeout)
+        m = Marionette(a.port, 120)  # Start und Einrichtung: höchstens 2 min je Schritt
+        say("Marionette verbunden")
         m.call("WebDriver:NewSession", {"capabilities": {"timeouts": {"script": a.timeout * 1000}}})
+        say("Sitzung steht")
         m.call("WebDriver:SetTimeouts", {"script": a.timeout * 1000})
         m.call("Marionette:SetContext", {"value": "chrome"})
         for x in a.xpis:
-            print("Installiert:", m.call("Addon:Install", {"path": os.path.abspath(x), "temporary": True}).get("value"))
+            say("Installiert:", m.call("Addon:Install", {"path": os.path.abspath(x), "temporary": True}).get("value"))
+        m.sock.settimeout(a.timeout)
+        say("Testskript läuft")
         with open(a.js, encoding="utf-8") as f:
             res = m.call("WebDriver:ExecuteAsyncScript", {"script": f.read(), "args": [], "newSandbox": False}).get("value")
+        say("Testskript fertig")
         if a.shot:
             png = m.call("WebDriver:TakeScreenshot", {"full": False, "hash": False})["value"]
             with open(a.shot, "wb") as f:

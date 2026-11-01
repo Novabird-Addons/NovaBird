@@ -3,6 +3,7 @@
 #  - ui: Oberfläche von 2.0 (Extension + Search) und 1.4 (Extension aus Branch testing): Bildschirmfotos, nichts ragt
 #    über den Rand, Verfassen-Leiste unter den Fensterknöpfen; Gegenprobe ohne den Mac-Fix muss dabei scheitern.
 # Ergebnisse als Tabelle in der Übersicht, Dateien (JSON, Bilder, Protokoll) als Artefakt.
+# Thunderbird läuft mit Fenster (--headed): ohne Fenster begann das Testskript auf den Mac-Rechnern nie (Lauf vom 01.11.).
 name: macOS
 
 on:
@@ -74,7 +75,7 @@ jobs:
         run: |
           # Modell über einen lokalen Server wie bei Hugging Face (das Add-on prüft es mit seinen Prüfsummen)
           python tools/tbtest/modelserver.py model 18765 &
-          python tools/tbtest/run.py --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
+          python -u tools/tbtest/run.py --headed --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
             --profile "$RUNNER_TEMP/profile-new-search" --mbox tools/tbtest/sem.mbox --js tools/tbtest/semantic.js \
             --out out/result.json --shot out/screen.png --log out/tb.log \
             --env NBTESTBASE=http://127.0.0.1:18765/ --env NBPROGRESS="$GITHUB_WORKSPACE/out/progress.json" --env NBDEADLINE=1200 \
@@ -139,7 +140,7 @@ jobs:
       - name: Test
         run: |
           mkdir -p out/bilder
-          python tools/tbtest/run.py --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
+          python -u tools/tbtest/run.py --headed --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
             --profile "$RUNNER_TEMP/profile-new-ui" --mbox tools/tbtest/sem.mbox --js tools/tbtest/ui.js \
             --out out/ui.json --log out/ui.log \
             --env NBSHOTS="$GITHUB_WORKSPACE/out/bilder" --env NBPROGRESS="$GITHUB_WORKSPACE/out/ui-progress.json" --env NBDEADLINE=600 \
@@ -149,7 +150,7 @@ jobs:
         if: always()
         run: |
           mkdir -p out/ohnefix/bilder
-          python tools/tbtest/run.py --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
+          python -u tools/tbtest/run.py --headed --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
             --profile "$RUNNER_TEMP/profile-new-ohnefix" --mbox tools/tbtest/sem.mbox --js tools/tbtest/ui.js \
             --out out/ohnefix/ui.json --log out/ohnefix/ui.log \
             --env NBSHOTS="$GITHUB_WORKSPACE/out/ohnefix/bilder" --env NBDEADLINE=600 \
