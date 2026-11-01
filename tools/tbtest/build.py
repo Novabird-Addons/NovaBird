@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Baut ein Add-on für Tests als XPI (gleicher Inhalt wie build.sh, aber mit frei wählbarem Ziel):
 
-  tools/tbtest/build.py novabird-search out/novabird-search.xpi
+  tools/tbtest/build.py novabird-search out/novabird-search.xpi [--root <anderer Checkout, z. B. Branch testing>]
 
 Für NovaBird-Search wird vorher die Laufzeit der semantischen Suche geprüft bzw. geholt (tools/vendor-semantic.py).
 """
@@ -27,11 +27,11 @@ def add(z, base, rel):
         z.write(p, rel)
 
 
-def build(name, out):
-    src = os.path.join(ROOT, name)
+def build(name, out, root=ROOT):
+    src = os.path.join(root, name)
     sh = open(os.path.join(src, "build.sh"), encoding="utf-8").read()
     if "vendor-semantic.py" in sh:
-        subprocess.run([sys.executable, os.path.join(ROOT, "tools", "vendor-semantic.py")], check=True, stdout=subprocess.DEVNULL)
+        subprocess.run([sys.executable, os.path.join(root, "tools", "vendor-semantic.py")], check=True, stdout=subprocess.DEVNULL)
     own = re.search(r'^zip -r -q "\$OUT" (.+)$', sh, re.M).group(1)
     shared = re.search(r'^\(cd \.\. && zip -q "\$OUT" (.+)\)$', sh, re.M)
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
@@ -39,9 +39,15 @@ def build(name, out):
         for rel in shlex.split(own):
             add(z, src, rel)
         for rel in shlex.split(shared.group(1)) if shared else []:
-            add(z, ROOT, rel)
+            add(z, root, rel)
     return out
 
 
 if __name__ == "__main__":
-    print(build(sys.argv[1], sys.argv[2]))
+    args = sys.argv[1:]
+    root = ROOT
+    if "--root" in args:
+        i = args.index("--root")
+        root = os.path.abspath(args[i + 1])
+        del args[i:i + 2]
+    print(build(args[0], args[1], root))

@@ -1,5 +1,8 @@
-# NovaBird auf macOS (Apple Silicon): Thunderbird headless mit Testprofil, NovaBird-Search ohne Helper
-# (Modell im Add-on per WebAssembly), Bedeutungs- und Stichwortsuche. Ergebnis, Bildschirmfoto und Protokoll als Artefakt.
+# NovaBird auf macOS (Apple Silicon), Thunderbird headless mit Testprofil:
+#  - search: NovaBird-Search ohne Helper (Modell im Add-on per WebAssembly), Bedeutungs- und Stichwortsuche
+#  - ui: Oberfläche von 2.0 (Extension + Search) und 1.4 (Extension aus Branch testing): Bildschirmfotos, nichts ragt
+#    über den Rand, Verfassen-Leiste unter den Fensterknöpfen; Gegenprobe ohne den Mac-Fix muss dabei scheitern.
+# Ergebnisse als Tabelle in der Übersicht, Dateien (JSON, Bilder, Protokoll) als Artefakt.
 name: macOS
 
 on:
@@ -8,6 +11,7 @@ on:
     branches: [novabird-2.0, testing]
     paths:
       - "novabird-search/**"
+      - "novabird-extension/**"
       - "shared/**"
       - "tools/tbtest/**"
       - ".github/workflows/macos.yml"
@@ -20,11 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - channel: release
-            product: thunderbird-latest-SSL
-          - channel: esr
-            product: thunderbird-esr-latest-SSL
+        tb: [release, esr]
     runs-on: macos-15
     timeout-minutes: 30
     steps:
@@ -34,9 +34,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Thunderbird ${{ matrix.channel }} laden
+      - name: Thunderbird ${{ matrix.tb }} laden
         run: |
-          curl -fsSL -o tb.dmg "https://download.mozilla.org/?product=${{ matrix.product }}&os=osx&lang=de"
+          product=$([ "${{ matrix.tb }}" = esr ] && echo thunderbird-esr-latest-SSL || echo thunderbird-latest-SSL)
+          curl -fsSL -o tb.dmg "https://download.mozilla.org/?product=$product&os=osx&lang=de"
           hdiutil attach -nobrowse -quiet -mountpoint /Volumes/tb tb.dmg
           cp -R /Volumes/tb/Thunderbird*.app "$RUNNER_TEMP/Thunderbird.app"
           hdiutil detach -quiet /Volumes/tb
@@ -71,7 +72,7 @@ jobs:
 
       - name: Test
         run: |
-          # Modell über einen lokalen Server wie bei Hugging Face (prüft das Add-on mit seinen Prüfsummen)
+          # Modell über einen lokalen Server wie bei Hugging Face (das Add-on prüft es mit seinen Prüfsummen)
           python tools/tbtest/modelserver.py model 18765 &
           python tools/tbtest/run.py --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
             --profile "$RUNNER_TEMP/profile-new-search" --mbox tools/tbtest/sem.mbox --js tools/tbtest/semantic.js \
@@ -81,29 +82,94 @@ jobs:
 
       - name: Zusammenfassung
         if: always()
-        run: |
-          python - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
-          import json, os
-          p = "out/result.json"
-          r = json.load(open(p)) if os.path.exists(p) else None
-          if not r and os.path.exists("out/progress.json"):
-              r = json.load(open("out/progress.json"))  # abgebrochen: Stand bis dahin
-          if not r:
-              print("Kein Ergebnis")
-              raise SystemExit
-          print(f"### Thunderbird {r.get('app')} · {r.get('os')} {r.get('arch')} · {r.get('cores')} Kerne")
-          print(f"Zeiten (s): {r.get('t')} · Threads: {r.get('status', {}).get('threads')} · {r.get('status', {}).get('rate')} Mails/s")
-          print("")
-          print("| Prüfung | | Wert |")
-          print("|---|---|---|")
-          for k, c in (r.get("checks") or {}).items():
-              print(f"| {k} | {'✅' if c['ok'] else '❌'} | {c.get('info')} |")
-          if r.get("error"):
-              print(f"\nFehler: {r['error']}")
-          EOF
+        run: python tools/tbtest/summary.py "Suche · Thunderbird ${{ matrix.tb }}" out/result.json out/progress.json >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: macos-${{ matrix.channel }}
+          name: search-${{ matrix.tb }}
+          path: out/
+
+  ui:
+    strategy:
+      fail-fast: false
+      matrix:
+        tb: [release, esr]
+        line: ["2.0", "1.4"]
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Branch testing (1.4) holen
+        if: matrix.line == '1.4'
+        uses: actions/checkout@v4
+        with:
+          ref: testing
+          path: v14
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Thunderbird ${{ matrix.tb }} laden
+        run: |
+          product=$([ "${{ matrix.tb }}" = esr ] && echo thunderbird-esr-latest-SSL || echo thunderbird-latest-SSL)
+          curl -fsSL -o tb.dmg "https://download.mozilla.org/?product=$product&os=osx&lang=de"
+          hdiutil attach -nobrowse -quiet -mountpoint /Volumes/tb tb.dmg
+          cp -R /Volumes/tb/Thunderbird*.app "$RUNNER_TEMP/Thunderbird.app"
+          hdiutil detach -quiet /Volumes/tb
+
+      - name: Add-ons bauen
+        run: |
+          if [ "${{ matrix.line }}" = "1.4" ]; then
+            python tools/tbtest/build.py novabird-extension out/novabird-extension.xpi --root v14
+            src=v14
+          else
+            python tools/tbtest/build.py novabird-extension out/novabird-extension.xpi
+            python tools/tbtest/build.py novabird-search out/novabird-search.xpi
+            src=.
+          fi
+          # Gegenprobe: dieselbe Extension ohne den Mac-Fix der Verfassen-Leiste
+          mkdir -p "$RUNNER_TEMP/ohnefix"
+          cp -R "$src/novabird-extension" "$src/shared" "$RUNNER_TEMP/ohnefix/"
+          python tools/tbtest/strip_mac_fix.py "$RUNNER_TEMP/ohnefix/novabird-extension/css/compose.css"
+          python tools/tbtest/build.py novabird-extension out/ohnefix/novabird-extension.xpi --root "$RUNNER_TEMP/ohnefix"
+
+      - name: Test
+        run: |
+          mkdir -p out/bilder
+          python tools/tbtest/run.py --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
+            --profile "$RUNNER_TEMP/profile-new-ui" --mbox tools/tbtest/sem.mbox --js tools/tbtest/ui.js \
+            --out out/ui.json --log out/ui.log \
+            --env NBSHOTS="$GITHUB_WORKSPACE/out/bilder" --env NBPROGRESS="$GITHUB_WORKSPACE/out/ui-progress.json" --env NBDEADLINE=600 \
+            out/*.xpi
+
+      - name: Gegenprobe ohne Mac-Fix (muss bei „Senden unter den Fensterknöpfen“ scheitern)
+        if: always()
+        run: |
+          mkdir -p out/ohnefix/bilder
+          python tools/tbtest/run.py --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
+            --profile "$RUNNER_TEMP/profile-new-ohnefix" --mbox tools/tbtest/sem.mbox --js tools/tbtest/ui.js \
+            --out out/ohnefix/ui.json --log out/ohnefix/ui.log \
+            --env NBSHOTS="$GITHUB_WORKSPACE/out/ohnefix/bilder" --env NBDEADLINE=600 \
+            out/ohnefix/novabird-extension.xpi || true
+          python - <<'EOF'
+          import json, sys
+          r = json.load(open("out/ohnefix/ui.json"))
+          c = (r or {}).get("checks", {}).get("macOS: „Senden“ unter den Fensterknöpfen")
+          print("Gegenprobe:", c)
+          sys.exit(0 if c and not c["ok"] else 1)  # die Prüfung muss den Fehler ohne Fix erkennen
+          EOF
+
+      - name: Zusammenfassung
+        if: always()
+        run: |
+          python tools/tbtest/summary.py "Oberfläche ${{ matrix.line }} · Thunderbird ${{ matrix.tb }}" out/ui.json out/ui-progress.json >> "$GITHUB_STEP_SUMMARY"
+          python tools/tbtest/summary.py "Gegenprobe ohne Mac-Fix ${{ matrix.line }} · Thunderbird ${{ matrix.tb }} (❌ bei „Senden“ erwartet)" out/ohnefix/ui.json >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-${{ matrix.line }}-${{ matrix.tb }}
           path: out/
