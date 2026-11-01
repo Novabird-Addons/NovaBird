@@ -40,8 +40,12 @@ user_pref("mail.identity.id1.fullName", "Test Konto");
 user_pref("mail.accountmanager.defaultaccount", "account1");
 user_pref("intl.locale.requested", "de");
 user_pref("extensions.webextensions.remote", false);
+user_pref("browser.dom.window.dump.enabled", true);
+user_pref("devtools.console.stdout.chrome", true);
+user_pref("devtools.console.stdout.content", true);
 """
-# extensions.webextensions.remote=false: Add-on-Seiten im Hauptprozess, damit das Testskript an ihre Fenster kommt
+# extensions.webextensions.remote=false: Add-on-Seiten im Hauptprozess, damit das Testskript an ihre Fenster kommt;
+# devtools.console.stdout.*: Konsolenmeldungen (auch der Add-ons) landen in --log
 
 
 class Marionette:
@@ -90,6 +94,7 @@ def main():
     ap.add_argument("--js", required=True)
     ap.add_argument("--out")
     ap.add_argument("--shot")
+    ap.add_argument("--log", help="Ausgabe von Thunderbird (Konsole) in diese Datei")
     ap.add_argument("--port", type=int, default=2828)
     ap.add_argument("--timeout", type=int, default=1800)
     ap.add_argument("--env", action="append", default=[])
@@ -112,8 +117,9 @@ def main():
     for kv in a.env:
         k, v = kv.split("=", 1)
         env[k] = v
+    log = open(a.log, "w", encoding="utf-8", errors="replace") if a.log else subprocess.DEVNULL
     p = subprocess.Popen([a.tb, "-profile", prof, "-headless", "-marionette", "-remote-allow-system-access", "-no-remote"],
-                         env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                         env=env, stdout=log, stderr=subprocess.STDOUT)
     res = None
     try:
         m = Marionette(a.port, a.timeout)

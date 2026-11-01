@@ -26,7 +26,7 @@ jobs:
           - channel: esr
             product: thunderbird-esr-latest-SSL
     runs-on: macos-15
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -43,7 +43,8 @@ jobs:
           "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" --version
 
       - name: Modell aus dem Cache
-        uses: actions/cache@v4
+        id: model-cache
+        uses: actions/cache/restore@v4
         with:
           path: model
           key: jina-de-3f9eede8
@@ -57,6 +58,14 @@ jobs:
           done
           ls -lR model
 
+      # auch speichern, wenn der Test danach scheitert (actions/cache speichert sonst nur bei Erfolg)
+      - name: Modell in den Cache
+        if: steps.model-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: model
+          key: jina-de-3f9eede8
+
       - name: NovaBird-Search bauen
         run: python tools/tbtest/build.py novabird-search out/novabird-search.xpi
 
@@ -66,7 +75,9 @@ jobs:
           python tools/tbtest/modelserver.py model 18765 &
           python tools/tbtest/run.py --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
             --profile "$RUNNER_TEMP/profile-new-search" --mbox tools/tbtest/sem.mbox --js tools/tbtest/semantic.js \
-            --out out/result.json --shot out/screen.png --env NBTESTBASE=http://127.0.0.1:18765/ out/novabird-search.xpi
+            --out out/result.json --shot out/screen.png --log out/tb.log \
+            --env NBTESTBASE=http://127.0.0.1:18765/ --env NBPROGRESS="$GITHUB_WORKSPACE/out/progress.json" --env NBDEADLINE=1200 \
+            out/novabird-search.xpi
 
       - name: Zusammenfassung
         if: always()
@@ -75,6 +86,8 @@ jobs:
           import json, os
           p = "out/result.json"
           r = json.load(open(p)) if os.path.exists(p) else None
+          if not r and os.path.exists("out/progress.json"):
+              r = json.load(open("out/progress.json"))  # abgebrochen: Stand bis dahin
           if not r:
               print("Kein Ergebnis")
               raise SystemExit

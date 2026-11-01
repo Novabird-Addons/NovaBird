@@ -1,17 +1,35 @@
 // NovaBird-Search ohne Helper: Index (FTS), Modell im Add-on laden (WebAssembly), Mails rechnen, Bedeutungs- und
 // Stichwortsuche prüfen. Für tools/tbtest/run.py (chrome-Kontext); Testmails: tools/tbtest/sem.mbox.
 // Umgebung: NBTESTBASE (optional, lokaler Modellserver statt Hugging Face).
+// NBPROGRESS (optional, absoluter Pfad): Zwischenstand nach jedem Schritt; NBDEADLINE: Gesamtzeit in s (Standard 1200).
 const done = arguments[arguments.length - 1];
+const T0 = Date.now();
+const secs = () => Math.round((Date.now() - T0) / 1000);
+const out = { app: Services.appinfo.version, os: Services.appinfo.OS, arch: Services.sysinfo.getProperty("arch"), t: {}, checks: {} };
+// Der Lauf endet immer mit einem Ergebnis: bei Zeitüberschreitung mit dem Stand bis dahin
+let finished = false;
+const finish = res => {
+  if (!finished) {
+    finished = true;
+    done(res);
+  }
+};
+setTimeout(() => finish({ ...out, pass: false, error: `Zeitlimit nach ${secs()} s, zuletzt: ${out.step}` }), (Number(Services.env.get("NBDEADLINE")) || 1200) * 1000);
 (async () => {
   const sleep = ms => new Promise(r => setTimeout(r, ms));
-  const T0 = Date.now();
-  const secs = () => Math.round((Date.now() - T0) / 1000);
-  const out = { app: Services.appinfo.version, os: Services.appinfo.OS, arch: Services.sysinfo.getProperty("arch"), t: {}, checks: {} };
+  // Antwortet der Hintergrund nicht, hängt der Test nicht ewig, sondern meldet, worauf er gewartet hat
+  const within = (promise, what, ms = 180_000) =>
+    Promise.race([promise, sleep(ms).then(() => {
+      out.hung = what;
+      throw new Error(`keine Antwort nach ${ms / 1000} s: ${what}`);
+    })]);
   // Zwischenstand in eine Datei (NBPROGRESS), falls der Lauf hängen bleibt
   const progress = step => {
     out.step = `${step} (${secs()} s)`;
     const p = Services.env.get("NBPROGRESS");
-    if (p) IOUtils.writeUTF8(p, JSON.stringify(out, null, 1)).catch(() => {});
+    if (!p) return;
+    const path = Services.appinfo.OS === "WINNT" ? p.replaceAll("/", "\\") : p; // IOUtils verlangt den Pfad des Systems
+    IOUtils.writeUTF8(path, JSON.stringify(out, null, 1)).catch(e => (out.progressError = String(e)));
   };
   const check = (name, ok, info) => {
     out.checks[name] = { ok: Boolean(ok), info };
@@ -37,9 +55,9 @@ const done = arguments[arguments.length - 1];
   if (!page?.messenger) throw new Error("Einstellungsseite von NovaBird-Search lädt nicht");
   progress("einstellungen");
   const C = o => Cu.cloneInto(o, page);
-  const send = async msg => JSON.parse(JSON.stringify((await page.messenger.runtime.sendMessage(C(msg))) ?? null));
+  const send = async msg => JSON.parse(JSON.stringify((await within(page.messenger.runtime.sendMessage(C(msg)), msg.type)) ?? null));
   const base = Services.env.get("NBTESTBASE") || "";
-  await page.messenger.storage.local.set(C({ semanticTestBase: base, semantic: { enabled: true, idleOnly: false, path: "addon" } }));
+  await within(page.messenger.storage.local.set(C({ semanticTestBase: base, semantic: { enabled: true, idleOnly: false, path: "addon" } })), "storage.local.set");
   await sleep(500);
 
   progress("download");
@@ -62,7 +80,7 @@ const done = arguments[arguments.length - 1];
   out.multiThread = (s.threads || 0) > 1; // nur Hinweis: ohne Threads rechnet es langsamer, aber richtig
 
   // Bedeutungssuche: das erwartete Wort muss im Betreff des besten Treffers stehen
-  const subjectOf = async id => (await page.messenger.messages.query(C({ headerMessageId: id }))).messages[0]?.subject || "";
+  const subjectOf = async id => (await within(page.messenger.messages.query(C({ headerMessageId: id })), "messages.query")).messages[0]?.subject || "";
   const expect = {
     "Treffen der Eltern in der Schule": "Elternabend",
     "offene Rechnung bezahlen": "Mahnung",
@@ -103,5 +121,5 @@ const done = arguments[arguments.length - 1];
   }
 
   out.pass = Object.values(out.checks).every(c => c.ok);
-  done(out);
-})().catch(e => done({ pass: false, error: String(e), stack: e.stack }));
+  finish(out);
+})().catch(e => finish({ ...out, pass: false, error: String(e), stack: e.stack }));
