@@ -21,11 +21,11 @@ permissions:
   contents: read
 
 jobs:
-  # Vortest (wenige Minuten): läuft ein Testskript in Thunderbird überhaupt weiter? Von außen nach 60 s Bildschirmfoto
-  # und Stack-Abzug (sample) von Thunderbird – zeigt, ob z. B. ein Systemdialog alles blockiert.
+  # Vortest (wenige Minuten): läuft ein Testskript in Thunderbird weiter – ohne Add-on, nur mit der Extension, nur mit
+  # Search? Von außen nach 60 s Bildschirmfoto und Stack-Abzug (sample) von Thunderbird, falls etwas alles blockiert.
   smoke:
     runs-on: macos-15
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -40,24 +40,30 @@ jobs:
           cp -R /Volumes/tb/Thunderbird*.app "$RUNNER_TEMP/Thunderbird.app"
           hdiutil detach -quiet /Volumes/tb
 
-      - name: Vortest (mit und ohne Fenster)
+      - name: Add-ons bauen
+        run: |
+          python tools/tbtest/build.py novabird-extension xpi/novabird-extension.xpi
+          python tools/tbtest/build.py novabird-search xpi/novabird-search.xpi
+
+      - name: Vortest (ohne Add-on, Extension, Search)
         run: |
           mkdir -p out
-          for mode in headed headless; do
-            flag=$([ "$mode" = headed ] && echo --headed || true)
+          for cfg in ohne extension search; do
+            xpi=$([ "$cfg" = ohne ] || echo "xpi/novabird-$cfg.xpi")
             (
               sleep 60
-              pid=$(pgrep -f "profile-new-smoke-$mode" | head -1)
-              screencapture -x "out/screen-60s-$mode.png" || true
-              [ -n "$pid" ] && sample "$pid" 3 -file "out/sample-$mode.txt" > /dev/null 2>&1 || true
+              pid=$(pgrep -f "profile-new-smoke-$cfg" | head -1)
+              screencapture -x "out/screen-60s-$cfg.png" || true
+              [ -n "$pid" ] && sample "$pid" 3 -file "out/sample-$cfg.txt" > /dev/null 2>&1 || true
             ) &
-            python -u tools/tbtest/run.py $flag --timeout 120 --port 2828 --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
-              --profile "$RUNNER_TEMP/profile-new-smoke-$mode" --mbox tools/tbtest/sem.mbox --js tools/tbtest/smoke.js \
-              --out "out/smoke-$mode.json" --log "out/smoke-$mode.log" --env NBPROGRESS="$GITHUB_WORKSPACE/out/smoke-$mode-progress.json" || true
+            python -u tools/tbtest/run.py --timeout 120 --port 2828 --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
+              --profile "$RUNNER_TEMP/profile-new-smoke-$cfg" --mbox tools/tbtest/sem.mbox --js tools/tbtest/smoke.js \
+              --out "out/smoke-$cfg.json" --log "out/smoke-$cfg.log" --env NBPROGRESS="$GITHUB_WORKSPACE/out/smoke-$cfg-progress.json" $xpi || true
             wait
-            echo "== $mode"; cat "out/smoke-$mode-progress.json" 2>/dev/null || echo "keine Marke"
+            echo "== $cfg"; cat "out/smoke-$cfg-progress.json" 2>/dev/null || echo "keine Marke"
           done
-          python -c "import json,sys; ok=[json.load(open(f'out/smoke-{m}.json')).get('pass') for m in ('headed','headless') if __import__('os').path.exists(f'out/smoke-{m}.json')]; sys.exit(0 if any(ok) else 1)"
+          python tools/tbtest/summary.py "Vortest" out/smoke-ohne.json >> "$GITHUB_STEP_SUMMARY" || true
+          python -c "import json,os,sys; ok=[os.path.exists(f'out/smoke-{c}.json') and (json.load(open(f'out/smoke-{c}.json')) or {}).get('pass') for c in ('ohne','extension','search')]; print('Vortest ohne/extension/search:', ok); sys.exit(0 if all(ok) else 1)"
 
       - uses: actions/upload-artifact@v4
         if: always()

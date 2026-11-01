@@ -24,6 +24,11 @@ const mark = name => {
     await new Promise(r => win.setTimeout(r, 200));
     mark("wintimer");
   }
+  // noch 8 s weiterzählen: Add-ons starten erst nach der Installation (bleibt Thunderbird danach stehen, sieht man es hier)
+  for (let i = 1; i <= 8; i++) {
+    await new Promise(r => setTimeout(r, 1000));
+    mark(`${i} s`);
+  }
   const types = [...Services.wm.getEnumerator(null)].map(w => w.document?.documentElement?.getAttribute("windowtype") || w.location?.href);
   mark("fertig");
   done({ pass: Boolean(win), app: Services.appinfo.version, os: Services.appinfo.OS, marks, windows: types });
