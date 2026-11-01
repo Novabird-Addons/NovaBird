@@ -24,6 +24,7 @@
       "ai/prep.js",
       "ai/jobs.js",
       "ai/write.js",
+      "ai/spoken.js",
       "ai/speech.js",
       "background.js"
     ]

@@ -116,7 +116,8 @@ if (typeof module !== "undefined") module.exports = { nbStretch };
         // nicht zu weit vorrechnen: der Helper bedient auch andere PCs
         while (reader === me && at - ctx.currentTime > AHEAD_S) await new Promise(r => setTimeout(r, 500));
         if (reader !== me) return;
-        const wav = await nbAI.speak(conf, sentence, lang, me.abort.signal);
+        // Zahlen, Datum, Uhrzeit, Beträge und Abkürzungen ausgeschrieben (ai/spoken.js): sonst rät die Stimme
+        const wav = await nbAI.speak(conf, nbSpoken.text(sentence, lang), lang, me.abort.signal);
         if (reader !== me) return;
         let buf = await ctx.decodeAudioData(wav);
         if (rate !== 1) {
