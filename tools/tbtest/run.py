@@ -22,6 +22,7 @@ user_pref("mail.provider.suppress_dialog_on_startup", true);
 user_pref("mail.shell.checkDefaultClient", false);
 user_pref("mail.winsearch.firstRunDone", true);
 user_pref("mail.spotlight.firstRunDone", true);
+user_pref("ldap_2.servers.osx.dirType", -1);
 user_pref("mailnews.start_page.enabled", false);
 user_pref("app.update.enabled", false);
 user_pref("app.update.disabledForTesting", true);
@@ -49,6 +50,8 @@ user_pref("devtools.console.stdout.content", true);
 """
 # mail.winsearch/spotlight.firstRunDone: sonst öffnet ein frisches Profil den Dialog „Systemintegration“ (Windows-Suche,
 # Spotlight) – vermutlich blockierte er auf macOS das Testskript (Läufe vom 01.11.);
+# ldap_2.servers.osx.dirType=-1: ohne macOS-Adressbuch; sonst fragt macOS beim ersten Lesen der Adressbücher nach dem
+# Zugriff auf die Kontakte, und ohne Klick bleibt Thunderbird stehen (Bildschirmfoto aus GitHub Actions, 01.11.);
 # extensions.webextensions.remote=false: Add-on-Seiten im Hauptprozess, damit das Testskript an ihre Fenster kommt;
 # devtools.console.stdout.*: Konsolenmeldungen (auch der Add-ons) landen in --log
 

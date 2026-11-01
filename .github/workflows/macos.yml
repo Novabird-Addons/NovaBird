@@ -3,9 +3,9 @@
 #  - ui: Oberfläche von 2.0 (Extension + Search) und 1.4 (Extension aus Branch testing): Bildschirmfotos, nichts ragt
 #    über den Rand, Verfassen-Leiste unter den Fensterknöpfen; Gegenprobe ohne den Mac-Fix muss dabei scheitern.
 # Ergebnisse als Tabelle in der Übersicht, Dateien (JSON, Bilder, Protokoll) als Artefakt.
-# Stand 01.11.: Der Vortest läuft auf macOS mit jedem Add-on durch; ui.js und semantic.js blieben dort nach „start“
-# stehen (mit und ohne Fenster). Der Vortest grenzt die Ursache mit Varianten ein (tools/tbtest/bisect), search und ui
-# sind bis dahin ausgesetzt.
+# Stand 01.11.: Auf macOS blieben ui.js und semantic.js stehen, weil macOS nach dem Zugriff auf die Kontakte fragte
+# (macOS-Adressbuch, Bildschirmfoto im Vortest); run.py schaltet es im Testprofil ab. Der Vortest (smoke, Varianten in
+# tools/tbtest/bisect) läuft vor search und ui und holt bei Hängern Bildschirmfoto und Stack-Abzug.
 name: macOS
 
 on:
@@ -52,12 +52,12 @@ jobs:
           mkdir -p out
           run() { # name, skript, add-on
             (
-              sleep 50
-              pid=$(pgrep -f "profile-new-smoke-$1" | head -1)
-              screencapture -x "out/screen-50s-$1.png" || true
+              sleep 60
+              pid=$(pgrep -f "MacOS/thunderbird.*profile-new-smoke-$1" | head -1) # Thunderbird, nicht run.py
+              screencapture -x "out/screen-60s-$1.png" || true
               [ -n "$pid" ] && sample "$pid" 3 -file "out/sample-$1.txt" > /dev/null 2>&1 || true
             ) &
-            python -u tools/tbtest/run.py --timeout 70 --port 2828 --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
+            python -u tools/tbtest/run.py --timeout 150 --port 2828 --tb "$RUNNER_TEMP/Thunderbird.app/Contents/MacOS/thunderbird" \
               --profile "$RUNNER_TEMP/profile-new-smoke-$1" --mbox tools/tbtest/sem.mbox --js "$2" \
               --out "out/smoke-$1.json" --log "out/smoke-$1.log" --env NBPROGRESS="$GITHUB_WORKSPACE/out/smoke-$1-progress.json" $3 || true
             wait
@@ -85,7 +85,6 @@ jobs:
 
   search:
     needs: smoke
-    if: false # ausgesetzt, bis der Vortest die Ursache für das Stehenbleiben auf macOS eingegrenzt hat
     strategy:
       fail-fast: false
       matrix:
@@ -157,7 +156,6 @@ jobs:
 
   ui:
     needs: smoke
-    if: false # ausgesetzt, siehe search
     strategy:
       fail-fast: false
       matrix:

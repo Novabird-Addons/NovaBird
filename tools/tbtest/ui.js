@@ -57,6 +57,7 @@ setTimeout(() => finish({ ...out, pass: false, error: `Zeitlimit nach ${secs()} 
   const inbox = MailServices.accounts.localFoldersServer.rootFolder.getChildNamed("Inbox");
   const win = Services.wm.getMostRecentWindow("mail:3pane");
   const tabmail = win.document.getElementById("tabmail");
+  progress("posteingang");
   tabmail.currentAbout3Pane.displayFolder(inbox);
   await sleep(2000);
   out.addons = ["novabird-extension@novabird", "novabird-db@novabird"].map(id => `${id}: ${Boolean(WebExtensionPolicy.getByID(id))}`);
@@ -90,6 +91,7 @@ setTimeout(() => finish({ ...out, pass: false, error: `Zeitlimit nach ${secs()} 
   for (const [name, id, path, tabButton] of pages) {
     const pol = WebExtensionPolicy.getByID(id);
     if (!pol) continue; // Add-on nicht im Test (z. B. Extension 1.4 allein)
+    progress(`öffne ${name}`);
     const tab = tabmail.openTab("contentTab", { url: pol.getURL(path) });
     let doc = null;
     for (let i = 0; i < 40 && doc?.readyState !== "complete"; i++) {
@@ -105,6 +107,7 @@ setTimeout(() => finish({ ...out, pass: false, error: `Zeitlimit nach ${secs()} 
   }
 
   // 3) Verfassen-Fenster: Leiste und „Senden“ (auf macOS 22 px frei für die Fensterknöpfe)
+  progress("öffne Verfassen");
   win.goDoCommand("cmd_newMessage"); // wie der Knopf „Verfassen“
   let cw = null;
   for (let i = 0; i < 40 && !cw?.document.getElementById("composeToolbar2"); i++) {
