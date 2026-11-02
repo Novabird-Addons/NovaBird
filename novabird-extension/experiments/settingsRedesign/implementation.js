@@ -1269,7 +1269,8 @@ const AI_BUTTON_SHEETS = {
   overview: hideSheet("li[item-id=\"ext-novabird-extension@novabird\"]"),
   compose: hideSheet("#novabird-extension_novabird-composeAction-toolbarbutton"),
 };
-// „Was gibt's Neues?“ hervorheben: Hintergrund und Rahmen in der Akzentfarbe (NovaBird-Design, sonst die von Windows)
+// „Was gibt's Neues?“ in der Leiste und der KI-Knopf im Nachrichtenkopf hervorheben: Hintergrund und Rahmen in der
+// Akzentfarbe (NovaBird-Design, sonst die von Windows); der Kopf dezenter (hellblau), damit „Antworten“ nicht untergeht
 const AI_NEWS_SHEET = Services.io.newURI("data:text/css," + encodeURIComponent(`
 li[item-id="ext-novabird-extension@novabird"] button {
   background-color: color-mix(in srgb, var(--ms-accent, AccentColor) 20%, transparent) !important;
@@ -1278,6 +1279,13 @@ li[item-id="ext-novabird-extension@novabird"] button {
 }
 li[item-id="ext-novabird-extension@novabird"] button:hover {
   background-color: color-mix(in srgb, var(--ms-accent, AccentColor) 34%, transparent) !important;
+}
+#novabird-extension_novabird-messageDisplayAction-toolbarbutton {
+  background-color: color-mix(in srgb, var(--ms-accent, AccentColor) 14%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--ms-accent, AccentColor) 45%, transparent) !important;
+}
+#novabird-extension_novabird-messageDisplayAction-toolbarbutton:hover {
+  background-color: color-mix(in srgb, var(--ms-accent, AccentColor) 24%, transparent) !important;
 }`));
 // visible: alle Knöpfe; parts {display, overview, compose} schaltet einzelne aus (fehlend = wie visible)
 function setAiButtonVisible(visible, parts = {}) {
@@ -1495,6 +1503,19 @@ return class extends ExtensionCommon.ExtensionAPI {
         },
         async setupAutoOpen() {
           return Services.prefs.getBoolPref("extensions.novabird.setup.auto", true);
+        },
+        // Höhe eines eigenen Fensters der Extension (z. B. „Was gibt's Neues?“) an den Inhalt anpassen; windows.update
+        // ändert die Größe von Popup-Fenstern in Thunderbird nicht (die Antwort bleibt aus). top: neue obere Kante (optional).
+        async fitWindow(windowId, height, top) {
+          const win = context.extension.windowManager.get(windowId, context)?.window;
+          if (!win) {
+            return false;
+          }
+          win.resizeTo(win.outerWidth, Math.round(height));
+          if (typeof top === "number" && Math.round(top) !== win.screenY) {
+            win.moveTo(win.screenX, Math.round(top));
+          }
+          return true;
         },
         // NovaBird Helper für die Suche einrichten (Klick im Reiter „NovaBird Helper“): NovaBird-Search darf genau diese
         // Adresse ansprechen. Nur für NovaBird-Search, nur http(s)://Host/* – wie die Rückfrage in dessen eigener Seite.

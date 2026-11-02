@@ -24,6 +24,17 @@
         "parameters": [{ "name": "key", "type": "string" }]
       },
       {
+        "name": "fitWindow",
+        "type": "function",
+        "async": true,
+        "description": "Höhe (und obere Kante) eines eigenen Fensters der Extension setzen, z. B. „Was gibt's Neues?“ passend zum Inhalt.",
+        "parameters": [
+          { "name": "windowId", "type": "integer" },
+          { "name": "height", "type": "number" },
+          { "name": "top", "type": "number", "optional": true }
+        ]
+      },
+      {
         "name": "setupAutoOpen",
         "type": "function",
         "async": true,

@@ -33,12 +33,29 @@ const DEFAULTS = {
 // KI-Knöpfe: alle nur mit eingeschalteter KI; der Knopf der Nachrichtenansicht, solange einer seiner Reiter an ist
 function applyAiButtons(s) {
   const on = k => s.aiFeatures?.[k] !== false;
+  applyNewsButton(s).catch(e => console.error("NovaBird-Extension: Was gibt's Neues?", e));
   return messenger.settingsRedesign.setAiButton(s.aiEnabled === true, {
     display: on("summary") || on("translate") || on("events"),
     overview: on("overview"),
     compose: on("compose"),
   });
 }
+
+// „Was gibt's Neues?“ auch unter „Neue Nachricht“ im Ordnerbereich (Experiment messageList); die Zahl = neue Mails im
+// automatischen Überblick, den noch niemand angesehen hat (wie die Zahl am Knopf in der Leiste, ai/schedule.js)
+async function applyNewsButton(s) {
+  const { aiOverviewLast: last } = await messenger.storage.local.get({ aiOverviewLast: null });
+  const count = last?.scheduled && !last.seen ? last.total || 0 : 0;
+  await messenger.messageList.setNewsButton(s.aiEnabled === true && s.aiFeatures?.overview !== false, messenger.i18n.getMessage("aiOverview"), count);
+}
+let newsWindow = null; // offenes Überblicksfenster (nur eins)
+messenger.messageList.onNewsButton.addListener(async pos => {
+  if (newsWindow !== null && (await messenger.windows.get(newsWindow).catch(() => null))) {
+    return messenger.windows.update(newsWindow, { focused: true });
+  }
+  const win = await messenger.windows.create({ url: messenger.runtime.getURL("ai/overview.html?win=1"), type: "popup", width: 640, height: 480, left: pos?.left, top: pos?.top });
+  newsWindow = win.id;
+});
 
 const ACCT_PALETTE = ["#378ADD", "#1D9E75", "#D85A30", "#7F77DD", "#BA7517", "#D4537E", "#0F6E56", "#888780"];
 
@@ -330,6 +347,9 @@ messenger.storage.onChanged.addListener(async changes => {
   }
   if (keys.includes("previewEnabled")) {
     safe("Vorschau", () => messenger.attachPreview.setEnabled(s.previewEnabled !== false));
+  }
+  if (keys.includes("aiOverviewLast")) {
+    safe("Was gibt's Neues?", () => applyNewsButton(s));
   }
   if (keys.includes("aiEnabled") || keys.includes("aiFeatures")) {
     safe("KI-Knopf", () => applyAiButtons(s));

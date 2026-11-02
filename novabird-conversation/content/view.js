@@ -821,7 +821,7 @@
     allBtn.textContent = t(allOpen ? "collapseAll" : "expandAll");
     setAll(allOpen);
   });
-  const aiBtn = data.ai ? el("button", "nbc-btn", t("aiSummary")) : null;
+  const aiBtn = data.ai ? el("button", "nbc-btn nbc-ai", t("aiSummary")) : null;
   if (aiBtn) {
     aiBtn.type = "button";
     aiBtn.addEventListener("click", () => send({ type: "summarize", ids: asc.map(m => m.id) }).catch(() => {}));

@@ -8,6 +8,9 @@ body.nbc-on { overflow: hidden; font: message-box; font-size: 0.765rem; line-hei
 .nbc-count { color: GrayText; font-size: 0.706rem; font-weight: 400; }
 .nbc-btn { font: inherit; font-size: 0.706rem; padding: 2px 10px; border: 1px solid color-mix(in srgb, CanvasText 25%, transparent); border-radius: 6px; background: transparent; color: inherit; cursor: pointer; }
 .nbc-btn:hover { background: color-mix(in srgb, CanvasText 8%, transparent); }
+/* „Zusammenfassen (KI)“: dezent hellblau hervorgehoben, wie der KI-Knopf im Nachrichtenkopf */
+.nbc-btn.nbc-ai { background: color-mix(in srgb, var(--nbc-accent, AccentColor) 14%, transparent); border-color: color-mix(in srgb, var(--nbc-accent, AccentColor) 45%, transparent); }
+.nbc-btn.nbc-ai:hover { background: color-mix(in srgb, var(--nbc-accent, AccentColor) 24%, transparent); }
 .nbc-link { font: inherit; font-size: 0.647rem; padding: 0 4px; border: 0; background: transparent; color: var(--nbc-accent, AccentColor); cursor: pointer; }
 /* Fixierte Nachricht höchstens --nbc-pin der Höhe (Einstellung), der Verlauf bekommt den Rest; der Text wird so gekürzt, dass die Karte
    samt Knopf „Ganze Nachricht“ hineinpasst (--nbc-fit, gerechnet in view.js). */

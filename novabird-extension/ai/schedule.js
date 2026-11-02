@@ -6,7 +6,7 @@
  * Zahl der Mails, eine Benachrichtigung öffnet den Überblick. Nur wenn die KI eingeschaltet ist. Geprüft wird alle 5 Minuten
  * (übersteht Ruhezustand und Uhrzeitwechsel besser als ein langer Timer). */
 (() => {
-  const SCHEDULE = "aiOverviewSchedule"; // { mode: "off" | "daily" | "hours", time: "07:00", every: 2 }
+  const SCHEDULE = "aiOverviewSchedule"; // { mode: "off" | "daily" | "hours", times: ["07:00", "12:00"], every: 2 }
   const LAST = "aiOverviewLast"; //        { at, scheduled, seen, hours, text, mails, total, suspicious }
   const RUN_AT = "aiOverviewRunAt"; //     Zeitpunkt des letzten geplanten Laufs (ms)
   const NOTE = "nbx-ai-overview";
@@ -20,16 +20,22 @@
   const tx = () => T[uiLang()] || T.en;
   let running = false;
 
-  /** Fälliger Zeitpunkt (ms) oder null; lastRun = letzter geplanter Lauf (ms). */
+  /** Fälliger Zeitpunkt (ms) oder null; lastRun = letzter geplanter Lauf (ms). Täglich: bis zu drei Uhrzeiten (times;
+   *  früher eine, time). Fällig ist die letzte Uhrzeit von heute, die schon vorbei ist und noch nicht lief (auch nachholen),
+   *  sonst die nächste – heute oder morgen. */
   function due(s, lastRun, now = new Date()) {
     if (s.mode === "daily") {
-      const [h, m] = String(s.time || "07:00").split(":").map(Number);
-      const today = new Date(now);
-      today.setHours(h || 0, m || 0, 0, 0);
-      // heute zur Uhrzeit, falls noch nicht gelaufen (auch nachholen); sonst morgen
-      if (!lastRun || lastRun < today.getTime()) return today.getTime();
-      today.setDate(today.getDate() + 1);
-      return today.getTime();
+      const times = (s.times?.length ? s.times : [s.time || "07:00"]).filter(x => /^\d\d:\d\d$/.test(x));
+      const slots = [0, 1].flatMap(add => times.map(x => {
+        const [h, m] = x.split(":").map(Number);
+        const d = new Date(now);
+        d.setDate(d.getDate() + add);
+        d.setHours(h || 0, m || 0, 0, 0);
+        return d.getTime();
+      })).sort((a, b) => a - b);
+      const past = slots.filter(x => x <= now.getTime()).pop();
+      if (past !== undefined && (!lastRun || lastRun < past)) return past;
+      return slots.find(x => x > now.getTime()) ?? null;
     }
     if (s.mode === "hours") {
       const every = [1, 2, 4, 8].includes(Number(s.every)) ? Number(s.every) : 2;
@@ -77,10 +83,13 @@
   });
   // Neuer Zeitplan: ab jetzt zählen (nicht sofort für die Vergangenheit rechnen)
   messenger.storage.onChanged.addListener((changes, area) => {
-    if (area === "local" && changes[SCHEDULE] && changes[SCHEDULE].newValue?.mode !== changes[SCHEDULE].oldValue?.mode) {
-      if ((changes[SCHEDULE].newValue || {}).mode !== "off") messenger.storage.local.set({ [RUN_AT]: Date.now() }).catch(() => {});
+    // auch bei geänderten Uhrzeiten: eine neue, heute schon vergangene Uhrzeit löst nicht sofort einen Lauf aus
+    const c = changes[SCHEDULE];
+    if (area === "local" && c && (c.newValue?.mode !== c.oldValue?.mode || JSON.stringify(c.newValue?.times) !== JSON.stringify(c.oldValue?.times))) {
+      if ((c.newValue || {}).mode !== "off") messenger.storage.local.set({ [RUN_AT]: Date.now() }).catch(() => {});
     }
   });
+  globalThis.nbSchedule = { due }; // für tests/schedule.test.js
   setTimeout(() => check().catch(() => {}), 120_000); // nach dem Start nachholen, was fällig ist
   setInterval(() => check().catch(() => {}), 5 * 60_000);
 

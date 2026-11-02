@@ -82,6 +82,20 @@ footer .link { border: 0; background: none; color: inherit; opacity: 0.75; text-
 .out .todo input { margin-top: 0.25em; flex: none; }
 .out .item.done { opacity: 0.6; text-decoration: line-through; }
 .bar input[type="time"], .bar select { font: inherit; }
+
+/* Zeitplan: ein Knopf in der Leiste, darunter aufklappbar bis zu drei Uhrzeiten oder ein Abstand */
+.sched-btn { font: inherit; color: inherit; background: var(--soft); border: 1px solid var(--line); border-radius: 0.35rem; padding: 0.2rem 0.6rem; cursor: pointer; white-space: nowrap; }
+.sched-btn[aria-expanded="true"] { border-color: var(--accent); }
+.sched-panel { margin: 0 1.1rem 0.6rem; padding: 0.6rem 0.8rem; border: 1px solid var(--line); border-radius: 0.6rem; display: flex; flex-direction: column; gap: 0.45rem; font-size: 0.92em; }
+.sched-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+.sched-times { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; }
+.sched-time { display: inline-flex; align-items: center; gap: 0.15rem; }
+.sched-time input, .sched-panel select { font: inherit; }
+.sched-time button { border: 0; background: none; color: inherit; opacity: 0.6; cursor: pointer; padding: 0 0.2rem; font: inherit; }
+.sched-time button:hover { opacity: 1; }
+.sched-end { display: flex; justify-content: flex-end; }
+.sched-panel .link { border: 0; background: none; color: inherit; opacity: 0.75; text-decoration: underline; cursor: pointer; font: inherit; padding: 0; }
+.sched-panel .primary { font: inherit; background: var(--accent); color: var(--accent-text); border: 1px solid transparent; border-radius: 0.35rem; padding: 0.25rem 0.9rem; cursor: pointer; }
 footer select { font: inherit; color: inherit; background: var(--soft); border: 1px solid var(--line); border-radius: 0.35rem; padding: 0.25rem 0.4rem; max-width: 12em; }
 
 /* Fristen (Popup unter der Zusammenfassung, Überblick) */

@@ -14,9 +14,20 @@
     <label><span id="periodLabel"></span> <select id="period"></select></label>
     <label><input type="checkbox" id="unread"> <span id="unreadLabel"></span></label>
     <span class="spacer"></span>
-    <label><span id="schedLabel"></span> <select id="sched"></select></label>
-    <input type="time" id="schedTime" hidden>
-    <select id="schedEvery" hidden></select>
+    <button type="button" class="sched-btn" id="schedBtn" aria-expanded="false" aria-controls="schedPanel"><span id="schedLabel"></span>: <b id="schedSum"></b></button>
+  </div>
+  <div class="sched-panel" id="schedPanel" hidden>
+    <label><input type="radio" name="schedMode" value="off"> <span id="schedOffLabel"></span></label>
+    <div class="sched-row">
+      <label><input type="radio" name="schedMode" value="daily"> <span id="schedDailyLabel"></span></label>
+      <span class="sched-times" id="schedTimes"></span>
+      <button type="button" class="link" id="schedAdd"></button>
+    </div>
+    <div class="sched-row">
+      <label><input type="radio" name="schedMode" value="hours"> <span id="schedEveryLabel"></span></label>
+      <select id="schedEvery"></select>
+    </div>
+    <div class="sched-end"><button type="button" class="primary" id="schedDone"></button></div>
   </div>
   <div class="scroll">
     <div class="out" id="out"></div>

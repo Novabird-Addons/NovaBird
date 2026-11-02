@@ -3,7 +3,7 @@
 // „Was gibt's Neues?“ (Knopf oben in der Leiste): KI-Überblick über die neuen Mails der Posteingänge. Die Nummern [n] in der
 // Antwort werden zu Knöpfen, die die jeweilige Mail öffnen.
 const TEXTS = {
-  de: { sched: "Automatisch", speak: "Vorlesen", speakStop: "Stopp", speakWait: "Stimme startet …", speakFail: "Vorlesen hat nicht geklappt:", schedOff: "aus", schedDaily: "täglich um", schedHours: "alle … Stunden", everyFmt: "$1 Std.", stand: "Stand $1", standAuto: "Stand $1 (automatisch)", tasks: "Aufgaben für heute ($1)", tasksDone: "$1 Aufgabe(n) im Kalender „$2“ angelegt, fällig heute.", nocalendar: "Es gibt keinen eingeschalteten Kalender für Aufgaben.", fromMail: "Aus der E-Mail", todo: /^(zu erledigen|aufgaben)/i, title: "Was gibt's Neues?", period: "Zeitraum", unread: "nur ungelesene", hours: { 12: "letzte 12 Stunden", 24: "letzte 24 Stunden", 72: "letzte 3 Tage", 168: "letzte 7 Tage" },
+  de: { sched: "Automatisch", speak: "Vorlesen", speakStop: "Stopp", speakWait: "Stimme startet …", speakFail: "Vorlesen hat nicht geklappt:", schedOff: "aus", schedDaily: "täglich um", schedEvery: "alle", schedAdd: "+ Uhrzeit", schedDone: "Fertig", schedRemove: "Uhrzeit entfernen", everyFmt: "$1 Std.", stand: "Stand $1", standAuto: "Stand $1 (automatisch)", tasks: "Aufgaben für heute ($1)", tasksDone: "$1 Aufgabe(n) im Kalender „$2“ angelegt, fällig heute.", nocalendar: "Es gibt keinen eingeschalteten Kalender für Aufgaben.", fromMail: "Aus der E-Mail", todo: /^(zu erledigen|aufgaben)/i, title: "Was gibt's Neues?", period: "Zeitraum", unread: "nur ungelesene", hours: { 12: "letzte 12 Stunden", 24: "letzte 24 Stunden", 72: "letzte 3 Tage", 168: "letzte 7 Tage" },
     again: "Aktualisieren", copy: "Kopieren", copied: "Kopiert", settings: "Einstellungen", reading: "Lese die neuen Mails …", working: "Erstelle den Überblick über $1 Mails …",
     none: "Keine neuen Mails im gewählten Zeitraum.", count: "$1 Mails berücksichtigt.", more: "$1 neue Mails, berücksichtigt sind die neuesten $2.",
     open: "Mail öffnen", remote: "Die Mailtexte werden an $1 gesendet.", injection: "Unter den Mails sind Sätze, die wie Anweisungen an KI-Systeme aussehen. Den Überblick mit Vorsicht lesen.",
@@ -11,7 +11,7 @@ const TEXTS = {
     permission: "Für diese Adresse fehlt die Erlaubnis. Bitte in den Einstellungen unter „KI“ speichern und die Erlaubnis bestätigen.", url: "Die Adresse ist ungültig.", code: "Der Kopplungscode passt nicht (Web-Oberfläche des Helpers → Verbindung).", nomodel: "Im Helper ist kein Sprachmodell gewählt (Web-Oberfläche → Sprachmodell).", answer: "Die Antwort des Helpers ließ sich nicht prüfen.", helper: "Fehler im Helper.",
     forbidden: "Der Server hat die Anfrage abgelehnt (403). Bei Ollama hilft die Umgebungsvariable OLLAMA_ORIGINS=moz-extension://*.",
     sorting: "Ordne die Mails ein: $1 von $2 …", feature: "„Was gibt's Neues?“ ist in den Einstellungen unter „KI“ ausgeschaltet." },
-  en: { sched: "Automatically", speak: "Read aloud", speakStop: "Stop", speakWait: "Starting voice …", speakFail: "Reading aloud did not work:", schedOff: "off", schedDaily: "daily at", schedHours: "every … hours", everyFmt: "$1 h", stand: "As of $1", standAuto: "As of $1 (automatic)", tasks: "Tasks for today ($1)", tasksDone: "$1 task(s) created in calendar “$2”, due today.", nocalendar: "There is no enabled calendar for tasks.", fromMail: "From the e-mail", todo: /^(to do|tasks)/i, title: "What's new?", period: "Period", unread: "unread only", hours: { 12: "last 12 hours", 24: "last 24 hours", 72: "last 3 days", 168: "last 7 days" },
+  en: { sched: "Automatically", speak: "Read aloud", speakStop: "Stop", speakWait: "Starting voice …", speakFail: "Reading aloud did not work:", schedOff: "off", schedDaily: "daily at", schedEvery: "every", schedAdd: "+ time", schedDone: "Done", schedRemove: "Remove time", everyFmt: "$1 h", stand: "As of $1", standAuto: "As of $1 (automatic)", tasks: "Tasks for today ($1)", tasksDone: "$1 task(s) created in calendar “$2”, due today.", nocalendar: "There is no enabled calendar for tasks.", fromMail: "From the e-mail", todo: /^(to do|tasks)/i, title: "What's new?", period: "Period", unread: "unread only", hours: { 12: "last 12 hours", 24: "last 24 hours", 72: "last 3 days", 168: "last 7 days" },
     again: "Refresh", copy: "Copy", copied: "Copied", settings: "Settings", reading: "Reading the new mail …", working: "Writing the overview of $1 messages …",
     none: "No new mail in the chosen period.", count: "$1 messages included.", more: "$1 new messages; the newest $2 are included.",
     open: "Open message", remote: "The message texts are sent to $1.", injection: "Some messages contain sentences that look like instructions to AI systems. Read the overview with caution.",
@@ -19,7 +19,7 @@ const TEXTS = {
     permission: "Permission for this address is missing. Please save it in the settings under “AI” and confirm the permission.", url: "The address is invalid.", code: "The pairing code does not match (helper web interface → Connection).", nomodel: "No language model is selected in the helper (web interface → Language model).", answer: "The helper's answer could not be verified.", helper: "Error in the helper.",
     forbidden: "The server refused the request (403). For Ollama set the environment variable OLLAMA_ORIGINS=moz-extension://*.",
     sorting: "Sorting the messages: $1 of $2 …", feature: "“What's new?” is switched off in the settings under “AI”." },
-  fr: { sched: "Automatique", speak: "Lire à voix haute", speakStop: "Arrêter", speakWait: "Démarrage de la voix …", speakFail: "La lecture à voix haute n’a pas fonctionné :", schedOff: "désactivé", schedDaily: "chaque jour à", schedHours: "toutes les … heures", everyFmt: "$1 h", stand: "État $1", standAuto: "État $1 (automatique)", tasks: "Tâches pour aujourd’hui ($1)", tasksDone: "$1 tâche(s) créée(s) dans l’agenda « $2 », pour aujourd’hui.", nocalendar: "Aucun agenda activé pour les tâches.", fromMail: "Tiré de l’e-mail", todo: /^(à faire|tâches)/i, title: "Quoi de neuf ?", period: "Période", unread: "non lus seulement", hours: { 12: "12 dernières heures", 24: "24 dernières heures", 72: "3 derniers jours", 168: "7 derniers jours" },
+  fr: { sched: "Automatique", speak: "Lire à voix haute", speakStop: "Arrêter", speakWait: "Démarrage de la voix …", speakFail: "La lecture à voix haute n’a pas fonctionné :", schedOff: "désactivé", schedDaily: "chaque jour à", schedEvery: "toutes les", schedAdd: "+ heure", schedDone: "OK", schedRemove: "Retirer l’heure", everyFmt: "$1 h", stand: "État $1", standAuto: "État $1 (automatique)", tasks: "Tâches pour aujourd’hui ($1)", tasksDone: "$1 tâche(s) créée(s) dans l’agenda « $2 », pour aujourd’hui.", nocalendar: "Aucun agenda activé pour les tâches.", fromMail: "Tiré de l’e-mail", todo: /^(à faire|tâches)/i, title: "Quoi de neuf ?", period: "Période", unread: "non lus seulement", hours: { 12: "12 dernières heures", 24: "24 dernières heures", 72: "3 derniers jours", 168: "7 derniers jours" },
     again: "Actualiser", copy: "Copier", copied: "Copié", settings: "Paramètres", reading: "Lecture des nouveaux messages …", working: "Rédaction de l’aperçu de $1 messages …",
     none: "Aucun nouveau message pendant la période choisie.", count: "$1 messages pris en compte.", more: "$1 nouveaux messages ; les $2 plus récents sont pris en compte.",
     open: "Ouvrir le message", remote: "Les textes des messages sont envoyés à $1.", injection: "Certains messages contiennent des phrases qui ressemblent à des instructions pour des systèmes d’IA. Lisez l’aperçu avec prudence.",
@@ -27,7 +27,7 @@ const TEXTS = {
     permission: "L’autorisation pour cette adresse manque. Enregistrez-la dans les paramètres sous « IA » et confirmez l’autorisation.", url: "L’adresse est invalide.", code: "Le code d’appairage ne correspond pas (interface web du helper → Connexion).", nomodel: "Aucun modèle de langage n’est choisi dans le helper (interface web → Modèle de langage).", answer: "La réponse du helper n’a pas pu être vérifiée.", helper: "Erreur dans le helper.",
     forbidden: "Le serveur a refusé la requête (403). Avec Ollama, définissez la variable d’environnement OLLAMA_ORIGINS=moz-extension://*.",
     sorting: "Classement des messages : $1 sur $2 …", feature: "« Quoi de neuf ? » est désactivé dans les paramètres sous « IA »." },
-  es: { sched: "Automático", speak: "Leer en voz alta", speakStop: "Detener", speakWait: "Iniciando la voz …", speakFail: "La lectura en voz alta no ha funcionado:", schedOff: "desactivado", schedDaily: "cada día a las", schedHours: "cada … horas", everyFmt: "$1 h", stand: "Estado $1", standAuto: "Estado $1 (automático)", tasks: "Tareas para hoy ($1)", tasksDone: "$1 tarea(s) creada(s) en el calendario «$2», para hoy.", nocalendar: "No hay ningún calendario activado para tareas.", fromMail: "Del correo", todo: /^(pendiente|tareas)/i, title: "¿Qué hay de nuevo?", period: "Periodo", unread: "solo no leídos", hours: { 12: "últimas 12 horas", 24: "últimas 24 horas", 72: "últimos 3 días", 168: "últimos 7 días" },
+  es: { sched: "Automático", speak: "Leer en voz alta", speakStop: "Detener", speakWait: "Iniciando la voz …", speakFail: "La lectura en voz alta no ha funcionado:", schedOff: "desactivado", schedDaily: "cada día a las", schedEvery: "cada", schedAdd: "+ hora", schedDone: "Listo", schedRemove: "Quitar la hora", everyFmt: "$1 h", stand: "Estado $1", standAuto: "Estado $1 (automático)", tasks: "Tareas para hoy ($1)", tasksDone: "$1 tarea(s) creada(s) en el calendario «$2», para hoy.", nocalendar: "No hay ningún calendario activado para tareas.", fromMail: "Del correo", todo: /^(pendiente|tareas)/i, title: "¿Qué hay de nuevo?", period: "Periodo", unread: "solo no leídos", hours: { 12: "últimas 12 horas", 24: "últimas 24 horas", 72: "últimos 3 días", 168: "últimos 7 días" },
     again: "Actualizar", copy: "Copiar", copied: "Copiado", settings: "Ajustes", reading: "Leyendo el correo nuevo …", working: "Preparando el resumen de $1 mensajes …",
     none: "No hay correo nuevo en el periodo elegido.", count: "$1 mensajes incluidos.", more: "$1 mensajes nuevos; se incluyen los $2 más recientes.",
     open: "Abrir mensaje", remote: "Los textos de los mensajes se envían a $1.", injection: "Algunos mensajes contienen frases que parecen instrucciones para sistemas de IA. Lea el resumen con precaución.",
@@ -41,6 +41,29 @@ const t = TEXTS[lang] || TEXTS.en;
 const $ = id => document.getElementById(id);
 // eigenes Fenster (Zeitplan „Automatisch“): ganze Fensterhöhe nutzen, nur der Inhalt rollt (ai.css body.overview)
 if (new URLSearchParams(location.search).get("win") === "1") document.body.classList.add("win");
+
+// Eigenes Fenster: Höhe dem Inhalt anpassen, sobald er sich ändert – wächst mit dem Überblick nach unten und schrumpft bei
+// kurzem Inhalt (sonst blieb ein einmal groß gezogenes Fenster halb leer). Höchstens so hoch wie der Bildschirm.
+if (document.body.classList.contains("win")) {
+  let fitTimer = null;
+  const fit = () => {
+    const scroll = document.querySelector(".scroll");
+    const range = document.createRange();
+    range.selectNodeContents(scroll);
+    const pad = parseFloat(getComputedStyle(scroll).paddingTop) + parseFloat(getComputedStyle(scroll).paddingBottom);
+    const want = window.innerHeight - scroll.clientHeight + Math.ceil(range.getBoundingClientRect().height + pad);
+    const chrome = window.outerHeight - window.innerHeight;
+    const max = screen.availHeight - 16;
+    const height = Math.max(320, Math.min(max, want + chrome));
+    if (Math.abs(height - window.outerHeight) < 12) return;
+    const top = Math.max(screen.availTop || 0, Math.min(window.screenY, (screen.availTop || 0) + screen.availHeight - height));
+    messenger.windows.getCurrent().then(w => messenger.settingsRedesign.fitWindow(w.id, height, top)).catch(() => {});
+  };
+  new MutationObserver(() => {
+    clearTimeout(fitTimer);
+    fitTimer = setTimeout(fit, 150);
+  }).observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["hidden"] });
+}
 const MAX_MAILS = 40; // passt mit je 700 Zeichen sicher in 16.384 Token
 const PER_MAIL = 700;
 
@@ -267,24 +290,64 @@ $("tasks").addEventListener("click", async () => {
   }
 });
 
-// Zeitplan (Hintergrund: ai/schedule.js)
+// Zeitplan (Hintergrund: ai/schedule.js): Knopf in der Leiste mit dem Stand, darunter aufklappbar
+// aus / täglich zu bis zu drei Uhrzeiten / alle N Stunden
 const SCHEDULE = "aiOverviewSchedule";
-$("schedLabel").textContent = t.sched;
-for (const [v, label] of [["off", t.schedOff], ["daily", t.schedDaily], ["hours", t.schedHours]]) $("sched").append(new Option(label, v));
+const MAX_TIMES = 3;
+let schedule = { mode: "off", times: ["07:00"], every: 2 };
+const timesOf = s => [...new Set((s.times?.length ? s.times : [s.time || "07:00"]).filter(x => /^\d\d:\d\d$/.test(x)))].sort().slice(0, MAX_TIMES);
+for (const [id, key] of [["schedLabel", "sched"], ["schedOffLabel", "schedOff"], ["schedDailyLabel", "schedDaily"], ["schedEveryLabel", "schedEvery"], ["schedAdd", "schedAdd"], ["schedDone", "schedDone"]]) $(id).textContent = t[key];
 for (const h of [1, 2, 4, 8]) $("schedEvery").append(new Option(t.everyFmt.replace("$1", String(h)), String(h)));
-function showSchedule(s) {
-  $("sched").value = s.mode || "off";
-  $("schedTime").value = s.time || "07:00";
-  $("schedEvery").value = String(s.every || 2);
-  $("schedTime").hidden = $("sched").value !== "daily";
-  $("schedEvery").hidden = $("sched").value !== "hours";
+function showSchedule() {
+  const s = schedule;
+  $("schedSum").textContent = s.mode === "daily" ? s.times.join(" · ") : s.mode === "hours" ? `${t.schedEvery} ${t.everyFmt.replace("$1", String(s.every))}` : t.schedOff;
+  for (const r of document.querySelectorAll("input[name=schedMode]")) r.checked = r.value === s.mode;
+  $("schedEvery").value = String(s.every);
+  $("schedTimes").replaceChildren(...s.times.map((time, i) => {
+    const input = Object.assign(document.createElement("input"), { type: "time", value: time });
+    input.addEventListener("change", () => {
+      if (!input.value) return;
+      s.times[i] = input.value;
+      saveSchedule("daily");
+    });
+    const box = Object.assign(document.createElement("span"), { className: "sched-time" });
+    box.append(input);
+    if (s.times.length > 1) {
+      const del = Object.assign(document.createElement("button"), { type: "button", textContent: "✕", title: t.schedRemove });
+      del.addEventListener("click", () => {
+        s.times.splice(i, 1);
+        saveSchedule("daily");
+      });
+      box.append(del);
+    }
+    return box;
+  }));
+  $("schedAdd").hidden = s.times.length >= MAX_TIMES;
 }
-const saveSchedule = () => {
-  const s = { mode: $("sched").value, time: $("schedTime").value || "07:00", every: Number($("schedEvery").value) || 2 };
-  showSchedule(s);
-  messenger.storage.local.set({ [SCHEDULE]: s }).catch(() => {});
+function saveSchedule(mode = schedule.mode) {
+  schedule = { mode, times: timesOf(schedule), every: [1, 2, 4, 8].includes(schedule.every) ? schedule.every : 2 };
+  schedule.time = schedule.times[0];
+  showSchedule();
+  messenger.storage.local.set({ [SCHEDULE]: schedule }).catch(() => {});
+}
+const togglePanel = open => {
+  $("schedPanel").hidden = !open;
+  $("schedBtn").setAttribute("aria-expanded", String(open));
 };
-for (const id of ["sched", "schedTime", "schedEvery"]) $(id).addEventListener("change", saveSchedule);
+$("schedBtn").addEventListener("click", () => togglePanel($("schedPanel").hidden));
+$("schedDone").addEventListener("click", () => togglePanel(false));
+for (const r of document.querySelectorAll("input[name=schedMode]")) r.addEventListener("change", () => saveSchedule(r.value));
+$("schedEvery").addEventListener("change", () => {
+  schedule.every = Number($("schedEvery").value) || 2;
+  saveSchedule("hours");
+});
+$("schedAdd").addEventListener("click", () => {
+  // nächste volle Stunde nach der letzten Uhrzeit, höchstens 23:00
+  const last = Number(schedule.times[schedule.times.length - 1].slice(0, 2));
+  const next = String(Math.min(23, last + 3)).padStart(2, "0") + ":00";
+  schedule.times = [...schedule.times, schedule.times.includes(next) ? "23:00" : next];
+  saveSchedule("daily");
+});
 
 const saveChoice = () => messenger.storage.local.set({ aiOverviewHours: Number($("period").value), aiOverviewUnread: $("unread").checked }).catch(() => {});
 $("period").addEventListener("change", () => { saveChoice(); run(); });
@@ -343,7 +406,9 @@ $("settings").addEventListener("click", () => {
   const saved = await messenger.storage.local.get({ aiOverviewHours: 24, aiOverviewUnread: true, [SCHEDULE]: { mode: "off" }, [LAST]: null }).catch(() => ({}));
   $("period").value = String(t.hours[saved.aiOverviewHours] ? saved.aiOverviewHours : 24);
   $("unread").checked = saved.aiOverviewUnread !== false;
-  showSchedule(saved[SCHEDULE] || { mode: "off" });
+  const stored = saved[SCHEDULE] || { mode: "off" };
+  schedule = { mode: ["daily", "hours"].includes(stored.mode) ? stored.mode : "off", times: timesOf(stored), every: Number(stored.every) || 2 };
+  showSchedule();
   messenger.browserAction.setBadgeText({ text: "" }).catch(() => {});
   const last = saved[LAST];
   if (last && ((last.scheduled && !last.seen) || Date.now() - last.at < 30 * 60_000)) {

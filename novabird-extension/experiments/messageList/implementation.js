@@ -482,6 +482,59 @@ function undoHeader(cw) {
   cw.document.getElementById("folderPaneWriteMessage")?.removeAttribute("data-nbx-tight");
 }
 
+// „Was gibt's Neues?“ unter „Neue Nachricht“ im Ordnerbereich: in der oberen Leiste hängt Thunderbird Add-on-Knöpfe ans
+// Ende (rechts außen) oder sie ist ganz ausgeblendet. Zahl = neue Mails im letzten automatischen Überblick. Ein Klick meldet
+// onNewsButton mit der Bildschirmposition unter dem Knopf; die Extension öffnet den Überblick dort.
+const NEWS_ROW = "nbx-news-row";
+const NEWS_STYLE = "nbx-news-style";
+const NEWS_CSS = `#${NEWS_ROW} { padding: 0 6px 6px; }
+#${NEWS_ROW} button { width: 100%; justify-content: center; gap: 6px; color: inherit;
+  background: color-mix(in srgb, var(--ms-accent, AccentColor) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ms-accent, AccentColor) 40%, transparent); }
+#${NEWS_ROW} button:hover { background: color-mix(in srgb, var(--ms-accent, AccentColor) 24%, transparent); }
+#${NEWS_ROW} .nbx-count { min-width: 1.5em; padding: 0 0.45em; border-radius: 1em; font-size: 0.85em; line-height: 1.5;
+  background: var(--ms-accent, AccentColor); color: var(--ms-accent-text, AccentColorText); }`;
+const news = { show: false, label: "", count: 0 };
+const newsFires = new Set();
+function applyNews(cw) {
+  const doc = cw.document;
+  let row = doc.getElementById(NEWS_ROW);
+  const bar = doc.getElementById("folderPaneHeaderBar");
+  if (!news.show || !bar) {
+    undoNews(cw);
+    return;
+  }
+  if (!doc.getElementById(NEWS_STYLE)) {
+    const style = doc.createElement("style");
+    style.id = NEWS_STYLE;
+    style.textContent = NEWS_CSS;
+    doc.documentElement.append(style);
+  }
+  if (!row) {
+    row = doc.createElement("div");
+    row.id = NEWS_ROW;
+    const button = doc.createElement("button");
+    button.type = "button";
+    button.className = "button";
+    button.addEventListener("click", () => {
+      const r = button.getBoundingClientRect();
+      const pos = { left: Math.round(cw.mozInnerScreenX + r.left), top: Math.round(cw.mozInnerScreenY + r.bottom + 4) };
+      for (const fire of newsFires) fire.async(pos);
+    });
+    row.append(button);
+    bar.after(row);
+  }
+  const button = row.firstChild;
+  const count = doc.createElement("span");
+  count.className = "nbx-count";
+  count.textContent = String(Math.min(news.count, 99));
+  button.replaceChildren(doc.createTextNode(news.label), ...(news.count > 0 ? [count] : []));
+}
+function undoNews(cw) {
+  cw.document.getElementById(NEWS_ROW)?.remove();
+  cw.document.getElementById(NEWS_STYLE)?.remove();
+}
+
 function applyWindow(cw) {
   const doc = cw.document;
   let st = wins.get(cw);
@@ -489,6 +542,7 @@ function applyWindow(cw) {
   if (!cardClass || !cw.threadPane || !cw.threadTree) return false;
   applyScroll(doc);
   try { applyHeader(cw); } catch (e) { console.error("Ordnerkopf:", e); }
+  try { applyNews(cw); } catch (e) { console.error("Was gibt's Neues?:", e); }
   if (!st) {
     st = { baseDensity: cw.threadPane.densityChange, baseFill: cardClass.prototype.fillRow, cardClass };
     wins.set(cw, st);
@@ -535,6 +589,7 @@ function undoWindow(cw) {
   if (!st) return;
   const doc = cw.document;
   try { undoHeader(cw); } catch (e) { /* Fenster schon weg */ }
+  try { undoNews(cw); } catch (e) { /* Fenster schon weg */ }
   st.cardClass.prototype.fillRow = st.baseFill;
   cw.threadPane.densityChange = st.baseDensity;
   doc.getElementById(STYLE_ID)?.remove();
@@ -603,7 +658,7 @@ const API = class extends ExtensionCommon.ExtensionAPI {
       nbUnloadShared(this.extension);
     }
   }
-  getAPI() {
+  getAPI(context) {
     if (!nb.nbRunSelfTest) {
       try {
         nbLoadShared(this.extension, ["shared/selftest.js"], nb);
@@ -632,6 +687,24 @@ const API = class extends ExtensionCommon.ExtensionAPI {
             for (const cw of threePanes(win)) applyWindow(cw);
           }
         },
+        async setNewsButton(show, label, count) {
+          news.show = !!show;
+          news.label = String(label || "");
+          news.count = Math.max(0, Math.round(Number(count) || 0));
+          for (const win of Services.wm.getEnumerator("mail:3pane")) {
+            for (const cw of threePanes(win)) {
+              try { applyNews(cw); } catch (e) { console.error("Was gibt's Neues?:", e); }
+            }
+          }
+        },
+        onNewsButton: new ExtensionCommon.EventManager({
+          context,
+          name: "messageList.onNewsButton",
+          register: fire => {
+            newsFires.add(fire);
+            return () => newsFires.delete(fire);
+          },
+        }).api(),
       },
     };
   }

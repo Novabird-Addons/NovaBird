@@ -23,6 +23,25 @@
           { "name": "colors", "type": "string" },
           { "name": "scroll", "type": "boolean", "optional": true }
         ]
+      },
+      {
+        "name": "setNewsButton",
+        "type": "function",
+        "async": true,
+        "description": "Knopf „Was gibt's Neues?“ unter „Neue Nachricht“ im Ordnerbereich zeigen oder entfernen; count = Zahl am Knopf (0 = keine).",
+        "parameters": [
+          { "name": "show", "type": "boolean" },
+          { "name": "label", "type": "string" },
+          { "name": "count", "type": "integer" }
+        ]
+      }
+    ],
+    "events": [
+      {
+        "name": "onNewsButton",
+        "type": "function",
+        "description": "Knopf „Was gibt's Neues?“ im Ordnerbereich geklickt: Bildschirmposition unter dem Knopf {left, top}.",
+        "parameters": [{ "name": "pos", "type": "object", "additionalProperties": { "type": "any" } }]
       }
     ]
   }
