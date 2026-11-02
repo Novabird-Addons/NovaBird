@@ -1,9 +1,9 @@
 #!/bin/bash
-# Packt das Add-on als novabird-extension-<Version>.xpi nach ../../Release/Kandidaten (Version aus manifest.json).
+# Packt das Add-on als novabird-extension-<Version>.xpi nach ../../builds/release/Kandidaten (Version aus manifest.json).
 set -euo pipefail
 cd "$(dirname "$0")"
 VERSION="$(python3 -c "import json;print(json.load(open('manifest.json'))['version'])")"
-OUTDIR="$(cd "$PWD/../../Release/Kandidaten" && pwd)"
+OUTDIR="$(cd "$PWD/../../builds/release/Kandidaten" && pwd)"
 OUT="$OUTDIR/novabird-extension-$VERSION.xpi"
 rm -f "$OUT"
 # Themes: theme.css aus den Quellen hell/dunkel bauen; ins Paket nur Farben und fertiges Stylesheet

@@ -1,9 +1,9 @@
 #!/bin/bash
-# Packt das Add-on als novabird-conversation-<Version>.xpi nach ../../Release/Kandidaten (Version aus manifest.json).
+# Packt das Add-on als novabird-conversation-<Version>.xpi nach ../../builds/release/Kandidaten (Version aus manifest.json).
 set -euo pipefail
 cd "$(dirname "$0")"
 VERSION="$(python3 -c "import json;print(json.load(open('manifest.json'))['version'])")"
-OUTDIR="$(cd "$PWD/../../Release/Kandidaten" && pwd)"
+OUTDIR="$(cd "$PWD/../../builds/release/Kandidaten" && pwd)"
 OUT="$OUTDIR/novabird-conversation-$VERSION.xpi"
 rm -f "$OUT"
 zip -r -q "$OUT" manifest.json settings.js conversation.js background.js _locales icons content experiments options
