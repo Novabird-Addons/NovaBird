@@ -1032,5 +1032,71 @@
   },
   "semHeaderCount": {
     "message": "Show at the top of the results how many hits come from the meaning search"
+  },
+  "semMacHeading": {
+    "message": "Ollama on this Mac (recommended)"
+  },
+  "semMacHint": {
+    "message": "On a Mac, Ollama computes meaning search on the graphics chip – usually many times faster than in the add-on. Install and start Ollama, then connect here. NovaBird loads the tested model and decides how long it stays in memory."
+  },
+  "semMacConnect": {
+    "message": "Connect"
+  },
+  "semMacDownload": {
+    "message": "Download Ollama (ollama.com)"
+  },
+  "semMacChecking": {
+    "message": "Connecting …"
+  },
+  "semMacUnreachable": {
+    "message": "Ollama does not answer at this address ($1). Is Ollama running (icon in the menu bar)?"
+  },
+  "semMacVersion": {
+    "message": "Ollama $1 connected."
+  },
+  "semMacModelHave": {
+    "message": "Tested model available."
+  },
+  "semMacModelMissing": {
+    "message": "The tested model is still missing."
+  },
+  "semMacLoaded": {
+    "message": "In memory: $1, $2 % of it on the graphics chip."
+  },
+  "semMacNotLoaded": {
+    "message": "Not in memory right now."
+  },
+  "semMacInUse": {
+    "message": "Meaning search computes with Ollama."
+  },
+  "semMacPull": {
+    "message": "Load tested model (approx. $1)"
+  },
+  "semMacPulling": {
+    "message": "Loading model … $1"
+  },
+  "semMacPullDone": {
+    "message": "Model loaded."
+  },
+  "semMacPullFail": {
+    "message": "Loading failed: $1"
+  },
+  "semMacUse": {
+    "message": "Use for meaning search"
+  },
+  "semMacUseOk": {
+    "message": "Probe passed – meaning search now computes with Ollama."
+  },
+  "semMacUseBad": {
+    "message": "The probe does not match ($1) – meaning search keeps computing as before."
+  },
+  "semMacUnload": {
+    "message": "Unload now"
+  },
+  "semMacUnloaded": {
+    "message": "Model removed from memory."
+  },
+  "semMacContext": {
+    "message": "Context: fixed at 512 tokens as in the add-on. Mails are cut to 1200 characters beforehand; only this way vectors stay comparable with the add-on and other PCs."
   }
 }

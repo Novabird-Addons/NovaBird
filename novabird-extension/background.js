@@ -19,6 +19,8 @@ const DEFAULTS = {
   listAcct: "none",
   listScroll: true,
   listAcctColors: {},
+  folderInboxes: false, // Rubrik „Posteingänge“ im Ordnerbereich
+  folderInboxesHide: [], // Konto-IDs, deren Posteingang dort fehlen soll (neue Konten erscheinen also)
   rulesEnabled: false,
   aiEnabled: false,
   aiFeatures: {}, // KI-Funktionen einzeln aus (false); fehlend = an
@@ -73,6 +75,12 @@ async function applyList(s) {
   await messenger.messageList.setOptions(s.listStyle, s.listPreview !== false, s.listAvatars !== false,
     ["normal", "compact"].includes(s.listDensity) ? s.listDensity : "airy",
     ["bar", "ring", "dot"].includes(s.listAcct) ? s.listAcct : "none", await accountColors(s), s.listScroll !== false);
+}
+
+// Rubrik „Posteingänge“ unter „Gruppierte Ordner“ (Experiment messageList)
+function applyInboxes(s) {
+  return messenger.messageList.setInboxes(s.folderInboxes === true, messenger.i18n.getMessage("folderInboxes"),
+    Array.isArray(s.folderInboxesHide) ? s.folderInboxesHide : []);
 }
 
 // Jeder Schritt einzeln abgesichert: ein Fehler im einen Teil darf den anderen nicht verhindern.
@@ -170,6 +178,7 @@ async function applySettings() {
   await safe("Vorschau Verzögerung", () => messenger.attachPreview.setDelay(s.previewDelay));
   await safe("Vorschau", () => messenger.attachPreview.setEnabled(s.previewEnabled !== false));
   await safe("Nachrichtenliste", () => applyList(s));
+  await safe("Posteingänge", () => applyInboxes(s));
   await safe("Regel-Assistent", () => messenger.mailRules.setEnabled(s.rulesEnabled === true, ruleMenuLabel()));
   await safe("KI-Knopf", () => applyAiButtons(s));
   await safe("Schriftgrößen", () => applyFonts(s));
@@ -359,6 +368,9 @@ messenger.storage.onChanged.addListener(async changes => {
   }
   if (keys.some(k => k.startsWith("list"))) {
     safe("Nachrichtenliste", () => applyList(s));
+  }
+  if (keys.some(k => k.startsWith("folderInboxes"))) {
+    safe("Posteingänge", () => applyInboxes(s));
   }
   if (keys.some(k => ["colorMode", "mainColors", "fontFamily", "fontRow", "fontPad"].includes(k))) {
     safe("Hauptfenster-Stil", () => applyMain(s));

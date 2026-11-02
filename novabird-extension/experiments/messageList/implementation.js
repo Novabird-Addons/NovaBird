@@ -10,6 +10,7 @@ this.messageList = (() => {
 
 const { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/ExtensionCommon.sys.mjs");
 const { ExtensionSupport } = ChromeUtils.importESModule("resource:///modules/ExtensionSupport.sys.mjs");
+const { MailServices } = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
 
 const LISTENER = "novabird-extension-messagelist";
 
@@ -42,6 +43,11 @@ const SELF_TEST = [
     feature: "listCards",
     needs: "3pane",
     test: ({ cw }) => typeof cw.customElements.get("thread-card")?.prototype.fillRow === "function" && !!cw.threadPane && "densityChange" in cw.threadPane,
+  },
+  {
+    feature: "folderInboxes",
+    needs: "3pane",
+    test: ({ cw }) => !!cw.folderPane?._modes && typeof cw.folderPane._createFolderRow === "function" && "activeModes" in cw.folderPane,
   },
   {
     feature: "calendarLayout",
@@ -485,17 +491,26 @@ function undoHeader(cw) {
 // „Was gibt's Neues?“ unter „Neue Nachricht“ im Ordnerbereich: in der oberen Leiste hängt Thunderbird Add-on-Knöpfe ans
 // Ende (rechts außen) oder sie ist ganz ausgeblendet. Zahl = neue Mails im letzten automatischen Überblick. Ein Klick meldet
 // onNewsButton mit der Bildschirmposition unter dem Knopf; die Extension öffnet den Überblick dort.
+// Aussehen wie „Neue Nachricht“ (button-primary, folgt dem Theme), bündig darunter und mindestens so breit (alignNews).
 const NEWS_ROW = "nbx-news-row";
 const NEWS_STYLE = "nbx-news-style";
-const NEWS_CSS = `#${NEWS_ROW} { padding: 0 6px 6px; }
-#${NEWS_ROW} button { width: 100%; justify-content: center; gap: 6px; color: inherit;
-  background: color-mix(in srgb, var(--ms-accent, AccentColor) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ms-accent, AccentColor) 40%, transparent); }
-#${NEWS_ROW} button:hover { background: color-mix(in srgb, var(--ms-accent, AccentColor) 24%, transparent); }
-#${NEWS_ROW} .nbx-count { min-width: 1.5em; padding: 0 0.45em; border-radius: 1em; font-size: 0.85em; line-height: 1.5;
-  background: var(--ms-accent, AccentColor); color: var(--ms-accent-text, AccentColorText); }`;
+const NEWS_CSS = `#${NEWS_ROW} { display: flex; padding: 0 6px 6px; }
+#${NEWS_ROW} button { max-width: 100%; margin: 0; justify-content: center; gap: 6px; }
+#${NEWS_ROW} .nbx-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#${NEWS_ROW} .nbx-count { flex: none; min-width: 1.5em; padding: 0 0.45em; border-radius: 1em; font-size: 0.85em; line-height: 1.5;
+  background: var(--button-primary-text-color, #fff); color: var(--button-primary-background-color, AccentColor); }`;
 const news = { show: false, label: "", count: 0 };
 const newsFires = new Set();
+const newsObservers = new Map();
+function alignNews(doc) {
+  const row = doc.getElementById(NEWS_ROW), bar = doc.getElementById("folderPaneHeaderBar");
+  const write = doc.getElementById("folderPaneWriteMessage");
+  if (!row || !bar) return;
+  const ok = write && !write.hidden && write.offsetWidth > 0 && !bar.hidden;
+  const left = ok ? write.getBoundingClientRect().left - bar.getBoundingClientRect().left : 0;
+  row.style.paddingInlineStart = ok ? `${Math.max(0, Math.round(left))}px` : "";
+  row.firstChild.style.minWidth = ok ? `${write.offsetWidth}px` : "";
+}
 function applyNews(cw) {
   const doc = cw.document;
   let row = doc.getElementById(NEWS_ROW);
@@ -515,7 +530,7 @@ function applyNews(cw) {
     row.id = NEWS_ROW;
     const button = doc.createElement("button");
     button.type = "button";
-    button.className = "button";
+    button.className = "button button-primary";
     button.addEventListener("click", () => {
       const r = button.getBoundingClientRect();
       const pos = { left: Math.round(cw.mozInnerScreenX + r.left), top: Math.round(cw.mozInnerScreenY + r.bottom + 4) };
@@ -523,16 +538,108 @@ function applyNews(cw) {
     });
     row.append(button);
     bar.after(row);
+    // Leiste und „Neue Nachricht“ beobachten (Breite des Ordnerbereichs, gekürzter Knopf, Knopf ausgeblendet)
+    if (cw.ResizeObserver && !newsObservers.has(cw)) {
+      const ro = new cw.ResizeObserver(() => alignNews(doc));
+      ro.observe(bar);
+      const write = doc.getElementById("folderPaneWriteMessage");
+      if (write) ro.observe(write);
+      newsObservers.set(cw, ro);
+    }
   }
   const button = row.firstChild;
+  const label = doc.createElement("span");
+  label.className = "nbx-label";
+  label.textContent = news.label;
   const count = doc.createElement("span");
   count.className = "nbx-count";
   count.textContent = String(Math.min(news.count, 99));
-  button.replaceChildren(doc.createTextNode(news.label), ...(news.count > 0 ? [count] : []));
+  button.title = news.label;
+  button.replaceChildren(label, ...(news.count > 0 ? [count] : []));
+  alignNews(doc);
 }
 function undoNews(cw) {
+  newsObservers.get(cw)?.disconnect();
+  newsObservers.delete(cw);
   cw.document.getElementById(NEWS_ROW)?.remove();
   cw.document.getElementById(NEWS_STYLE)?.remove();
+}
+
+// Rubrik „Posteingänge“ im Ordnerbereich, direkt unter „Gruppierte Ordner“ (sonst ganz oben): eine eigene Ansicht in
+// folderPane._modes mit dem Posteingang je Konto, Zeilenname = Kontoname. Ungelesen-Zahlen, Auswahl, Kontextmenü und
+// Ziehen übernimmt Thunderbird (Zeilen wie in den anderen Ansichten). Thunderbird merkt sich die Ansichten im xulStore
+// und filtert beim Start unbekannte heraus; ohne NovaBird bleibt also nichts zurück, mit NovaBird setzt applyInboxes sie neu.
+const INBOX_MODE = "nbxInboxes";
+const inboxes = { show: false, label: "", hide: [] }; // hide = Konto-Schlüssel (account1 …), die nicht erscheinen sollen
+function inboxMode(cw) {
+  const fp = cw.folderPane;
+  return {
+    name: INBOX_MODE,
+    active: false,
+    canBeCompact: false,
+    init() {
+      // .accounts ist in der Reihenfolge der Kontenliste
+      for (const account of MailServices.accounts.accounts) {
+        const server = account.incomingServer;
+        if (!server || server.type === "im" || inboxes.hide.includes(account.key)) continue;
+        if (server.type === "none" && fp.hideLocalFolders) continue;
+        if (server instanceof Ci.nsIPop3IncomingServer && server.deferredToAccount) continue;
+        const inbox = server.rootFolder?.getFolderWithFlags(Ci.nsMsgFolderFlags.Inbox);
+        if (inbox) this.containerList.append(fp._createFolderRow(this.name, inbox, "server"));
+      }
+    },
+    rebuild() {
+      this.containerList.replaceChildren();
+      this.init();
+    },
+    addFolder(parent, child) {
+      if (child.flags & Ci.nsMsgFolderFlags.Inbox) this.rebuild();
+    },
+    removeFolder(parent, child) {
+      fp.getRowForFolder(child, this.name)?.remove();
+    },
+    changeAccountOrder() {
+      this.rebuild();
+    },
+  };
+}
+function inboxHeader(mode) {
+  const name = mode.containerHeader?.querySelector(".mode-name");
+  if (!name) return;
+  name.removeAttribute("data-l10n-id"); // Thunderbird kennt für die Ansicht keinen Text
+  name.textContent = inboxes.label;
+}
+function applyInboxes(cw, tries = 0) {
+  const fp = cw.folderPane;
+  if (!fp?._modes) return;
+  // folderPane.init ist asynchron: erst wenn die Ansichten stehen, einhängen
+  if (!fp._modeTemplate || !fp.activeModes.length) {
+    if (inboxes.show && tries < 40) cw.setTimeout(() => applyInboxes(cw, tries + 1), 500);
+    return;
+  }
+  const modes = fp.activeModes.filter(m => m !== INBOX_MODE);
+  if (!inboxes.show) {
+    if (fp._modes[INBOX_MODE]?.active) fp.activeModes = modes;
+    delete fp._modes[INBOX_MODE];
+    return;
+  }
+  const sig = JSON.stringify([inboxes.label, inboxes.hide]);
+  let mode = fp._modes[INBOX_MODE];
+  if (!mode) mode = fp._modes[INBOX_MODE] = inboxMode(cw);
+  if (mode.active) {
+    if (mode.sig !== sig) mode.rebuild();
+  } else {
+    modes.splice(modes.indexOf("smart") + 1, 0, INBOX_MODE); // ohne „Gruppierte Ordner“: Index 0
+    fp.activeModes = modes;
+  }
+  mode.sig = sig;
+  inboxHeader(mode);
+}
+function undoInboxes(cw) {
+  const fp = cw.folderPane;
+  if (!fp?._modes?.[INBOX_MODE]) return;
+  if (fp._modes[INBOX_MODE].active) fp.activeModes = fp.activeModes.filter(m => m !== INBOX_MODE);
+  delete fp._modes[INBOX_MODE];
 }
 
 function applyWindow(cw) {
@@ -543,6 +650,7 @@ function applyWindow(cw) {
   applyScroll(doc);
   try { applyHeader(cw); } catch (e) { console.error("Ordnerkopf:", e); }
   try { applyNews(cw); } catch (e) { console.error("Was gibt's Neues?:", e); }
+  try { applyInboxes(cw); } catch (e) { console.error("Posteingänge:", e); }
   if (!st) {
     st = { baseDensity: cw.threadPane.densityChange, baseFill: cardClass.prototype.fillRow, cardClass };
     wins.set(cw, st);
@@ -590,6 +698,7 @@ function undoWindow(cw) {
   const doc = cw.document;
   try { undoHeader(cw); } catch (e) { /* Fenster schon weg */ }
   try { undoNews(cw); } catch (e) { /* Fenster schon weg */ }
+  try { undoInboxes(cw); } catch (e) { /* Fenster schon weg */ }
   st.cardClass.prototype.fillRow = st.baseFill;
   cw.threadPane.densityChange = st.baseDensity;
   doc.getElementById(STYLE_ID)?.remove();
@@ -694,6 +803,16 @@ const API = class extends ExtensionCommon.ExtensionAPI {
           for (const win of Services.wm.getEnumerator("mail:3pane")) {
             for (const cw of threePanes(win)) {
               try { applyNews(cw); } catch (e) { console.error("Was gibt's Neues?:", e); }
+            }
+          }
+        },
+        async setInboxes(show, label, hide) {
+          inboxes.show = !!show;
+          inboxes.label = String(label || "");
+          inboxes.hide = (Array.isArray(hide) ? hide : []).map(String);
+          for (const win of Services.wm.getEnumerator("mail:3pane")) {
+            for (const cw of threePanes(win)) {
+              try { applyInboxes(cw); } catch (e) { console.error("Posteingänge:", e); }
             }
           }
         },

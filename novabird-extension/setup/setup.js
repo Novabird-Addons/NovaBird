@@ -49,6 +49,7 @@
       recOk: "Passt: Dieser PC schafft das allein.", recRemote: "Läuft schon auf der Grafikkarte bzw. dem eigenen Server.",
       recGpu: "Ab $1 lohnt sich die Grafikkarte: Mit dem NovaBird Helper ist das meist in einem Bruchteil der Zeit fertig – nächster Schritt.",
       recGpuOther: "Ab $1 lohnt sich ein eigener Server mit Grafikchip (z. B. Ollama auf einem Mac): Suche → Bedeutungssuche → Wo rechnen?",
+      recGpuMac: "Ab $1 lohnt sich der Grafikchip: Auf dem Mac rechnet Ollama die Suche – Suche → Bedeutungssuche → „Ollama auf diesem Mac“.",
       qMulti: "Nutzt ihr NovaBird auf mehreren PCs oder auf einem Notebook?", qOn: "Ist einer davon meistens eingeschaltet?", yes: "Ja", no: "Nein",
       recMultiOn: "Dann lohnt sich der NovaBird Helper auf dem PC, der meistens läuft: Er rechnet für alle, die anderen PCs und Notebooks bekommen die fertigen Ergebnisse und sparen Zeit und Akku.",
       recMultiOff: "Dann rechnet jeder PC selbst. Mit dem Helper lassen sich die Ergebnisse über einen geteilten Ordner abgleichen, sodass jede Mail nur einmal gerechnet wird.",
@@ -125,6 +126,7 @@
       recOk: "Fine: this PC manages on its own.", recRemote: "Already runs on the graphics card or your own server.",
       recGpu: "From $1 on a graphics card pays off: with the NovaBird Helper it is usually done in a fraction of the time – next step.",
       recGpuOther: "From $1 on your own server with a graphics chip pays off (e.g. Ollama on a Mac): Search → Meaning search → Where to compute?",
+      recGpuMac: "From $1 on the graphics chip pays off: on a Mac, Ollama computes the search – Search → Meaning search → “Ollama on this Mac”.",
       qMulti: "Do you use NovaBird on several PCs or on a laptop?", qOn: "Is one of them switched on most of the time?", yes: "Yes", no: "No",
       recMultiOn: "Then the NovaBird Helper pays off on the PC that is usually on: it computes for everyone, the other PCs and laptops get the finished results and save time and battery.",
       recMultiOff: "Then every PC computes on its own. With the Helper the results can be synced through a shared folder, so each message is computed only once.",
@@ -201,6 +203,7 @@
       recOk: "Parfait : ce PC s’en sort seul.", recRemote: "Tourne déjà sur la carte graphique ou votre propre serveur.",
       recGpu: "À partir de $1, la carte graphique vaut le coup : avec le NovaBird Helper, c’est en général fait en une fraction du temps – étape suivante.",
       recGpuOther: "À partir de $1, un serveur avec puce graphique vaut le coup (p. ex. Ollama sur un Mac) : Recherche → Recherche par le sens → Où calculer ?",
+      recGpuMac: "À partir de $1, la puce graphique vaut le coup : sur Mac, Ollama calcule la recherche – Recherche → Recherche par le sens → « Ollama sur ce Mac ».",
       qMulti: "Utilisez-vous NovaBird sur plusieurs PC ou sur un portable ?", qOn: "L’un d’eux est-il allumé la plupart du temps ?", yes: "Oui", no: "Non",
       recMultiOn: "Le NovaBird Helper vaut alors le coup sur le PC qui reste allumé : il calcule pour tous, les autres PC et portables reçoivent les résultats et économisent temps et batterie.",
       recMultiOff: "Chaque PC calcule alors lui-même. Avec le Helper, les résultats peuvent être synchronisés via un dossier partagé, chaque message n’est calculé qu’une fois.",
@@ -277,6 +280,7 @@
       recOk: "Perfecto: este PC puede solo.", recRemote: "Ya se ejecuta en la tarjeta gráfica o en su propio servidor.",
       recGpu: "A partir de $1 compensa la tarjeta gráfica: con el NovaBird Helper suele estar listo en una fracción del tiempo – siguiente paso.",
       recGpuOther: "A partir de $1 compensa un servidor propio con chip gráfico (p. ej. Ollama en un Mac): Búsqueda → Búsqueda por significado → ¿Dónde calcular?",
+      recGpuMac: "A partir de $1 compensa el chip gráfico: en un Mac, Ollama calcula la búsqueda – Búsqueda → Búsqueda por significado → «Ollama en este Mac».",
       qMulti: "¿Usan NovaBird en varios PC o en un portátil?", qOn: "¿Uno de ellos está encendido casi siempre?", yes: "Sí", no: "No",
       recMultiOn: "Entonces compensa el NovaBird Helper en el PC que suele estar encendido: calcula para todos, los demás PC y portátiles reciben los resultados y ahorran tiempo y batería.",
       recMultiOff: "Entonces cada PC calcula por su cuenta. Con el Helper los resultados se pueden sincronizar mediante una carpeta compartida, así cada correo se calcula una sola vez.",
@@ -579,7 +583,7 @@
     out.push(h("p", { className: "muted small", textContent: fill(t.engine[m.engine] || t.engine.addon, num(s.cores || 0)) + " " + t.timeNote }));
     if (m.engine !== "addon") out.push(note("ok", t.recRemote));
     else if (left < GPU_MINUTES) out.push(note("ok", t.recOk));
-    else out.push(note("warn", fill(platform === "win" ? t.recGpu : t.recGpuOther, duration(GPU_MINUTES))));
+    else out.push(note("warn", fill(platform === "win" ? t.recGpu : platform === "mac" ? t.recGpuMac : t.recGpuOther, duration(GPU_MINUTES))));
     out.push(row(btn(t.again, runMeasure)));
     return out;
   }

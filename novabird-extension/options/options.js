@@ -8,6 +8,7 @@ const TEXTS = {
     selfTestText: "Diese Version passt nicht vollständig zu $1. Folgendes ist deshalb ausgeschaltet:",
     selfTestHint: "Alles andere funktioniert normal. Eine neuere Version des Add-ons behebt das in der Regel.",
     selfTest_listCards: "Nachrichtenliste: Stile, Vorschau und Avatare",
+    selfTest_folderInboxes: "Rubrik „Posteingänge“ im Ordnerbereich",
     selfTest_calendarLayout: "Kalender-Layout der rechten Leiste",
     selfTest_contacts: "Nova-Contact (Kontakte, Tags)",
     selfTest_contactDetails: "Tags in der Kontakt-Detailansicht",
@@ -33,6 +34,9 @@ const TEXTS = {
     listScrollLabel: "Breitere Scrollleisten (leichter zu treffen)",
     listAcctNote: "Die Farben werden automatisch vergeben und lassen sich hier ändern.",
     listDetailsTitle: "Weitere Optionen",
+    inboxTitle: "Ordnerbereich",
+    inboxLabel: "Rubrik „Posteingänge“ unter „Gruppierte Ordner“",
+    inboxNote: "Eine eigene, immer aufgeklappte Liste mit dem Posteingang je Konto (Name = Kontoname). Angehakt = wird angezeigt; neue Konten erscheinen automatisch.",
     listDensityNote: "Dichte und Kontofarbe gelten nicht für den Betterbird-Standard.",
     title: "NovaBird-Extension",
     tabList: "Nachrichtenliste",
@@ -286,6 +290,7 @@ const TEXTS = {
     selfTestText: "This version does not fully match $1. The following is therefore switched off:",
     selfTestHint: "Everything else works normally. A newer version of the add-on usually fixes this.",
     selfTest_listCards: "Message list: styles, preview and avatars",
+    selfTest_folderInboxes: "“Inboxes” section in the folder pane",
     selfTest_calendarLayout: "Calendar layout of the right sidebar",
     selfTest_contacts: "Nova-Contact (contacts, tags)",
     selfTest_contactDetails: "Tags in the contact detail view",
@@ -311,6 +316,9 @@ const TEXTS = {
     listScrollLabel: "Wider scrollbars (easier to hit)",
     listAcctNote: "Colours are assigned automatically and can be changed here.",
     listDetailsTitle: "More options",
+    inboxTitle: "Folder pane",
+    inboxLabel: "“Inboxes” section below “Unified Folders”",
+    inboxNote: "A separate, always expanded list with the inbox of each account (named after the account). Checked = shown; new accounts appear automatically.",
     listDensityNote: "Density and account colour do not apply to the Betterbird default.",
     title: "NovaBird-Extension",
     tabList: "Message list",
@@ -564,6 +572,7 @@ const TEXTS = {
     selfTestText: "Cette version n’est pas entièrement compatible avec $1. Les fonctions suivantes sont donc désactivées :",
     selfTestHint: "Tout le reste fonctionne normalement. Une version plus récente du module corrige généralement ce problème.",
     selfTest_listCards: "Liste des messages : styles, aperçu et avatars",
+    selfTest_folderInboxes: "Rubrique « Boîtes de réception » du volet des dossiers",
     selfTest_calendarLayout: "Disposition du calendrier dans la barre de droite",
     selfTest_contacts: "Nova-Contact (contacts, tags)",
     selfTest_contactDetails: "Tags dans la vue détaillée du contact",
@@ -589,6 +598,9 @@ const TEXTS = {
     listScrollLabel: "Barres de défilement plus larges (plus faciles à atteindre)",
     listAcctNote: "Les couleurs sont attribuées automatiquement et modifiables ici.",
     listDetailsTitle: "Autres options",
+    inboxTitle: "Volet des dossiers",
+    inboxLabel: "Rubrique « Boîtes de réception » sous « Dossiers unifiés »",
+    inboxNote: "Une liste à part, toujours dépliée, avec la boîte de réception de chaque compte (nommée d’après le compte). Coché = affiché ; les nouveaux comptes apparaissent automatiquement.",
     listDensityNote: "La densité et la couleur du compte ne s’appliquent pas au style par défaut de Betterbird.",
     title: "NovaBird-Extension",
     tabList: "Liste des messages",
@@ -842,6 +854,7 @@ const TEXTS = {
     selfTestText: "Esta versión no es totalmente compatible con $1. Por eso está desactivado lo siguiente:",
     selfTestHint: "Todo lo demás funciona con normalidad. Una versión más reciente del complemento suele solucionarlo.",
     selfTest_listCards: "Lista de mensajes: estilos, vista previa y avatares",
+    selfTest_folderInboxes: "Sección «Bandejas de entrada» del panel de carpetas",
     selfTest_calendarLayout: "Diseño del calendario en la barra derecha",
     selfTest_contacts: "Nova-Contact (contactos, etiquetas)",
     selfTest_contactDetails: "Etiquetas en la vista detallada del contacto",
@@ -867,6 +880,9 @@ const TEXTS = {
     listScrollLabel: "Barras de desplazamiento más anchas (más fáciles de alcanzar)",
     listAcctNote: "Los colores se asignan automáticamente y se pueden cambiar aquí.",
     listDetailsTitle: "Más opciones",
+    inboxTitle: "Panel de carpetas",
+    inboxLabel: "Sección «Bandejas de entrada» bajo «Carpetas unificadas»",
+    inboxNote: "Una lista aparte, siempre desplegada, con la bandeja de entrada de cada cuenta (con el nombre de la cuenta). Marcada = visible; las cuentas nuevas aparecen automáticamente.",
     listDensityNote: "La densidad y el color de la cuenta no se aplican al estilo predeterminado de Betterbird.",
     title: "NovaBird-Extension",
     tabList: "Lista de mensajes",
@@ -1134,6 +1150,8 @@ const DEFAULTS = {
   listAcct: "none",
   listScroll: true,
   listAcctColors: {},
+  folderInboxes: false,
+  folderInboxesHide: [],
   colors: { bg: "#EEF2F8", fg: "#1B2433", border: "#D2DAE6", accent: "#2F6BD8" },
   mainColors: { light: {}, dark: {} },
   fontFamily: "", fontRow: 100, fontPad: 100,
@@ -1425,6 +1443,25 @@ const save = patch => messenger.storage.local.set(patch);
   const ls = document.getElementById("listScroll");
   ls.checked = s.listScroll !== false;
   ls.addEventListener("change", () => save({ listScroll: ls.checked }));
+  // Rubrik „Posteingänge“ im Ordnerbereich: gespeichert wird, was fehlen soll (neue Konten erscheinen dann von selbst)
+  const fi = document.getElementById("folderInboxes"), fiBox = document.getElementById("inboxAccounts");
+  const hide = new Set(Array.isArray(s.folderInboxesHide) ? s.folderInboxesHide : []);
+  fi.checked = s.folderInboxes === true;
+  fiBox.hidden = !fi.checked;
+  fi.addEventListener("change", () => { fiBox.hidden = !fi.checked; save({ folderInboxes: fi.checked }); });
+  try {
+    for (const a of await messenger.accounts.list(true)) {
+      // nur Konten mit Posteingang (nicht Feeds, Newsgruppen, Lokale Ordner ohne umgeleitetes POP-Konto)
+      if (!(a.folders || []).some(f => f.specialUse?.includes("inbox") || f.type === "inbox")) continue;
+      const label = document.createElement("label");
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.checked = !hide.has(a.id);
+      box.addEventListener("change", () => { box.checked ? hide.delete(a.id) : hide.add(a.id); save({ folderInboxesHide: [...hide] }); });
+      label.append(box, " ", a.name);
+      fiBox.append(label);
+    }
+  } catch (e) { /* ohne Kontoliste: alle Posteingänge */ }
   lp.addEventListener("change", () => { if (lp.dataset.off) return revert(); save({ listPreview: lp.checked }); });
   la.addEventListener("change", () => { if (la.dataset.off) return revert(); syncList(); save({ listAvatars: la.checked }); });
 

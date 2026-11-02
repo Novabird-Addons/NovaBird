@@ -228,6 +228,10 @@
         writeForm(s);
       }
       renderModels(s);
+      // rechnet ein eigener Server (z. B. Ollama auf dem Mac), braucht es das Modell im Add-on nicht
+      for (const el of document.querySelectorAll(".sem-addon-model")) {
+        el.hidden = s.cfg.path === "server";
+      }
       renderState(s);
     } finally {
       busy = false;
@@ -463,6 +467,116 @@
       await send({ type: "semantic:clear" });
       refresh();
     }
+  });
+
+  // Mac: Ollama als Rechenweg mit dem Grafikchip – Adresse, geprüftes Modell laden, im Speicher halten (Einstellung keep,
+  // dieselbe wie für das Add-on-Modell), entladen. Eingeschaltet wird erst nach bestandener Probe (semantic:ollama "use").
+  // Plattform über navigator.platform (getPlatformInfo fehlt der in den Hub eingebetteten Seite); ?platform=mac zum Testen.
+  const isMac = new URLSearchParams(location.search).get("platform") === "mac" || /^Mac/.test(navigator.platform);
+  const OLLAMA_MODEL = "jina/jina-embeddings-v2-base-de"; // wie SERVER_DEFAULTS.model in semantic/server.js
+  const OLLAMA_MODEL_BYTES = 322858704; // F16, wie in der Ollama-Bibliothek
+  let macTimer = null;
+  function macState(res, extra = "") {
+    const out = $("semMacState");
+    const pull = res?.pull;
+    if (!res || (res.error && !res.version)) {
+      out.textContent = t("semMacUnreachable", [res?.error || "?"]);
+      out.className = "hint bad";
+      $("semMacPullRow").hidden = $("semMacUseRow").hidden = true;
+      return;
+    }
+    const parts = [t("semMacVersion", [res.version]), t(res.hasModel ? "semMacModelHave" : "semMacModelMissing")];
+    parts.push(res.loaded ? t("semMacLoaded", [mb(res.loaded.size), String(Math.round((100 * res.loaded.vram) / (res.loaded.size || 1)))]) : t("semMacNotLoaded"));
+    if (res.inUse) {
+      parts.push(t("semMacInUse"));
+    }
+    out.textContent = parts.join(" ") + (extra ? " " + extra : "");
+    out.className = res.inUse ? "hint ok" : "hint";
+    const pulling = Boolean(pull?.running);
+    $("semMacPullRow").hidden = res.hasModel && !pulling && !pull?.error;
+    $("semMacPull").disabled = pulling;
+    $("semMacPull").textContent = t("semMacPull", [mb(OLLAMA_MODEL_BYTES)]);
+    $("semMacProgress").hidden = !pulling;
+    $("semMacProgress").value = pull?.total ? pull.completed / pull.total : 0;
+    $("semMacPullText").textContent = pull?.error ? t("semMacPullFail", [pull.error])
+      : pulling ? t("semMacPulling", [pull.total ? `${Math.round((100 * pull.completed) / pull.total)} %` : pull.status || ""])
+      : pull?.status === "success" ? t("semMacPullDone") : "";
+    $("semMacUseRow").hidden = !res.hasModel || res.inUse || pulling;
+    clearTimeout(macTimer);
+    if (pulling) {
+      macTimer = setTimeout(async () => macState(await send({ type: "semantic:ollama", op: "status" })), 1000);
+    }
+  }
+  async function macOp(op, extra) {
+    const res = await send({ type: "semantic:ollama", op });
+    macState(res, typeof extra === "function" ? extra(res) : extra);
+    return res;
+  }
+  if (isMac) {
+    $("semMac").hidden = false;
+    (async () => {
+      const c = await config();
+      $("semMacKeep").value = c.keep || "10min";
+      const sv = c.server || {};
+      $("semMacUrl").value = sv.type === "ollama" && sv.url ? sv.url : "http://localhost:11434";
+      if (sv.type === "ollama" && sv.url) {
+        macOp("status");
+      }
+    })();
+  }
+  // Erlaubnis für die Adresse (und webRequest, damit Ollama den Absender nicht ablehnt) direkt im Klick erfragen
+  $("semMacConnect").addEventListener("click", () => {
+    const url = $("semMacUrl").value.trim().replace(/\/+$/, "");
+    const out = $("semMacState");
+    let pattern;
+    try {
+      const u = new URL(url);
+      if (u.protocol !== "http:" && u.protocol !== "https:") {
+        throw new Error("url");
+      }
+      pattern = `${u.protocol}//${u.hostname}/*`;
+    } catch {
+      out.textContent = t("semServerBadUrl");
+      out.className = "hint bad";
+      return;
+    }
+    const asked = messenger.permissions.request({ permissions: ["webRequest", "webRequestBlocking"], origins: [pattern] }).catch(() => false);
+    (async () => {
+      if (!(await asked)) {
+        out.textContent = t("semServerNoPermission");
+        out.className = "hint bad";
+        return;
+      }
+      out.textContent = t("semMacChecking");
+      out.className = "hint";
+      const c = await config();
+      const old = c.server || {};
+      // ein anderer Server (z. B. Helper im Netz) bleibt nicht Rechenweg, wenn hier Ollama eingetragen wird
+      const path = c.path === "server" && old.type !== "ollama" ? "auto" : c.path;
+      await setConfig({ path, server: { ...old, type: "ollama", url, model: OLLAMA_MODEL } });
+      await macOp("status");
+    })();
+  });
+  $("semMacPull").addEventListener("click", () => macOp("pull"));
+  $("semMacUse").addEventListener("click", () => {
+    $("semMacState").textContent = t("semServerChecking");
+    macOp("use", res => {
+      const c = res?.check;
+      if (c?.ok) {
+        $("semEnabled").checked = true;
+      }
+      return c?.ok ? t("semMacUseOk") : t("semMacUseBad", [c?.reason === "error" ? c.error || "?" : num(c?.minCos ?? 0, 4)]);
+    }).then(() => setTimeout(refresh, 500));
+  });
+  $("semMacUnload").addEventListener("click", () => macOp("unload", t("semMacUnloaded")));
+  $("semMacKeep").addEventListener("change", () => {
+    $("semKeep").value = $("semMacKeep").value;
+    setConfig({ keep: $("semMacKeep").value });
+  });
+  $("semKeep").addEventListener("change", () => ($("semMacKeep").value = $("semKeep").value));
+  $("semMacDownload").addEventListener("click", e => {
+    e.preventDefault();
+    messenger.windows.openDefaultBrowser("https://ollama.com/download");
   });
 
   refresh();

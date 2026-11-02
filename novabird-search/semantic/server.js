@@ -116,13 +116,90 @@ export async function embed(c, texts, maxTokens, { model = null, prio = "index",
     const res = await request(c, openaiPath(c, "/embeddings"), { model: c.model, input: texts, encoding_format: "float" });
     list = (res.data || []).slice().sort((a, b) => a.index - b.index).map(d => d.embedding);
   } else {
-    const res = await request(c, base(c) + "/api/embed", { model: c.model, input: texts, truncate: true, options: { num_ctx: maxTokens } });
+    const keep = c.keepAlive !== undefined && c.keepAlive !== "" ? { keep_alive: c.keepAlive } : {};
+    const res = await request(c, base(c) + "/api/embed", { model: c.model, input: texts, truncate: true, options: { num_ctx: maxTokens }, ...keep });
     list = res.embeddings || [];
   }
   if (list.length !== texts.length || list.some(v => !Array.isArray(v))) {
     throw new Error("answer");
   }
   return list.map(normalized);
+}
+
+// ---- Ollama steuern (Mac: Einstellungsseite „Ollama auf diesem Mac“) --------------------------------------------------------
+// Nur das geprüfte Modell (SERVER_DEFAULTS.model); ob seine Vektoren passen, prüft danach wie immer die Probe.
+const sameModel = (a, b) => String(a).replace(/:latest$/, "") === String(b).replace(/:latest$/, "");
+
+/** Version, ob das Modell vorhanden ist, und ob es gerade im Speicher liegt (size, size_vram = davon auf der Grafik, bis wann). */
+export async function ollamaStatus(c) {
+  const version = (await request(c, base(c) + "/api/version")).version || "?";
+  const tags = (await request(c, base(c) + "/api/tags")).models || [];
+  const ps = (await request(c, base(c) + "/api/ps").catch(() => ({}))).models || [];
+  const have = tags.find(m => sameModel(m.name, c.model));
+  const run = ps.find(m => sameModel(m.name, c.model));
+  return {
+    version,
+    hasModel: Boolean(have),
+    modelBytes: have?.size || 0,
+    loaded: run ? { size: run.size || 0, vram: run.size_vram || 0, until: run.expires_at || null } : null,
+  };
+}
+
+/** Modell aus der Ollama-Bibliothek laden; onProgress({status, total, completed}) je Zeile der Antwort (NDJSON). */
+export async function ollamaPull(c, onProgress) {
+  if (!validUrl(base(c))) {
+    throw new Error("url");
+  }
+  const ctl = new AbortController();
+  let idle = null;
+  const alive = () => {
+    clearTimeout(idle);
+    idle = setTimeout(() => ctl.abort(), TIMEOUT_MS); // nur Stillstand bricht ab, nicht die Dauer
+  };
+  alive();
+  try {
+    const r = await fetch(base(c) + "/api/pull", { method: "POST", headers: headers(c), body: JSON.stringify({ model: c.model, stream: true }), signal: ctl.signal });
+    if (!r.ok) {
+      throw new Error(`http ${r.status}`);
+    }
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
+    let buf = "";
+    let last = null;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+      alive();
+      buf += dec.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (!line) {
+          continue;
+        }
+        last = JSON.parse(line);
+        if (last.error) {
+          throw new Error(last.error);
+        }
+        onProgress?.(last);
+      }
+    }
+    if (last?.status !== "success") {
+      throw new Error("abgebrochen");
+    }
+  } catch (e) {
+    throw e.name === "AbortError" ? new Error("timeout") : e;
+  } finally {
+    clearTimeout(idle);
+  }
+}
+
+/** Modell sofort aus dem Speicher nehmen (leere Anfrage mit keep_alive 0). */
+export async function ollamaUnload(c) {
+  await request(c, base(c) + "/api/embed", { model: c.model, input: [], keep_alive: 0 });
 }
 
 /**

@@ -206,6 +206,24 @@
   <section id="semanticTab" hidden>
     <p class="hint sem-intro" data-i18n="semIntro"></p>
     <div class="row"><input type="checkbox" id="semEnabled"><label for="semEnabled" data-i18n="semEnable"></label></div>
+    <div id="semMac" hidden>
+      <h2 data-i18n="semMacHeading"></h2>
+      <p class="hint" data-i18n="semMacHint"></p>
+      <div class="row"><label for="semMacUrl" data-i18n="semServerUrl"></label><input type="url" id="semMacUrl" class="wide" placeholder="http://localhost:11434"><button type="button" id="semMacConnect" data-i18n="semMacConnect"></button></div>
+      <p class="hint" id="semMacState"></p>
+      <div class="row" id="semMacPullRow" hidden><button type="button" id="semMacPull"></button><progress id="semMacProgress" max="1" value="0" hidden></progress><span id="semMacPullText" class="hint"></span></div>
+      <div class="row" id="semMacUseRow" hidden><button type="button" id="semMacUse" data-i18n="semMacUse"></button></div>
+      <div class="row"><label for="semMacKeep" data-i18n="semKeep"></label>
+        <select id="semMacKeep">
+          <option value="10min" data-i18n="semKeep10"></option>
+          <option value="always" data-i18n="semKeepAlways"></option>
+          <option value="search" data-i18n="semKeepSearch"></option>
+        </select>
+        <button type="button" id="semMacUnload" data-i18n="semMacUnload"></button>
+      </div>
+      <p class="hint" data-i18n="semMacContext"></p>
+      <p class="hint"><a href="https://ollama.com/download" id="semMacDownload" data-i18n="semMacDownload"></a></p>
+    </div>
     <div id="semPick" hidden>
       <h2 data-i18n="semPickHeading"></h2>
       <div class="row"><input type="radio" name="semSource" id="semSrcHelper" value="helper"><label for="semSrcHelper" id="semSrcHelperLabel"></label></div>
@@ -214,10 +232,10 @@
     </div>
     <div class="row"><input type="checkbox" id="semHeaderCount"><label for="semHeaderCount" data-i18n="semHeaderCount"></label></div>
 
-    <h2 data-i18n="semModelHeading"></h2>
-    <div id="semModels"></div>
-    <p class="hint" data-i18n="semModelHint"></p>
-    <div class="row"><progress id="semProgress" max="1" value="0" hidden></progress><span id="semDownloadText"></span></div>
+    <h2 class="sem-addon-model" data-i18n="semModelHeading"></h2>
+    <div id="semModels" class="sem-addon-model"></div>
+    <p class="hint sem-addon-model" data-i18n="semModelHint"></p>
+    <div class="row sem-addon-model"><progress id="semProgress" max="1" value="0" hidden></progress><span id="semDownloadText"></span></div>
 
     <h2 data-i18n="semStateHeading"></h2>
     <dl id="semState"></dl>

@@ -1032,5 +1032,71 @@
   },
   "semHeaderCount": {
     "message": "Afficher en haut des résultats combien proviennent de la recherche par le sens"
+  },
+  "semMacHeading": {
+    "message": "Ollama sur ce Mac (recommandé)"
+  },
+  "semMacHint": {
+    "message": "Sur Mac, Ollama calcule la recherche par le sens sur la puce graphique – en général bien plus vite que dans le module. Installez et lancez Ollama, puis connectez-le ici. NovaBird charge le modèle vérifié et décide combien de temps il reste en mémoire."
+  },
+  "semMacConnect": {
+    "message": "Connecter"
+  },
+  "semMacDownload": {
+    "message": "Télécharger Ollama (ollama.com)"
+  },
+  "semMacChecking": {
+    "message": "Connexion …"
+  },
+  "semMacUnreachable": {
+    "message": "Ollama ne répond pas à cette adresse ($1). Ollama est-il lancé (icône dans la barre des menus) ?"
+  },
+  "semMacVersion": {
+    "message": "Ollama $1 connecté."
+  },
+  "semMacModelHave": {
+    "message": "Modèle vérifié disponible."
+  },
+  "semMacModelMissing": {
+    "message": "Le modèle vérifié manque encore."
+  },
+  "semMacLoaded": {
+    "message": "En mémoire : $1, dont $2 % sur la puce graphique."
+  },
+  "semMacNotLoaded": {
+    "message": "Pas en mémoire pour le moment."
+  },
+  "semMacInUse": {
+    "message": "La recherche par le sens calcule avec Ollama."
+  },
+  "semMacPull": {
+    "message": "Charger le modèle vérifié (env. $1)"
+  },
+  "semMacPulling": {
+    "message": "Chargement du modèle … $1"
+  },
+  "semMacPullDone": {
+    "message": "Modèle chargé."
+  },
+  "semMacPullFail": {
+    "message": "Échec du chargement : $1"
+  },
+  "semMacUse": {
+    "message": "Utiliser pour la recherche par le sens"
+  },
+  "semMacUseOk": {
+    "message": "Test réussi – la recherche par le sens calcule maintenant avec Ollama."
+  },
+  "semMacUseBad": {
+    "message": "Le test ne correspond pas ($1) – la recherche par le sens continue comme avant."
+  },
+  "semMacUnload": {
+    "message": "Décharger maintenant"
+  },
+  "semMacUnloaded": {
+    "message": "Modèle retiré de la mémoire."
+  },
+  "semMacContext": {
+    "message": "Contexte : fixé à 512 jetons comme dans le module. Les messages sont d’abord coupés à 1200 caractères ; c’est la seule façon de garder des vecteurs comparables avec le module et les autres PC."
   }
 }

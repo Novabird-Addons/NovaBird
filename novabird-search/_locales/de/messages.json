@@ -1116,5 +1116,71 @@
   },
   "semHeaderCount": {
     "message": "Oben in der Trefferliste anzeigen, wie viele Treffer aus der Bedeutungssuche kommen"
+  },
+  "semMacHeading": {
+    "message": "Ollama auf diesem Mac (empfohlen)"
+  },
+  "semMacHint": {
+    "message": "Auf dem Mac rechnet Ollama die Bedeutungssuche mit dem Grafikchip – meist ein Vielfaches schneller als im Add-on. Ollama installieren und starten, dann hier verbinden. NovaBird lädt das geprüfte Modell und legt fest, wie lange es im Speicher bleibt."
+  },
+  "semMacConnect": {
+    "message": "Verbinden"
+  },
+  "semMacDownload": {
+    "message": "Ollama herunterladen (ollama.com)"
+  },
+  "semMacChecking": {
+    "message": "Verbinde …"
+  },
+  "semMacUnreachable": {
+    "message": "Ollama antwortet unter dieser Adresse nicht ($1). Läuft Ollama (Symbol in der Menüleiste)?"
+  },
+  "semMacVersion": {
+    "message": "Ollama $1 verbunden."
+  },
+  "semMacModelHave": {
+    "message": "Geprüftes Modell vorhanden."
+  },
+  "semMacModelMissing": {
+    "message": "Das geprüfte Modell fehlt noch."
+  },
+  "semMacLoaded": {
+    "message": "Im Speicher: $1, davon $2 % auf dem Grafikchip."
+  },
+  "semMacNotLoaded": {
+    "message": "Gerade nicht im Speicher."
+  },
+  "semMacInUse": {
+    "message": "Die Bedeutungssuche rechnet mit Ollama."
+  },
+  "semMacPull": {
+    "message": "Geprüftes Modell laden (ca. $1)"
+  },
+  "semMacPulling": {
+    "message": "Lade Modell … $1"
+  },
+  "semMacPullDone": {
+    "message": "Modell geladen."
+  },
+  "semMacPullFail": {
+    "message": "Laden fehlgeschlagen: $1"
+  },
+  "semMacUse": {
+    "message": "Für die Bedeutungssuche verwenden"
+  },
+  "semMacUseOk": {
+    "message": "Probe bestanden – die Bedeutungssuche rechnet jetzt mit Ollama."
+  },
+  "semMacUseBad": {
+    "message": "Die Probe passt nicht ($1) – die Bedeutungssuche rechnet weiter wie bisher."
+  },
+  "semMacUnload": {
+    "message": "Jetzt entladen"
+  },
+  "semMacUnloaded": {
+    "message": "Modell aus dem Speicher genommen."
+  },
+  "semMacContext": {
+    "message": "Kontext: fest 512 Token wie im Add-on. Mails werden vorher auf 1200 Zeichen gekürzt; nur so bleiben die Vektoren mit dem Add-on und anderen PCs vergleichbar."
   }
 }

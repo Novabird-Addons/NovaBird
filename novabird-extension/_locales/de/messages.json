@@ -8,6 +8,9 @@
   "aiButton": {
     "message": "KI-Assistent: Zusammenfassen, Übersetzen, Termine"
   },
+  "folderInboxes": {
+    "message": "Posteingänge"
+  },
   "aiOverview": {
     "message": "Was gibt's Neues?"
   },

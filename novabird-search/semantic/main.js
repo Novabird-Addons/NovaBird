@@ -324,7 +324,9 @@ async function verify(engine, rawEmbed, force = false) {
 }
 
 // ---- Eigener Server (server.js) ---------------------------------------------------------------------------------------------
-const serverCfg = () => ({ ...server.SERVER_DEFAULTS, ...(cfg.server || {}), clientId });
+// Ollama hält das Modell so lange wie das Add-on sein eigenes (Einstellung keep); „search“: kurz, reicht zwischen den Paketen
+const OLLAMA_KEEP = { "10min": "10m", always: -1, search: "1m" };
+const serverCfg = () => ({ ...server.SERVER_DEFAULTS, ...(cfg.server || {}), clientId, keepAlive: OLLAMA_KEEP[cfg.keep] ?? "10m" });
 let clientId = null; // Kennung dieses Thunderbird beim NovaBird Helper im Netz (zufällig, einmal erzeugt)
 
 // prio "query": Suchanfrage (der Helper im Netz rechnet sie vor dem Indexieren anderer PCs)
@@ -358,7 +360,8 @@ async function serverAllowed() {
 }
 
 // Ollama lehnt Anfragen mit dem Absender „moz-extension://…“ ab (403, OLLAMA_ORIGINS). Bei unseren Anfragen an den
-// eingetragenen Server fällt der Origin-Kopf deshalb weg (webRequest wird zusammen mit der Adresse erfragt).
+// eingetragenen Server fällt der Origin-Kopf deshalb weg (webRequest wird zusammen mit der Adresse erfragt) – auch bevor
+// er Rechenweg ist (Ollama-Steuerung auf dem Mac: Status und Modell laden vor dem Umschalten).
 let originFilter = null;
 
 function stripOrigin(details) {
@@ -375,7 +378,7 @@ async function updateOriginFilter() {
   }
   originFilter = null;
   const url = server.base(serverCfg());
-  if (!wr || cfg.path !== "server" || !(await serverAllowed())) {
+  if (!wr || !(await serverAllowed())) {
     return;
   }
   try {
@@ -409,6 +412,46 @@ async function serverEmbed(texts, prio, keys = null) {
     delete checks.server; // nach jedem Fehler neu prüfen (Modell gewechselt, Server neu gestartet …)
     throw e;
   }
+}
+
+// Ollama steuern (Einstellungsseite, Mac): Zustand, geprüftes Modell laden (läuft weiter, Fortschritt in ollamaPull),
+// sofort entladen, und erst nach bestandener Probe als Rechenweg einschalten.
+let ollamaPull = null; // {status, total, completed, error, running}
+async function ollamaOp(op) {
+  // die Seite speichert die Adresse kurz vorher: warten, bis storage.onChanged sie hier übernommen hat
+  const stored = (await messenger.storage.local.get({ [KEY]: {} }))[KEY];
+  for (let i = 0; i < 30 && stored.server && JSON.stringify(stored.server) !== JSON.stringify(cfg.server); i++) {
+    await new Promise(r => setTimeout(r, 100));
+  }
+  const c = serverCfg();
+  if (c.type !== "ollama") {
+    return { error: "kein Ollama eingetragen" };
+  }
+  await updateOriginFilter();
+  if (op === "pull" && !ollamaPull?.running) {
+    ollamaPull = { status: "start", total: 0, completed: 0, error: null, running: true };
+    server.ollamaPull(c, p => {
+      ollamaPull = { ...ollamaPull, status: p.status, total: p.total || ollamaPull.total, completed: p.completed ?? ollamaPull.completed };
+    }).then(
+      () => (ollamaPull = { ...ollamaPull, status: "success", running: false }),
+      e => (ollamaPull = { ...ollamaPull, error: String(e?.message ?? e), running: false })
+    );
+  }
+  if (op === "unload") {
+    await server.ollamaUnload(c);
+  }
+  let check;
+  if (op === "use") {
+    delete checks.server;
+    await verify("server", serverRaw, true).catch(() => {});
+    check = checks.server; // vor dem Umschalten merken (der Wechsel des Rechenwegs verwirft die Probe)
+    if (check?.ok) {
+      await messenger.storage.local.set({ [KEY]: { ...cfg, enabled: true, path: "server" } });
+    }
+  }
+  const status = await server.ollamaStatus(c);
+  const inUse = check?.ok || (cfg.enabled && cfg.path === "server");
+  return { ...status, model: c.model, url: c.url, inUse, pull: ollamaPull, check };
 }
 
 // Helper im Netz: Endstand melden, wenn alles gerechnet ist (sonst stünde in seiner PC-Liste der Stand der letzten Anfrage).
@@ -1310,6 +1353,8 @@ messenger.runtime.onMessage.addListener((msg, sender) => {
         return status();
       case "semantic:syncNow":
         return syncNow();
+      case "semantic:ollama":
+        return ollamaOp(msg.op);
       case "semantic:serverCheck": {
         // Einstellungsseite: Server sofort prüfen (Probe), dazu seine Modelle bzw. Angaben des Helpers
         await updateOriginFilter();

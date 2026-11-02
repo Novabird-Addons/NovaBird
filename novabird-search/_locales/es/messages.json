@@ -1032,5 +1032,71 @@
   },
   "semHeaderCount": {
     "message": "Mostrar arriba en los resultados cuántos provienen de la búsqueda por significado"
+  },
+  "semMacHeading": {
+    "message": "Ollama en este Mac (recomendado)"
+  },
+  "semMacHint": {
+    "message": "En un Mac, Ollama calcula la búsqueda por significado en el chip gráfico, normalmente mucho más rápido que en el complemento. Instale e inicie Ollama y conéctelo aquí. NovaBird carga el modelo comprobado y decide cuánto tiempo permanece en memoria."
+  },
+  "semMacConnect": {
+    "message": "Conectar"
+  },
+  "semMacDownload": {
+    "message": "Descargar Ollama (ollama.com)"
+  },
+  "semMacChecking": {
+    "message": "Conectando …"
+  },
+  "semMacUnreachable": {
+    "message": "Ollama no responde en esta dirección ($1). ¿Está Ollama en marcha (icono en la barra de menús)?"
+  },
+  "semMacVersion": {
+    "message": "Ollama $1 conectado."
+  },
+  "semMacModelHave": {
+    "message": "Modelo comprobado disponible."
+  },
+  "semMacModelMissing": {
+    "message": "Todavía falta el modelo comprobado."
+  },
+  "semMacLoaded": {
+    "message": "En memoria: $1, del cual el $2 % en el chip gráfico."
+  },
+  "semMacNotLoaded": {
+    "message": "Ahora mismo no está en memoria."
+  },
+  "semMacInUse": {
+    "message": "La búsqueda por significado calcula con Ollama."
+  },
+  "semMacPull": {
+    "message": "Cargar el modelo comprobado (aprox. $1)"
+  },
+  "semMacPulling": {
+    "message": "Cargando el modelo … $1"
+  },
+  "semMacPullDone": {
+    "message": "Modelo cargado."
+  },
+  "semMacPullFail": {
+    "message": "Error al cargar: $1"
+  },
+  "semMacUse": {
+    "message": "Usar para la búsqueda por significado"
+  },
+  "semMacUseOk": {
+    "message": "Prueba superada: la búsqueda por significado calcula ahora con Ollama."
+  },
+  "semMacUseBad": {
+    "message": "La prueba no coincide ($1): la búsqueda por significado sigue calculando como antes."
+  },
+  "semMacUnload": {
+    "message": "Descargar de la memoria ahora"
+  },
+  "semMacUnloaded": {
+    "message": "Modelo retirado de la memoria."
+  },
+  "semMacContext": {
+    "message": "Contexto: fijo en 512 tokens como en el complemento. Los correos se recortan antes a 1200 caracteres; solo así los vectores siguen siendo comparables con el complemento y otros PC."
   }
 }

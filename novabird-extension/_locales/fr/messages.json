@@ -8,6 +8,9 @@
   "aiButton": {
     "message": "Assistant IA : résumer, traduire, rendez-vous"
   },
+  "folderInboxes": {
+    "message": "Boîtes de réception"
+  },
   "aiOverview": {
     "message": "Quoi de neuf ?"
   },

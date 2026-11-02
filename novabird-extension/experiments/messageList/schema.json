@@ -34,6 +34,17 @@
           { "name": "label", "type": "string" },
           { "name": "count", "type": "integer" }
         ]
+      },
+      {
+        "name": "setInboxes",
+        "type": "function",
+        "async": true,
+        "description": "Rubrik „Posteingänge“ im Ordnerbereich unter „Gruppierte Ordner“ zeigen oder entfernen; hide = Konto-IDs, deren Posteingang fehlen soll.",
+        "parameters": [
+          { "name": "show", "type": "boolean" },
+          { "name": "label", "type": "string" },
+          { "name": "hide", "type": "array", "items": { "type": "string" } }
+        ]
       }
     ],
     "events": [

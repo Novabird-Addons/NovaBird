@@ -5,6 +5,20 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.5 · Helper 0.3.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### NovaBird-Search: "Ollama on this Mac" for meaning search
+- **On a Mac, Search → Semantic search shows "Ollama on this Mac (recommended)" at the top** (only there; detected via `navigator.platform`): address (default `http://localhost:11434`) → **Connect** (asks once for the permission) → status with Ollama version, whether the tested model is there, whether it is in memory and how much of it on the graphics chip.
+- **Load the tested model** (`jina/jina-embeddings-v2-base-de`, F16, about 308 MB) with progress; the download runs in the background (`semantic:ollama`, `pull`), so closing the settings does not stop it.
+- **Use for meaning search:** switches to Ollama only after the probe texts match the add-on's vectors; otherwise the search keeps computing as before.
+- **Keep the model in memory** (10 minutes / always / only while searching) is sent to Ollama as `keep_alive` and is the same setting as for the add-on model; **Unload now** removes it at once. The context stays fixed at 512 tokens (mails are cut to 1200 characters), so vectors remain comparable with the add-on and other PCs.
+- The Origin header (Ollama refuses `moz-extension://` by default) is now removed as soon as an Ollama address is entered and permitted, not only once Ollama computes. While Ollama computes, the add-on model section is hidden.
+- The setup assistant points Mac users to this section when meaning search would take long in the add-on.
+- Tested in Thunderbird 159 on Windows with the Mac view forced (`?platform=mac`) against a test Ollama: 15 checks (unreachable address, connect, probe, 6 of 6 mails via Ollama, "Elternabend" found, keep-alive always/10 min, unload, pull to success, missing model detected). Not yet tested on a real Mac.
+
+### NovaBird-Extension: folder pane – "What's new?" button like "New message", section "Inboxes"
+- **The "What's new?" button** uses the colours of "New message" (`button-primary`, follows the theme), lines up with it and is only as wide as needed instead of filling the folder pane.
+- **New optional section "Inboxes"** below "Unified folders": one row per account with its inbox (account name, unread count, click opens it). Off by default; Message list tab → "Folder pane", with a tick per account (new accounts appear automatically; Local Folders follow "hide Local Folders", deferred POP accounts are left out). Built on Thunderbird's own folder pane modes (`folderPane._modes`), so counts and selection behave like the built-in sections; self-test `folderInboxes`.
+- Tested in Thunderbird 159: 16 checks (section below "Unified folders", rows and counts, click, hiding an account, new account, off removes it, narrow folder pane).
+
 ### NovaBird-Extension: nothing twice in the calendar – also across PCs and shared calendars
 - **Every event and task NovaBird creates from a message carries the message's key** (`X-NOVABIRD-MAIL`, a SHA-256 hash of the Message-ID, not the ID itself; `nbAI.mailKey`). It stays in the item, so shared calendars of the NovaBird Helper (which stores items unchanged) pass it on to the other PCs and colleagues; no Helper change needed.
 - **Before offering anything, NovaBird looks in all enabled calendars** (experiment `novaCalendar.mailItems`, completed tasks included, a broken calendar does not stop the others):

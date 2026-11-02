@@ -8,6 +8,9 @@
   "aiButton": {
     "message": "AI assistant: summarise, translate, dates"
   },
+  "folderInboxes": {
+    "message": "Inboxes"
+  },
   "aiOverview": {
     "message": "What's new?"
   },
