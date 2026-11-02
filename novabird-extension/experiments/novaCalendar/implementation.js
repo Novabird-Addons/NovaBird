@@ -68,6 +68,17 @@ const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 const taskCalendar = cal => c =>
   !c.getProperty("disabled") && cal.acl.isCalendarWritable(c) && cal.acl.userCanAddItemsToCalendar(c) && c.getProperty("capabilities.tasks.supported") !== false;
 
+// Herkunft eines Eintrags: Kennung(en) der Mail (gehasht, ai.js mailKey). Bleibt in der .ics, also auch in geteilten
+// Kalendern des Helpers – so sehen andere PCs und Kollegen, dass aus der Mail schon etwas angelegt wurde.
+const MAIL_PROP = "X-NOVABIRD-MAIL";
+const MAIL_KEY = /^[A-Za-z0-9_-]{8,64}$/;
+const tagMail = (item, keys) => {
+  const list = String(keys || "").split(" ").filter(k => MAIL_KEY.test(k)).slice(0, 8);
+  if (list.length) {
+    item.setProperty(MAIL_PROP, list.join(" "));
+  }
+};
+
 // Adresse der Team-Kalender eines Helpers ohne Benutzer-Teil: http(s)://host:port/dav/
 const helperPrefix = davUrl => {
   return Services.io.newURI(davUrl).prePath + "/dav/";
@@ -1072,6 +1083,7 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
             if (it.description) {
               todo.setProperty("DESCRIPTION", String(it.description).slice(0, 4000));
             }
+            tagMail(todo, it.mail);
             const due = cal.dtz.now();
             due.isDate = true; // fällig heute (ganzer Tag)
             todo.dueDate = due;
@@ -1080,6 +1092,48 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
             count++;
           }
           return { count, calendar: target.name };
+        },
+        async mailItems(keys) {
+          const { cal } = ChromeUtils.importESModule("resource:///modules/calendar/calUtils.sys.mjs");
+          const wanted = new Set((keys || []).filter(k => MAIL_KEY.test(k)));
+          if (!wanted.size) {
+            return [];
+          }
+          const zone = cal.dtz.defaultTimezone;
+          const day = dt => {
+            if (!dt) {
+              return "";
+            }
+            const d = dt.isDate ? dt : dt.getInTimezone(zone);
+            return `${d.year}-${String(d.month + 1).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`;
+          };
+          const start = cal.dtz.now();
+          start.day -= 60;
+          const end = cal.dtz.now();
+          end.day += 400;
+          const filter = Ci.calICalendar.ITEM_FILTER_TYPE_ALL | Ci.calICalendar.ITEM_FILTER_COMPLETED_ALL;
+          const out = [];
+          for (const c of cal.manager.getCalendars()) {
+            if (c.getProperty("disabled")) {
+              continue;
+            }
+            try {
+              // ein gestörter Kalender (z. B. Helper nicht erreichbar) soll die anderen nicht verhindern
+              for (const item of await c.getItemsAsArray(filter, 0, start, end)) {
+                const tag = item.getProperty(MAIL_PROP);
+                if (!tag) {
+                  continue;
+                }
+                const isTask = item.isTodo();
+                for (const mail of String(tag).split(" ").filter(k => wanted.has(k))) {
+                  out.push({ mail, type: isTask ? "task" : "event", date: day(isTask ? item.dueDate || item.entryDate : item.startDate), calendar: c.name });
+                }
+              }
+            } catch (e) {
+              console.warn("NovaBird: Kalender nicht lesbar", c.name, e);
+            }
+          }
+          return out;
         },
         async openItemDialogs(items, calendarId) {
           // Nur ExtensionError-Meldungen erreichen die Erweiterung, andere Fehler kommen als „unexpected error“ an
@@ -1125,6 +1179,7 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
             if (it.description) {
               item.setProperty("DESCRIPTION", String(it.description).slice(0, 4000));
             }
+            tagMail(item, it.mail);
             if (isTask) {
               const due = toDateTime(it.due || it.start, true);
               if (due) {

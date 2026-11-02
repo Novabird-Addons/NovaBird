@@ -5,6 +5,15 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.5 · Helper 0.3.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### NovaBird-Extension: nothing twice in the calendar – also across PCs and shared calendars
+- **Every event and task NovaBird creates from a message carries the message's key** (`X-NOVABIRD-MAIL`, a SHA-256 hash of the Message-ID, not the ID itself; `nbAI.mailKey`). It stays in the item, so shared calendars of the NovaBird Helper (which stores items unchanged) pass it on to the other PCs and colleagues; no Helper change needed.
+- **Before offering anything, NovaBird looks in all enabled calendars** (experiment `novaCalendar.mailItems`, completed tasks included, a broken calendar does not stop the others):
+  - "What's new?" → **To do**: a line whose messages already have an entry is shown done with "Already in calendar ‘…’" and cannot be ticked – e.g. the 11:00 run after the 07:00 run, or a colleague already created it.
+  - **Deadlines** (overview and below the summary): "In calendar" instead of "Remind me" when a task from that message with that due date exists.
+  - **Appointments** tab of the AI window: entries already in the calendar (same message, type and date) are unticked and marked.
+- Calendars that drop unknown properties (e.g. some Exchange or Google providers) only get the local "Task opened" note as before. Others see the entry after their Thunderbird's next calendar sync.
+- Tested in Thunderbird 159: task from "To do" carries the key (also in the iCalendar text sent to the server), second run locks the line, the other message stays free; the task dialog keeps the key when saved; deadline with a different date stays free, with the same date shows "In calendar"; completed tasks still count. Unit test `tests/deadlines.test.js`.
+
 ### NovaBird-Extension: "What's new?" – button below "New message", several times, window fits its content
 - **Button below "New message"** in the folder pane (experiment `messageList`, event `onNewsButton`): Thunderbird puts add-on buttons at the right end of the top toolbar, and many hide that toolbar. Shows the number of new messages of an automatic overview nobody has looked at yet; a click opens the overview right below the button (only one window). Shown while the AI and "What's new?" are on; the toolbar button stays.
 - **Schedule:** instead of a drop-down plus a lone time field (which wrapped onto its own line), one button "Automatically: 07:00 · 12:00 · 15:00" that opens a small panel: off, daily at up to three times (add with "+ time", remove with ✕), or every 1/2/4/8 hours. `ai/schedule.js`: due is the latest time of today that has passed and has not run yet (catches up once), otherwise the next one; old settings with one `time` keep working; changing the times starts counting from now. Unit test `tests/schedule.test.js`.

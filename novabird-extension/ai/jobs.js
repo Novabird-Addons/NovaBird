@@ -51,6 +51,7 @@
       // Einzelne Mail: vorbereitete Zusammenfassung (ai/prep.js, auch von einem anderen PC über den Helper) nehmen, sonst
       // rechnen und für die anderen PCs ablegen. „Neu erstellen“ rechnet immer.
       const src = !thread ? { msg: message, msgId: message.headerMessageId || `local:${message.id}`, text, hash: await nbAI.textHash(text) } : null;
+      if (src) j.msgKey = src.msgId; // Termine: was steht aus dieser Mail schon im Kalender?
       if (src && r.mode === "summary") {
         shared = await nbPrep.lookup(conf, "sum", nbPrep.sumVariant(conf, r.uiLang), src, { claim: true, wait: !r.force, local: !r.force }).catch(() => ({}));
       }

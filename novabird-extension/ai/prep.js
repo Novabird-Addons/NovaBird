@@ -385,7 +385,7 @@
       entries.push(d || { cat: "info", who: m.author || "", what: m.subject || "", tasks: [] });
     }
     onProgress(items.length, items.length);
-    const mails = items.map(m => ({ id: m.id, subject: m.subject, author: m.author }));
+    const mails = items.map(m => ({ id: m.id, msgId: m.msgId, subject: m.subject, author: m.author }));
     return { text: entries.length ? nbAI.digestOverviewText(lang, entries) : "", mails, total, suspicious, prepared: true };
   }
 

@@ -1075,6 +1075,8 @@ const nbAI = (() => {
   /** Prüfsumme des Mailtextes (16 Hex-Zeichen). */
   const textHash = nbNet.textHash;
   /** Kennung eines Ergebnisses: kind "digest" oder "sum", variant z. B. Sprache. */
+  // Kennung einer Mail für Kalendereinträge (X-NOVABIRD-MAIL): gleich auf allen PCs, ohne die Message-ID preiszugeben
+  const mailKey = async msgId => (!msgId || msgId.startsWith("local:") ? "" : b64url(await sha256(`nbx-mail|${msgId}`)).slice(0, 22));
   const shareId = async (kind, variant, msgId, hash) => b64url(await sha256(`nbx1|${kind}|${variant}|${msgId}|${hash}`));
   async function shareKey(msgId, hash) {
     return crypto.subtle.importKey("raw", await sha256(`nbx1-key|${msgId}|${hash}`), "AES-GCM", false, ["encrypt", "decrypt"]);
@@ -1123,7 +1125,7 @@ const nbAI = (() => {
       } catch (e) {
         /* nur Kopfzeile */
       }
-      items.push({ id: m.id, author: m.author, date: m.date, subject: m.subject, text });
+      items.push({ id: m.id, msgId: m.headerMessageId || "", author: m.author, date: m.date, subject: m.subject, text });
     }
     return { items, total };
   }
@@ -1133,7 +1135,7 @@ const nbAI = (() => {
   async function overview(c, uiLang, { hours = 24, unreadOnly = true, max = 40, perMail = 700 } = {}, onText = () => {}, signal) {
     const { items, total } = await newMails({ hours, unreadOnly, max, perMail }, c);
     if (signal?.aborted) throw new DOMException("abgebrochen", "AbortError");
-    const mails = items.map(m => ({ id: m.id, subject: m.subject, author: m.author }));
+    const mails = items.map(m => ({ id: m.id, msgId: m.msgId, subject: m.subject, author: m.author }));
     if (!items.length) return { text: "", mails, total, suspicious: false };
     const text = await chat(c, overviewPrompt(uiLang, items), onText, signal, { maxNew: 1500 });
     return { text, mails, total, suspicious: items.some(m => suspicious(m.text)) };
@@ -1168,6 +1170,6 @@ const nbAI = (() => {
   return {
     DEFAULTS, FEATURES, SPEECH_RATES, feature, isLocal, origin, listModels, chat, helperHello, speak, sentences, guessLang, mailText, threadText, prompt, promptTemplate, suspicious, base, stats: () => lastStats,
     TRANSLATE_LANGS, languageName, translatePrompt, eventsPrompt, parseItems, newMails, stripQuotedText, overview,
-    writePrompt, digestPrompt, parseDigest, digestOverviewText, PHISH_VARIANT, phishPrompt, parsePhish, privateHost, phishLocal, textHash, shareId, seal, unseal, shareGet, sharePut, shareRelease,
+    writePrompt, digestPrompt, parseDigest, digestOverviewText, PHISH_VARIANT, phishPrompt, parsePhish, privateHost, phishLocal, textHash, shareId, mailKey, seal, unseal, shareGet, sharePut, shareRelease,
   };
 })();

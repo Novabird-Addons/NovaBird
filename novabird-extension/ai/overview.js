@@ -81,7 +81,7 @@ for (const [h, label] of Object.entries(t.hours)) {
 let controller = null;
 let plain = "";
 let mails = [];
-let todos = []; // Zeilen unter „Zu erledigen“: {title, refs, box}
+let todos = []; // Zeilen unter „Zu erledigen“: {title, refs, box, keys}
 const LAST = "aiOverviewLast";
 
 function setNote(lines) {
@@ -191,6 +191,7 @@ function showResult(res, notes) {
     return;
   }
   render(res.text);
+  lockTodos();
   const total = res.total ?? mails.length;
   notes.push(total > mails.length ? t.more.replace("$1", String(total)).replace("$2", String(mails.length)) : t.count.replace("$1", String(mails.length)));
   setNote(notes);
@@ -269,11 +270,37 @@ async function showDeadlines() {
   nbDeadlines.render($("deadlines"), list || [], key => showError(key));
 }
 
+// Kennungen der Mails einer Zeile (alle oder keine)
+async function keysOf(x) {
+  const keys = await Promise.all(x.refs.map(n => nbAI.mailKey(mails[n - 1]?.msgId)));
+  return keys.length && keys.every(Boolean) ? keys : [];
+}
+
+// „Zu erledigen“, woraus schon etwas im Kalender steht (auch von einem früheren Lauf, einem anderen PC oder einem Kollegen
+// über einen geteilten Kalender des Helpers): Häkchen gesperrt
+async function lockTodos() {
+  const list = todos;
+  for (const x of list) x.keys = await keysOf(x);
+  const found = await nbDeadlines.lookup(list.flatMap(x => x.keys));
+  if (list !== todos) return; // inzwischen neu gerechnet
+  for (const x of list) {
+    const name = nbDeadlines.inCalendar(found, { keys: x.keys });
+    if (!name) continue;
+    x.box.checked = false;
+    x.box.disabled = true;
+    x.box.closest(".item")?.classList.add("done");
+    x.box.closest(".todo").title = nbDeadlines.inCalTip(name);
+  }
+  updateTasksButton();
+}
+
 // Ausgewählte Zeilen unter „Zu erledigen“ als Aufgaben (fällig heute) anlegen
 $("tasks").addEventListener("click", async () => {
   const chosen = todos.filter(x => x.box.checked && !x.box.disabled);
+  for (const x of chosen) x.keys ||= await keysOf(x);
   const items = chosen.map(x => ({
     title: x.title.slice(0, 200),
+    mail: x.keys.join(" "),
     description: x.refs.map(n => mails[n - 1]).filter(Boolean).map(m => `${t.fromMail}: ${m.subject || ""} – ${m.author || ""}`).join("\n"),
   }));
   try {

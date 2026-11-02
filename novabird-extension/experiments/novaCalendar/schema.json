@@ -110,7 +110,8 @@
                 "allDay": { "type": "boolean", "optional": true },
                 "location": { "type": "string", "optional": true },
                 "description": { "type": "string", "optional": true },
-                "alarm": { "type": "string", "optional": true, "description": "dayBefore: Erinnerung am Vortag um 9 Uhr (Aufgaben mit Fälligkeit)" }
+                "alarm": { "type": "string", "optional": true, "description": "dayBefore: Erinnerung am Vortag um 9 Uhr (Aufgaben mit Fälligkeit)" },
+                "mail": { "type": "string", "optional": true, "description": "Kennung der Mail (nbAI.mailKey), wird als X-NOVABIRD-MAIL mitgespeichert" }
               }
             }
           },
@@ -169,12 +170,20 @@
               "type": "object",
               "properties": {
                 "title": { "type": "string" },
-                "description": { "type": "string", "optional": true }
+                "description": { "type": "string", "optional": true },
+                "mail": { "type": "string", "optional": true, "description": "Kennung(en) der Mail(s), mit Leerzeichen getrennt" }
               }
             }
           },
           { "name": "calendarId", "type": "string", "optional": true }
         ]
+      },
+      {
+        "name": "mailItems",
+        "type": "function",
+        "async": true,
+        "description": "Termine und Aufgaben, die NovaBird aus diesen Mails angelegt hat (X-NOVABIRD-MAIL), in allen eingeschalteten Kalendern – auch erledigte und solche aus geteilten Kalendern des Helpers: [{mail, type, date, calendar}]; date = YYYY-MM-DD (Beginn bzw. Fälligkeit).",
+        "parameters": [{ "name": "keys", "type": "array", "items": { "type": "string" } }]
       },
       {
         "name": "getStatus",

@@ -105,8 +105,9 @@ port.onMessage.addListener(j => {
   const s = state[j.mode];
   if (!s || j.key !== s.key) return;
   const selected = s.items?.map(it => it.selected);
+  const inCal = s.items?.map(it => it.inCal);
   s.text = j.text || "";
-  s.items = j.items ? j.items.map((it, i) => ({ ...it, selected: selected?.[i] ?? true, description: `${it.note ? it.note + "\n\n" : ""}${t.fromMail}: ${j.from}` })) : null;
+  s.items = j.items ? j.items.map((it, i) => ({ ...it, selected: selected?.[i] ?? true, inCal: inCal?.[i] || "", description: `${it.note ? it.note + "\n\n" : ""}${t.fromMail}: ${j.from}` })) : null;
   s.notes = (j.notes || []).map(NOTE_TEXT).filter(Boolean);
   s.warn = j.warn;
   s.error = j.error ? t[j.error] || `${t.fail}\n${j.error}` : "";
@@ -117,7 +118,28 @@ port.onMessage.addListener(j => {
   s.deadlines = j.deadlines?.length ? j.deadlines.map(d => ({ ...d, msgId: j.msgKey, subject, author: by.join(" – ") })) : null;
   if (j.model) $("model").textContent = j.model;
   if (j.mode === mode) show();
+  if (j.mode === "events" && j.status === "done" && s.items?.length) markInCalendar(s, j.key, j.msgKey);
 });
+
+// Termine und Aufgaben dieser Mail, die schon im Kalender stehen (auch von einem anderen PC oder über einen geteilten
+// Kalender des Helpers): abgewählt und gekennzeichnet
+async function markInCalendar(s, key, msgId) {
+  const mail = await nbAI.mailKey(msgId);
+  s.mail = mail;
+  if (!mail) return;
+  const found = await nbDeadlines.lookup([mail]);
+  if (s.key !== key || !s.items) return;
+  let changed = false;
+  for (const it of s.items) {
+    const name = nbDeadlines.inCalendar(found, { keys: [mail], type: it.type, date: it.type === "task" ? it.due || "" : it.start || "" });
+    if (name && !it.inCal) {
+      it.inCal = name;
+      it.selected = false;
+      changed = true;
+    }
+  }
+  if (changed && mode === "events") show();
+}
 
 // Kleine Darstellung: **fett** und Aufzählungspunkte; kein HTML aus der Antwort
 function renderText(text) {
@@ -164,7 +186,7 @@ function renderItems(items) {
   list.replaceChildren();
   for (const it of items) {
     const li = document.createElement("li");
-    const box = Object.assign(document.createElement("input"), { type: "checkbox", checked: it.selected !== false });
+    const box = Object.assign(document.createElement("input"), { type: "checkbox", checked: it.selected !== false && !it.inCal, disabled: Boolean(it.inCal) });
     box.addEventListener("change", () => {
       it.selected = box.checked;
       li.classList.toggle("off", !box.checked);
@@ -178,14 +200,15 @@ function renderItems(items) {
     li.append(box, icon, what, Object.assign(document.createElement("div"), { className: "when", textContent: whenText(it) }));
     if (it.location) li.append(Object.assign(document.createElement("div"), { className: "where", textContent: it.location }));
     if (it.note) li.append(Object.assign(document.createElement("div"), { className: "note", textContent: it.note }));
-    li.classList.toggle("off", it.selected === false);
+    if (it.inCal) li.append(Object.assign(document.createElement("div"), { className: "note", textContent: nbDeadlines.inCalTip(it.inCal) }));
+    li.classList.toggle("off", it.selected === false || Boolean(it.inCal));
     list.append(li);
   }
 }
 
 function updateCalendarButton() {
   const items = state.events.items || [];
-  const n = items.filter(it => it.selected !== false).length;
+  const n = items.filter(it => it.selected !== false && !it.inCal).length;
   $("toCalendar").textContent = t.toCalendar.replace("$1", String(n));
   $("toCalendar").disabled = n === 0;
 }
@@ -360,11 +383,11 @@ $("copy").addEventListener("click", async () => {
   setTimeout(() => ($("copy").textContent = t.copy), 1500);
 });
 $("toCalendar").addEventListener("click", async () => {
-  const chosen = (state.events.items || []).filter(it => it.selected !== false);
+  const chosen = (state.events.items || []).filter(it => it.selected !== false && !it.inCal);
   try {
     const fields = ["type", "title", "start", "end", "due", "allDay", "location", "description"];
     opened = await messenger.novaCalendar.openItemDialogs(chosen.map(it =>
-      Object.fromEntries(fields.filter(k => it[k] !== undefined && it[k] !== "").map(k => [k, it[k]]))), fixedCalendar || undefined);
+      ({ ...Object.fromEntries(fields.filter(k => it[k] !== undefined && it[k] !== "").map(k => [k, it[k]])), ...(state.events.mail ? { mail: state.events.mail } : {}) })), fixedCalendar || undefined);
   } catch (e) {
     const key = String(e.message || e).replace(/^Error: /, "");
     state.events.error = t[key] || `${t.fail}\n${key}`;
