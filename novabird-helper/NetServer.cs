@@ -9,6 +9,7 @@
 //             Inhalt {ts, rid, op, …}: Zeitstempel (±10 min) und eine zufällige Anfrage-Kennung (nur einmal gültig)
 //    Antwort  {n, d}, AAD "nbh1-res|<rid>" (gehört genau zu dieser Anfrage)
 //    Wer den Code nicht kennt, bekommt 403; nach 20 Fehlversuchen in einer Minute wird die Adresse eine Minute gesperrt.
+//    Weicht ts mehr als 10 Minuten ab (oder kommt rid doppelt): verschlüsselte Antwort {ok:false, error, clock:true, now: Zeit des Helpers in ms}.
 //  - op "hello" {label, model:{id, revision}} -> Info (mit Gruppe und web: Port, im Netz, SHA-256 des HTTPS-Zertifikats – so
 //    kann Thunderbird den Team-Kalender ohne Zertifikatsdialog einbinden: der Fingerabdruck kommt über den gekoppelten Weg); op "embed" {model, texts, prio:"query"|"index"} -> {vectors}
 //  - op "vlookup" {model, items:[{id, h}]} -> {found:[Index], vectors}: schon gerechnete Vektoren anderer PCs (VectorStore.cs);
@@ -303,8 +304,11 @@ sealed class NetServer
             if (group == null) throw new CryptographicException();
             clientGroup[client] = group;
         }
-        catch
+        catch (Exception e)
         {
+            // erster Fehlversuch einer Adresse in der Minute ins Protokoll (Fehlersuche bei neuen Geräten), weitere nur gezählt
+            if (!failures.TryGetValue(ip, out var f) || DateTime.UtcNow - f.Since > TimeSpan.FromMinutes(1))
+                Log.Write($"Netz {ip}: Anfrage abgelehnt ({(e is CryptographicException ? "Code passt nicht" : "ungültiges Format")})");
             Fail(ip);
             await Task.Delay(200);
             return (403, "{\"error\":\"auth\"}"); // falscher Code oder verfälschte Anfrage
@@ -315,7 +319,9 @@ sealed class NetServer
         JsonObject reply;
         if (string.IsNullOrEmpty(rid) || rid.Length > 64 || (DateTime.UtcNow - ts).Duration() > Skew || !seen.TryAdd(rid, DateTime.UtcNow))
         {
-            reply = new JsonObject { ["ok"] = false, ["error"] = "Anfrage abgelaufen oder wiederholt (Uhrzeit der PCs prüfen)" };
+            // now: Uhrzeit des Helpers (ms), damit das Gerät eine abweichende Uhr erkennt und klar melden kann
+            reply = new JsonObject { ["ok"] = false, ["error"] = "Anfrage abgelaufen oder wiederholt (Uhrzeit der PCs prüfen)", ["clock"] = true, ["now"] = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() };
+            Log.Write($"Netz {ip}: Anfrage abgelaufen oder wiederholt (Zeitunterschied {(DateTime.UtcNow - ts).TotalSeconds:0} s)");
         }
         else
         {

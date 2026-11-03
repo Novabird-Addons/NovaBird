@@ -53,6 +53,11 @@ Unverschlüsseltes JSON; der Schutz kommt aus ECDH + Vergleichszahl.
 
 Danach: `helperConn = { url: "http://<adresse>:<port>", code, label }` und wie bisher `hello` über `/nbhelper/v1`.
 
+**Uhrzeit:** `/nbhelper/v1` nimmt `ts` nur ±10 Minuten an (Schutz gegen Wiederholung). Sonst kommt eine normal verschlüsselte
+Antwort `{"ok":false,"error":"…","clock":true,"now":<Zeit des Helpers in ms>}`. Geräte merken sich dann den Versatz
+(`now` − eigene Zeit) und senden einmal mit korrigiertem `ts` und neuer `rid`; sonst Meldung „Uhrzeit weicht ab“.
+`now` ist mit dem Gruppenschlüssel verschlüsselt und lässt sich ohne Code nicht fälschen.
+
 ## Testvektor (feste Schlüssel, nur zum Prüfen der eigenen Umsetzung)
 
 | | Wert |
