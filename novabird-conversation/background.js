@@ -366,7 +366,8 @@ async function lookup(shown, timing = {}) {
   let entry = convCache.get(shown.id);
   if (entry && Date.now() - entry.at < CONV_TTL) {
     timing.cached = true;
-    return entry;
+    // andere Nachricht desselben Fadens gewählt: Auswahl umsetzen (Issue #6)
+    return selectIn(entry, shown.id, id => [...idCache].find(([, v]) => v === id)?.[0]);
   }
   let pending = lookups.get(shown.id);
   if (!pending) {

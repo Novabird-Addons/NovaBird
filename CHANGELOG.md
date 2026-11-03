@@ -2,6 +2,13 @@
 
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
+## Unreleased (branch `testing`)
+Conversation 0.15.4.1 · unchanged: Extension 1.12.5 · Search 1.2.10 · DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+
+### NovaBird-Conversation 0.15.4.1 (issue #6)
+- **Switching within a thread shows the selected message again.** Selecting another message of the same thread kept the conversation view on the message first looked up (going down a thread worked, going back up stayed on the last one). The conversation cache is shared by all messages of a thread and also stored which message was selected; on a cache hit that old selection was used. It happened on the Gloda/search paths, i.e. while NovaBird-DB did not know the message yet (index updating). Now a cache hit takes the selection from the message actually shown (`selectIn` in `conversation.js`).
+- Tested: unit test; Thunderbird 159 and 158 with a three-message thread clicked like in the report – before the fix the view stayed on the last message, now every step shows the selected one.
+
 ## 1.4.1 (2026-11-03)
 Extension 1.12.5 · unchanged: Search 1.2.10 · Conversation 0.15.4 · DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 
