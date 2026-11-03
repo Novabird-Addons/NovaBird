@@ -3,7 +3,7 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { dedupeByMid, normalizeSubject, parseIds, addressesOf, groupConversation, pickExpanded, rowKey, splitKey, dedupeRows, recipientNames, rowToView } = require("../conversation.js");
+const { dedupeByMid, normalizeSubject, parseIds, addressesOf, groupConversation, pickExpanded, rowKey, splitKey, dedupeRows, recipientNames, rowToView, selectIn } = require("../conversation.js");
 const { sanitizeSettings, SETTINGS_DEFAULTS } = require("../settings.js");
 
 const msg = (id, mid, refs, date, extra = {}) => ({ id, mid, refs, subjectKey: "angebot", date, folderType: "inbox", ...extra });
@@ -131,4 +131,17 @@ test("Gloda/Suche: eine Kopie je Message-ID", () => {
   assert.deepEqual(dedupeByMid(items, 4).map(x => x.id), [2, 4]);
   assert.deepEqual(dedupeByMid(items, 1).map(x => x.id), [1, 3]);
   assert.equal(sanitizeSettings({ engine: "gloda" }).engine, "gloda");
+});
+
+test("Zwischenspeicher: Wechsel innerhalb eines Fadens setzt die Auswahl um (Issue #6)", () => {
+  // Gloda/Suche: Schlüssel = Nachrichten-IDs; gesucht wurde für 12, gewählt ist jetzt 11
+  const entry = { at: 1, messages: [{ id: 11 }, { id: 12 }], selectedKey: 12 };
+  assert.equal(selectIn(entry, 11).selectedKey, 11);
+  assert.equal(entry.selectedKey, 12, "der Speicher selbst bleibt unverändert");
+  assert.equal(selectIn(entry, 12), entry, "gleiche Nachricht: nichts zu tun");
+  // NovaBird-DB: Index-Schlüssel, Zuordnung über keyOf
+  const db = { at: 1, messages: [{ id: "a|f" }, { id: "b|f" }], selectedKey: "b|f" };
+  assert.equal(selectIn(db, 7, id => (id === 7 ? "a|f" : null)).selectedKey, "a|f");
+  // Nachricht gehört nicht zur Konversation: Auswahl bleibt
+  assert.equal(selectIn(db, 9, () => null).selectedKey, "b|f");
 });

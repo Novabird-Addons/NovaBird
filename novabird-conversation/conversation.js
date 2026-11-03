@@ -169,6 +169,19 @@ function rowToView(row) {
   };
 }
 
+/**
+ * Zwischengespeicherte Konversation für eine andere Nachricht desselben Fadens: die Auswahl auf diese Nachricht setzen.
+ * Der Speicher gilt für alle Nachrichten der Konversation; ohne das bliebe die zuerst gesuchte markiert und aufgeklappt
+ * (Issue #6: Inhalt „klebt“ beim Wechsel innerhalb eines Fadens). Schlüssel der Ansicht sind je nach Quelle Nachrichten-IDs
+ * (Gloda, Suche) oder Index-Schlüssel (NovaBird-DB); keyOf(id) liefert für Letztere den Schlüssel zur Nachrichten-ID.
+ */
+function selectIn(entry, shownId, keyOf = () => null) {
+  if (!entry || entry.selectedKey === shownId) return entry;
+  const has = key => key != null && entry.messages.some(m => m.id === key);
+  const key = has(shownId) ? shownId : keyOf(shownId);
+  return has(key) && key !== entry.selectedKey ? { ...entry, selectedKey: key } : entry;
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { dedupeByMid, normalizeSubject, parseIds, addressesOf, groupConversation, pickExpanded, rowKey, splitKey, dedupeRows, recipientNames, rowToView };
+  module.exports = { dedupeByMid, normalizeSubject, parseIds, addressesOf, groupConversation, pickExpanded, rowKey, splitKey, dedupeRows, recipientNames, rowToView, selectIn };
 }

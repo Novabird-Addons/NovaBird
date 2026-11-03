@@ -3,7 +3,12 @@
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
 ## Unreleased (branch `novabird-2.0`)
-NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.5 · Helper 0.3.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
+NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.6 · Helper 0.5.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
+
+### NovaBird-Conversation 0.15.6: switching within a thread shows the selected message (issue #6)
+- Selecting another message of the same thread kept the conversation view on the message first looked up (going down a thread worked, going back up stayed "stuck" on the last one). The conversation cache is shared by all messages of a thread and also stored which message was selected; on a cache hit that old selection was used. It only happened on the Gloda/search paths, i.e. while the NovaBird index did not know the message yet (index updating) – which is why it looked index-related and went away later.
+- Now a cache hit takes the selection from the message actually shown (`selectIn` in `conversation.js`).
+- Tested: unit test; Thunderbird 159 and 158 with a three-message thread clicked like in the report (down, back up, a message outside the thread in between): before the fix the view stayed on the last message, now every step shows the selected one. Also in the 1.4 line as Conversation 0.15.4.1.
 
 ### NovaBird Helper 0.5.0: pairing without typing the code, setup assistant
 - **Pairing mode** (helper web interface → PCs → "Add a device by pairing", 5 minutes): Thunderbird → Settings → NovaBird → AI → NovaBird Helper → **"Search the network for a helper"** finds it (UDP multicast 239.255.77.31, port 47531; the helper answers only in pairing mode and only to private networks), **"Pair"** shows a 6-digit number, the same number appears in the helper; **"Allow"** there hands the group's pairing code to Thunderbird encrypted. Typing address and code by hand still works.
