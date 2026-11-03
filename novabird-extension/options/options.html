@@ -14,14 +14,15 @@
     label.off { color: color-mix(in srgb, currentColor 42%, transparent); pointer-events: none; }
     label.off input { accent-color: color-mix(in srgb, currentColor 42%, transparent); }
     #listTab .wide { max-width: 38em; }
+    /* Nachrichtenliste: vier Spalten (Stil, Dichte, Kontofarbe, Weitere Optionen), schmaler umbrechend */
+    #listTab .cols { grid-template-columns: repeat(auto-fit, minmax(14em, 1fr)); }
     nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+    nav[hidden] { display: none; } /* Einzelansicht im Hub (view=…): keine eigene Reiterleiste */
     nav button { border: 0; background: none; padding: 8px 14px; font: inherit; color: inherit; border-bottom: 2px solid transparent; cursor: pointer; }
     nav button[aria-selected="true"] { border-bottom-color: #2F6BD8; font-weight: 600; }
-    .ai-source { display: grid; gap: 0.35em; margin: 0.6em 0 0.9em; }
     .ai-feat { display: grid; grid-template-columns: repeat(auto-fill, minmax(16em, 1fr)); gap: 0 1.2em; max-width: 52em; }
     .ai-feat label { margin: 0.25em 0; }
     .ai-grid[hidden] { display: none; }
-    .ai-source label { display: flex; gap: 0.5em; align-items: baseline; }
     .st-sub { color: color-mix(in srgb, currentColor 65%, transparent); margin: 2px 0 12px; font-size: 0.92em; }
     .st-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(9em, 1fr)); gap: 10px; margin: 10px 0 12px; }
     .st-kpi { background: color-mix(in srgb, currentColor 6%, transparent); border-radius: 10px; padding: 10px 14px; }
@@ -142,6 +143,7 @@
     <button type="button" data-tab="calendar" id="tabCalendar"></button>
     <button type="button" data-tab="pilotTab" id="tabPilot"></button>
     <button type="button" data-tab="rulesTab" id="tabRules"></button>
+    <button type="button" data-tab="aiViewTab" id="tabAiView"></button>
     <button type="button" data-tab="aiTab" id="tabAi"></button>
     <button type="button" data-tab="statsTab" id="tabStats"></button>
     <button type="button" data-tab="screenTab" id="tabScreen"></button>
@@ -209,11 +211,13 @@
     <div id="acctColors"></div>
     <p id="listAcctNote"></p>
     </div>
-    </div>
+    <div>
     <h4 id="listDetailsTitle"></h4>
     <label><input type="checkbox" id="listPreview"> <span id="listPreviewLabel"></span></label>
     <label><input type="checkbox" id="listAvatars"> <span id="listAvatarsLabel"></span></label>
     <label><input type="checkbox" id="listScroll"> <span id="listScrollLabel"></span></label>
+    </div>
+    </div>
     <h4 id="inboxTitle"></h4>
     <label><input type="checkbox" id="folderInboxes"> <span id="inboxLabel"></span></label>
     <div id="inboxAccounts" style="margin-inline-start:1.6em"></div>
@@ -307,23 +311,49 @@
     <pre id="diagOut" style="white-space:pre-wrap;user-select:text"></pre>
   </section>
 
+  <section id="aiViewTab" hidden>
+    <h3 id="avTitle"></h3>
+    <p id="avIntro" class="st-sub"></p>
+    <div class="st-acc">
+      <div class="st-ah"><span class="st-dot" id="avAiDot"></span><b id="avAiHead"></b><span class="st-am" id="avAiState"></span></div>
+      <p id="avAiWhere" class="st-sub" style="margin:0 0 4px"></p>
+      <p id="avAiModel" class="st-sub" style="margin:0 0 8px"></p>
+      <div class="ai-feat" id="avFeats"></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0 2px">
+        <button type="button" id="avAiTest"></button><span id="avAiOut" class="st-sub" style="margin:0"></span>
+        <span style="flex:1"></span><button type="button" id="avAiOpen"></button>
+      </div>
+    </div>
+    <div class="st-acc">
+      <div class="st-ah"><span class="st-dot" id="avHDot"></span><b>NovaBird Helper</b><span class="st-am" id="avHState"></span></div>
+      <p id="avHText" class="st-sub" style="margin:0 0 8px"></p>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0 2px">
+        <button type="button" id="avHTest"></button><span id="avHOut" class="st-sub" style="margin:0"></span>
+        <span style="flex:1"></span><button type="button" id="avHOpen"></button>
+      </div>
+    </div>
+    <div class="st-acc">
+      <div class="st-ah"><b id="avSemHead"></b></div>
+      <p id="avSemText" class="st-sub" style="margin:0 0 8px"></p>
+      <button type="button" id="avSemOpen"></button>
+    </div>
+    <p id="avNote" class="st-sub"></p>
+  </section>
+
   <section id="aiTab" hidden>
     <h3 id="aiTitle"></h3>
     <p id="aiDesc" class="st-sub"></p>
     <label><input type="checkbox" id="aiEnabled"> <span id="aiEnabledLabel"></span></label>
     <div id="aiBody">
-    <div class="ai-source">
-      <label><input type="radio" name="aiSource" value="helper"> <span id="aiSrcHelper"></span></label>
-      <label><input type="radio" name="aiSource" value="own"> <span id="aiSrcOwn"></span></label>
+    <!-- Rechnet der NovaBird Helper (Reiter „NovaBird Helper“), steht hier nur, wie es läuft; sonst der eigene Server -->
+    <div class="st-acc" id="aiViaHelper" hidden>
+      <p id="aiViaHelperText" class="st-sub" style="margin:0 0 8px"></p>
+      <button type="button" class="ai-open-helper" id="aiOpenHelper"></button>
     </div>
-    <div class="ai-grid" id="aiHelperModelRow" hidden>
-      <label for="aiHelperModel" id="aiHelperModelLabel"></label>
-      <select id="aiHelperModel"></select>
-    </div>
-    <p id="aiHelperModelHint" class="st-sub" hidden></p>
-    <div class="ai-grid">
+    <div id="aiOwn">
+    <div class="ai-grid" id="aiServerGrid">
       <label for="aiType" id="aiTypeLabel"></label>
-      <select id="aiType"><option value="ollama">Ollama</option><option value="openai">OpenAI-API</option><option value="nbhelper">NovaBird Helper</option></select>
+      <select id="aiType"><option value="ollama">Ollama</option><option value="openai">OpenAI-API</option><option value="nbhelper" hidden>NovaBird Helper</option></select>
       <label for="aiUrl" id="aiUrlLabel"></label>
       <input type="text" id="aiUrl" spellcheck="false" autocomplete="off">
       <label for="aiModel" id="aiModelLabel"></label>
@@ -342,6 +372,11 @@
     <div style="display:flex;gap:10px;align-items:center;margin:10px 0">
       <button type="button" id="aiTest"></button>
       <span id="aiStatus"></span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 10px">
+      <span id="aiHelperTip" class="st-sub" style="margin:0"></span>
+      <button type="button" class="ai-open-helper" id="aiOpenHelper2"></button>
+    </div>
     </div>
     <h4 id="aiFeatTitle"></h4>
     <p id="aiFeatDesc" class="st-sub"></p>

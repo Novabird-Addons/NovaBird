@@ -47,11 +47,11 @@
     <button type="button" id="nbc-other-later" data-i18n="otherConvLater"></button>
   </div>
   <div class="tabs" role="tablist">
-    <button type="button" role="tab" id="tab-settings" aria-selected="true" aria-controls="panel-settings" data-i18n="optTabSettings"></button>
-    <button type="button" role="tab" id="tab-look" aria-selected="false" aria-controls="panel-look" data-i18n="optTabLook"></button>
+    <button type="button" role="tab" id="tab-look" aria-selected="true" aria-controls="panel-look" data-i18n="optTabLook"></button>
+    <button type="button" role="tab" id="tab-settings" aria-selected="false" aria-controls="panel-settings" data-i18n="optTabSettings"></button>
   </div>
 
-  <div class="panel" id="panel-settings" role="tabpanel" aria-labelledby="tab-settings">
+  <div class="panel" id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
     <div class="row"><label for="engine" data-i18n="optEngine"></label>
       <select id="engine"><option value="auto" data-i18n="optEngineAuto"></option><option value="db" data-i18n="optEngineDb"></option><option value="gloda" data-i18n="optEngineGloda"></option><option value="query" data-i18n="optEngineQuery"></option></select></div>
     <p class="hint" data-i18n="optEngineHint"></p>
@@ -73,7 +73,7 @@
     <p class="hint" data-i18n="optDebugTimingHint"></p>
   </div>
 
-  <div class="panel" id="panel-look" role="tabpanel" aria-labelledby="tab-look" hidden>
+  <div class="panel" id="panel-look" role="tabpanel" aria-labelledby="tab-look">
     <h3 data-i18n="optStyle"></h3>
     <div class="styles" role="radiogroup">
       <label class="style"><img src="img/style-soft.svg" alt=""><span class="name"><input type="radio" name="style" value="soft"> <span data-i18n="optStyleSoft"></span></span><span class="desc" data-i18n="optStyleSoftDesc"></span></label>

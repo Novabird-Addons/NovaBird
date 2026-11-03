@@ -13,9 +13,10 @@
       fail: "Keine Verbindung: $1", errCode: "Kopplungscode passt nicht", errPerm: "Erlaubnis für die Adresse fehlt – „Verbinden“ klicken",
       openWeb: "Web-Oberfläche öffnen", useTitle: "Wofür nutzen?",
       useSearch: "Suche: Bedeutungssuche im Helper rechnen", useAi: "KI-Assistent: Sprachmodell des Helpers",
-      searchMissing: "NovaBird-Search ist nicht installiert.", searchOn: "Die Suche rechnet im Helper.", searchOff: "Die Suche rechnet ohne Helper (Wortsuche bleibt immer).",
+      searchMissing: "NovaBird-Search ist nicht installiert.", searchOn: "Die Suche rechnet im Helper.", searchOff: "Die Suche rechnet ohne Helper – Einstellungen dafür unter Suche → Bedeutungssuche (Wortsuche bleibt immer).",
       searchChecking: "Prüfe den Helper mit den Probetexten …", searchFail: "Suche: $1",
-      aiOn: "Der KI-Assistent nutzt $1 im Helper.", aiNoModel: "Eingeschaltet – im Helper ist aber noch kein Sprachmodell gewählt (Web-Oberfläche → Sprachmodell).", aiOff: "Aus – oder ein eigener Server unter „KI-Assistent“.", aiOther: "Der KI-Assistent nutzt gerade einen eigenen Server ($1); Häkchen setzen, um auf den Helper umzustellen.",
+      aiOn: "Der KI-Assistent nutzt $1 im Helper.", aiNoModel: "Eingeschaltet – im Helper ist aber noch kein Sprachmodell gewählt (Web-Oberfläche → Sprachmodell).", aiOff: "Aus – ein eigener Server lässt sich unter KI → KI-Assistent eintragen.",
+      modelLabel: "Sprachmodell (nur dieser PC)", modelDefault: "Wie im Helper eingestellt ($1)", modelHint: "Ein anderes Modell als im Helper lädt dort beim ersten Mal neu (einige Sekunden) und braucht Grafikspeicher.", aiOther: "Der KI-Assistent nutzt gerade einen eigenen Server ($1); Häkchen setzen, um auf den Helper umzustellen.",
       calLabel: "Team-Kalender", calUser: "Benutzername", calPassword: "Passwort", calAdd: "Kalender einbinden",
       calHint: "Mit Benutzername und Passwort der Web-Oberfläche des Helpers. Thunderbird merkt sich das Passwort.",
       calAdded: "Eingebunden: $1", calExisting: "Schon eingebunden: $1", calWorking: "Suche Kalender …",
@@ -33,9 +34,10 @@
       fail: "No connection: $1", errCode: "Pairing code does not match", errPerm: "Permission for the address missing – click “Connect”",
       openWeb: "Open web interface", useTitle: "Use it for",
       useSearch: "Search: compute the meaning search in the helper", useAi: "AI assistant: the helper's language model",
-      searchMissing: "NovaBird-Search is not installed.", searchOn: "Search computes in the helper.", searchOff: "Search computes without the helper (word search always stays).",
+      searchMissing: "NovaBird-Search is not installed.", searchOn: "Search computes in the helper.", searchOff: "Search computes without the helper – its settings are under Search → Meaning search (word search always stays).",
       searchChecking: "Checking the helper with the probe texts …", searchFail: "Search: $1",
-      aiOn: "The AI assistant uses $1 in the helper.", aiNoModel: "On – but no language model is selected in the helper yet (web interface → Language model).", aiOff: "Off – or your own server under “AI assistant”.", aiOther: "The AI assistant currently uses your own server ($1); tick to switch to the helper.",
+      aiOn: "The AI assistant uses $1 in the helper.", aiNoModel: "On – but no language model is selected in the helper yet (web interface → Language model).", aiOff: "Off – your own server can be set under AI → AI assistant.",
+      modelLabel: "Language model (this PC only)", modelDefault: "As set in the helper ($1)", modelHint: "A model other than the helper's is loaded there the first time (a few seconds) and needs graphics memory.", aiOther: "The AI assistant currently uses your own server ($1); tick to switch to the helper.",
       calLabel: "Team calendars", calUser: "User name", calPassword: "Password", calAdd: "Add calendars",
       calHint: "With user name and password of the helper's web interface. Thunderbird remembers the password.",
       calAdded: "Added: $1", calExisting: "Already added: $1", calWorking: "Looking for calendars …",
@@ -53,9 +55,10 @@
       fail: "Pas de connexion : $1", errCode: "Le code d’appairage ne correspond pas", errPerm: "Autorisation pour l’adresse manquante – cliquez sur « Connecter »",
       openWeb: "Ouvrir l’interface web", useTitle: "Utiliser pour",
       useSearch: "Recherche : calculer la recherche par le sens dans le Helper", useAi: "Assistant IA : modèle de langage du Helper",
-      searchMissing: "NovaBird-Search n’est pas installé.", searchOn: "La recherche calcule dans le Helper.", searchOff: "La recherche calcule sans le Helper (la recherche par mots reste toujours).",
+      searchMissing: "NovaBird-Search n’est pas installé.", searchOn: "La recherche calcule dans le Helper.", searchOff: "La recherche calcule sans le Helper – réglages sous Recherche → Recherche par le sens (la recherche par mots reste toujours).",
       searchChecking: "Vérification du Helper avec les textes de test …", searchFail: "Recherche : $1",
-      aiOn: "L’assistant IA utilise $1 dans le Helper.", aiNoModel: "Activé – mais aucun modèle de langage n’est encore choisi dans le Helper (interface web → Modèle de langage).", aiOff: "Désactivé – ou votre propre serveur sous « Assistant IA ».", aiOther: "L’assistant IA utilise votre propre serveur ($1) ; cochez pour passer au Helper.",
+      aiOn: "L’assistant IA utilise $1 dans le Helper.", aiNoModel: "Activé – mais aucun modèle de langage n’est encore choisi dans le Helper (interface web → Modèle de langage).", aiOff: "Désactivé – un serveur à vous se règle sous IA → Assistant IA.",
+      modelLabel: "Modèle de langage (ce PC seulement)", modelDefault: "Comme dans le helper ($1)", modelHint: "Un autre modèle que celui du helper y est chargé la première fois (quelques secondes) et utilise de la mémoire graphique.", aiOther: "L’assistant IA utilise votre propre serveur ($1) ; cochez pour passer au Helper.",
       calLabel: "Calendriers d’équipe", calUser: "Nom d’utilisateur", calPassword: "Mot de passe", calAdd: "Ajouter les calendriers",
       calHint: "Avec le nom d’utilisateur et le mot de passe de l’interface web du Helper. Thunderbird mémorise le mot de passe.",
       calAdded: "Ajoutés : $1", calExisting: "Déjà ajoutés : $1", calWorking: "Recherche des calendriers …",
@@ -73,9 +76,10 @@
       fail: "Sin conexión: $1", errCode: "El código de emparejamiento no coincide", errPerm: "Falta el permiso para la dirección – pulse «Conectar»",
       openWeb: "Abrir la interfaz web", useTitle: "Usar para",
       useSearch: "Búsqueda: calcular la búsqueda por significado en el Helper", useAi: "Asistente IA: modelo de lenguaje del Helper",
-      searchMissing: "NovaBird-Search no está instalado.", searchOn: "La búsqueda calcula en el Helper.", searchOff: "La búsqueda calcula sin el Helper (la búsqueda por palabras siempre sigue).",
+      searchMissing: "NovaBird-Search no está instalado.", searchOn: "La búsqueda calcula en el Helper.", searchOff: "La búsqueda calcula sin el Helper – sus ajustes están en Búsqueda → Búsqueda por significado (la búsqueda por palabras siempre sigue).",
       searchChecking: "Comprobando el Helper con los textos de prueba …", searchFail: "Búsqueda: $1",
-      aiOn: "El asistente IA usa $1 en el Helper.", aiNoModel: "Activado, pero aún no hay modelo de lenguaje elegido en el Helper (interfaz web → Modelo de lenguaje).", aiOff: "Desactivado – o su propio servidor en «Asistente IA».", aiOther: "El asistente IA usa ahora su propio servidor ($1); marque para cambiar al Helper.",
+      aiOn: "El asistente IA usa $1 en el Helper.", aiNoModel: "Activado, pero aún no hay modelo de lenguaje elegido en el Helper (interfaz web → Modelo de lenguaje).", aiOff: "Desactivado – un servidor propio se configura en IA → Asistente IA.",
+      modelLabel: "Modelo de lenguaje (solo este PC)", modelDefault: "Como en el helper ($1)", modelHint: "Un modelo distinto al del helper se carga allí la primera vez (unos segundos) y necesita memoria gráfica.", aiOther: "El asistente IA usa ahora su propio servidor ($1); marque para cambiar al Helper.",
       calLabel: "Calendarios de equipo", calUser: "Nombre de usuario", calPassword: "Contraseña", calAdd: "Añadir calendarios",
       calHint: "Con el nombre de usuario y la contraseña de la interfaz web del Helper. Thunderbird recuerda la contraseña.",
       calAdded: "Añadidos: $1", calExisting: "Ya añadidos: $1", calWorking: "Buscando calendarios …",
@@ -93,7 +97,7 @@
 
   for (const [id, key] of Object.entries({
     intro: "intro", openWeb: "openWeb", useTitle: "useTitle", useSearchLabel: "useSearch", useAiLabel: "useAi", calLabel: "calLabel",
-    calAdd: "calAdd", connText: "connText", urlLabel: "url", codeLabel: "code", labelLabel: "label", connect: "connect", disconnect: "disconnect",
+    calAdd: "calAdd", connText: "connText", urlLabel: "url", codeLabel: "code", labelLabel: "label", connect: "connect", disconnect: "disconnect", aiModelLabel: "modelLabel", aiModelHint: "modelHint",
   })) $(id).textContent = t[key];
   $("calUser").placeholder = t.calUser;
   $("calPassword").placeholder = t.calPassword;
@@ -173,12 +177,21 @@
   });
 
   // ---- KI-Assistent ----
+  // Sprachmodell nur für diesen PC (aiHelperModel): Auswahl nur, wenn der Helper mehrere hat
+  const modelName = m => m.replace(/^ollama:/, "");
   async function showAi() {
-    const c = await messenger.storage.local.get({ aiEnabled: false, aiType: "", aiUrl: "", aiModel: "" });
+    const c = await messenger.storage.local.get({ aiEnabled: false, aiType: "", aiUrl: "", aiModel: "", aiHelperModel: "" });
     const mine = c.aiEnabled && c.aiType === "nbhelper" && conn && c.aiUrl === conn.url;
     $("useAi").checked = Boolean(mine);
-    $("useAiNote").textContent = mine ? (info && !info.chatModel ? t.aiNoModel : fill(t.aiOn, (info?.chatModel || "–").replace(/^ollama:/, "")))
+    const used = c.aiHelperModel || info?.chatModel;
+    $("useAiNote").textContent = mine ? (info && !used ? t.aiNoModel : fill(t.aiOn, modelName(used || "–")))
       : c.aiEnabled && c.aiType !== "nbhelper" ? fill(t.aiOther, c.aiModel || c.aiUrl) : t.aiOff;
+    const others = mine && info ? (info.chatChoices || []).filter(m => m !== info.chatModel) : [];
+    $("aiModelRow").hidden = $("aiModelHint").hidden = !others.length;
+    if (others.length) {
+      $("aiHelperModel").replaceChildren(new Option(fill(t.modelDefault, info.chatModel ? modelName(info.chatModel) : "–"), ""), ...others.map(m => new Option(modelName(m), m)));
+      $("aiHelperModel").value = others.includes(c.aiHelperModel) ? c.aiHelperModel : "";
+    }
   }
 
   $("useAi").addEventListener("change", async () => {
@@ -186,8 +199,12 @@
       await messenger.storage.local.set({ aiEnabled: true, aiType: "nbhelper", aiUrl: conn.url, aiKey: conn.code });
     } else {
       const c = await messenger.storage.local.get({ aiType: "" });
-      if (c.aiType === "nbhelper") await messenger.storage.local.set({ aiEnabled: false });
+      if (c.aiType === "nbhelper") await messenger.storage.local.set({ aiEnabled: false, aiHelperModel: "" });
     }
+    showAi();
+  });
+  $("aiHelperModel").addEventListener("change", async () => {
+    await messenger.storage.local.set({ aiHelperModel: $("aiHelperModel").value });
     showAi();
   });
 

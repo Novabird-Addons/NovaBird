@@ -29,6 +29,7 @@
     .use .note.bad { color: #c0392b; }
     .use .note.good { color: #1e8e5a; }
     .row { display: flex; gap: 0.6em; align-items: center; flex-wrap: wrap; margin: 0.4em 0; }
+    .row[hidden] { display: none; }
     .off { opacity: 0.55; pointer-events: none; }
     details summary { cursor: pointer; color: var(--muted); }
     ul.cals { margin: 0.3em 0; padding-left: 1.2em; }
@@ -58,7 +59,10 @@
     </div>
     <div class="use">
       <input type="checkbox" id="useAi">
-      <div class="body"><label for="useAi" id="useAiLabel"></label><p class="note" id="useAiNote"></p></div>
+      <div class="body"><label for="useAi" id="useAiLabel"></label><p class="note" id="useAiNote"></p>
+        <div class="row" id="aiModelRow" hidden><label for="aiHelperModel" id="aiModelLabel"></label><select id="aiHelperModel"></select></div>
+        <p class="note" id="aiModelHint" hidden></p>
+      </div>
     </div>
     <div class="use">
       <span style="flex: none; width: 1.1em"></span>

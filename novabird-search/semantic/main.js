@@ -995,92 +995,6 @@ function kick() {
   }
 }
 
-// ---- Ordner-Sync über den Helper -------------------------------------------------------------------------------------------
-// Eigene neue Vektoren (seit dem letzten Abgleich) gehen verschlüsselt in den Sync-Ordner, Pakete anderer PCs werden
-// übernommen. Alle 15 Minuten, solange der Helper erreichbar und gekoppelt ist, und auf Knopfdruck.
-const SYNC_KEY = "semanticSync";
-const SYNC_EVERY = 15 * 60_000;
-const PUSH_PART = 3 << 20; // Bytes je Nachricht an den Helper
-let syncing = false;
-const syncState = { at: null, pushed: 0, pulled: 0, error: null };
-
-function toBase64(bytes) {
-  let bin = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) {
-    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-  }
-  return btoa(bin);
-}
-
-async function syncNow() {
-  if (syncing || !cfg.enabled) {
-    return syncState;
-  }
-  syncing = true;
-  try {
-    const info = await connectHelper();
-    if (!info?.sync?.configured) {
-      return syncState;
-    }
-    const m = model();
-    const { [SYNC_KEY]: st = {} } = await messenger.storage.local.get(SYNC_KEY);
-    const since = Number(st[m.id]) || 0;
-    const startedAt = Date.now();
-    // eigene neue Vektoren
-    const blob = await store.exportBlob(m.id, m, since);
-    if (blob.count) {
-      const bytes = new Uint8Array(await blob.arrayBuffer());
-      const parts = Math.ceil(bytes.length / PUSH_PART);
-      for (let i = 0; i < parts; i++) {
-        await helperRequest({ type: "syncPush", model: m.id, revision: m.revision, part: i, parts, data: toBase64(bytes.subarray(i * PUSH_PART, (i + 1) * PUSH_PART)) });
-      }
-    }
-    syncState.pushed = blob.count;
-    // Pakete der anderen PCs
-    let pulled = 0;
-    const pend = await helperRequest({ type: "syncPending", model: m.id, revision: m.revision });
-    for (const pkg of pend.packages || []) {
-      const chunks = [];
-      let offset = 0;
-      let total = Infinity;
-      while (offset < total) {
-        const r = await helperRequest({ type: "syncRead", model: m.id, revision: m.revision, name: pkg.name, offset });
-        const bin = atob(r.data);
-        const chunk = new Uint8Array(bin.length);
-        for (let i = 0; i < bin.length; i++) {
-          chunk[i] = bin.charCodeAt(i);
-        }
-        chunks.push(chunk);
-        offset += chunk.length;
-        total = r.total;
-        if (!chunk.length) {
-          break;
-        }
-      }
-      const buf = await new Blob(chunks).arrayBuffer();
-      pulled += await store.importBuffer(buf, m.id, m);
-      await helperRequest({ type: "syncAck", name: pkg.name });
-    }
-    if (pulled) {
-      doneIds = null;
-      vectors = null;
-    }
-    await messenger.storage.local.set({ [SYNC_KEY]: { ...st, [m.id]: startedAt } });
-    Object.assign(syncState, { at: Date.now(), pulled, error: null });
-  } catch (e) {
-    syncState.error = String(e?.message ?? e);
-  } finally {
-    syncing = false;
-  }
-  return syncState;
-}
-
-setInterval(() => {
-  if (cfg.enabled && cfg.path !== "addon") {
-    syncNow();
-  }
-}, SYNC_EVERY);
-
 // ---- Einstellungen und Schnittstelle für die Einstellungsseite --------------------------------------------------------
 async function loadConfig() {
   const s = await messenger.storage.local.get({ [KEY]: DEFAULTS });
@@ -1146,7 +1060,6 @@ async function status() {
     helper: helper?.info ? { connected: true, ...helper.info } : { connected: false, error: helperError },
     server: { ...serverCfg(), key: "", code: "", clientId: undefined, hasKey: Boolean(serverCfg().key), hasCode: Boolean(serverCfg().code), local: server.isLocal(server.base(serverCfg())), allowed: await serverAllowed() },
     checks: Object.fromEntries(Object.entries(checks).map(([k, v]) => [k, { ok: v.ok, minCos: v.minCos, maxShift: v.maxShift, reason: v.reason, error: v.error, at: v.at, ms: v.ms }])),
-    sync: { ...syncState, running: syncing },
     helperAllowed: await helperAllowed(),
   };
 }
@@ -1337,22 +1250,6 @@ messenger.runtime.onMessage.addListener((msg, sender) => {
         disconnectHelper();
         return { info: await connectHelper(), prepared: res };
       }
-      case "semantic:syncSetup": {
-        await connectHelper();
-        const res = await helperRequest({ type: "syncSetup", folder: String(msg.folder || ""), code: msg.code ? String(msg.code) : null });
-        disconnectHelper(); // Info (sync.configured) neu holen
-        await connectHelper();
-        syncNow();
-        return { code: res.code || null };
-      }
-      case "semantic:syncLeave":
-        await connectHelper();
-        await helperRequest({ type: "syncLeave" });
-        disconnectHelper();
-        await connectHelper();
-        return status();
-      case "semantic:syncNow":
-        return syncNow();
       case "semantic:ollama":
         return ollamaOp(msg.op);
       case "semantic:serverCheck": {

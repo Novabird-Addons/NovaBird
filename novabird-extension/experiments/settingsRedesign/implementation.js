@@ -440,33 +440,55 @@ function injectNav(doc, undo) {
   }
 }
 
-// ---------- NovaBird-Sammelseite: Einstellungen aller installierten NovaBird-Add-ons als Reiter ----------
+// ---------- NovaBird-Sammelseite: Einstellungen nach Themen gruppiert, die übrigen Add-ons am Ende ----------
 
-// Ab 2.0 hat NovaBird-Search (mit Suchindex) die ID des früheren NovaBird-DB, daher der Schlüssel "db" für „Suche“;
+// Ab 2.0 hat NovaBird-Search (mit Suchindex) die ID des früheren NovaBird-DB, daher der Add-on-Schlüssel "db";
 // "search" gibt es nur noch kurz beim Umstieg von 1.x (das alte Add-on wird dann entfernt).
-// Reiter nach Aufgaben statt nach Add-ons: Die Extension liefert drei Seiten (Allgemein, KI-Assistent, NovaBird Helper)
-const HUB_ORDER = ["setup", "extension", "db", "ai", "helper", "search", "conversation", "send", "phishing"];
 // Add-ons mit einer ID außerhalb des Musters novabird-…@novabird (ID lässt sich nicht mehr ändern, sonst verwaisen Einstellungen)
 const HUB_IDS = { "phishing-addon@novabird": "phishing" };
-const HUB_LABEL = {
-  setup: tr("Einrichtung", "Setup", "Configuration", "Configuración"),
-  extension: tr("Allgemein", "General", "Général", "General"),
-  ai: tr("KI-Assistent", "AI assistant", "Assistant IA", "Asistente IA"),
-  helper: "NovaBird Helper",
-  db: tr("Suche", "Search", "Recherche", "Búsqueda"),
-  search: tr("Suchleiste (alt)", "Search bar (old)", "Barre de recherche (ancienne)", "Barra de búsqueda (antigua)"),
-  conversation: tr("Konversation", "Conversation", "Conversation", "Conversación"),
-  send: tr("Senden", "Send", "Envoi", "Envío"),
-  phishing: tr("Phishing-Schutz", "Phishing protection", "Protection anti-hameçonnage", "Protección antiphishing"),
+// Seiten (Unterreiter). addon "extension"/"db": Einzelansichten derselben Optionsseite (view=…); sonst die ganze Optionsseite des Add-ons.
+const HUB_PAGES = {
+  setup: { addon: "extension", path: "setup/setup.html?hub=1", label: tr("Einrichtung", "Setup", "Configuration", "Configuración") },
+  list: { addon: "extension", path: "options/options.html?hub=1&view=list", label: tr("Nachrichtenliste", "Message list", "Liste des messages", "Lista de mensajes") },
+  attach: { addon: "extension", path: "options/options.html?hub=1&view=attach", label: tr("Rechte Leiste, Anhänge, Kalender", "Right pane, attachments, calendar", "Panneau de droite, pièces jointes, agenda", "Panel derecho, adjuntos, calendario") },
+  conversation: { label: tr("Konversation", "Conversation", "Conversation", "Conversación") },
+  colors: { addon: "extension", path: "options/options.html?hub=1&view=colors", label: tr("Farben und Schrift", "Colors and fonts", "Couleurs et police", "Colores y fuentes") },
+  semantic: { addon: "db", view: "semanticTab", label: tr("Bedeutungssuche (Beta)", "Meaning search (beta)", "Recherche par sens (bêta)", "Búsqueda por significado (beta)") },
+  stdsearch: { addon: "db", view: "searchTab", label: tr("Suchleiste", "Search bar", "Barre de recherche", "Barra de búsqueda") },
+  index: { addon: "db", view: "indexTab", label: tr("Suchindex", "Search index", "Index de recherche", "Índice de búsqueda") },
+  aiview: { addon: "extension", path: "options/options.html?hub=1&view=aiview", label: tr("Überblick", "Overview", "Aperçu", "Resumen") },
+  ai: { addon: "extension", path: "options/options.html?hub=1&view=ai", label: tr("KI-Assistent", "AI assistant", "Assistant IA", "Asistente IA") },
+  helper: { addon: "extension", path: "options/helper.html?hub=1", label: "NovaBird Helper" },
+  stats: { addon: "extension", path: "options/options.html?hub=1&view=stats", label: tr("Postfach", "Mailbox", "Boîte mail", "Buzón") },
+  updates: { addon: "extension", path: "options/options.html?hub=1&view=updates", label: tr("Online-Updates (Beta)", "Online updates (beta)", "Mises à jour en ligne (bêta)", "Actualizaciones en línea (beta)") },
+  screen: { addon: "extension", path: "options/options.html?hub=1&view=screen", label: "Screen Scaling" },
+  rules: { addon: "extension", path: "options/options.html?hub=1&view=rules", label: tr("Regeln (Beta)", "Rules (beta)", "Règles (bêta)", "Reglas (beta)") },
+  pilot: { addon: "extension", path: "options/options.html?hub=1&view=pilot", label: "Nova-Contact" },
+  send: { label: tr("Senden", "Send", "Envoi", "Envío") },
+  search: { label: tr("Suchleiste (alt)", "Search bar (old)", "Barre de recherche (ancienne)", "Barra de búsqueda (antigua)") },
+  phishing: { label: tr("Phishing-Schutz", "Phishing protection", "Protection anti-hameçonnage", "Protección antiphishing") },
 };
-// Zusätzliche Seiten der Extension im Hub (Pfad, Ansicht)
-const HUB_EXTRA = { setup: "setup/setup.html?hub=1", extension: "options/options.html?hub=1&view=general", ai: "options/options.html?hub=1&view=ai", helper: "options/helper.html?hub=1" };
-let hubLast = null; // zuletzt gewählter Reiter (bleibt beim erneuten Öffnen erhalten)
+// Themen-Reiter oben; Seiten erscheinen nur, wenn das liefernde Add-on aktiv ist.
+// Die letzte Gruppe sammelt zusätzlich alle unbekannten NovaBird-Add-ons mit Optionsseite.
+const HUB_GROUPS = [
+  { label: tr("Einrichtung", "Setup", "Configuration", "Configuración"), pages: ["setup"] },
+  { label: tr("Aussehen", "Appearance", "Apparence", "Apariencia"), pages: ["list", "attach", "conversation", "colors"] },
+  { label: tr("Suche", "Search", "Recherche", "Búsqueda"), pages: ["semantic", "stdsearch", "index"] },
+  { label: tr("KI", "AI", "IA", "IA"), pages: ["aiview", "ai", "helper"] },
+  { label: tr("Allgemein", "General", "Général", "General"), pages: ["stats", "updates"] },
+  { label: tr("Werkzeuge", "Tools", "Outils", "Herramientas"), pages: ["screen", "rules", "pilot"] },
+  { label: "Add-ons", pages: ["send", "phishing", "search"] },
+];
+// Alte Schlüssel aus openHub (andere Add-ons, Setup-Seite) auf die neuen Unterreiter abbilden
+const HUB_ALIAS = { extension: "list", db: "semantic", general: "stats" };
+let hubLast = null; // zuletzt gewählter Unterreiter (bleibt beim erneuten Öffnen erhalten)
+const hubGroupLast = new Map(); // je Gruppe (erster Seitenschlüssel) der zuletzt gewählte Unterreiter
 const hubSelects = new Set(); // Reiterwahl der offenen NovaBird-Seiten (openHub)
 
-/** Aktive NovaBird-Add-ons mit Optionsseite (novabird-…@novabird und HUB_IDS), in fester Reihenfolge; unbekannte folgen. */
+/** Themen-Gruppen mit den Seiten der aktiven NovaBird-Add-ons (novabird-…@novabird und HUB_IDS); unbekannte unter „Add-ons“. */
 function hubAddons() {
-  const found = new Map();
+  const avail = new Map(); // Seitenschlüssel -> { id, key, label, url }
+  const extra = [];
   for (const p of WebExtensionPolicy.getActiveExtensions()) {
     const m = /^novabird-([a-z0-9-]+)@novabird$/.exec(p.id) || (HUB_IDS[p.id] && [p.id, HUB_IDS[p.id]]);
     const page = p.extension?.manifest?.options_ui?.page;
@@ -474,20 +496,30 @@ function hubAddons() {
       continue;
     }
     // ?hub=1: die Seite weiß, dass sie hier in voller Breite steht (in der Add-on-Verwaltung zeigt sie nur einen Verweis hierher)
-    found.set(m[1], { id: p.id, key: m[1], label: HUB_LABEL[m[1]] || m[1], url: p.getURL(page) + "?hub=1", icon: p.getURL("icons/icon-48.png") });
-    if (m[1] == "extension") {
-      for (const [key, path] of Object.entries(HUB_EXTRA)) {
-        found.set(key, { id: p.id, key, label: HUB_LABEL[key], url: p.getURL(path), icon: p.getURL("icons/icon-48.png") });
+    const a = m[1];
+    if (a == "extension" || a == "db") {
+      for (const [key, def] of Object.entries(HUB_PAGES)) {
+        if (def.addon == a) {
+          avail.set(key, { id: p.id, key, label: def.label, url: def.path ? p.getURL(def.path) : p.getURL(page) + "?hub=1&view=" + def.view });
+        }
       }
+    } else if (HUB_PAGES[a]) {
+      avail.set(a, { id: p.id, key: a, label: HUB_PAGES[a].label, url: p.getURL(page) + "?hub=1" });
+    } else {
+      extra.push({ id: p.id, key: a, label: a, url: p.getURL(page) + "?hub=1" });
     }
   }
-  const out = HUB_ORDER.filter(k => found.has(k)).map(k => found.get(k));
-  for (const [k, v] of found) {
-    if (!HUB_ORDER.includes(k)) {
-      out.push(v);
+  const groups = [];
+  for (const g of HUB_GROUPS) {
+    const pages = g.pages.map(k => avail.get(k)).filter(Boolean);
+    if (g == HUB_GROUPS[HUB_GROUPS.length - 1]) {
+      pages.push(...extra);
+    }
+    if (pages.length) {
+      groups.push({ label: g.label, pages });
     }
   }
-  return out;
+  return groups;
 }
 
 const HUB_CSS = `
@@ -499,6 +531,12 @@ const HUB_CSS = `
 #nbxHub .nbx-hub-tabs button:hover { background: var(--tbsr-hover, color-mix(in srgb, currentColor 8%, transparent)); }
 #nbxHub .nbx-hub-tabs button[aria-selected="true"] { background: var(--tbsr-accent-bg, color-mix(in srgb, AccentColor 15%, transparent)); color: var(--tbsr-accent-text, inherit); font-weight: 600; }
 #nbxHub .nbx-hub-tabs img { width: 20px; height: 20px; border-radius: 5px; }
+#nbxHub .nbx-hub-subtabs { display: flex; flex-wrap: wrap; gap: 0.25em; margin: 0 0 0.75em; }
+#nbxHub .nbx-hub-subtabs[hidden] { display: none; }
+#nbxHub .nbx-hub-subtabs button { border: 0; border-radius: 0.4em 0.4em 0 0; padding: 0.35em 0.9em; background: transparent;
+  color: var(--tbsr-text, inherit); font: inherit; cursor: pointer; border-bottom: 0.15em solid transparent; }
+#nbxHub .nbx-hub-subtabs button:hover { background: var(--tbsr-hover, color-mix(in srgb, currentColor 8%, transparent)); }
+#nbxHub .nbx-hub-subtabs button[aria-selected="true"] { border-bottom-color: var(--tbsr-accent-bg, AccentColor); font-weight: 600; }
 
 #nbxHub .nbx-hub-box { border: 1px solid var(--tbsr-line, ThreeDShadow); border-radius: 10px; background: var(--tbsr-panel, Canvas); padding: 6px 8px; overflow: hidden; }
 #nbxHub .nbx-hub-box[hidden] { display: none; }
@@ -590,12 +628,13 @@ function setupHub(doc, undo) {
   pane.setAttribute("data-category", "paneNovaBird");
   pane.hidden = true;
   const tabs = el(doc, "div", { className: "nbx-hub-tabs", role: "tablist" });
+  const subRow = el(doc, "div", { className: "nbx-hub-subtabs", role: "tablist" });
   const frames = el(doc, "div");
-  pane.append(el(doc, "h1", { className: "nbx-hub-title", textContent: "NovaBird" }), tabs, frames);
+  pane.append(el(doc, "h1", { className: "nbx-hub-title", textContent: "NovaBird" }), tabs, subRow, frames);
   deck.append(pane);
 
   const style = addStyle(doc, HUB_CSS, undo);
-  const list = hubAddons();
+  const groups = hubAddons();
   const pages = new Map();
   // Hell/dunkel der Seite nach der Panel-Farbe richten (die Seite im Add-on-Prozess sieht unser Theme nicht)
   const scheme = () => {
@@ -617,15 +656,26 @@ function setupHub(doc, undo) {
       console.error("NovaBird-Extension hub:", e);
     }
   };
+  // key ist der Schlüssel eines Unterreiters; die Gruppe ergibt sich daraus. Eine Gruppe mit nur einer Seite zeigt keine Unterreiter.
   const select = key => {
+    const group = groups.find(g => g.pages.some(p => p.key == key));
+    if (!group) {
+      return;
+    }
     hubLast = key;
+    hubGroupLast.set(group.pages[0].key, key);
+    for (const g of groups) {
+      g.btn.setAttribute("aria-selected", String(g == group));
+    }
+    subRow.replaceChildren(...group.pages.map(p => pages.get(p.key).btn));
+    subRow.hidden = group.pages.length < 2;
     for (const [k, page] of pages) {
       page.btn.setAttribute("aria-selected", String(k == key));
       page.box.hidden = k != key;
       if (k == key) {
         if (!page.started) {
           page.started = true;
-          const a = list.find(x => x.key == k);
+          const a = group.pages.find(x => x.key == k);
           loadOptionsBrowser(doc, page.box, a.id, a.url).then(b => {
             page.browser = b;
             applyScheme(b);
@@ -639,22 +689,30 @@ function setupHub(doc, undo) {
       }
     }
   };
-  if (!list.length) {
+  if (!groups.length) {
     frames.append(el(doc, "p", { className: "nbx-hub-empty", textContent: tr("Keine NovaBird-Add-ons mit Einstellungen gefunden.", "No NovaBird add-ons with settings found.", "Aucun module NovaBird avec réglages.", "No hay complementos NovaBird con ajustes.") }));
   }
-  for (const a of list) {
-    const btn = el(doc, "button", { type: "button", role: "tab", textContent: a.label });
-    btn.addEventListener("click", () => select(a.key));
-    tabs.append(btn);
-    const box = el(doc, "div", { className: "nbx-hub-box" });
-    box.hidden = true;
-    frames.append(box);
-    pages.set(a.key, { btn, box, started: false, browser: null });
+  for (const g of groups) {
+    g.btn = el(doc, "button", { type: "button", role: "tab", textContent: g.label });
+    // Gruppe gewählt: zuletzt dort offener Unterreiter, sonst der erste
+    g.btn.addEventListener("click", () => select(hubGroupLast.get(g.pages[0].key) || g.pages[0].key));
+    tabs.append(g.btn);
+    for (const a of g.pages) {
+      const btn = el(doc, "button", { type: "button", role: "tab", textContent: a.label });
+      btn.addEventListener("click", () => select(a.key));
+      const box = el(doc, "div", { className: "nbx-hub-box" });
+      box.hidden = true;
+      frames.append(box);
+      pages.set(a.key, { btn, box, started: false, browser: null });
+    }
   }
-  if (list.length) {
-    select(pages.has(hubLast) ? hubLast : list[0].key);
+  if (groups.length) {
+    select(pages.has(hubLast) ? hubLast : groups[0].pages[0].key);
   }
-  const selectKnown = key => pages.has(key) && select(key);
+  const selectKnown = key => {
+    const k = pages.has(key) ? key : HUB_ALIAS[key];
+    return pages.has(k) && select(k);
+  };
   hubSelects.add(selectKnown);
   const onPane = () => {
     for (const page of pages.values()) {
@@ -1495,7 +1553,7 @@ return class extends ExtensionCommon.ExtensionAPI {
     return {
       settingsRedesign: {
         async openHub(key) {
-          hubLast = String(key);
+          hubLast = HUB_ALIAS[key] || String(key);
           for (const select of hubSelects) {
             select(hubLast);
           }

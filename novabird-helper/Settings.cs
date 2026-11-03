@@ -1,4 +1,4 @@
-// Einstellungen des Helpers: settings.json im Datenordner (gewähltes Gerät, Messwerte, Sync-Ordner, Gerätekennung, Netz und
+// Einstellungen des Helpers: settings.json im Datenordner (gewähltes Gerät, Messwerte, Gerätekennung, Netz und
 // Web-Oberfläche). Datenordner: %LOCALAPPDATA%\NovaBird\Helper, als Dienst %ProgramData%\NovaBird\Helper. Schlüssel liegen
 // mit DPAPI verschlüsselt darin (nur dieser Windows-Benutzer bzw. als Dienst nur dieser Rechner kann sie lesen).
 using System.Runtime.InteropServices;

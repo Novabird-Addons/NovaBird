@@ -27,6 +27,7 @@
 
     /* Reiter */
     nav.tabs { display: flex; gap: 4px; border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); margin: 0 0 14px; }
+    nav.tabs[hidden] { display: none; } /* Einzelansicht im Hub (view=…): keine eigene Reiterleiste */
     nav.tabs button { font: inherit; background: none; border: none; border-bottom: 2px solid transparent; padding: 6px 12px; cursor: pointer; color: inherit; }
     nav.tabs button.active { border-bottom-color: AccentColor; color: AccentColor; font-weight: 600; }
     /* Reiter „Index“ (bis 1.x Einstellungsseite von NovaBird-DB) */
@@ -56,7 +57,11 @@
     #semTryOut { margin: .4em 0 0 1.2em; padding: 0; }
     #semanticTab h3 { font-size: 1em; margin: 1.2em 0 .4em; }
     #semanticTab input.wide { flex: 1 1 22em; }
-    #semSyncCode { width: 16em; font-family: monospace; }
+    .sem-card { border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: .6em; padding: .6em 1em; margin: .4em 0 1em; }
+    .sem-card p { margin: 0 0 .5em; }
+    .sem-way { margin: .2em 0 .8em 1.6em; }
+    #semServerBox { margin-top: .8em; }
+    #semServerBox summary { cursor: pointer; }
   </style>
 </head>
 <body>
@@ -206,36 +211,86 @@
   <section id="semanticTab" hidden>
     <p class="hint sem-intro" data-i18n="semIntro"></p>
     <div class="row"><input type="checkbox" id="semEnabled"><label for="semEnabled" data-i18n="semEnable"></label></div>
-    <div id="semMac" hidden>
-      <h2 data-i18n="semMacHeading"></h2>
-      <p class="hint" data-i18n="semMacHint"></p>
-      <div class="row"><label for="semMacUrl" data-i18n="semServerUrl"></label><input type="url" id="semMacUrl" class="wide" placeholder="http://localhost:11434"><button type="button" id="semMacConnect" data-i18n="semMacConnect"></button></div>
-      <p class="hint" id="semMacState"></p>
-      <div class="row" id="semMacPullRow" hidden><button type="button" id="semMacPull"></button><progress id="semMacProgress" max="1" value="0" hidden></progress><span id="semMacPullText" class="hint"></span></div>
-      <div class="row" id="semMacUseRow" hidden><button type="button" id="semMacUse" data-i18n="semMacUse"></button></div>
-      <div class="row"><label for="semMacKeep" data-i18n="semKeep"></label>
-        <select id="semMacKeep">
-          <option value="10min" data-i18n="semKeep10"></option>
-          <option value="always" data-i18n="semKeepAlways"></option>
-          <option value="search" data-i18n="semKeepSearch"></option>
-        </select>
-        <button type="button" id="semMacUnload" data-i18n="semMacUnload"></button>
-      </div>
-      <p class="hint" data-i18n="semMacContext"></p>
-      <p class="hint"><a href="https://ollama.com/download" id="semMacDownload" data-i18n="semMacDownload"></a></p>
-    </div>
-    <div id="semPick" hidden>
-      <h2 data-i18n="semPickHeading"></h2>
-      <div class="row"><input type="radio" name="semSource" id="semSrcHelper" value="helper"><label for="semSrcHelper" id="semSrcHelperLabel"></label></div>
-      <div class="row"><input type="radio" name="semSource" id="semSrcOther" value="other"><label for="semSrcOther" data-i18n="semSrcOther"></label></div>
-      <p class="hint" id="semSrcState"></p>
-    </div>
-    <div class="row"><input type="checkbox" id="semHeaderCount"><label for="semHeaderCount" data-i18n="semHeaderCount"></label></div>
 
-    <h2 class="sem-addon-model" data-i18n="semModelHeading"></h2>
-    <div id="semModels" class="sem-addon-model"></div>
-    <p class="hint sem-addon-model" data-i18n="semModelHint"></p>
-    <div class="row sem-addon-model"><progress id="semProgress" max="1" value="0" hidden></progress><span id="semDownloadText"></span></div>
+    <h2 data-i18n="semWayHeading"></h2>
+    <!-- Rechnet der NovaBird Helper (Reiter „NovaBird Helper“ der Extension), steht hier nur, wie es läuft -->
+    <div id="semViaHelper" class="sem-card" hidden>
+      <p id="semViaHelperText"></p>
+      <button type="button" class="sem-open-helper" data-i18n="semOpenHelper"></button>
+    </div>
+    <div id="semWays">
+      <div class="row"><input type="radio" name="semWay" id="semWayPc" value="pc"><label for="semWayPc" data-i18n="semWayPc"></label></div>
+      <div class="row"><input type="radio" name="semWay" id="semWayOllama" value="ollama"><label for="semWayOllama" id="semWayOllamaLabel"></label></div>
+      <div class="row" id="semHelperTip" hidden><span class="hint" data-i18n="semHelperTip"></span><button type="button" class="sem-open-helper" data-i18n="semOpenHelper"></button></div>
+
+      <div class="sem-way" id="semWayPcBox" hidden>
+        <h3 data-i18n="semModelHeading"></h3>
+        <div id="semModels"></div>
+        <p class="hint" data-i18n="semModelHint"></p>
+        <div class="row"><progress id="semProgress" max="1" value="0" hidden></progress><span id="semDownloadText"></span></div>
+        <div class="row"><input type="checkbox" id="semIdleOnly"><label for="semIdleOnly" data-i18n="semIdleOnly"></label></div>
+        <p class="hint" data-i18n="semIdleOnlyHint"></p>
+        <div class="row"><label for="semThreads" data-i18n="semThreads"></label><input type="number" id="semThreads" min="0" max="64" step="1"><span id="semThreadsInfo" class="hint"></span></div>
+        <div class="row"><label for="semKeep" data-i18n="semKeep"></label>
+          <select id="semKeep">
+            <option value="10min" data-i18n="semKeep10"></option>
+            <option value="always" data-i18n="semKeepAlways"></option>
+            <option value="search" data-i18n="semKeepSearch"></option>
+          </select>
+        </div>
+        <p class="hint" data-i18n="semKeepHint"></p>
+      </div>
+
+      <div class="sem-way" id="semMac" hidden>
+        <h3 data-i18n="semMacHeading"></h3>
+        <p class="hint" data-i18n="semMacHint"></p>
+        <div class="row"><label for="semMacUrl" data-i18n="semServerUrl"></label><input type="url" id="semMacUrl" class="wide" placeholder="http://localhost:11434"><button type="button" id="semMacConnect" data-i18n="semMacConnect"></button></div>
+        <p class="hint" id="semMacState"></p>
+        <div class="row" id="semMacPullRow" hidden><button type="button" id="semMacPull"></button><progress id="semMacProgress" max="1" value="0" hidden></progress><span id="semMacPullText" class="hint"></span></div>
+        <div class="row" id="semMacUseRow" hidden><button type="button" id="semMacUse" data-i18n="semMacUse"></button></div>
+        <div class="row"><label for="semMacKeep" data-i18n="semKeep"></label>
+          <select id="semMacKeep">
+            <option value="10min" data-i18n="semKeep10"></option>
+            <option value="always" data-i18n="semKeepAlways"></option>
+            <option value="search" data-i18n="semKeepSearch"></option>
+          </select>
+          <button type="button" id="semMacUnload" data-i18n="semMacUnload"></button>
+        </div>
+        <p class="hint" data-i18n="semMacContext"></p>
+        <p class="hint"><a href="https://ollama.com/download" id="semMacDownload" data-i18n="semMacDownload"></a></p>
+        <details id="semServerBox">
+          <summary data-i18n="semOtherServer"></summary>
+          <p class="hint srv-generic" data-i18n="semServerHint"></p>
+          <div class="row"><label for="semServerType" data-i18n="semServerType"></label>
+            <select id="semServerType">
+              <option value="openai" data-i18n="semServerTypeOpenai"></option>
+              <option value="nbhelper" data-i18n="semServerTypeNbhelper"></option>
+            </select>
+          </div>
+          <p class="hint srv-nb" data-i18n="semServerNbHint"></p>
+          <div class="row"><label for="semServerUrl" data-i18n="semServerUrl"></label><input type="url" id="semServerUrl" class="wide" placeholder="http://localhost:1234/v1"></div>
+          <div class="row srv-generic"><label for="semServerModel" data-i18n="semServerModel"></label><input type="text" id="semServerModel" class="wide" list="semServerModels"><datalist id="semServerModels"></datalist></div>
+          <div class="row srv-generic"><label for="semServerUser" data-i18n="semServerUser"></label><input type="text" id="semServerUser" autocomplete="off"></div>
+          <div class="row srv-generic"><label for="semServerKey" data-i18n="semServerKey"></label><input type="password" id="semServerKey" autocomplete="new-password"></div>
+          <div class="row srv-nb"><label for="semServerCode" data-i18n="semServerCode"></label><input type="password" id="semServerCode" autocomplete="off" placeholder="XXXXX-XXXXX-XXXXX-XXXXX"></div>
+          <div class="row srv-nb"><label for="semServerLabel" data-i18n="semServerLabel"></label><input type="text" id="semServerLabel" maxlength="40" autocomplete="off"></div>
+          <p class="hint warn" id="semServerRemote" hidden></p>
+          <div class="row"><button type="button" id="semServerCheck" data-i18n="semServerCheck"></button></div>
+          <p class="hint" id="semServerState"></p>
+        </details>
+      </div>
+    </div>
+
+    <h2 data-i18n="semHitsHeading"></h2>
+    <div class="row"><input type="checkbox" id="semHeaderCount"><label for="semHeaderCount" data-i18n="semHeaderCount"></label></div>
+    <div class="row"><label for="semStrictness" data-i18n="semStrictness"></label>
+      <select id="semStrictness">
+        <option value="low" data-i18n="semStrictLow"></option>
+        <option value="medium" data-i18n="semStrictMedium"></option>
+        <option value="high" data-i18n="semStrictHigh"></option>
+      </select>
+    </div>
+    <p class="hint" data-i18n="semStrictnessHint"></p>
 
     <h2 data-i18n="semStateHeading"></h2>
     <dl id="semState"></dl>
@@ -249,76 +304,7 @@
     <ol id="semTryOut" class="hint"></ol>
 
     <details id="semAdvanced">
-      <summary data-i18n="semAdvanced"></summary>
-      <div class="row"><label for="semPath" data-i18n="semPath"></label>
-        <select id="semPath">
-          <option value="auto" data-i18n="semPathAuto"></option>
-          <option value="addon" data-i18n="semPathAddon"></option>
-          <option value="helper" data-i18n="semPathHelper"></option>
-          <option value="server" data-i18n="semPathServer"></option>
-        </select>
-      </div>
-      <p class="hint" data-i18n="semPathHint"></p>
-      <div id="semServerBox" hidden>
-        <h3 data-i18n="semServerHeading"></h3>
-        <p class="hint srv-generic" data-i18n="semServerHint"></p>
-        <div class="row"><label for="semServerType" data-i18n="semServerType"></label>
-          <select id="semServerType">
-            <option value="ollama">Ollama</option>
-            <option value="openai" data-i18n="semServerTypeOpenai"></option>
-            <option value="nbhelper" data-i18n="semServerTypeNbhelper"></option>
-          </select>
-        </div>
-        <p class="hint srv-nb" data-i18n="semServerNbHint"></p>
-        <div class="row"><label for="semServerUrl" data-i18n="semServerUrl"></label><input type="url" id="semServerUrl" class="wide" placeholder="http://localhost:11434"></div>
-        <div class="row srv-generic"><label for="semServerModel" data-i18n="semServerModel"></label><input type="text" id="semServerModel" class="wide" list="semServerModels"><datalist id="semServerModels"></datalist></div>
-        <div class="row srv-generic"><label for="semServerUser" data-i18n="semServerUser"></label><input type="text" id="semServerUser" autocomplete="off"></div>
-        <div class="row srv-generic"><label for="semServerKey" data-i18n="semServerKey"></label><input type="password" id="semServerKey" autocomplete="new-password"></div>
-        <div class="row srv-nb"><label for="semServerCode" data-i18n="semServerCode"></label><input type="password" id="semServerCode" autocomplete="off" placeholder="XXXXX-XXXXX-XXXXX-XXXXX"></div>
-        <div class="row srv-nb"><label for="semServerLabel" data-i18n="semServerLabel"></label><input type="text" id="semServerLabel" maxlength="40" autocomplete="off"></div>
-        <p class="hint warn" id="semServerRemote" hidden></p>
-        <div class="row"><button type="button" id="semServerCheck" data-i18n="semServerCheck"></button></div>
-        <p class="hint" id="semServerState"></p>
-      </div>
-      <div class="row"><input type="checkbox" id="semIdleOnly"><label for="semIdleOnly" data-i18n="semIdleOnly"></label></div>
-      <p class="hint" data-i18n="semIdleOnlyHint"></p>
-      <div class="row"><label for="semThreads" data-i18n="semThreads"></label><input type="number" id="semThreads" min="0" max="64" step="1"><span id="semThreadsInfo" class="hint"></span></div>
-      <div class="row"><label for="semKeep" data-i18n="semKeep"></label>
-        <select id="semKeep">
-          <option value="10min" data-i18n="semKeep10"></option>
-          <option value="always" data-i18n="semKeepAlways"></option>
-          <option value="search" data-i18n="semKeepSearch"></option>
-        </select>
-      </div>
-      <p class="hint" data-i18n="semKeepHint"></p>
-      <div class="row"><label for="semStrictness" data-i18n="semStrictness"></label>
-        <select id="semStrictness">
-          <option value="low" data-i18n="semStrictLow"></option>
-          <option value="medium" data-i18n="semStrictMedium"></option>
-          <option value="high" data-i18n="semStrictHigh"></option>
-        </select>
-      </div>
-      <p class="hint" data-i18n="semStrictnessHint"></p>
-
-      <h2 data-i18n="semHelperHeading"></h2>
-      <p class="hint" data-i18n="semHelperHint"></p>
-      <div class="row">
-        <button type="button" id="semHelperConnect" data-i18n="semHelperConnect"></button>
-        <button type="button" id="semHelperPrepare" data-i18n="semHelperPrepare"></button>
-      </div>
-      <p class="hint" id="semHelperState"></p>
-      <h3 data-i18n="semSyncHeading"></h3>
-      <p class="hint" data-i18n="semSyncHint"></p>
-      <div class="row"><label for="semSyncFolder" data-i18n="semSyncFolder"></label><input type="text" id="semSyncFolder" class="wide" data-i18n-placeholder="semSyncFolderPlaceholder"></div>
-      <div class="row"><label for="semSyncCode" data-i18n="semSyncCode"></label><input type="text" id="semSyncCode" data-i18n-placeholder="semSyncCodePlaceholder"></div>
-      <div class="row">
-        <button type="button" id="semSyncSetup" data-i18n="semSyncSetup"></button>
-        <button type="button" id="semSyncNow" data-i18n="semSyncNow"></button>
-        <button type="button" id="semSyncLeave" data-i18n="semSyncLeave"></button>
-      </div>
-      <p class="hint" id="semSyncState"></p>
-
-      <h2 data-i18n="semDataHeading"></h2>
+      <summary data-i18n="semDataHeading"></summary>
       <div class="row">
         <button type="button" id="semExport" data-i18n="semExport"></button>
         <button type="button" id="semImport" data-i18n="semImport"></button>

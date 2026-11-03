@@ -82,14 +82,8 @@ Unter *Kalender* legt ein Admin gemeinsame Kalender an (Name, Farbe) und bestimm
 ## Sicherung
 *Einstellungen → Sicherung:* eine Datei (`.nbbackup`) mit Gruppen und Kopplungscodes, Benutzern, Schlüsseln externer Programme und Team-Kalendern, auf Wunsch mit den geteilten Vektoren – verschlüsselt mit einem eigenen Passwort (AES-256-GCM, PBKDF2-SHA256 mit 600.000 Runden). Damit zieht der Helper auf einen anderen PC um, ohne dass die PCs neu gekoppelt werden. **Wiederherstellen** ersetzt Gruppen, Benutzer, Schlüssel und Kalender; danach mit den Benutzern aus der Sicherung neu anmelden.
 
-## Ordner-Sync zwischen PCs
-Der Helper legt neue Vektoren **verschlüsselt** (AES-256-GCM) in einen gemeinsamen Ordner (NAS, OneDrive, Nextcloud …) und übernimmt die der anderen PCs; so rechnet nicht jeder PC alles selbst. Schlüssel aus dem **Kopplungscode** (20 Zeichen, PBKDF2-SHA256 mit 300.000 Runden); im Ordner liegen nur Salz und Prüfwert, auf dem PC der Schlüssel mit DPAPI geschützt. Inhalt der Pakete: Message-ID und Vektor, keine Mailtexte.
-
-Erster PC: Ordner eintragen, Code leer lassen, „Koppeln“ → Code notieren. Weitere PCs: denselben Ordner und den Code eintragen.
-
 ## Dateien
 - Einstellungen, Modelle, Protokoll: `%LOCALAPPDATA%\NovaBird\Helper\`, als Dienst `%ProgramData%\NovaBird\Helper\` (`settings.json`, `groups.json` mit den Gruppen und ihren DPAPI-geschützten Codes, `clients.json` mit der PC-Liste des Netz-Modus, `users.json` mit den Benutzern der Web-Oberfläche, `apikeys.json`, `vectors\<Gruppe>\`, `calendars\`, `web-cert.pfx`, `models\`, `llm\`, `tts\` mit Python, Engine, Modell und Stimmen fürs Vorlesen, `helper.log`)
-- Sync-Ordner: `<Ordner>\NovaBird-Sync\schluessel.json` und `<Ordner>\NovaBird-Sync\<Modell>-<Revision>\<Gerät>-<Zeit>.nbsync`
 
 ## Bauen
 `build.sh` (eine selbstständige Datei, .NET-10-SDK nötig). Zum Testen ohne Laufzeitpakete: `dotnet build -c Release -p:PublishSingleFile=false` (braucht dann .NET 10 auf dem Rechner).

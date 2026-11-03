@@ -9,7 +9,7 @@
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <AssemblyName>nbhelper</AssemblyName>
     <RootNamespace>NovaBird.Helper</RootNamespace>
-    <Version>0.4.0</Version>
+    <Version>0.4.1</Version>
     <Product>NovaBird Helper</Product>
     <Company>NovaBird</Company>
     <Description>NovaBird Helper (semantische Suche, DirectML)</Description>
@@ -24,6 +24,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>nbhelper.ico</ApplicationIcon>
+    <!-- Keine Pfade des Bau-PCs in exe/dll (PDB-Verweis, Quellpfade) -->
+    <PathMap>$(MSBuildProjectDirectory)=/_/nbhelper</PathMap>
   </PropertyGroup>
   <PropertyGroup Condition="'$(NovaBirdRelease)' == 'true'">
     <SelfContained>true</SelfContained>

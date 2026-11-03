@@ -106,6 +106,69 @@ setTimeout(() => finish({ ...out, pass: false, error: `Zeitlimit nach ${secs()} 
     await sleep(500);
   }
 
+  // 2b) Einstellungen → NovaBird (ab 2.0): Themen-Reiter oben, Unterreiter darunter; eine Seite je Unterreiter
+  const ext2 = WebExtensionPolicy.getByID("novabird-extension@novabird");
+  if (ext2 && /^2\./.test(ext2.extension.version)) {
+    progress("öffne Einstellungen → NovaBird");
+    win.openPreferencesTab("paneNovaBird");
+    let hub = null;
+    for (let i = 0; i < 40 && !hub; i++) {
+      await sleep(500);
+      const ptab = tabmail.tabInfo.find(t => t.browser?.contentDocument?.getElementById("nbxHub"));
+      const h = ptab?.browser.contentDocument.getElementById("nbxHub");
+      if (h && !h.hidden) hub = h;
+    }
+    check("Hub: Seite öffnet", Boolean(hub), hub ? "ok" : "fehlt");
+    if (hub) {
+      const doc = hub.ownerDocument;
+      // breiteres Fenster: Nachrichtenliste mit vier Spalten; Bilder zeigen die Unterseite ab ihrem oberen Rand
+      const oldSize = [win.outerWidth, win.outerHeight];
+      win.resizeTo(1600, 1200);
+      await sleep(800);
+      const groupBtns = [...hub.querySelectorAll(".nbx-hub-tabs button")];
+      check("Hub: Themen-Reiter", groupBtns.length >= 4, groupBtns.map(b => b.textContent).join(" | "));
+      // Gruppe wählen, dann Unterreiter (Text beginnt mit sub, leer = erster); wartet, bis die Seite Höhe hat
+      const openSub = async (groups, sub, name, shotName) => {
+        const g = groupBtns.find(b => groups.includes(b.textContent));
+        check(`Hub: Gruppe ${groups[0]}`, Boolean(g), g ? "ok" : "fehlt");
+        if (!g) return null;
+        g.click();
+        const subBtns = [...hub.querySelectorAll(".nbx-hub-subtabs button")];
+        const sb = sub ? subBtns.find(b => sub.some(x => b.textContent.startsWith(x))) : null;
+        if (sub) {
+          check(`Hub: Unterreiter ${sub[0]}`, Boolean(sb), subBtns.map(b => b.textContent).join(" | "));
+          sb?.click();
+        }
+        let br = null;
+        for (let i = 0; i < 30; i++) {
+          await sleep(500);
+          br = [...hub.querySelectorAll(".nbx-hub-box:not([hidden]) browser")][0];
+          if (br && br.getBoundingClientRect().height > 100) break;
+        }
+        check(`Hub: ${name} lädt`, br && br.getBoundingClientRect().height > 100, br ? `${Math.round(br.getBoundingClientRect().height)} px` : "kein browser");
+        await sleep(1500); // Seite füllt sich (Status, Verbindung)
+        hub.querySelector(".nbx-hub-subtabs").scrollIntoView();
+        await sleep(300);
+        await shot(win, shotName);
+        return subBtns;
+      };
+      const looks = await openSub(["Aussehen", "Appearance"], null, "Nachrichtenliste", "2b-einstellungen-hub");
+      if (looks) check("Hub: Unterreiter Aussehen", looks.length >= 3, looks.map(b => b.textContent).join(" | "));
+      const ki = await openSub(["KI", "AI", "IA"], null, "KI-Überblick", "2c-einstellungen-ki-ueberblick");
+      if (ki) check("Hub: Unterreiter KI", ki.length >= 2, ki.map(b => b.textContent).join(" | "));
+      await openSub(["KI", "AI", "IA"], ["KI-Assistent", "AI assistant"], "KI-Assistent", "2d-einstellungen-ki-assistent");
+      await openSub(["KI", "AI", "IA"], ["NovaBird Helper"], "NovaBird Helper", "2e-einstellungen-helper");
+      if (WebExtensionPolicy.getByID("novabird-db@novabird")) {
+        await openSub(["Suche", "Search"], ["Bedeutungssuche", "Meaning search"], "Bedeutungssuche", "2f-einstellungen-bedeutungssuche");
+      }
+      win.resizeTo(...oldSize);
+      await sleep(500);
+      const ptab = tabmail.tabInfo.find(t => t.browser?.contentDocument === doc);
+      if (ptab) tabmail.closeTab(ptab);
+      await sleep(500);
+    }
+  }
+
   // 3) Verfassen-Fenster: Leiste und „Senden“ (auf macOS 22 px frei für die Fensterknöpfe)
   progress("öffne Verfassen");
   win.goDoCommand("cmd_newMessage"); // wie der Knopf „Verfassen“

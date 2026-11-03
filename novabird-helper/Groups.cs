@@ -42,7 +42,7 @@ static class Groups
         string code = null;
         try { if (s["netCode"] is JsonNode n) code = Encoding.UTF8.GetString(Settings.Unprotect((string)n)); }
         catch (Exception e) { Log.Write("Kopplungscode unlesbar, erzeuge neuen: " + e.Message); }
-        cache = new() { New("g1", L.T("Standard", "Default"), code ?? Sync.NewCode()) };
+        cache = new() { New("g1", L.T("Standard", "Default"), code ?? PairCode.New()) };
         Save();
         if (s.Remove("netCode") | s.Remove("vecSalt")) Settings.Save(s);
         Log.Write("Gruppen: Kopplungscode als Gruppe „Standard“ übernommen");
@@ -104,7 +104,7 @@ static class Groups
             if (list.Any(g => string.Equals(g.Name, name, StringComparison.OrdinalIgnoreCase))) throw new ArgumentException(L.T("Name schon vergeben", "Name already taken"));
             int n = 1;
             while (list.Any(g => g.Id == "g" + n)) n++;
-            var g = New("g" + n, name, Sync.NewCode());
+            var g = New("g" + n, name, PairCode.New());
             list.Add(g);
             Save();
             return g;
@@ -119,7 +119,7 @@ static class Groups
 
     public static string Renew(string id)
     {
-        var code = Sync.NewCode();
+        var code = PairCode.New();
         Change(id, g => g with { Code = code });
         return code;
     }

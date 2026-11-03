@@ -80,6 +80,7 @@ function showTab(name) {
   try { sessionStorage.setItem("nbcTab", name); } catch (e) { /* ohne Speicher weiter */ }
 }
 for (const tab of document.querySelectorAll('[role="tab"]')) tab.addEventListener("click", () => showTab(tab.id.slice(4)));
-let startTab = "settings";
-try { startTab = sessionStorage.getItem("nbcTab") || "settings"; } catch (e) { /* ohne Speicher weiter */ }
-showTab(startTab === "look" ? "look" : "settings");
+// Aussehen links und zuerst, Einstellungen rechts
+let startTab = "look";
+try { startTab = sessionStorage.getItem("nbcTab") || "look"; } catch (e) { /* ohne Speicher weiter */ }
+showTab(startTab === "settings" ? "settings" : "look");

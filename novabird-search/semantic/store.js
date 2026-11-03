@@ -1,5 +1,5 @@
 // Vektoren der semantischen Suche (IndexedDB des Add-ons). Schlüssel: Modell + Message-ID (Kopfzeile, auf allen PCs
-// gleich), damit sich Vektoren zwischen PCs teilen lassen (Export/Import, später Ordner-Sync des Helpers).
+// gleich), damit sich Vektoren zwischen PCs teilen lassen (Export/Import, NovaBird Helper im Netz).
 // Gespeichert als int8 mit eigenem Faktor je Vektor (normierte Vektoren, Kosinus bleibt auf etwa 0,999 genau):
 // 70.000 Mails mit 768 Werten ≈ 54 MB.
 const DB_NAME = "novabird-semantic";

@@ -5,6 +5,25 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.5 · Helper 0.3.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### Settings: the "NovaBird Helper" tab is the one place for the helper; folder sync removed
+- **What the helper does is chosen only in AI → NovaBird Helper ("Use it for": search, AI assistant, team calendars).** Search → Meaning search and AI → AI assistant then only show "computed in the NovaBird Helper (address)" with a button to that tab; switched off there, they show their normal settings again (the pages update without reload).
+- **Search → Meaning search, without the helper:** "Where is it computed?" – *on this PC in the add-on (processor)* or *Ollama or your own server*. The Ollama block (connect, load the tested model, use after the probe, keep in memory, unload) now works on every system, marked "recommended" on a Mac; OpenAI-compatible services sit under "Another server instead of Ollama". The NovaBird Helper can be entered there only when NovaBird-Extension is missing (Search keeps working on its own).
+- Removed from the search page because they duplicated the helper tab: "Where to compute?", the "Computing path" list, "Connect helper / Load model in helper".
+- Threads and "compute old mail only when idle" appear only for the add-on path, "Keep model in memory" for add-on and Ollama – none of them changes anything in the helper. **Strictness** is a filter for the results and moved to the new section "Results" (applies to every path).
+- AI assistant: own-server form only when the helper is not used, with a hint to the helper tab. The per-PC language model choice ("this PC only") moved to the helper tab under "AI assistant".
+- **Folder sync between PCs removed completely** (search page, NovaBird-Search background, helper commands `sync*`, `Sync.cs`; pairing codes now in `PairCode.cs`). PCs of a group still share vectors and AI results through the helper in the network. Helper 0.4.1; old settings `syncFolder`/`syncKey` are ignored.
+- Helper build: `PathMap` keeps paths of the build PC out of exe/dll.
+- Message list: "More options" is now a fourth column next to "Account colour". Conversation: "Appearance" is the first (left) tab, "Settings" the second.
+- Helper tab: hidden rows stay hidden (the team-calendar form was visible without a connection).
+- Tested: unit tests Extension 40, Search 32, Conversation 20; Thunderbird 159 headless: tools/tbtest/ui.js 23 checks (hub incl. AI assistant, helper and meaning-search pages), Ollama path against a test Ollama 16 checks (block only after choosing Ollama, "recommended" only on Mac, probe, 6/6 mails, keep-alive, unload, pull).
+
+### NovaBird-Extension: settings grouped by topic, add-ons as sub-tabs
+- **Settings → NovaBird now shows topic tabs with sub-tabs below** instead of one long row: Setup · Appearance (message list, right pane/attachments/calendar, conversation, colors and fonts) · Search (meaning search, search bar, search index) · AI (overview, AI assistant, NovaBird Helper) · General (mailbox, online updates) · Tools (screen scaling, rules, Nova-Contact) · Add-ons (everything else, e.g. Send, phishing protection, unknown NovaBird add-ons).
+- **New page "AI overview"** (AI → Overview): what is switched on, where the computing happens (own server/helper, model, context), per-feature ✓/○ list, connection checks for the AI source and the helper, links to the other AI tabs. All texts in DE/EN/FR/ES.
+- The extension's options page and NovaBird-Search's options page each provide their tabs as single views (`?view=…`, no own tab bar) so the hub can show them as sub-tabs; opened standalone (add-on manager), both pages keep their full tab bar. Old `openHub` keys (`extension`, `db`) still work via aliases.
+- The tab "Right pane and attachments" is renamed "Right pane, attachments, calendar" – the calendar event settings always lived there.
+- tools/tbtest/ui.js now also opens Settings → NovaBird and checks topic tabs, sub-tabs and that the pages load (2 new screenshots).
+
 ### NovaBird-Search: "Ollama on this Mac" for meaning search
 - **On a Mac, Search → Semantic search shows "Ollama on this Mac (recommended)" at the top** (only there; detected via `navigator.platform`): address (default `http://localhost:11434`) → **Connect** (asks once for the permission) → status with Ollama version, whether the tested model is there, whether it is in memory and how much of it on the graphics chip.
 - **Load the tested model** (`jina/jina-embeddings-v2-base-de`, F16, about 308 MB) with progress; the download runs in the background (`semantic:ollama`, `pull`), so closing the settings does not stop it.

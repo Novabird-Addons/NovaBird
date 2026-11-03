@@ -754,21 +754,6 @@
   "semAdvanced": {
     "message": "Avanzado"
   },
-  "semPath": {
-    "message": "Cálculo en:"
-  },
-  "semPathAuto": {
-    "message": "Automático"
-  },
-  "semPathAddon": {
-    "message": "Solo complemento (CPU)"
-  },
-  "semPathHelper": {
-    "message": "Solo NovaBird Helper"
-  },
-  "semPathHint": {
-    "message": "Automático: si el NovaBird Helper está en marcha y tiene el modelo listo, calcula él (tarjeta gráfica, mucho más rápido); si no, y en caso de error, calcula el complemento en la CPU. Un servidor propio (Ollama …) solo se usa si lo selecciona aquí."
-  },
   "semIdleOnly": {
     "message": "Procesar los mensajes antiguos solo en inactividad"
   },
@@ -794,7 +779,7 @@
     "message": "solo durante la búsqueda"
   },
   "semKeepHint": {
-    "message": "Con el modelo cargado el complemento necesita unos 2 GB de memoria. Mientras procesa mensajes permanece cargado."
+    "message": "Vale para el modelo del complemento (unos 2 GB de memoria) o de Ollama, no para el NovaBird Helper, que gestiona su memoria él mismo. Mientras calcula, el modelo sigue cargado."
   },
   "semStrictness": {
     "message": "Rigor:"
@@ -809,31 +794,7 @@
     "message": "estricto (solo muy similares)"
   },
   "semStrictnessHint": {
-    "message": "Cuánto debe parecerse un mensaje para aparecer como «similar»."
-  },
-  "semHelperHeading": {
-    "message": "NovaBird Helper"
-  },
-  "semHelperHint": {
-    "message": "El NovaBird Helper (nbhelper.exe, Windows) calcula en la tarjeta gráfica mediante DirectML: unos 20 minutos para 70 000 mensajes en lugar de varias horas. Se instala aparte y solo se inicia cuando NovaBird-Search lo necesita."
-  },
-  "semHelperConnect": {
-    "message": "Conectar Helper"
-  },
-  "semHelperPrepare": {
-    "message": "Descargar modelo en el Helper"
-  },
-  "semHelperPreparing": {
-    "message": "El Helper descarga el modelo (una vez, unos 320 MB) …"
-  },
-  "semHelperOk": {
-    "message": "Helper $1 conectado · dispositivo: $2 · modelo: $3"
-  },
-  "semHelperNone": {
-    "message": "Ningún Helper conectado ($1)."
-  },
-  "semHelperNoPermission": {
-    "message": "Sin el permiso, NovaBird-Search no puede iniciar el Helper."
+    "message": "Cuánto debe parecerse un correo para aparecer como «similar». Vale para cualquier forma de cálculo y no cambia nada en el Helper ni en Ollama."
   },
   "semDataHeading": {
     "message": "Vectores"
@@ -862,59 +823,11 @@
   "semPhaseWaitingPower": {
     "message": "Con batería: los mensajes antiguos esperan (las búsquedas siguen)"
   },
-  "semSyncHeading": {
-    "message": "Sincronización por carpeta entre PC"
-  },
-  "semSyncHint": {
-    "message": "Para que no todos los PC lo calculen todo: el Helper deja los vectores, cifrados, en una carpeta compartida (NAS, OneDrive, Nextcloud …) y recoge los de los demás PC. Sin puertos abiertos. Primer PC: indicar la carpeta, dejar el código vacío, «Vincular»; el Helper muestra un código. Demás PC: indicar la misma carpeta y ese código."
-  },
-  "semSyncFolder": {
-    "message": "Carpeta de sincronización:"
-  },
-  "semSyncFolderPlaceholder": {
-    "message": "p. ej. \\\\nas\\datos\\NovaBird o %USERPROFILE%\\OneDrive\\NovaBird"
-  },
-  "semSyncCode": {
-    "message": "Código de vinculación:"
-  },
-  "semSyncCodePlaceholder": {
-    "message": "vacío = crear un código nuevo"
-  },
-  "semSyncSetup": {
-    "message": "Vincular"
-  },
-  "semSyncNow": {
-    "message": "Sincronizar ahora"
-  },
-  "semSyncLeave": {
-    "message": "Desvincular"
-  },
-  "semSyncNewCode": {
-    "message": "Nuevo código de vinculación: $1 – introdúzcalo en los demás PC junto con la misma carpeta."
-  },
-  "semSyncJoined": {
-    "message": "Vinculado."
-  },
-  "semSyncStateOk": {
-    "message": "Vinculado con $1 · última sincronización $2 · enviados $3, recogidos $4"
-  },
-  "semSyncStateNone": {
-    "message": "Sin vincular."
-  },
-  "semSyncNeedsHelper": {
-    "message": "Conecte primero el Helper."
-  },
   "busySimilar": {
     "message": "Buscando mensajes similares …"
   },
-  "semPathServer": {
-    "message": "Otro PC o servidor (NovaBird Helper, Ollama, compatible con OpenAI)"
-  },
-  "semServerHeading": {
-    "message": "Otro PC o servidor"
-  },
   "semServerHint": {
-    "message": "Ollama o un servicio compatible con OpenAI (LM Studio, llama.cpp, vLLM …) calcula los vectores, en este PC o en otro ordenador de la red. Necesita el mismo modelo, en Ollama «jina/jina-embeddings-v2-base-de» (F16). Antes del primer uso, luego cada hora y tras cada error, calcula seis textos de prueba; sus vectores solo entran en el índice si coinciden con los del complemento. Otro modelo o una versión muy comprimida (cuantizada) se rechaza."
+    "message": "Un servicio compatible con OpenAI (LM Studio, llama.cpp, vLLM …) calcula los vectores, en este PC o en otro equipo de la red. Necesita el mismo modelo (jina-embeddings-v2-base-de, F16). Antes del primer uso, luego cada hora y tras cada error calcula seis textos de prueba; solo si sus vectores coinciden con los del complemento entran en el índice. Otro modelo o una versión muy comprimida (cuantizada) se rechaza."
   },
   "semServerType": {
     "message": "Interfaz:"
@@ -1018,15 +931,6 @@
   "semServerDisabled": {
     "message": "Sin embargo, la búsqueda semántica sigue desactivada: marque la casilla de arriba y empezará el cálculo."
   },
-  "semPickHeading": {
-    "message": "¿Dónde calcular?"
-  },
-  "semSrcHelper": {
-    "message": "NovaBird Helper ($1) – conectado en NovaBird-Extension"
-  },
-  "semSrcOther": {
-    "message": "Este PC o su propio servidor (ver «Avanzado»)"
-  },
   "headerSimilar": {
     "message": "· $1 de ellos por significado"
   },
@@ -1034,10 +938,10 @@
     "message": "Mostrar arriba en los resultados cuántos provienen de la búsqueda por significado"
   },
   "semMacHeading": {
-    "message": "Ollama en este Mac (recomendado)"
+    "message": "Ollama"
   },
   "semMacHint": {
-    "message": "En un Mac, Ollama calcula la búsqueda por significado en el chip gráfico, normalmente mucho más rápido que en el complemento. Instale e inicie Ollama y conéctelo aquí. NovaBird carga el modelo comprobado y decide cuánto tiempo permanece en memoria."
+    "message": "Ollama calcula la búsqueda por significado con la tarjeta gráfica o el chip gráfico del Mac, normalmente varias veces más rápido que en el complemento. Instala e inicia Ollama y conéctalo aquí. NovaBird carga el modelo probado y decide cuánto tiempo permanece en memoria."
   },
   "semMacConnect": {
     "message": "Conectar"
@@ -1098,5 +1002,32 @@
   },
   "semMacContext": {
     "message": "Contexto: fijo en 512 tokens como en el complemento. Los correos se recortan antes a 1200 caracteres; solo así los vectores siguen siendo comparables con el complemento y otros PC."
+  },
+  "semWayHeading": {
+    "message": "¿Dónde se calcula?"
+  },
+  "semWayPc": {
+    "message": "En este PC dentro del complemento (procesador)"
+  },
+  "semWayOllama": {
+    "message": "Ollama o tu propio servidor (este u otro PC)"
+  },
+  "semMacRecommend": {
+    "message": "– recomendado en Mac"
+  },
+  "semViaHelper": {
+    "message": "La búsqueda por significado se calcula en el NovaBird Helper ($1). Activarlo o desactivarlo, y todo lo relativo al Helper, está en la pestaña «NovaBird Helper»; aquí solo se muestra cómo funciona."
+  },
+  "semOpenHelper": {
+    "message": "Abrir la pestaña «NovaBird Helper»"
+  },
+  "semHelperTip": {
+    "message": "Mucho más rápido con tarjeta gráfica: NovaBird Helper (Windows), se activa en la pestaña «NovaBird Helper»."
+  },
+  "semOtherServer": {
+    "message": "Otro servidor en lugar de Ollama"
+  },
+  "semHitsHeading": {
+    "message": "Resultados"
   }
 }

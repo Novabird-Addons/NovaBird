@@ -1,6 +1,6 @@
 "use strict";
-// Reiter „Semantische Suche (Beta)“: Einstellungen (storage.local "semantic"), Modell laden/löschen, Status, Probe,
-// Helper verbinden, eigener Server, Export/Import der Vektoren. Die Arbeit macht semantic/main.js im Hintergrund.
+// Reiter „Semantische Suche (Beta)“: Einstellungen (storage.local "semantic"), Rechenweg (Add-on, Ollama/eigener Server; der
+// Helper kommt aus dem Reiter „NovaBird Helper“ der Extension), Modell laden/löschen, Status, Probe, Export/Import der Vektoren. Die Arbeit macht semantic/main.js im Hintergrund.
 (() => {
   const $ = id => document.getElementById(id);
   const t = (k, subs) => messenger.i18n.getMessage(k, subs);
@@ -112,10 +112,10 @@
     return t(c.ok ? "semCheckOk" : "semCheckBad", [num(c.minCos, 4), num(c.maxShift, 3)]);
   }
 
-  // Eigener Server: Felder nur bei diesem Rechenweg; Hinweis, wenn die Adresse nicht auf diesem PC liegt
+  // Anderer Server (unter „Ollama oder eigener Server“): Hinweis, wenn die Adresse nicht auf diesem PC liegt. Den NovaBird Helper
+  // gibt es hier nur ohne NovaBird-Extension; mit ihr wird er im Reiter „NovaBird Helper“ verbunden.
   function renderServer(s) {
-    const show = $("semPath").value === "server";
-    $("semServerBox").hidden = !show;
+    $("semServerType").querySelector('option[value="nbhelper"]').hidden = extension;
     let url = null;
     try {
       url = new URL($("semServerUrl").value.trim());
@@ -173,24 +173,6 @@
     } else {
       $("semDownloadText").textContent = "";
     }
-    const h = s.helper;
-    $("semHelperState").textContent = h?.connected
-      ? t("semHelperOk", [h.version || "?", h.deviceName || h.device || "?", h.modelReady ? t("semModelReady") : t("semModelMissing")])
-      : t("semHelperNone", [h?.error || "–"]);
-    $("semHelperPrepare").disabled = !h?.connected || Boolean(h.modelReady);
-    const sy = h?.sync;
-    for (const id of ["semSyncSetup", "semSyncNow", "semSyncLeave"]) {
-      $(id).disabled = !h?.connected;
-    }
-    $("semSyncNow").disabled = !sy?.configured;
-    $("semSyncLeave").disabled = !sy?.configured;
-    if (sy?.configured && !$("semSyncFolder").value) {
-      $("semSyncFolder").value = sy.folder || "";
-    }
-    $("semSyncState").textContent = !h?.connected ? t("semSyncNeedsHelper")
-      : !sy?.configured ? t("semSyncStateNone")
-      : t("semSyncStateOk", [sy.folder || "", s.sync?.at ? new Date(s.sync.at).toLocaleString(lang) : "–", String(s.sync?.pushed ?? 0), String(s.sync?.pulled ?? 0)])
-        + (s.sync?.error ? ` · ${t("semError", [s.sync.error])}` : "");
     $("semThreadsInfo").textContent = t("semThreadsInfo", [String(s.cores || "?"), String(s.threads)]);
     renderServer(s);
   }
@@ -198,12 +180,12 @@
   function writeForm(s) {
     const c = s.cfg;
     $("semEnabled").checked = Boolean(c.enabled);
-    $("semPath").value = c.path;
     $("semIdleOnly").checked = c.idleOnly !== false;
     $("semThreads").value = String(c.threads || 0);
     $("semKeep").value = c.keep;
     $("semStrictness").value = c.strictness;
-    $("semServerType").value = s.server?.type || "ollama";
+    $("semServerType").value = s.server?.type === "nbhelper" && !extension ? "nbhelper" : "openai";
+    $("semServerBox").open = c.path === "server" && s.server?.type !== "ollama" && !viaHelper(s);
     $("semServerUrl").value = s.server?.url || "";
     $("semServerModel").value = s.server?.model || "";
     $("semServerUser").value = s.server?.user || "";
@@ -228,10 +210,7 @@
         writeForm(s);
       }
       renderModels(s);
-      // rechnet ein eigener Server (z. B. Ollama auf dem Mac), braucht es das Modell im Add-on nicht
-      for (const el of document.querySelectorAll(".sem-addon-model")) {
-        el.hidden = s.cfg.path === "server";
-      }
+      renderWay(s);
       renderState(s);
     } finally {
       busy = false;
@@ -243,64 +222,62 @@
   config().then(c => ($("semHeaderCount").checked = c.headerCount !== false));
   $("semHeaderCount").addEventListener("change", () => setConfig({ headerCount: $("semHeaderCount").checked }));
 
-  // Ein Klick: NovaBird Helper, der in der NovaBird-Extension (Reiter „NovaBird Helper“) verbunden ist, oder wie bisher
-  // (dieser PC bzw. eigener Server unter „Erweitert“). Ohne Extension oder ohne Verbindung bleibt die Auswahl verborgen.
-  let helperConn = null;
-  async function showPick() {
+  // Wo wird gerechnet? Den NovaBird Helper schaltet der Reiter „NovaBird Helper“ der Extension ein und aus (eine Stelle für alles,
+  // was den Helper betrifft); rechnet er, zeigt diese Seite nur, wie es läuft. Sonst: auf diesem PC im Add-on oder Ollama/eigener
+  // Server. Ohne NovaBird-Extension gibt es den Reiter nicht – dann lässt sich der Helper unter „Anderer Server“ eintragen.
+  const EXTENSION_ID = "novabird-extension@novabird";
+  let extension = false; // NovaBird-Extension installiert (beantwortet helper:conn)
+  let wayChoice = null; // vom Nutzer gewählter Rechenweg, solange er noch nicht gespeichert ist (Ollama erst nach der Probe)
+  async function loadExtension() {
     try {
-      helperConn = await messenger.runtime.sendMessage("novabird-extension@novabird", { type: "helper:conn" });
+      await messenger.runtime.sendMessage(EXTENSION_ID, { type: "helper:conn" });
+      extension = true;
     } catch {
-      helperConn = null;
+      extension = false;
     }
-    $("semPick").hidden = !helperConn?.url;
-    if (!helperConn?.url) {
+  }
+  const viaHelper = s => extension && s.cfg.path === "server" && s.server?.type === "nbhelper";
+  function renderWay(s) {
+    const helper = viaHelper(s);
+    $("semViaHelper").hidden = !helper;
+    $("semWays").hidden = helper;
+    if (helper) {
+      let host = s.server?.url || "";
+      try {
+        host = new URL(host).host;
+      } catch {
+        /* Adresse wie gespeichert */
+      }
+      $("semViaHelperText").textContent = t("semViaHelper", [host]);
       return;
     }
-    const c = await config();
-    const on = c.path === "server" && c.server?.type === "nbhelper" && String(c.server?.url || "").replace(/\/+$/, "") === helperConn.url.replace(/\/+$/, "");
-    $("semSrcHelper").checked = on;
-    $("semSrcOther").checked = !on;
-    $("semSrcHelperLabel").textContent = t("semSrcHelper", [new URL(helperConn.url).host]);
+    const way = wayChoice || (s.cfg.path === "server" ? "ollama" : "pc");
+    $("semWayPc").checked = way === "pc";
+    $("semWayOllama").checked = way === "ollama";
+    $("semWayPcBox").hidden = way !== "pc";
+    $("semMac").hidden = way !== "ollama";
+    $("semHelperTip").hidden = !extension;
   }
-  showPick();
-  $("semSrcHelper").addEventListener("change", () => {
-    const url = helperConn.url.replace(/\/+$/, "");
-    const u = new URL(url);
-    // Erlaubnis direkt im Klick erfragen (vor dem ersten await)
-    const asked = messenger.permissions.request({ origins: [`${u.protocol}//${u.hostname}/*`] }).catch(() => false);
-    (async () => {
-      const out = $("semSrcState");
-      out.className = "hint";
-      if (!(await asked)) {
-        out.textContent = t("semServerNoPermission");
-        out.className = "hint bad";
-        $("semSrcOther").checked = true;
-        return;
-      }
-      out.textContent = t("semServerChecking");
-      const old = (await config()).server || {};
-      await setConfig({ enabled: true, path: "server", server: { ...old, type: "nbhelper", url, code: helperConn.code, label: helperConn.label || old.label || "" } });
-      const res = await send({ type: "semantic:serverCheck" });
-      const c = res?.check;
-      out.textContent = c?.ok ? t("semServerOk", [num(c.minCos, 4), num(c.maxShift, 3), String(c.ms)]) : t("semServerFail", [res?.error || c?.error || c?.reason || "?"]);
-      out.className = c?.ok ? "hint ok" : "hint bad";
-      last = null; // Formular (Rechenweg, Server) neu füllen
-      refresh();
-    })();
-  });
-  $("semSrcOther").addEventListener("change", async () => {
-    const c = await config();
-    if (c.path === "server" && c.server?.type === "nbhelper") {
-      await setConfig({ path: "auto" });
+  $("semWayPc").addEventListener("change", async () => {
+    wayChoice = null;
+    $("semServerState").textContent = "";
+    if ((await config()).path === "server") {
+      await setConfig({ path: "auto" }); // auto: ein laufender Helper auf diesem PC (Native Messaging) rechnet mit, sonst das Add-on
     }
-    $("semSrcState").textContent = "";
-    last = null;
-    refresh();
+    if (last) {
+      renderWay({ ...last, cfg: { ...last.cfg, path: "auto" } });
+    }
   });
-  $("semPath").addEventListener("change", () => {
-    renderServer(last);
-    setConfig({ path: $("semPath").value });
+  $("semWayOllama").addEventListener("change", () => {
+    wayChoice = "ollama";
+    if (last) {
+      renderWay(last);
+    }
+    macInit();
   });
+  for (const b of document.querySelectorAll(".sem-open-helper")) {
+    b.addEventListener("click", () => messenger.runtime.sendMessage(EXTENSION_ID, { type: "openSettings", key: "helper" }).catch(() => {}));
+  }
   $("semServerUrl").addEventListener("input", () => renderServer(last));
   $("semServerType").addEventListener("change", () => renderServer(last));
   $("semIdleOnly").addEventListener("change", () => setConfig({ idleOnly: $("semIdleOnly").checked }));
@@ -333,25 +310,6 @@
       li.textContent = `${r.score.toLocaleString(lang, { minimumFractionDigits: 2 })} · ${subject}`;
       out.append(li);
     }
-  });
-
-  // Helper: Native Messaging braucht eine Berechtigung (wird hier, auf Klick, erfragt)
-  $("semHelperConnect").addEventListener("click", async () => {
-    note("");
-    const ok = await messenger.permissions.request({ permissions: ["nativeMessaging"] }).catch(() => false);
-    if (!ok) {
-      note(t("semHelperNoPermission"));
-      return;
-    }
-    const res = await send({ type: "semantic:helperConnect" });
-    note(res?.info ? "" : t("semHelperNone", [res?.error || "–"]));
-    refresh();
-  });
-  $("semHelperPrepare").addEventListener("click", async () => {
-    note(t("semHelperPreparing"));
-    const res = await send({ type: "semantic:helperPrepare" });
-    note(res?.error ? t("semError", [res.error]) : "");
-    refresh();
   });
 
   // Eigener Server: Erlaubnis für genau diese Adresse (und webRequest, damit Ollama den Absender nicht ablehnt) muss
@@ -412,31 +370,6 @@
       }
       refresh();
     })();
-  });
-
-  // Ordner-Sync: ohne Code neu koppeln (der Helper erzeugt den Code), mit Code einem bestehenden Sync-Ordner beitreten
-  $("semSyncSetup").addEventListener("click", async () => {
-    note("");
-    const res = await send({ type: "semantic:syncSetup", folder: $("semSyncFolder").value.trim(), code: $("semSyncCode").value.trim() || null });
-    if (res?.error) {
-      note(t("semError", [res.error]));
-    } else if (res?.code) {
-      $("semSyncCode").value = res.code;
-      note(t("semSyncNewCode", [res.code]));
-    } else {
-      note(t("semSyncJoined"));
-    }
-    refresh();
-  });
-  $("semSyncNow").addEventListener("click", async () => {
-    const res = await send({ type: "semantic:syncNow" });
-    note(res?.error ? t("semError", [res.error]) : "");
-    refresh();
-  });
-  $("semSyncLeave").addEventListener("click", async () => {
-    await send({ type: "semantic:syncLeave" });
-    $("semSyncCode").value = "";
-    refresh();
   });
 
   $("semExport").addEventListener("click", async () => {
@@ -512,18 +445,23 @@
     macState(res, typeof extra === "function" ? extra(res) : extra);
     return res;
   }
-  if (isMac) {
-    $("semMac").hidden = false;
-    (async () => {
-      const c = await config();
-      $("semMacKeep").value = c.keep || "10min";
-      const sv = c.server || {};
-      $("semMacUrl").value = sv.type === "ollama" && sv.url ? sv.url : "http://localhost:11434";
-      if (sv.type === "ollama" && sv.url) {
-        macOp("status");
-      }
-    })();
+  // Ollama auf allen Systemen; auf dem Mac der empfohlene Weg (Grafikchip). Status erst, wenn der Block zu sehen ist.
+  $("semWayOllamaLabel").textContent = t("semWayOllama") + (isMac ? " " + t("semMacRecommend") : "");
+  let macStarted = false;
+  async function macInit() {
+    if (macStarted) {
+      return;
+    }
+    macStarted = true;
+    const c = await config();
+    $("semMacKeep").value = c.keep || "10min";
+    const sv = c.server || {};
+    $("semMacUrl").value = sv.type === "ollama" && sv.url ? sv.url : "http://localhost:11434";
+    if (sv.type === "ollama" && sv.url) {
+      macOp("status");
+    }
   }
+  config().then(c => c.path === "server" && macInit());
   // Erlaubnis für die Adresse (und webRequest, damit Ollama den Absender nicht ablehnt) direkt im Klick erfragen
   $("semMacConnect").addEventListener("click", () => {
     const url = $("semMacUrl").value.trim().replace(/\/+$/, "");
@@ -579,7 +517,7 @@
     messenger.windows.openDefaultBrowser("https://ollama.com/download");
   });
 
-  refresh();
+  loadExtension().then(refresh);
   setInterval(() => {
     if (!document.getElementById("semanticTab").hidden) {
       refresh();

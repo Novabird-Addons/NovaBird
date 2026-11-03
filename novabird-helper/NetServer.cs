@@ -1,7 +1,7 @@
 // Netz-Modus: Der Helper rechnet auf diesem PC (Grafikkarte) für mehrere PCs im Netz. Thunderbird schickt Texte, der Helper
 // antwortet mit Vektoren.
 //  - HTTP über einen eigenen kleinen TCP-Server (braucht keine Adminrechte und keine URL-Reservierung). Port 47531.
-//  - Kopplung: Code aus 20 Zeichen (wie beim Ordner-Sync); Schlüssel = PBKDF2-SHA256(Code, "NovaBird-Net-1", 300.000 Runden).
+//  - Kopplung: Code aus 20 Zeichen (PairCode); Schlüssel = PBKDF2-SHA256(Code, "NovaBird-Net-1", 300.000 Runden).
 //    Mehrere Gruppen mit je eigenem Code (Groups.cs): Der Helper probiert die Schlüssel der Gruppen durch (zuerst die zuletzt
 //    passende des PCs); jede Gruppe hat ihren eigenen Vektorspeicher.
 //  - Jede Anfrage und jede Antwort ist mit AES-256-GCM verschlüsselt: Mailtexte und Vektoren gehen nie lesbar durchs Netz.
@@ -152,7 +152,7 @@ sealed class NetServer
     }
 
     static byte[] DeriveKey(string code) =>
-        Rfc2898DeriveBytes.Pbkdf2(Encoding.UTF8.GetBytes(Sync.Normalize(code)), Encoding.ASCII.GetBytes("NovaBird-Net-1"), Iterations, HashAlgorithmName.SHA256, 32);
+        Rfc2898DeriveBytes.Pbkdf2(Encoding.UTF8.GetBytes(PairCode.Normalize(code)), Encoding.ASCII.GetBytes("NovaBird-Net-1"), Iterations, HashAlgorithmName.SHA256, 32);
 
     // ---- Server --------------------------------------------------------------------------------------------------------------
     public void Start()

@@ -41,7 +41,7 @@ Branch `novabird-2.0`. `main` und `testing` bleiben unverändert, bis der Umbau 
 - C#/.NET, ONNX Runtime DirectML; misst beim ersten Start CPU und alle Grafikkarten und nimmt das schnellste Gerät.
 - Lädt dasselbe Modell (gleiche Revision und Prüfsumme).
 - Installation pro Benutzer ohne Adminrechte, Eintrag für Native Messaging unter HKCU.
-- Ordner-Sync der Vektoren (NAS, OneDrive, Nextcloud): verschlüsselt, Schlüssel per Pairing-Code; keine offenen Ports.
+- ~~Ordner-Sync der Vektoren (NAS, OneDrive, Nextcloud)~~ – entfernt (02.11.2026); Vektoren teilen die PCs einer Gruppe über den Helper im Netz.
 
 ### Eigener Server und Probe der Rechenwege
 - Dritter Rechenweg „Eigener Server“: Ollama oder OpenAI-kompatibel, lokal oder im Netz, mit Benutzer/Schlüssel.

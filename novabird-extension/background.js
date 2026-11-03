@@ -251,7 +251,9 @@ messenger.runtime.onMessageExternal.addListener((message, sender) => {
   if (message.probe) {
     return Promise.resolve({ ok: true }); // nur fragen, ob es die NovaBird-Seite gibt
   }
-  return messenger.settingsRedesign.openHub(HUB_KEYS[sender.id]).then(() => ({ ok: true }));
+  // key: einen anderen Reiter öffnen (Suche → „Reiter NovaBird Helper öffnen“); nur diese
+  const key = ["helper", "ai"].includes(message.key) ? message.key : HUB_KEYS[sender.id];
+  return messenger.settingsRedesign.openHub(key).then(() => ({ ok: true }));
 });
 
 // NovaBird-Search: Verbindung zum NovaBird Helper (Reiter „NovaBird Helper“) für die Auswahl „Wo rechnen?“ – nur für Search

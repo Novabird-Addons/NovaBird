@@ -128,8 +128,26 @@ const TEXTS = {
     statsMessagesN: "$1 Nachrichten",
     selfTest_mailStats: "Postfachanalyse",
     tabAi: "KI",
+    tabAiView: "KI-Überblick",
+    avTitle: "KI in NovaBird – Überblick",
+    avIntro: "Alle KI-Funktionen sind freiwillig und ab Werk aus. Gerechnet wird nur dort, wo du es einträgst: auf diesem Rechner, auf einem eigenen Server oder im NovaBird Helper – nie bei einem fremden Anbieter. Diese Seite zeigt, was gerade eingeschaltet ist und wo gerechnet wird.",
+    avOn: "eingeschaltet",
+    avOff: "ausgeschaltet",
+    avSrcHelper: "Rechnet im NovaBird Helper ($1).",
+    avSrcOwn: "Rechnet über $1 unter $2.",
+    avSrcNone: "Noch keine Quelle eingetragen – ohne Quelle passiert nichts.",
+    avModelLine: "Modell: $1 · Kontextlänge: $2 Token",
+    avModelAuto: "wählt der Helper",
+    avTest: "Verbindung prüfen",
+    avOk: "Erreichbar.",
+    avOpen: "Einstellungen öffnen",
+    avHelperConn: "Verbunden mit $1. Der Helper rechnet auf dem Gerät, auf dem er läuft (Windows ML: NPU, Grafikkarte oder Prozessor).",
+    avHelperNone: "Kein NovaBird Helper verbunden. Verbinden im Reiter „NovaBird Helper“ – nötig nur, wenn er rechnen oder vorlesen soll.",
+    avSemHead: "Bedeutungssuche",
+    avSemText: "Die Suche nach Bedeutung statt nur nach Wörtern gehört zu NovaBird-Search und hat ihre Einstellungen unter „Suche“ → „Bedeutungssuche“.",
+    avNote: "Mailtext verlässt den Rechner nur an die oben gezeigte Adresse, und nur wenn du eine Funktion anstößt oder „Vorbereiten“ einschaltest.",
     aiTitle: "KI-Assistent",
-    aiSrcHelper: "NovaBird Helper ($1) – verbunden im Reiter „NovaBird Helper“", aiSrcHelperNone: "NovaBird Helper – zuerst im Reiter „NovaBird Helper“ verbinden", aiSrcOwn: "Eigener Server (Ollama, OpenAI-kompatibel)",
+    aiViaHelper: "Der KI-Assistent rechnet im NovaBird Helper ($1). Ein- und ausschalten, Sprachmodell und alles, was den Helper betrifft, stehen im Reiter „NovaBird Helper“; hier stehen nur die Funktionen.", aiOpenHelper: "Reiter „NovaBird Helper“ öffnen", aiHelperTip: "Ohne eigenen Server: Der NovaBird Helper bringt ein Sprachmodell mit, einzuschalten im Reiter „NovaBird Helper“.",
     aiDesc: "Fasst Nachrichten zusammen, übersetzt sie, findet Termine und Aufgaben (zum Prüfen im Termin-Dialog) und gibt mit „Was gibt's Neues?“ oben in der Leiste einen Überblick über die neuen Mails. Ohne „Vorbereiten“ (unten) geschieht nichts automatisch: Erst ein Klick auf „KI-Assistent“ in der Nachrichtenansicht oder auf „Was gibt's Neues?“ sendet Mailtexte an die Adresse unten. Gedacht für ein Modell auf dem eigenen Rechner (Ollama, NovaBird Helper) oder einen OpenAI-kompatiblen Dienst.",
     aiCtxLabel: "Kontextlänge (Token)",
     aiPromptTitle: "Anweisung an die KI",
@@ -155,9 +173,6 @@ const TEXTS = {
     aiFail: "Fehlgeschlagen: $1",
     aiPerm: "Erlaubnis für diese Adresse nicht erteilt.",
     aiRemote: "Achtung: Diese Adresse liegt nicht auf diesem Rechner. Beim Zusammenfassen wird der Text der Mail dorthin gesendet.",
-    aiHelperModelLabel: "Sprachmodell",
-    aiHelperModelDefault: "Wie im Helper eingestellt ($1)",
-    aiHelperModelHint: "Gilt nur für diesen PC. Ein anderes Modell als im Helper lädt dort beim ersten Mal neu (einige Sekunden) und braucht Grafikspeicher.",
     aiFeatTitle: "Funktionen",
     aiFeatDesc: "Was ausgeschaltet ist, verschwindet aus den KI-Fenstern; sind alle drei Reiter aus, auch der Knopf „KI-Assistent“.",
     aiFeatSummary: "Zusammenfassung",
@@ -180,7 +195,7 @@ const TEXTS = {
     pilotEnableLabel: "Nova-Contact verwenden",
     pilotDesc: "Ergänzt den Kontakte-Tab von Betterbird: Tags als Filter, mehrere Kontakte gemeinsam bearbeiten (Tags, Firma, Position) und die letzten 3 Änderungen rückgängig machen. Der Knopf „Nova-Contact“ unter der Adressbuchliste öffnet die Seite zum Sammeln von Adressen aus E-Mails, zum Zusammenführen von Dubletten und zum Aufräumen alter Kontakte (mit Wiederherstellung).",
     pilotLogLabel: "Protokoll in der Nova-Contact-Seite anzeigen (Aktionen mit Uhrzeit, nur bis zum Neustart gespeichert)",
-    tabCalendar: "Rechte Leiste und Anhänge",
+    tabCalendar: "Rechte Leiste, Anhänge, Kalender",
     tabColors: "Farben und Schrift",
     layoutTitle: "Layout der rechten Leiste",
     layoutNova: "NovaBird-Layout: Termine und Aufgaben gemeinsam in Mail, Kalender und Aufgaben (Standard)",
@@ -410,8 +425,26 @@ const TEXTS = {
     statsMessagesN: "$1 messages",
     selfTest_mailStats: "Mailbox analysis",
     tabAi: "AI",
+    tabAiView: "AI overview",
+    avTitle: "AI in NovaBird – overview",
+    avIntro: "All AI features are optional and off by default. Computation happens only where you set it up: on this computer, on your own server or in the NovaBird Helper – never at a third-party provider. This page shows what is currently on and where the computing happens.",
+    avOn: "on",
+    avOff: "off",
+    avSrcHelper: "Computes in the NovaBird Helper ($1).",
+    avSrcOwn: "Computes via $1 at $2.",
+    avSrcNone: "No source set up yet – nothing happens without one.",
+    avModelLine: "Model: $1 · context length: $2 tokens",
+    avModelAuto: "chosen by the helper",
+    avTest: "Check connection",
+    avOk: "Reachable.",
+    avOpen: "Open settings",
+    avHelperConn: "Connected to $1. The helper computes on the device it runs on (Windows ML: NPU, graphics card or CPU).",
+    avHelperNone: "No NovaBird Helper connected. Connect in the “NovaBird Helper” tab – only needed if it should compute or read aloud.",
+    avSemHead: "Meaning search",
+    avSemText: "Searching by meaning instead of words belongs to NovaBird-Search and has its settings under “Search” → “Meaning search”.",
+    avNote: "Mail text leaves this computer only to the address shown above, and only when you trigger a feature or enable “Prepare”.",
     aiTitle: "AI assistant",
-    aiSrcHelper: "NovaBird Helper ($1) – connected in the “NovaBird Helper” tab", aiSrcHelperNone: "NovaBird Helper – connect it first in the “NovaBird Helper” tab", aiSrcOwn: "Own server (Ollama, OpenAI-compatible)",
+    aiViaHelper: "The AI assistant computes in the NovaBird Helper ($1). Switching it on or off, the language model and everything about the helper are in the “NovaBird Helper” tab; only the features are here.", aiOpenHelper: "Open the “NovaBird Helper” tab", aiHelperTip: "Without your own server: the NovaBird Helper brings a language model, switched on in the “NovaBird Helper” tab.",
     aiDesc: "Summarises and translates messages, finds appointments and tasks (to review in the event dialog) and, with “What's new?” in the toolbar, gives an overview of new mail. Without “Prepare” (below) nothing happens automatically: only a click on “AI assistant” in the message view or on “What's new?” sends mail text to the address below. Meant for a model on your own computer (Ollama, NovaBird Helper) or an OpenAI-compatible service.",
     aiCtxLabel: "Context length (tokens)",
     aiPromptTitle: "Instruction to the AI",
@@ -437,9 +470,6 @@ const TEXTS = {
     aiFail: "Failed: $1",
     aiPerm: "Permission for this address was not granted.",
     aiRemote: "Note: this address is not on this computer. When summarising, the text of the mail is sent there.",
-    aiHelperModelLabel: "Language model",
-    aiHelperModelDefault: "As set in the helper ($1)",
-    aiHelperModelHint: "Applies to this PC only. A model other than the helper's is loaded there the first time (a few seconds) and needs graphics memory.",
     aiFeatTitle: "Functions",
     aiFeatDesc: "What is switched off disappears from the AI windows; if all three tabs are off, so does the “AI assistant” button.",
     aiFeatSummary: "Summary",
@@ -462,7 +492,7 @@ const TEXTS = {
     pilotEnableLabel: "Use Nova-Contact",
     pilotDesc: "Extends Betterbird’s Contacts tab: filter by tags, edit several contacts at once (tags, company, job title) and undo the last 3 changes. The “Nova-Contact” button below the address book list opens the page for collecting addresses from email, merging duplicates and cleaning up old contacts (with restore).",
     pilotLogLabel: "Show a log on the Nova-Contact page (actions with time, kept only until restart)",
-    tabCalendar: "Right pane and attachments",
+    tabCalendar: "Right pane, attachments, calendar",
     tabColors: "Colors and fonts",
     layoutTitle: "Layout of the right-hand pane",
     layoutNova: "NovaBird layout: events and tasks together in mail, calendar and tasks (default)",
@@ -692,8 +722,26 @@ const TEXTS = {
     statsMessagesN: "$1 messages",
     selfTest_mailStats: "Analyse de la boîte mail",
     tabAi: "IA",
+    tabAiView: "Aperçu IA",
+    avTitle: "L’IA dans NovaBird – aperçu",
+    avIntro: "Toutes les fonctions IA sont facultatives et désactivées par défaut. Le calcul n’a lieu que là où vous l’avez configuré : sur cet ordinateur, sur votre propre serveur ou dans le NovaBird Helper – jamais chez un prestataire tiers. Cette page montre ce qui est activé et où le calcul s’effectue.",
+    avOn: "activé",
+    avOff: "désactivé",
+    avSrcHelper: "Calcule dans le NovaBird Helper ($1).",
+    avSrcOwn: "Calcule via $1 à l’adresse $2.",
+    avSrcNone: "Aucune source configurée – sans source, rien ne se passe.",
+    avModelLine: "Modèle : $1 · longueur de contexte : $2 jetons",
+    avModelAuto: "choisi par le helper",
+    avTest: "Vérifier la connexion",
+    avOk: "Joignable.",
+    avOpen: "Ouvrir les réglages",
+    avHelperConn: "Connecté à $1. Le helper calcule sur l’appareil où il tourne (Windows ML : NPU, carte graphique ou processeur).",
+    avHelperNone: "Aucun NovaBird Helper connecté. Connexion dans l’onglet « NovaBird Helper » – utile seulement s’il doit calculer ou lire à voix haute.",
+    avSemHead: "Recherche par sens",
+    avSemText: "La recherche par sens plutôt que par mots fait partie de NovaBird-Search ; ses réglages sont sous « Recherche » → « Recherche par sens ».",
+    avNote: "Le texte des courriels ne quitte cet ordinateur que vers l’adresse indiquée ci-dessus, et seulement quand vous déclenchez une fonction ou activez « Préparer ».",
     aiTitle: "Assistant IA",
-    aiSrcHelper: "NovaBird Helper ($1) – connecté dans l’onglet « NovaBird Helper »", aiSrcHelperNone: "NovaBird Helper – à connecter d’abord dans l’onglet « NovaBird Helper »", aiSrcOwn: "Propre serveur (Ollama, compatible OpenAI)",
+    aiViaHelper: "L’assistant IA calcule dans le NovaBird Helper ($1). L’activer ou le désactiver, le modèle de langage et tout ce qui concerne le Helper se trouvent dans l’onglet « NovaBird Helper » ; ici, seulement les fonctions.", aiOpenHelper: "Ouvrir l’onglet « NovaBird Helper »", aiHelperTip: "Sans serveur à vous : le NovaBird Helper fournit un modèle de langage, à activer dans l’onglet « NovaBird Helper ».",
     aiDesc: "Résume et traduit les messages, repère les rendez-vous et les tâches (à vérifier dans la fenêtre d’événement) et donne avec « Quoi de neuf ? » dans la barre un aperçu des nouveaux messages. Sans « Préparer » (ci-dessous), rien n’est automatique : seul un clic sur « Assistant IA » dans l’affichage du message ou sur « Quoi de neuf ? » envoie des textes à l’adresse ci-dessous. Prévu pour un modèle sur votre propre ordinateur (Ollama, NovaBird Helper) ou un service compatible OpenAI.",
     aiCtxLabel: "Longueur de contexte (jetons)",
     aiPromptTitle: "Instruction donnée à l’IA",
@@ -719,9 +767,6 @@ const TEXTS = {
     aiFail: "Échec : $1",
     aiPerm: "L’autorisation pour cette adresse n’a pas été accordée.",
     aiRemote: "Attention : cette adresse n’est pas sur cet ordinateur. Lors du résumé, le texte du message y est envoyé.",
-    aiHelperModelLabel: "Modèle de langage",
-    aiHelperModelDefault: "Comme dans le helper ($1)",
-    aiHelperModelHint: "Vaut uniquement pour ce PC. Un autre modèle que celui du helper y est chargé la première fois (quelques secondes) et utilise de la mémoire graphique.",
     aiFeatTitle: "Fonctions",
     aiFeatDesc: "Ce qui est désactivé disparaît des fenêtres IA ; si les trois onglets sont désactivés, le bouton « Assistant IA » aussi.",
     aiFeatSummary: "Résumé",
@@ -744,7 +789,7 @@ const TEXTS = {
     pilotEnableLabel: "Utiliser Nova-Contact",
     pilotDesc: "Complète l’onglet Contacts de Betterbird : filtrer par tags, modifier plusieurs contacts à la fois (tags, société, fonction) et annuler les 3 dernières modifications. Le bouton « Nova-Contact » sous la liste des carnets ouvre la page pour collecter des adresses depuis les e-mails, fusionner les doublons et nettoyer les anciens contacts (avec restauration).",
     pilotLogLabel: "Afficher un journal sur la page Nova-Contact (actions avec l’heure, conservé jusqu’au redémarrage)",
-    tabCalendar: "Panneau de droite et pièces jointes",
+    tabCalendar: "Panneau de droite, pièces jointes, agenda",
     tabColors: "Couleurs et police",
     layoutTitle: "Disposition du panneau de droite",
     layoutNova: "Disposition NovaBird : événements et tâches ensemble dans Courrier, Agenda et Tâches (par défaut)",
@@ -974,8 +1019,26 @@ const TEXTS = {
     statsMessagesN: "$1 mensajes",
     selfTest_mailStats: "Análisis del buzón",
     tabAi: "IA",
+    tabAiView: "Resumen IA",
+    avTitle: "IA en NovaBird – resumen",
+    avIntro: "Todas las funciones de IA son opcionales y vienen desactivadas. El cálculo solo ocurre donde tú lo configures: en este equipo, en tu propio servidor o en el NovaBird Helper – nunca en un proveedor ajeno. Esta página muestra qué está activado y dónde se calcula.",
+    avOn: "activado",
+    avOff: "desactivado",
+    avSrcHelper: "Calcula en el NovaBird Helper ($1).",
+    avSrcOwn: "Calcula mediante $1 en $2.",
+    avSrcNone: "Aún no hay una fuente configurada: sin fuente no ocurre nada.",
+    avModelLine: "Modelo: $1 · longitud de contexto: $2 tokens",
+    avModelAuto: "lo elige el helper",
+    avTest: "Comprobar conexión",
+    avOk: "Accesible.",
+    avOpen: "Abrir ajustes",
+    avHelperConn: "Conectado con $1. El helper calcula en el dispositivo donde se ejecuta (Windows ML: NPU, tarjeta gráfica o procesador).",
+    avHelperNone: "Ningún NovaBird Helper conectado. Conéctalo en la pestaña «NovaBird Helper»; solo hace falta si debe calcular o leer en voz alta.",
+    avSemHead: "Búsqueda por significado",
+    avSemText: "Buscar por significado en lugar de por palabras pertenece a NovaBird-Search; sus ajustes están en «Búsqueda» → «Búsqueda por significado».",
+    avNote: "El texto de los correos solo sale de este equipo hacia la dirección mostrada arriba, y solo cuando inicias una función o activas «Preparar».",
     aiTitle: "Asistente IA",
-    aiSrcHelper: "NovaBird Helper ($1) – conectado en la pestaña «NovaBird Helper»", aiSrcHelperNone: "NovaBird Helper – conéctelo primero en la pestaña «NovaBird Helper»", aiSrcOwn: "Servidor propio (Ollama, compatible con OpenAI)",
+    aiViaHelper: "El asistente IA calcula en el NovaBird Helper ($1). Activarlo o desactivarlo, el modelo de lenguaje y todo lo relativo al Helper están en la pestaña «NovaBird Helper»; aquí solo las funciones.", aiOpenHelper: "Abrir la pestaña «NovaBird Helper»", aiHelperTip: "Sin servidor propio: el NovaBird Helper trae un modelo de lenguaje, se activa en la pestaña «NovaBird Helper».",
     aiDesc: "Resume y traduce mensajes, encuentra citas y tareas (para revisarlas en la ventana de evento) y, con «¿Qué hay de nuevo?» en la barra, da un resumen del correo nuevo. Sin «Preparar» (abajo) nada ocurre automáticamente: solo un clic en «Asistente IA» en la vista del mensaje o en «¿Qué hay de nuevo?» envía textos a la dirección de abajo. Pensado para un modelo en su propio ordenador (Ollama, NovaBird Helper) o un servicio compatible con OpenAI.",
     aiCtxLabel: "Longitud de contexto (tokens)",
     aiPromptTitle: "Instrucción para la IA",
@@ -1001,9 +1064,6 @@ const TEXTS = {
     aiFail: "Error: $1",
     aiPerm: "No se concedió el permiso para esta dirección.",
     aiRemote: "Atención: esta dirección no está en este ordenador. Al resumir, el texto del mensaje se envía allí.",
-    aiHelperModelLabel: "Modelo de lenguaje",
-    aiHelperModelDefault: "Como en el helper ($1)",
-    aiHelperModelHint: "Solo para este PC. Un modelo distinto al del helper se carga allí la primera vez (unos segundos) y necesita memoria gráfica.",
     aiFeatTitle: "Funciones",
     aiFeatDesc: "Lo desactivado desaparece de las ventanas de IA; si las tres pestañas están desactivadas, también el botón «Asistente IA».",
     aiFeatSummary: "Resumen",
@@ -1026,7 +1086,7 @@ const TEXTS = {
     pilotEnableLabel: "Usar Nova-Contact",
     pilotDesc: "Amplía la pestaña Contactos de Betterbird: filtrar por etiquetas, editar varios contactos a la vez (etiquetas, empresa, cargo) y deshacer los últimos 3 cambios. El botón «Nova-Contact» bajo la lista de libretas abre la página para recoger direcciones del correo, fusionar duplicados y limpiar contactos antiguos (con restauración).",
     pilotLogLabel: "Mostrar un registro en la página de Nova-Contact (acciones con hora, solo hasta reiniciar)",
-    tabCalendar: "Panel derecho y adjuntos",
+    tabCalendar: "Panel derecho, adjuntos, calendario",
     tabColors: "Colores y fuente",
     layoutTitle: "Diseño del panel derecho",
     layoutNova: "Diseño NovaBird: eventos y tareas juntos en correo, calendario y tareas (predeterminado)",
@@ -1247,22 +1307,28 @@ function showTab(id) {
     document.getElementById(o.dataset.tab).hidden = o !== b;
   }
   try {
-    if (VIEW !== "ai") localStorage.setItem(TAB_KEY, b.dataset.tab);
+    if (!VIEW_TAB) localStorage.setItem(TAB_KEY, b.dataset.tab);
   } catch {}
   if (b.dataset.tab === "statsTab") {
     setTimeout(loadStats); // erst nach dem Laden des ganzen Skripts (Start im gemerkten Reiter)
   }
 }
-// Im Hub zwei Ansichten derselben Seite: „Allgemein“ (ohne KI) und „KI-Assistent“ (nur KI, ohne Reiterleiste)
+// Im Hub Ansichten derselben Seite: ein einzelner Reiter (view=list|attach|… ohne Reiterleiste und Titel)
+// oder „general“ (alles außer KI; Stand vor den Themen-Gruppen, bleibt für alte Verweise)
 const VIEW = new URLSearchParams(location.search).get("view");
-if (VIEW === "ai" || VIEW === "general") {
+const VIEW_TABS = {
+  list: "listTab", attach: "calendar", colors: "colorsTab", stats: "statsTab", updates: "updatesTab",
+  screen: "screenTab", rules: "rulesTab", pilot: "pilotTab", ai: "aiTab", aiview: "aiViewTab",
+};
+const VIEW_TAB = VIEW_TABS[VIEW] || null;
+if (VIEW_TAB || VIEW === "general") {
   for (const b of document.querySelectorAll("nav button")) {
-    if ((b.dataset.tab === "aiTab") !== (VIEW === "ai")) {
+    if (VIEW_TAB ? b.dataset.tab !== VIEW_TAB : b.dataset.tab === "aiTab") {
       document.getElementById(b.dataset.tab).hidden = true;
       b.remove();
     }
   }
-  if (VIEW === "ai") {
+  if (VIEW_TAB) {
     document.querySelector("nav").hidden = true;
     document.getElementById("title").hidden = true;
   }
@@ -1274,7 +1340,7 @@ let startTab = "listTab";
 try {
   startTab = localStorage.getItem(TAB_KEY) || startTab;
 } catch {}
-showTab(VIEW === "ai" ? "aiTab" : startTab);
+showTab(VIEW_TAB || startTab);
 
 // Skizzen der drei Stile der Nachrichtenliste
 function listSvg(style) {
@@ -1692,50 +1758,26 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
   };
   syncType();
   document.getElementById("aiType").addEventListener("change", syncType);
-  // Ein Klick: Sprachmodell des verbundenen NovaBird Helpers (Reiter „NovaBird Helper“) oder ein eigener Server
+  // Rechnet der NovaBird Helper (eingeschaltet im Reiter „NovaBird Helper“), steht hier nur, wie es läuft – Adresse, Code und
+  // Sprachmodell gehören dorthin. Sonst der eigene Server (Ollama, OpenAI-kompatibel) mit Hinweis auf den Helper.
   const { helperConn } = await messenger.storage.local.get({ helperConn: null });
-  const srcHelper = document.querySelector('input[name="aiSource"][value="helper"]');
-  const srcOwn = document.querySelector('input[name="aiSource"][value="own"]');
-  let helperHost = "";
-  try {
-    helperHost = helperConn ? new URL(helperConn.url).host : "";
-  } catch { /* ungültig */ }
-  document.getElementById("aiSrcHelper").textContent = helperHost ? t.aiSrcHelper.replace("$1", helperHost) : t.aiSrcHelperNone;
-  document.getElementById("aiSrcOwn").textContent = t.aiSrcOwn;
-  srcHelper.disabled = !helperHost;
-  srcHelper.checked = Boolean(helperHost && conf.aiType === "nbhelper");
-  srcOwn.checked = !srcHelper.checked;
-  const syncSource = () => {
-    const own = srcOwn.checked;
-    document.querySelector("#aiTab .ai-grid").hidden = !own;
-    if (own) {
-      syncType();
-      syncRemote();
-    } else {
-      document.getElementById("aiHelperHint").hidden = true;
-      document.getElementById("aiRemote").hidden = true;
-    }
-  };
-  syncSource();
-  srcHelper.addEventListener("change", async () => {
-    document.getElementById("aiType").value = "nbhelper";
-    document.getElementById("aiUrl").value = helperConn.url;
-    document.getElementById("aiKey").value = helperConn.code;
-    await save(current());
-    syncSource();
-  });
-  srcOwn.addEventListener("change", async () => {
-    if (document.getElementById("aiType").value === "nbhelper") {
-      document.getElementById("aiType").value = "ollama";
-      document.getElementById("aiUrl").value = nbAI.DEFAULTS.aiUrl || "";
-      document.getElementById("aiKey").value = "";
-    }
-    await save(current());
-    syncSource();
-  });
+  const viaHelper = conf.aiType === "nbhelper";
+  document.getElementById("aiViaHelper").hidden = !viaHelper;
+  document.getElementById("aiOwn").hidden = viaHelper;
+  if (viaHelper) {
+    let host = conf.aiUrl;
+    try {
+      host = new URL(helperConn?.url || conf.aiUrl).host;
+    } catch { /* Adresse wie gespeichert */ }
+    document.getElementById("aiViaHelperText").textContent = t.aiViaHelper.replace("$1", host);
+  }
+  for (const b of document.querySelectorAll("#aiTab .ai-open-helper")) {
+    b.textContent = t.aiOpenHelper;
+    b.addEventListener("click", () => messenger.settingsRedesign.openHub("helper").catch(() => {}));
+  }
   // Im Hub ändert der Reiter „NovaBird Helper“ dieselben Werte: Ansicht „KI-Assistent“ dann neu laden
   messenger.storage.onChanged.addListener((changes, area) => {
-    if (VIEW === "ai" && area === "local" && !document.hasFocus() && ["aiEnabled", "aiType", "aiUrl", "aiKey", "helperConn"].some(k => k in changes)) {
+    if ((VIEW === "ai" || VIEW === "aiview") && area === "local" && !document.hasFocus() && ["aiEnabled", "aiType", "aiUrl", "aiKey", "helperConn"].some(k => k in changes)) {
       location.reload();
     }
   });
@@ -1769,33 +1811,6 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
   const prepare = document.getElementById("aiPrepare");
   prepare.checked = conf.aiPrepare === true;
   prepare.addEventListener("change", () => save({ aiPrepare: prepare.checked }));
-  // NovaBird Helper: anderes Sprachmodell als dort eingestellt (nur dieser PC); Auswahl nur, wenn der Helper mehrere hat
-  const modelSel = document.getElementById("aiHelperModel");
-  async function fillHelperModels() {
-    const row = document.getElementById("aiHelperModelRow");
-    const hint = document.getElementById("aiHelperModelHint");
-    row.hidden = hint.hidden = true;
-    if (!srcHelper.checked || !helperConn) return;
-    try {
-      const info = await nbAI.helperHello(helperConn.url, helperConn.code);
-      const others = (info.chatChoices || []).filter(m => m !== info.chatModel);
-      if (!others.length) return;
-      const name = m => m.replace(/^ollama:/, "");
-      modelSel.replaceChildren(new Option(t.aiHelperModelDefault.replace("$1", info.chatModel ? name(info.chatModel) : "–"), ""), ...others.map(m => new Option(name(m), m)));
-      const { aiHelperModel } = await messenger.storage.local.get({ aiHelperModel: "" });
-      modelSel.value = others.includes(aiHelperModel) ? aiHelperModel : "";
-      row.hidden = hint.hidden = false;
-    } catch {
-      /* Helper nicht erreichbar: keine Auswahl */
-    }
-  }
-  modelSel.addEventListener("change", () => save({ aiHelperModel: modelSel.value }));
-  srcHelper.addEventListener("change", fillHelperModels);
-  srcOwn.addEventListener("change", () => {
-    save({ aiHelperModel: "" });
-    fillHelperModels();
-  });
-  fillHelperModels();
   // Anweisung an die KI anzeigen und erklären (Text aus ai/ai.js, in der Sprache der Oberfläche)
   document.getElementById("aiPromptText").textContent = nbAI.promptTemplate(document.documentElement.lang, false);
   const safeList = document.getElementById("aiPromptList");
@@ -1840,6 +1855,95 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
       status.textContent = t.aiFail.replace("$1", { code: t.aiErrCode, nomodel: t.aiErrNoModel }[key] || key);
     }
   });
+})();
+
+// ---- KI-Überblick (Rubrik KI → „Überblick“ im Hub): was ist an, wo wird gerechnet -----------------
+(async () => {
+  const conf = { ...nbAI.DEFAULTS, ...(await messenger.storage.local.get(nbAI.DEFAULTS)) };
+  const { helperConn } = await messenger.storage.local.get({ helperConn: null });
+  const on = conf.aiEnabled === true;
+  const dot = (id, ok) => {
+    document.getElementById(id).style.background = ok ? "#1D9E75" : "color-mix(in srgb, currentColor 35%, transparent)";
+  };
+  let helperHost = "";
+  try {
+    helperHost = helperConn ? new URL(helperConn.url).host : "";
+  } catch { /* ungültige Adresse */ }
+
+  // Karte KI-Assistent: an/aus, Quelle, Modell, Funktionen (gleiche Beschriftungen wie im Reiter „KI-Assistent“)
+  document.getElementById("avAiHead").textContent = t.aiTitle;
+  document.getElementById("avAiState").textContent = on ? t.avOn : t.avOff;
+  dot("avAiDot", on);
+  const where = document.getElementById("avAiWhere");
+  const model = document.getElementById("avAiModel");
+  if (conf.aiType === "nbhelper") {
+    where.textContent = t.avSrcHelper.replace("$1", helperHost || conf.aiUrl);
+    model.textContent = t.avModelLine.replace("$1", conf.aiHelperModel || t.avModelAuto).replace("$2", String(conf.aiCtx));
+  } else if (conf.aiUrl) {
+    where.textContent = t.avSrcOwn.replace("$1", conf.aiType === "openai" ? "OpenAI-API" : "Ollama").replace("$2", conf.aiUrl);
+    model.textContent = t.avModelLine.replace("$1", conf.aiModel || "–").replace("$2", String(conf.aiCtx));
+  } else {
+    where.textContent = t.avSrcNone;
+    model.hidden = true;
+  }
+  const featIds = { summary: "aiFeatSummary", translate: "aiFeatTranslate", events: "aiFeatEvents", deadlines: "aiFeatDeadlines", overview: "aiFeatOverview", speech: "aiFeatSpeech", compose: "aiFeatCompose", phish: "aiFeatPhish" };
+  const feats = document.getElementById("avFeats");
+  for (const f of nbAI.FEATURES) {
+    const active = on && nbAI.feature(conf, f);
+    const row = document.createElement("label");
+    row.className = active ? "" : "off";
+    row.textContent = (active ? "✓ " : "○ ") + (t[featIds[f]] || f);
+    feats.append(row);
+  }
+  const aiOut = document.getElementById("avAiOut");
+  const aiTest = document.getElementById("avAiTest");
+  aiTest.textContent = t.avTest;
+  aiTest.disabled = !conf.aiUrl;
+  aiTest.addEventListener("click", async () => {
+    // Erlaubnis für Adressen außerhalb des eigenen Rechners: direkt im Klick erfragen (wie im Reiter „KI-Assistent“)
+    let asked = null;
+    try {
+      if (/^https?:/i.test(conf.aiUrl) && !nbAI.isLocal(conf.aiUrl)) {
+        asked = messenger.permissions.request({ origins: [nbAI.origin(conf.aiUrl)] }).catch(() => false);
+      }
+    } catch { /* ungültige Adresse: listModels meldet es */ }
+    aiOut.textContent = t.aiTesting;
+    try {
+      if (asked && !(await asked)) {
+        aiOut.textContent = t.aiFail.replace("$1", t.aiPerm);
+        return;
+      }
+      const models = await nbAI.listModels(conf);
+      aiOut.textContent = conf.aiType === "nbhelper" ? t.aiOkHelper.replace("$1", models[0]) : t.aiOk.replace("$1", String(models.length));
+    } catch (e) {
+      aiOut.textContent = t.aiFail.replace("$1", String(e.message || e));
+    }
+  });
+
+  // Karte NovaBird Helper: verbunden? erreichbar?
+  dot("avHDot", Boolean(helperHost));
+  document.getElementById("avHState").textContent = helperHost;
+  document.getElementById("avHText").textContent = helperHost ? t.avHelperConn.replace("$1", helperHost) : t.avHelperNone;
+  const hOut = document.getElementById("avHOut");
+  const hTest = document.getElementById("avHTest");
+  hTest.textContent = t.avTest;
+  hTest.disabled = !helperConn;
+  hTest.addEventListener("click", async () => {
+    hOut.textContent = t.aiTesting;
+    try {
+      await nbAI.helperHello(helperConn.url, helperConn.code);
+      hOut.textContent = t.avOk;
+    } catch (e) {
+      hOut.textContent = t.aiFail.replace("$1", String(e.message || e));
+    }
+  });
+
+  // Verweise auf die anderen Reiter der Rubrik (nur im Hub wirksam)
+  for (const [id, key] of [["avAiOpen", "ai"], ["avHOpen", "helper"], ["avSemOpen", "semantic"]]) {
+    const btn = document.getElementById(id);
+    btn.textContent = t.avOpen;
+    btn.addEventListener("click", () => messenger.settingsRedesign.openHub(key).catch(() => {}));
+  }
 })();
 
 // In der Add-on-Verwaltung (schmal): Verweis auf Einstellungen → NovaBird statt der Seite
