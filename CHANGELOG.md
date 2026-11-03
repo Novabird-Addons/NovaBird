@@ -5,7 +5,7 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.5 · Helper 0.3.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
-### NovaBird Helper: pairing without typing the code, setup assistant
+### NovaBird Helper 0.5.0: pairing without typing the code, setup assistant
 - **Pairing mode** (helper web interface → PCs → "Add a device by pairing", 5 minutes): Thunderbird → Settings → NovaBird → AI → NovaBird Helper → **"Search the network for a helper"** finds it (UDP multicast 239.255.77.31, port 47531; the helper answers only in pairing mode and only to private networks), **"Pair"** shows a 6-digit number, the same number appears in the helper; **"Allow"** there hands the group's pairing code to Thunderbird encrypted. Typing address and code by hand still works.
 - Protocol (`novabird-helper/Pairing.cs`): `POST /nbhelper/pair` `{op:"start", pub, label}` → `{req, pub, name}` (ECDH P-256, raw public keys), `{op:"poll", req}` → `pending | denied | expired | {state:"ok", n, d}`; number = HKDF-SHA256(shared secret, "nbh-pair-sas|helperPub|clientPub") mod 10⁶ – a third party in the network would get a different number on each side; code AES-256-GCM with a key from the same HKDF, delivered once. At most 8 open requests, unknown request ids count as failed attempts.
 - Helper on the same PC: Thunderbird uses 127.0.0.1 (no permission prompt, no firewall). Service mode adds a firewall rule for the UDP port (private networks only).
