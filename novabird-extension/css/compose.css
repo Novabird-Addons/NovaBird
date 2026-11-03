@@ -15,6 +15,12 @@ html, body, input, select, button, textarea, label, legend, menulist, checkbox, 
   background: var(--tbsr-bg) !important; border: 0 !important; border-bottom: 1px solid var(--tbsr-line) !important;
   padding: 4px 12px !important; gap: 2px; color: var(--tbsr-text);
 }
+/* macOS: Thunderbird zieht die Leiste 22 px in die Titelleiste und hält diese 22 px oben frei für die Fensterknöpfe
+   (themes/osx: margin-block-start -22px, padding 22px 4px 0). Das padding oben überschrieb das, die Knöpfe lagen über „Senden“.
+   22 px ist die feste Höhe der macOS-Titelleiste, daher hier px. */
+@media (-moz-platform: macos) {
+  #composeToolbar2 { padding-top: calc(22px + 4px) !important; }
+}
 #composeToolbar2 toolbarbutton, #composeToolbar2 .toolbarbutton-menubutton-button, #composeToolbar2 .toolbarbutton-menubutton-dropmarker {
   border-radius: 9px !important; color: var(--tbsr-text) !important; font-size: var(--tbsr-fs);
 }
