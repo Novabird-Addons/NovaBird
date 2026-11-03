@@ -11,7 +11,7 @@ name: macOS
 on:
   workflow_dispatch:
   push:
-    branches: [novabird-2.0, testing]
+    branches: [novabird-2.0, testing, "mac-test/**"] # mac-test/…: Prüfzweig vor dem Push auf novabird-2.0
     paths:
       - "novabird-search/**"
       - "novabird-extension/**"
