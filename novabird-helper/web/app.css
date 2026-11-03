@@ -178,3 +178,11 @@ ol.steps li { margin: 0.25rem 0; }
   .tabs .group-title, .tabs .group-title::after { display: none; }
   .tabs a.sub { padding-left: 0.8rem; }
 }
+/* Kopplung: Vergleichszahl gut lesbar */
+.sas { font-size: 1.3rem; font-weight: 600; letter-spacing: 0.08em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Einrichtungs-Assistent (#wizard) über den Seiten */
+.wizard { background: var(--panel); border: 1px solid var(--accent); border-left-width: 0.3rem; border-radius: 0.6rem; padding: 0.8rem 1.1rem; margin: 0 0 1.2rem; }
+.wizard[hidden] { display: none; }
+.wizard .wiz-head { display: flex; gap: 0.8rem; align-items: baseline; flex-wrap: wrap; }
+.wizard p { margin: 0.4rem 0 0; }
+.wizard .actions { margin-top: 0.7rem; }

@@ -19,7 +19,7 @@ sealed class Service : ServiceBase
     const string DisplayName = "NovaBird Helper";
     static string ProgramDir => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "NovaBird Helper");
     static string ServiceExe => Path.Combine(ProgramDir, "nbhelper.exe");
-    static readonly string[] FirewallRules = { "NovaBird Helper (PCs)", "NovaBird Helper (Web)" };
+    static readonly string[] FirewallRules = { "NovaBird Helper (PCs)", "NovaBird Helper (Web)", "NovaBird Helper (Suche)" };
 
     Core core;
 
@@ -371,6 +371,8 @@ sealed class Service : ServiceBase
         foreach (var r in FirewallRules) Netsh($"advfirewall firewall delete rule name=\"{r}\"", quiet: true); // fehlt sie, ist das kein Fehler
         Netsh($"advfirewall firewall add rule name=\"{FirewallRules[0]}\" dir=in action=allow protocol=TCP localport={netPort} profile=private program=\"{ServiceExe}\"");
         Netsh($"advfirewall firewall add rule name=\"{FirewallRules[1]}\" dir=in action=allow protocol=TCP localport={webPort} profile=private program=\"{ServiceExe}\"");
+        // Kopplung: Thunderbird sucht den Helper per UDP-Multicast (Pairing.cs); er antwortet nur im Kopplungsmodus
+        Netsh($"advfirewall firewall add rule name=\"{FirewallRules[2]}\" dir=in action=allow protocol=UDP localport={Pairing.DiscoveryPort} profile=private program=\"{ServiceExe}\"");
     }
 
     static void Sc(string args) => Tool("sc.exe", args, check: true);

@@ -55,6 +55,12 @@
     </nav>
     <main class="content">
       <p class="banner error" id="banner" hidden></p>
+      <!-- Einrichtung nach der Installation (#wizard): führt über die vorhandenen Seiten -->
+      <div class="wizard" id="wizBar" hidden>
+        <div class="wiz-head"><b id="wizStep"></b><span class="muted" id="wizTitle"></span></div>
+        <p id="wizText"></p>
+        <div class="actions"><button type="button" id="wizBack" data-i18n="wizBack"></button><button type="button" class="primary" id="wizNext"></button><button type="button" class="link" id="wizEnd" data-i18n="wizEnd"></button></div>
+      </div>
 
       <section data-section="status">
         <h1 data-i18n="statusTitle"></h1>
@@ -92,6 +98,13 @@
         <p class="muted" data-i18n="pcsText"></p>
         <table class="grid"><thead><tr><th data-i18n="thPc"></th><th data-i18n="thIndexed"></th><th class="num" data-i18n="thComputed"></th><th class="num" data-i18n="thToday"></th><th data-i18n="thLastSeen"></th><th data-admin></th></tr></thead><tbody id="pcList"></tbody></table>
         <p class="muted" id="pcSum"></p>
+        <!-- Kopplungsmodus (Pairing.cs): Thunderbird findet den Helper, beide zeigen dieselbe Zahl, hier zulassen -->
+        <div data-admin id="pairBox">
+          <h2 data-i18n="pairTitle"></h2>
+          <p class="muted" data-i18n="pairText"></p>
+          <div class="actions"><select id="pairGroup" hidden></select><button type="button" class="primary" id="pairStart" data-i18n="pairStart"></button><button type="button" id="pairStop" data-i18n="pairStop" hidden></button><span class="muted" id="pairState"></span></div>
+          <table class="grid" id="pairTable" hidden><thead><tr><th data-i18n="thPc"></th><th data-i18n="pairThAddr"></th><th data-i18n="pairThNumber"></th><th data-i18n="pairThState"></th><th></th></tr></thead><tbody id="pairList"></tbody></table>
+        </div>
       </section>
 
       <section data-section="sprachmodell" hidden>

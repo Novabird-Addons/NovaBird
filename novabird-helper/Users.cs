@@ -57,6 +57,8 @@ static class Users
         Convert.ToBase64String(Rfc2898DeriveBytes.Pbkdf2(Encoding.UTF8.GetBytes(password), salt, iterations, HashAlgorithmName.SHA256, 32));
 
     /// <summary>Warum ein Passwort nicht taugt (null = taugt).</summary>
+    public static bool NameOk(string name) => name != null && NameRule.IsMatch(name);
+
     public static string PasswordProblem(string pw) =>
         pw == null || pw.Length < 10 ? L.T("Passwort: mindestens 10 Zeichen", "Password: at least 10 characters") : pw.Length > 200 ? L.T("Passwort zu lang", "Password too long") : null;
 

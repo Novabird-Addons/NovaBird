@@ -21,6 +21,7 @@ static class Installer
     static string InstallDir => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "NovaBird Helper");
     static string InstalledExe => Path.Combine(InstallDir, "nbhelper.exe");
     public static string InstalledExePath => InstalledExe;
+    public static string InstallDirPath => InstallDir;
     static string ManifestPath => Path.Combine(InstallDir, Program.HostName + ".json");
     static string ShortcutPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "NovaBird Helper (Netz).lnk");
 
@@ -69,13 +70,8 @@ static class Installer
             bool all = Ask(L.T("Auch die geladenen Modelle und Einstellungen löschen?\n\n(Nein: bleiben für eine spätere Installation erhalten.)", "Also delete the downloaded models and settings?\n\n(No: they are kept for a later installation.)"));
             return Uninstall(false, all) ? 0 : 1;
         }
-        if (!Ask(L.T($"NovaBird Helper {Program.Version} installieren?\n\nDer Helper rechnet für die semantische Suche von NovaBird-Search auf der Grafikkarte " +
-                     "(DirectML). Er wird nur für diesen Windows-Benutzer installiert, braucht keine Adminrechte und startet nur, wenn " +
-                     "NovaBird-Search ihn braucht.\n\nZiel: " + InstallDir,
-                 $"Install NovaBird Helper {Program.Version}?\n\nThe helper computes the semantic search of NovaBird-Search on the graphics card " +
-                     "(DirectML). It is installed for this Windows user only, needs no admin rights and only starts when " +
-                     "NovaBird-Search needs it.\n\nTarget: " + InstallDir))) return 0;
-        return Install(false) ? 0 : 1;
+        // Neuinstallation: Assistent mit Admin der Web-Oberfläche, danach Web-Oberfläche mit Einrichtung (SetupWizard.cs)
+        return SetupWizard.Run();
     }
 
     public static bool Install(bool quiet)
@@ -124,12 +120,10 @@ static class Installer
             }
             Log.Write("installiert: " + InstallDir);
             if (!quiet)
-                Tell(L.T("NovaBird Helper ist installiert.\n\nIn Thunderbird: Einstellungen von NovaBird-Search → Semantische Suche → Erweitert → „Helper verbinden“, " +
-                         "danach „Modell im Helper laden“. Der Helper misst dabei CPU und Grafikkarten und nimmt das schnellste Gerät.\n\n" +
-                         "Soll dieser PC auch für andere PCs rechnen: Startmenü → „NovaBird Helper (Netz)“.",
-                     "NovaBird Helper is installed.\n\nIn Thunderbird: settings of NovaBird-Search → Semantic search → Advanced → \"Connect helper\", " +
-                         "then \"Load model in the helper\". The helper measures CPU and graphics cards and uses the fastest device.\n\n" +
-                         "If this PC should also compute for other PCs: Start menu → \"NovaBird Helper (Netz)\"."));
+                Tell(L.T("NovaBird Helper ist installiert.\n\nStartmenü → „NovaBird Helper (Netz)“ startet ihn mit Web-Oberfläche. " +
+                         "In Thunderbird: Einstellungen → NovaBird → KI → NovaBird Helper → „Helper im Netz suchen“.",
+                     "NovaBird Helper is installed.\n\nStart menu → \"NovaBird Helper (Netz)\" starts it with its web interface. " +
+                         "In Thunderbird: Settings → NovaBird → AI → NovaBird Helper → \"Search the network for a helper\"."));
             return true;
         }
         catch (Exception e)

@@ -35,6 +35,23 @@
         ]
       },
       {
+        "name": "discoverHelpers",
+        "type": "function",
+        "async": true,
+        "description": "NovaBird Helper im Kopplungsmodus im eigenen Netz suchen (UDP-Multicast 239.255.77.31, nur auf Klick). Liefert [{name, address, port, version}].",
+        "parameters": [
+          {
+            "name": "options",
+            "type": "object",
+            "optional": true,
+            "properties": {
+              "waitMs": { "type": "integer", "optional": true },
+              "port": { "type": "integer", "optional": true }
+            }
+          }
+        ]
+      },
+      {
         "name": "setupAutoOpen",
         "type": "function",
         "async": true,

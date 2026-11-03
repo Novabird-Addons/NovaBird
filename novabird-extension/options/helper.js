@@ -26,6 +26,7 @@
       connTitle: "Verbindung ändern", connTitleNew: "Verbinden", connText: "Adresse und Kopplungscode der Gruppe aus der Web-Oberfläche des Helpers (Verbindung). Der Name erscheint dort in der Liste der PCs.",
       url: "Adresse", code: "Kopplungscode", label: "Name dieses PCs", connect: "Verbinden", disconnect: "Trennen",
       confirmDisconnect: "Verbindung zum Helper trennen?\n\nSuche und KI-Assistent nutzen ihn dann nicht mehr; eingebundene Kalender bleiben.",
+      findBtn: "Helper im Netz suchen", finding: "Suche …", foundNone: "Kein Helper im Kopplungsmodus gefunden. Am Helper-PC in der Web-Oberfläche unter PCs „Gerät über Kopplung hinzufügen“ klicken und hier noch einmal suchen – oder unten Adresse und Code eintragen.", pairWith: "Koppeln", pairText: "Vergleiche diese Zahl mit der im Helper (Web-Oberfläche → PCs) und klicke dort auf „Zulassen“, wenn sie gleich ist.", pairWait: "Warte auf „Zulassen“ am Helper …", pairDenied: "Am Helper abgelehnt.", pairExpired: "Abgelaufen – bitte neu koppeln.", pairOff: "Der Helper ist nicht (mehr) im Kopplungsmodus.", pairOk: "Gekoppelt.", pairCancel: "Abbrechen", manualTitle: "Oder von Hand: Adresse und Kopplungscode",
     },
     en: {
       intro: "The NovaBird Helper computes for everyone on a PC with a graphics card: meaning search, AI assistant and team calendars. Connect once, then choose here what it is used for.",
@@ -47,6 +48,7 @@
       connTitle: "Change connection", connTitleNew: "Connect", connText: "Address and pairing code of the group from the helper's web interface (Connection). The name appears there in the list of PCs.",
       url: "Address", code: "Pairing code", label: "Name of this PC", connect: "Connect", disconnect: "Disconnect",
       confirmDisconnect: "Disconnect from the helper?\n\nSearch and AI assistant no longer use it; added calendars stay.",
+      findBtn: "Search the network for a helper", finding: "Searching …", foundNone: "No helper in pairing mode found. On the helper PC, click “Add device by pairing” under PCs in the web interface and search here again – or enter address and code below.", pairWith: "Pair", pairText: "Compare this number with the one shown in the helper (web interface → PCs) and click “Allow” there if they match.", pairWait: "Waiting for “Allow” on the helper …", pairDenied: "Declined on the helper.", pairExpired: "Expired – please pair again.", pairOff: "The helper is not (or no longer) in pairing mode.", pairOk: "Paired.", pairCancel: "Cancel", manualTitle: "Or by hand: address and pairing code",
     },
     fr: {
       intro: "Le NovaBird Helper calcule pour tous sur un PC avec carte graphique : recherche par le sens, assistant IA et calendriers d’équipe. Connectez-le une fois, puis choisissez ici son usage.",
@@ -68,6 +70,7 @@
       connTitle: "Modifier la connexion", connTitleNew: "Connecter", connText: "Adresse et code d’appairage du groupe, depuis l’interface web du Helper (Connexion). Le nom y apparaît dans la liste des PC.",
       url: "Adresse", code: "Code d’appairage", label: "Nom de ce PC", connect: "Connecter", disconnect: "Déconnecter",
       confirmDisconnect: "Déconnecter le Helper ?\n\nLa recherche et l’assistant IA ne l’utilisent plus ; les calendriers ajoutés restent.",
+      findBtn: "Chercher un Helper sur le réseau", finding: "Recherche …", foundNone: "Aucun Helper en mode appairage trouvé. Sur le PC du Helper, cliquez dans l’interface web sous PC sur « Ajouter un appareil par appairage », puis cherchez à nouveau ici – ou saisissez l’adresse et le code ci-dessous.", pairWith: "Appairer", pairText: "Comparez ce nombre avec celui affiché dans le Helper (interface web → PC) et cliquez là-bas sur « Autoriser » s’ils sont identiques.", pairWait: "En attente de « Autoriser » sur le Helper …", pairDenied: "Refusé sur le Helper.", pairExpired: "Expiré – veuillez appairer à nouveau.", pairOff: "Le Helper n’est pas (plus) en mode appairage.", pairOk: "Appairé.", pairCancel: "Annuler", manualTitle: "Ou à la main : adresse et code d’appairage",
     },
     es: {
       intro: "El NovaBird Helper calcula para todos en un PC con tarjeta gráfica: búsqueda por significado, asistente IA y calendarios de equipo. Conéctelo una vez y elija aquí para qué se usa.",
@@ -89,6 +92,7 @@
       connTitle: "Cambiar conexión", connTitleNew: "Conectar", connText: "Dirección y código de emparejamiento del grupo, de la interfaz web del Helper (Conexión). El nombre aparece allí en la lista de PC.",
       url: "Dirección", code: "Código de emparejamiento", label: "Nombre de este PC", connect: "Conectar", disconnect: "Desconectar",
       confirmDisconnect: "¿Desconectar del Helper?\n\nLa búsqueda y el asistente IA dejan de usarlo; los calendarios añadidos se quedan.",
+      findBtn: "Buscar un Helper en la red", finding: "Buscando …", foundNone: "No se encontró ningún Helper en modo de emparejamiento. En el PC del Helper, pulse en la interfaz web, en PC, «Añadir dispositivo por emparejamiento» y vuelva a buscar aquí, o introduzca abajo la dirección y el código.", pairWith: "Emparejar", pairText: "Compare este número con el que muestra el Helper (interfaz web → PC) y pulse allí «Permitir» si coinciden.", pairWait: "Esperando «Permitir» en el Helper …", pairDenied: "Rechazado en el Helper.", pairExpired: "Caducado: vuelva a emparejar.", pairOff: "El Helper no está (o ya no está) en modo de emparejamiento.", pairOk: "Emparejado.", pairCancel: "Cancelar", manualTitle: "O a mano: dirección y código de emparejamiento",
     },
   };
   const lang = (messenger.i18n.getUILanguage() || "en").slice(0, 2).toLowerCase();
@@ -97,7 +101,7 @@
 
   for (const [id, key] of Object.entries({
     intro: "intro", openWeb: "openWeb", useTitle: "useTitle", useSearchLabel: "useSearch", useAiLabel: "useAi", calLabel: "calLabel",
-    calAdd: "calAdd", connText: "connText", urlLabel: "url", codeLabel: "code", labelLabel: "label", connect: "connect", disconnect: "disconnect", aiModelLabel: "modelLabel", aiModelHint: "modelHint",
+    calAdd: "calAdd", findBtn: "findBtn", pairCancel: "pairCancel", manualTitle: "manualTitle", connText: "connText", urlLabel: "url", codeLabel: "code", labelLabel: "label", connect: "connect", disconnect: "disconnect", aiModelLabel: "modelLabel", aiModelHint: "modelHint",
   })) $(id).textContent = t[key];
   $("calUser").placeholder = t.calUser;
   $("calPassword").placeholder = t.calPassword;
@@ -265,19 +269,113 @@
         showState("bad", fill(t.fail, t.errPerm));
         return;
       }
-      conn = { url, code, label };
-      await messenger.storage.local.set({ helperConn: conn });
-      $("code").value = "";
-      // Schon genutzt? Dann die neue Adresse/den neuen Code auch dort eintragen
-      const c = await messenger.storage.local.get({ aiType: "" });
-      if (c.aiType === "nbhelper") await messenger.storage.local.set({ aiUrl: url, aiKey: code });
-      await hello();
-      if (info && $("useSearch").checked) {
-        await messenger.settingsRedesign.grantSearchOrigin(url).catch(() => {});
-        await messenger.runtime.sendMessage(SEARCH_ID, { type: "helper:useForSearch", use: true, url, code, label }).catch(() => {});
-      }
-      if (info) $("connBox").open = false;
+      await useConn(url, code, label);
     })();
+  });
+
+  // Verbindung übernehmen (von Hand oder aus der Kopplung): speichern, KI/Suche nachziehen, prüfen
+  async function useConn(url, code, label) {
+    conn = { url, code, label };
+    await messenger.storage.local.set({ helperConn: conn });
+    $("code").value = "";
+    // Schon genutzt? Dann die neue Adresse/den neuen Code auch dort eintragen
+    const c = await messenger.storage.local.get({ aiType: "" });
+    if (c.aiType === "nbhelper") await messenger.storage.local.set({ aiUrl: url, aiKey: code });
+    await hello();
+    if (info && $("useSearch").checked) {
+      await messenger.settingsRedesign.grantSearchOrigin(url).catch(() => {});
+      await messenger.runtime.sendMessage(SEARCH_ID, { type: "helper:useForSearch", use: true, url, code, label }).catch(() => {});
+    }
+    if (info) $("connBox").open = false;
+  }
+
+  // ---- Kopplung: Helper im Kopplungsmodus suchen (UDP-Multicast über das Experiment), Schlüsseltausch (ECDH P-256),
+  // Vergleichszahl zeigen, auf „Zulassen“ am Helper warten, Code entschlüsselt übernehmen (Protokoll: novabird-helper/Pairing.cs)
+  const b64 = u8 => btoa(String.fromCharCode(...u8));
+  const ub64 = str => Uint8Array.from(atob(str), ch => ch.charCodeAt(0));
+  let pairRun = 0; // laufende Kopplung (Abbrechen erhöht den Zähler)
+
+  $("findBtn").addEventListener("click", async () => {
+    const note = $("findNote");
+    note.className = "note";
+    note.textContent = t.finding;
+    $("foundList").hidden = true;
+    const found = await messenger.settingsRedesign.discoverHelpers({ waitMs: 1500 }).catch(() => []);
+    note.textContent = found.length ? "" : t.foundNone;
+    $("foundList").replaceChildren(...found.map(h => {
+      const li = document.createElement("li");
+      const name = document.createElement("span");
+      name.textContent = `${h.name || h.address} (${h.address}:${h.port}${h.version ? " · Helper " + h.version : ""})`;
+      const btn = Object.assign(document.createElement("button"), { type: "button", textContent: t.pairWith });
+      btn.addEventListener("click", () => {
+        const url = `http://${h.address.includes(":") ? `[${h.address}]` : h.address}:${h.port}`;
+        // Erlaubnis für Adressen außerhalb dieses PCs direkt im Klick erfragen (vor dem ersten await)
+        const asked = nbAI.isLocal(url) ? Promise.resolve(true) : messenger.permissions.request({ origins: [nbAI.origin(url)] }).catch(() => false);
+        asked.then(ok => (ok ? pair(url) : showPair("bad", fill(t.fail, t.errPerm))));
+      });
+      li.append(name, btn);
+      return li;
+    }));
+    $("foundList").hidden = !found.length;
+  });
+
+  function showPair(kind, text, sas) {
+    $("pairBox").hidden = false;
+    if (sas !== undefined) $("pairSas").textContent = sas;
+    $("pairNote").className = "note " + kind;
+    $("pairNote").textContent = text;
+    $("pairCancel").hidden = kind !== "";
+  }
+
+  async function pair(url) {
+    const run = ++pairRun;
+    const subtle = crypto.subtle;
+    const post = async body => {
+      const r = await fetch(url + "/nbhelper/pair", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      return { status: r.status, json: await r.json().catch(() => ({})) };
+    };
+    try {
+      $("pairText").textContent = t.pairText;
+      showPair("", t.checking, "");
+      const kp = await subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"]);
+      const pub = new Uint8Array(await subtle.exportKey("raw", kp.publicKey));
+      const label = $("label").value.trim() || conn?.label || "";
+      const st = await post({ op: "start", pub: b64(pub), label });
+      if (st.status === 403) return showPair("bad", t.pairOff, "");
+      if (st.status !== 200 || !st.json.req) throw new Error(st.json.error || String(st.status));
+      const peer = await subtle.importKey("raw", ub64(st.json.pub), { name: "ECDH", namedCurve: "P-256" }, false, []);
+      const shared = await subtle.deriveBits({ name: "ECDH", public: peer }, kp.privateKey, 256);
+      const hk = await subtle.importKey("raw", shared, "HKDF", false, ["deriveBits", "deriveKey"]);
+      const info = name => ({ name: "HKDF", hash: "SHA-256", salt: new Uint8Array(), info: new TextEncoder().encode(`${name}|${st.json.pub}|${b64(pub)}`) });
+      const sb = new Uint8Array(await subtle.deriveBits(info("nbh-pair-sas"), hk, 32));
+      const sas = String((((sb[0] << 24) >>> 0) + (sb[1] << 16) + (sb[2] << 8) + sb[3]) % 1_000_000).padStart(6, "0");
+      const key = await subtle.deriveKey(info("nbh-pair-key"), hk, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+      showPair("", t.pairWait, `${sas.slice(0, 3)} ${sas.slice(3)}`);
+      // höchstens 5 Minuten warten (so lange läuft der Kopplungsmodus)
+      for (let i = 0; i < 200 && run === pairRun; i++) {
+        await new Promise(r => setTimeout(r, 1500));
+        if (run !== pairRun) return;
+        const p = await post({ op: "poll", req: st.json.req });
+        const state = p.json.state;
+        if (state === "pending") continue;
+        if (state === "denied") return showPair("bad", t.pairDenied);
+        if (state !== "ok") return showPair("bad", t.pairExpired);
+        const plain = await subtle.decrypt({ name: "AES-GCM", iv: ub64(p.json.n), additionalData: new TextEncoder().encode("nbh-pair|" + st.json.req) }, key, ub64(p.json.d));
+        const got = JSON.parse(new TextDecoder().decode(plain));
+        showPair("good", t.pairOk);
+        $("foundList").hidden = true;
+        await useConn(url, got.code, label);
+        return;
+      }
+      if (run === pairRun) showPair("bad", t.pairExpired);
+    } catch (e) {
+      if (run === pairRun) showPair("bad", fill(t.fail, errText(e)));
+    }
+  }
+
+  $("pairCancel").addEventListener("click", () => {
+    pairRun++;
+    $("pairBox").hidden = true;
   });
 
   $("disconnect").addEventListener("click", async () => {

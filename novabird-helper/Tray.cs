@@ -25,11 +25,13 @@ static class Tray
         Console.OutputEncoding = System.Text.Encoding.UTF8;
         Settings.Migrate();
         var model = BuiltinModels.Default;
-        if (!model.Complete) { Console.WriteLine(new JsonObject { ["error"] = "Modell fehlt" }.ToJsonString()); return 1; }
+        // NOVABIRD_TEST_NOMODEL=1: ohne Modell starten (Tests der Kopplung brauchen kein Rechnen)
+        bool noModel = Environment.GetEnvironmentVariable("NOVABIRD_TEST_NOMODEL") == "1";
+        if (!model.Complete && !noModel) { Console.WriteLine(new JsonObject { ["error"] = "Modell fehlt" }.ToJsonString()); return 1; }
         var core = new Core(model, PortSetting(), loopback || LoopbackOnly);
         core.Start();
         var server = core.Server;
-        if (!ModelStore.Ready(model)) server.Scheduler.Run(() => ModelStore.Measure(model)).Wait();
+        if (model.Complete && !ModelStore.Ready(model)) server.Scheduler.Run(() => ModelStore.Measure(model)).Wait();
         Console.WriteLine(new JsonObject { ["port"] = server.Port, ["webPort"] = core.Web.Port, ["code"] = NetServer.Code(), ["ready"] = ModelStore.Ready(model) }.ToJsonString());
         Console.Out.Flush();
         // Befehle auf stdin (eine Zeile je Befehl), Ende mit EOF
@@ -46,6 +48,11 @@ static class Tray
                 "cpu on" => Do(() => server.Scheduler.CpuEnabled = true, server),
                 "cpu off" => Do(() => server.Scheduler.CpuEnabled = false, server),
                 var t when t.StartsWith("threads ") && int.TryParse(t[8..], out var n) => Do(() => server.Scheduler.CpuThreadsSetting = n, server),
+                // Kopplung (Pairing.cs): Modus an, offene Anfragen mit Zahl, zulassen bzw. ablehnen
+                "pair-start" => Pair(server, () => server.Pairing.Start()),
+                "pair-list" => Pair(server, () => { }),
+                var t when t.StartsWith("pair-allow ") => Pair(server, () => server.Pairing.Decide(t[11..].Trim(), true)),
+                var t when t.StartsWith("pair-deny ") => Pair(server, () => server.Pairing.Decide(t[10..].Trim(), false)),
                 _ => new JsonObject { ["error"] = "unbekannt" },
             };
             Console.WriteLine(reply.ToJsonString());
@@ -53,6 +60,16 @@ static class Tray
         }
         core.Stop();
         return 0;
+    }
+
+    static JsonObject Pair(NetServer s, Action a)
+    {
+        a();
+        return new JsonObject
+        {
+            ["active"] = s.Pairing.Active,
+            ["requests"] = new JsonArray(s.Pairing.List().Select(r => (JsonNode)new JsonObject { ["req"] = r.Id, ["label"] = r.Label, ["sas"] = r.Sas, ["state"] = r.State }).ToArray()),
+        };
     }
 
     static JsonObject Do(Action a, NetServer s)

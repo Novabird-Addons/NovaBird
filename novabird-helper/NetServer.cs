@@ -19,6 +19,7 @@
 //    (vorbereitete Mails) zwischen PCs derselben Gruppe teilen, verschlüsselt von Thunderbird (AiCache.cs)
 //  - op "tts" {text, lang:"german"|"english"|"french"|…, voice?} -> {wav: Base64, ms}: einen Satz vorlesen (Speech.cs); abgespielt wird
 //    auf dem PC mit Thunderbird
+//  - Kopplung ohne Code-Abtippen: POST /nbhelper/pair und Suche per Multicast, nur im Kopplungsmodus (Pairing.cs).
 //  - Reihenfolge: Suchanfragen vor Indexieren; beim Indexieren kommen die PCs abwechselnd dran (Scheduler). Auf Wunsch rechnet
 //    die CPU neben der Grafikkarte mit (Einstellung im Menü, Threads einstellbar).
 using System.Collections.Concurrent;
@@ -56,6 +57,8 @@ sealed class NetServer
     readonly ConcurrentDictionary<string, (int Count, DateTime Since)> failures = new();
     public int Port { get; }
     public bool LoopbackOnly { get; }
+    /// <summary>Kopplungsmodus: PCs holen sich den Gruppencode per Schlüsseltausch und Vergleichszahl (Pairing.cs).</summary>
+    public readonly Pairing Pairing;
 
     public NetServer(ModelSpec model, int port, bool loopbackOnly)
     {
@@ -65,6 +68,7 @@ sealed class NetServer
         Scheduler = new Scheduler(model);
         VectorStore.RemoveOldFormat();
         LoadGroups();
+        Pairing = new Pairing(this);
         listener = new TcpListener(loopbackOnly ? IPAddress.Loopback : IPAddress.Any, port);
     }
 
@@ -166,6 +170,7 @@ sealed class NetServer
     public void Stop()
     {
         try { listener.Stop(); } catch { /* schon zu */ }
+        Pairing.Stop();
         Scheduler.Stop();
         lock (storesGate) foreach (var g in groups.Values) g.Vectors.Dispose();
         foreach (var ai in aiCaches.Values) ai.Dispose();
@@ -208,6 +213,13 @@ sealed class NetServer
                 closeOnLimit.Dispose();
                 if (Blocked(ip)) { await Send(stream, 429, "{\"error\":\"blocked\"}"); return; }
                 if (method == "OPTIONS") { await Send(stream, 204, ""); return; }
+                if (path == Pairing.Path && method == "POST")
+                {
+                    var (st, js, fail) = Pairing.Handle(body, ip);
+                    if (fail) Fail(ip);
+                    await Send(stream, st, js);
+                    return;
+                }
                 if (path != Path) { await Send(stream, 404, "{\"error\":\"path\"}"); return; }
                 if (method == "GET") { await Send(stream, 200, "{\"service\":\"novabird-helper\",\"api\":1}"); return; }
                 if (method != "POST" || length == 0) { await Send(stream, 400, "{\"error\":\"request\"}"); return; }

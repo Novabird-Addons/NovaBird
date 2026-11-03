@@ -42,6 +42,7 @@ static class Program
                 Console.Write(System.Text.Json.JsonSerializer.Serialize(texts.Select(t => tok.Encode(t, 512)).ToList()));
                 return 0;
             }
+            if (args.Length > 1 && args[0] == "--test-setup-shots") return SetupWizard.Shots(args[1]);
             if (args.Length > 1 && args[0] == "--test-shortcut") return Installer.Shortcut(args[1], Environment.ProcessPath, "--server", "Test") ? 0 : 1;
             if (args.Length > 1 && args[0] == "--bench")
             {

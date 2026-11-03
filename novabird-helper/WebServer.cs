@@ -440,6 +440,29 @@ sealed partial class WebServer
                 Audit(req, $"Gruppe {name} gelöscht");
                 return Response.Json(Connection());
             }
+            // Kopplungsmodus (Pairing.cs): starten, Anfragen mit Vergleichszahl zulassen oder ablehnen
+            case ("GET", "/api/pairing"):
+                Need(req, admin: true);
+                return Response.Json(PairingInfo());
+            case ("POST", "/api/pairing/start"):
+                Need(req, admin: true);
+                core.Server.Pairing.Start((string)req.Json()["group"]);
+                Audit(req, "Kopplungsmodus gestartet");
+                return Response.Json(PairingInfo());
+            case ("POST", "/api/pairing/stop"):
+                Need(req, admin: true);
+                core.Server.Pairing.Stop();
+                return Response.Json(PairingInfo());
+            case ("POST", "/api/pairing/decide"):
+            {
+                Need(req, admin: true);
+                var b = req.Json();
+                bool allow = (bool?)b["allow"] == true;
+                var r = core.Server.Pairing.List().FirstOrDefault(x => x.Id == (string)b["req"]);
+                if (r == null || !core.Server.Pairing.Decide(r.Id, allow)) throw new ApiError(404, L.T("Anfrage nicht mehr offen", "Request no longer open"));
+                Audit(req, $"Kopplung „{r.Label}“ {(allow ? "zugelassen" : "abgelehnt")}");
+                return Response.Json(PairingInfo());
+            }
             case ("POST", "/api/pcs/forget"):
                 Need(req, admin: true);
                 sch.Forget((string)req.Json()["id"]);
@@ -890,6 +913,21 @@ sealed partial class WebServer
             ["importingPct"] = importing?.Pct,
             ["options"] = LlmOptions.Info(),
             ["dir"] = Chat.Dir,
+        };
+    }
+
+    JsonObject PairingInfo()
+    {
+        var p = core.Server.Pairing;
+        return new JsonObject
+        {
+            ["active"] = p.Active,
+            ["seconds"] = p.Active ? (int)(p.ActiveUntil - DateTime.UtcNow).TotalSeconds : 0,
+            ["group"] = p.GroupId,
+            ["requests"] = new JsonArray(p.List().Select(r => (JsonNode)new JsonObject
+            {
+                ["req"] = r.Id, ["label"] = r.Label, ["ip"] = r.Ip, ["sas"] = r.Sas, ["state"] = r.State, ["group"] = Groups.Get(r.GroupId)?.Name,
+            }).ToArray()),
         };
     }
 

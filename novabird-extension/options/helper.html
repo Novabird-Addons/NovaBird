@@ -30,6 +30,16 @@
     .use .note.good { color: #1e8e5a; }
     .row { display: flex; gap: 0.6em; align-items: center; flex-wrap: wrap; margin: 0.4em 0; }
     .row[hidden] { display: none; }
+    .note { color: var(--muted); font-size: 0.92em; }
+    .note.bad { color: #c0392b; }
+    .note.good { color: #1e8e5a; }
+    .found { list-style: none; margin: 0.3em 0 0.8em; padding: 0; }
+    .found li { display: flex; gap: 0.8em; align-items: center; padding: 0.35em 0; border-top: 1px solid var(--line); }
+    .found li span { flex: 1; }
+    .pair { border: 1px solid var(--line); border-radius: 0.6em; padding: 0.6em 1em; margin: 0.4em 0 0.9em; }
+    .pair[hidden], .found[hidden] { display: none; }
+    .sas { font-size: 2em; font-weight: 600; letter-spacing: 0.12em; font-variant-numeric: tabular-nums; margin: 0.1em 0 0.2em; }
+    #manualTitle { margin-top: 1em; font-weight: 600; color: inherit; }
     .off { opacity: 0.55; pointer-events: none; }
     details summary { cursor: pointer; color: var(--muted); }
     ul.cals { margin: 0.3em 0; padding-left: 1.2em; }
@@ -37,7 +47,8 @@
       .state.ok .dot { background: #4cc38a; }
       .state.bad .dot, .use .note.bad { color: #ef6b5b; background: none; }
       .state.bad .dot { background: #ef6b5b; }
-      .use .note.good { color: #4cc38a; }
+      .use .note.good, .note.good { color: #4cc38a; }
+      .note.bad { color: #ef6b5b; }
     }
   </style>
 </head>
@@ -81,6 +92,15 @@
 
   <details class="card" id="connBox">
     <summary id="connTitle"></summary>
+    <!-- Kopplung ohne Abtippen: Helper im Kopplungsmodus suchen, Zahl vergleichen, am Helper zulassen -->
+    <div class="row"><button type="button" class="primary" id="findBtn"></button> <span class="note" id="findNote"></span></div>
+    <ul class="found" id="foundList" hidden></ul>
+    <div class="pair" id="pairBox" hidden>
+      <p class="sub" id="pairText"></p>
+      <div class="sas" id="pairSas"></div>
+      <div class="row"><span class="note" id="pairNote"></span> <button type="button" id="pairCancel"></button></div>
+    </div>
+    <p class="sub" id="manualTitle"></p>
     <p class="sub" id="connText"></p>
     <div class="grid">
       <label for="url" id="urlLabel"></label><input type="url" id="url" spellcheck="false" placeholder="http://192.168.1.20:47531">

@@ -34,6 +34,8 @@ sealed class Core
         Server.Speech = Speech;
         Web = new WebServer(this, WebPortSetting, loopbackOnly || !WebLan);
         Server.WebInfo = () => new JsonObject { ["port"] = Web.Port, ["lan"] = !Web.LocalOnly, ["fingerprint"] = Web.Fingerprint };
+        // Kopplung: Hinweis im Infobereich, damit der Admin die Zahl vergleicht und zulässt (Web-Oberfläche → PCs)
+        Server.Pairing.OnRequest = r => Notify(L.T($"„{r.Label}“ möchte sich koppeln – Zahl {r.Sas}. Zulassen unter PCs.", $"\"{r.Label}\" wants to pair – number {r.Sas}. Allow under PCs."), false);
     }
 
     public void Start()

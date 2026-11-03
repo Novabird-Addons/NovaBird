@@ -1559,6 +1559,44 @@ return class extends ExtensionCommon.ExtensionAPI {
           }
           gotoPane("paneNovaBird");
         },
+        // Helper im Kopplungsmodus finden (Reiter „NovaBird Helper“ → „Helper suchen“): Anfrage an die Multicast-Gruppe, Antworten
+        // der Helper sammeln (nur sie antworten, und nur im Kopplungsmodus). Loopback an, damit ein Helper auf diesem PC antwortet.
+        // Ein Optionsobjekt statt zweier optionaler Zahlen: sonst landet discoverHelpers(1500) im letzten Parameter (Port)
+        async discoverHelpers({ waitMs, port } = {}) {
+          const found = new Map();
+          const { setTimeout } = ChromeUtils.importESModule("resource://gre/modules/Timer.sys.mjs"); // im Experiment kein Fenster-Timer
+          let sock = null;
+          try {
+            sock = Cc["@mozilla.org/network/udp-socket;1"].createInstance(Ci.nsIUDPSocket);
+            sock.init(-1, false, Services.scriptSecurityManager.getSystemPrincipal(), true);
+            sock.multicastLoopback = true;
+            sock.asyncListen({
+              QueryInterface: ChromeUtils.generateQI(["nsIUDPSocketListener"]),
+              onPacketReceived(s, m) {
+                try {
+                  const r = JSON.parse(m.data);
+                  const address = r?.local === true ? "127.0.0.1" : m.fromAddr.address; // Helper auf diesem PC: über Loopback
+                  if (r?.service === "novabird-helper" && Number.isInteger(r.port)) {
+                    found.set(`${address}:${r.port}`, { name: String(r.name || "").slice(0, 64), address, port: r.port, version: String(r.version || "").slice(0, 16) });
+                  }
+                } catch {
+                  /* fremdes Paket */
+                }
+              },
+              onStopListening() {},
+            });
+            const data = [..."NBHELPER?1"].map(ch => ch.charCodeAt(0)); // Bytes (TextEncoder fehlt im Experiment)
+            sock.send("239.255.77.31", port || 47531, data);
+            await new Promise(r => setTimeout(r, 300));
+            sock.send("239.255.77.31", port || 47531, data); // zweiter Versuch, falls das erste Paket verloren ging
+            await new Promise(r => setTimeout(r, Math.min(Math.max(waitMs || 1500, 300), 5000)));
+          } catch (e) {
+            console.error("NovaBird-Extension: Helper suchen", e);
+          } finally {
+            try { sock?.close(); } catch { /* schon zu */ }
+          }
+          return [...found.values()];
+        },
         async setupAutoOpen() {
           return Services.prefs.getBoolPref("extensions.novabird.setup.auto", true);
         },

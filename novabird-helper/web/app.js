@@ -119,7 +119,8 @@ function showApp() {
   // Gruppen (KI, Einstellungen): Überschrift nur, wenn darunter etwas sichtbar ist
   for (const g of document.querySelectorAll("#tabs .group")) g.hidden = ![...g.querySelectorAll("a")].some(a => !a.hidden);
   for (const el of document.querySelectorAll("#settingsForm input, #netForm input, #promptForm textarea")) el.disabled = !isAdmin();
-  go(location.hash.slice(1) || homePage());
+  if (location.hash === "#wizard" && isAdmin()) startWizard();
+  else go(location.hash.slice(1) || homePage());
   clearInterval(timer);
   timer = setInterval(() => refresh(false), 2000);
 }
@@ -134,7 +135,47 @@ function go(name) {
   refresh(true);
 }
 
-window.addEventListener("hashchange", () => session?.user && go(location.hash.slice(1)));
+window.addEventListener("hashchange", () => {
+  if (!session?.user) return;
+  if (location.hash === "#wizard" && isAdmin()) startWizard();
+  else go(location.hash.slice(1));
+});
+
+// ---- Einrichtung nach der Installation (#wizard): Schritte über die vorhandenen Seiten ---------------------------------
+// Was soll der Helper machen (Bedeutungssuche, Sprachmodell, Vorlesen), wie lange im Speicher, im Netz – zum Schluss Geräte koppeln
+const WIZ = [
+  { page: "status", title: "wizSearchTitle", text: "wizSearchText" },
+  { page: "sprachmodell", title: "wizLlmTitle", text: "wizLlmText" },
+  { page: "vorlesen", title: "wizTtsTitle", text: "wizTtsText" },
+  { page: "einstellungen", title: "wizNetTitle", text: "wizNetText" },
+  { page: "pcs", title: "wizPcsTitle", text: "wizPcsText" },
+];
+let wizStep = -1;
+function startWizard() {
+  wizStep = 0;
+  wizShow();
+}
+function wizShow() {
+  const on = wizStep >= 0 && wizStep < WIZ.length;
+  $("wizBar").hidden = !on;
+  if (!on) return;
+  const w = WIZ[wizStep];
+  history.replaceState(null, "", "#" + w.page);
+  go(w.page);
+  $("wizBar").hidden = false; // go() blendet Hinweise aus, die Leiste bleibt
+  $("wizStep").textContent = t("wizStep", wizStep + 1, WIZ.length);
+  $("wizTitle").textContent = t(w.title);
+  $("wizText").textContent = t(w.text);
+  $("wizBack").hidden = wizStep === 0;
+  $("wizNext").textContent = wizStep === WIZ.length - 1 ? t("wizDone") : t("wizNext");
+}
+$("wizBack").addEventListener("click", () => { wizStep--; wizShow(); });
+$("wizNext").addEventListener("click", () => {
+  wizStep++;
+  if (wizStep >= WIZ.length) { wizStep = -1; $("wizBar").hidden = true; toast(t("wizFinished")); return; }
+  wizShow();
+});
+$("wizEnd").addEventListener("click", () => { wizStep = -1; $("wizBar").hidden = true; });
 
 // Gruppen der Navigation (KI, Einstellungen) ein- und ausklappen; gemerkt im Browser (nur Bequemlichkeit, darf fehlen)
 const NAV_KEY = "nbNavCollapsed";
@@ -354,7 +395,50 @@ async function showPcs() {
     return row(cells);
   }));
   $("pcSum").textContent = pcs.length === 0 ? t("noPcs") : t("pcsSum", pcs.length, N(done), N(all));
+  if (isAdmin()) await showPairing();
 }
+
+// ---- Kopplung (Pairing.cs): Modus starten, Anfragen mit Vergleichszahl zulassen oder ablehnen ------------------------------
+let pairGroups = false;
+async function showPairing() {
+  const p = await api("pairing");
+  if (!pairGroups) {
+    pairGroups = true;
+    const { groups } = await api("connection");
+    $("pairGroup").replaceChildren(...groups.map(g => Object.assign(document.createElement("option"), { value: g.id, textContent: g.name })));
+    $("pairGroup").hidden = groups.length < 2;
+  }
+  $("pairStart").hidden = p.active;
+  $("pairStop").hidden = !p.active;
+  $("pairGroup").disabled = p.active;
+  $("pairState").textContent = p.active ? t("pairActive", `${Math.floor(p.seconds / 60)}:${String(p.seconds % 60).padStart(2, "0")}`) : "";
+  $("pairList").replaceChildren(...p.requests.map(r => {
+    const sas = document.createElement("span");
+    sas.className = "sas";
+    sas.textContent = `${r.sas.slice(0, 3)} ${r.sas.slice(3)}`;
+    const state = { pending: t("pairPending"), ok: t("pairOk"), denied: t("pairDenied") }[r.state] || r.state;
+    const cells = [r.label, r.ip, sas, state];
+    if (r.state === "pending") {
+      const box = document.createElement("span");
+      box.append(button(t("pairAllow"), "primary", () => decide(r.req, true)), " ", button(t("pairDeny"), "link danger", () => decide(r.req, false)));
+      cells.push(box);
+    } else cells.push("");
+    return row(cells);
+  }));
+  $("pairTable").hidden = !p.requests.length;
+}
+async function decide(req, allow) {
+  await api("pairing/decide", { req, allow });
+  showPairing();
+}
+$("pairStart").addEventListener("click", async () => {
+  await api("pairing/start", { group: $("pairGroup").value || null });
+  showPairing();
+});
+$("pairStop").addEventListener("click", async () => {
+  await api("pairing/stop", {});
+  showPairing();
+});
 
 // ---- Sprachmodell -------------------------------------------------------------------------------------------------------
 let prompts = null; // {defaults, custom} – nur beim Öffnen der Seite laden (Eingaben nicht überschreiben)
