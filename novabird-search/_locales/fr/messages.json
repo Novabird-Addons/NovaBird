@@ -1029,5 +1029,17 @@
   },
   "semHitsHeading": {
     "message": "Résultats"
+  },
+  "optNoTextShow": {
+    "message": "Où se trouvent les courriels sans texte intégral ? (par dossier)"
+  },
+  "optNoTextHint": {
+    "message": "Pour ces courriels, Thunderbird ne garde localement que les en-têtes – le plus souvent des dossiers IMAP non enregistrés pour une utilisation hors connexion, ou des courriels anciens quand le compte ne garde que les plus récents ou les plus petits. Solution : dossier → clic droit → Propriétés → Synchronisation (« Sélectionner ce dossier pour une utilisation hors connexion ») ou Paramètres des comptes → Synchronisation et espace disque. NovaBird récupère ensuite le texte à la prochaine comparaison."
+  },
+  "optNoTextRange": {
+    "message": "$1 – $2"
+  },
+  "optNoTextOpen": {
+    "message": "Ouvrir le dossier"
   }
 }

@@ -57,6 +57,15 @@ for (const mode of MODES) {
       expect(await count(db, "SELECT COUNT(*) FROM messages_fts WHERE messages_fts MATCH ?", ["nächsten"])).toBe(1); // nur noch Archiv-Kopie
     });
 
+    it("Mails ohne Volltext je Ordner (meiste zuerst, Zeitraum)", async () => {
+      const { db, caps } = await setup(mode);
+      const heads = MESSAGES.slice(0, 3).map((m, i) => ({ ...m, headerMessageId: `h${i}@x`, folderId: i ? "imap:/Alt" : "imap:/Neu", folderName: i ? "Alt" : "Neu", accountId: "account2", bodyHash: repo.HEADERS_ONLY, body: "" }));
+      await repo.upsertMessages(db, caps, heads);
+      const rows = await repo.headersOnlyByFolder(db);
+      expect(rows.map((r) => [r.folderId, r.folderName, r.accountId, r.n])).toEqual([["imap:/Alt", "Alt", "account2", 2], ["imap:/Neu", "Neu", "account2", 1]]);
+      expect(rows[0].oldest).toBeLessThanOrEqual(rows[0].newest);
+    });
+
     it("Löschen entfernt Zeile und Volltext", async () => {
       const { db, caps } = await setup(mode);
       await repo.deleteMessages(db, caps, [{ headerMessageId: "m6@firma.example", folderId: "inbox" }]);

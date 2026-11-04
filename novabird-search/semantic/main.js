@@ -653,7 +653,18 @@ async function query(text, { includeTrash = false, folderId = null, limit = QUER
     return { rows: [], ms: Date.now() - t0 };
   }
   const score = new Map(hits.map(([s, id]) => [id, s]));
-  const ids = [...score.keys()];
+  let ids = [...score.keys()];
+  // Bedingungen der Anfrage (von:, an:, Zeitraum, Anhang, Schlagwort, Ordner …) wie bei der Wortsuche
+  const allowed = await internal().filterIds?.(text, ids, { includeTrash, folderId }).catch(e => {
+    console.warn("[semantic] Filter", e);
+    return null;
+  });
+  if (allowed) {
+    ids = ids.filter(id => allowed.has(id));
+    if (!ids.length) {
+      return { rows: [], ms: Date.now() - t0 };
+    }
+  }
   const where = [`header_msg_id IN (${ids.map(() => "?").join(",")})`];
   const params = [...ids];
   if (!includeTrash) {
@@ -703,6 +714,41 @@ async function isIdle() {
   } catch {
     return true;
   }
+}
+
+// Vektoren von Mails, die nicht mehr im Index stehen (gelöscht), entfernen – höchstens alle 6 Stunden, nur bei fertigem
+// Wortindex, in Paketen von 500 Message-IDs. Fehlt mehr als die Hälfte, ist eher der Index unvollständig: dann nichts löschen.
+const PRUNE_EVERY = 6 * 3600_000;
+let prunedAt = 0;
+async function pruneGone() {
+  if (Date.now() - prunedAt < PRUNE_EVERY || !doneIds?.size) {
+    return;
+  }
+  prunedAt = Date.now();
+  const ids = doneIds;
+  const all = [...ids];
+  const gone = [];
+  for (let i = 0; i < all.length; i += 500) {
+    if (!(await internal().usable().catch(() => false)) || doneIds !== ids) {
+      return; // Index baut sich neu auf oder der Bestand wurde zurückgesetzt
+    }
+    const chunk = all.slice(i, i + 500);
+    const rows = await internal().db.select(
+      `SELECT DISTINCT header_msg_id FROM messages WHERE header_msg_id IN (${chunk.map(() => "?").join(",")})`, chunk, ["header_msg_id"]
+    );
+    const known = new Set(rows.map(r => r.header_msg_id));
+    gone.push(...chunk.filter(id => !known.has(id)));
+  }
+  if (!gone.length || gone.length > all.length / 2 || doneIds !== ids) {
+    return;
+  }
+  await store.removeMany(cfg.model, gone);
+  for (const id of gone) {
+    ids.delete(id);
+  }
+  vectors = null; // Kopie im Speicher beim nächsten Suchen neu laden
+  state.done = ids.size;
+  console.info(`[semantic] ${gone.length} Vektoren gelöschter Mails entfernt`);
 }
 
 async function countTotal() {
@@ -933,6 +979,7 @@ async function indexLoop() {
       if (!inflight.length) {
         state.phase = "done";
         reportProgress();
+        await pruneGone().catch(e => console.warn("[semantic] Aufräumen", e));
         await wait(5 * 60_000); // später auf neue Mails prüfen
         continue;
       }
@@ -1306,6 +1353,11 @@ messenger.runtime.onMessage.addListener((msg, sender) => {
         const same = old.filter((t, i) => t === fast[i]).length;
         return { mails: rows.length, sameAsOld: `${same}/${old.length}`, resolved: refs.filter(Boolean).length, of: seq.length, sampleFolderId: seq[0]?.folder_id, msPerMailSequential: steps, parallel: READ_PARALLEL, mailsPerSecParallel: rate };
       }
+      case "semantic:pruneNow":
+        // Test: Aufräumen sofort (sonst höchstens alle 6 Stunden, wenn alles gerechnet ist)
+        prunedAt = 0;
+        await pruneGone();
+        return { vectors: doneIds?.size ?? null };
       case "semantic:try": {
         // Probe aus der Einstellungsseite: Treffer zu einem Suchtext (ohne Ordnerfilter)
         const res = await query(msg.text, { includeTrash: false, limit: 10, threshold: typeof msg.threshold === "number" ? msg.threshold : null });

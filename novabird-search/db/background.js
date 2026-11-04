@@ -4,12 +4,13 @@ import { createExperimentAdapter } from "./src/db/adapter.js";
 import { migrate, resetTermsTables } from "./src/db/schema.js";
 import * as repo from "./src/db/repository.js";
 import { Indexer } from "./src/indexer/indexer.js";
-import { search, clearCompoundCache, refreshVocabWords, vocabWordsBuiltAt } from "./src/search.js";
+import { search, filterIds, clearCompoundCache, refreshVocabWords, vocabWordsBuiltAt } from "./src/search.js";
 import { removeChip } from "./src/parser/chips.js";
 import { TEXT_NORM_VERSION } from "./src/util/normalize.js";
 import { CONV_DATA_VERSION } from "./src/db/schema.js";
 import { findConversation } from "./src/query/conversation.js";
 import { checkDue, brokenReason, quickCheckOk } from "./src/db/health.js";
+import { L, setLogLanguage } from "./src/util/logtext.js";
 
 const db = createExperimentAdapter(messenger.novabirdDb);
 let caps = null;
@@ -56,6 +57,7 @@ let compoundMode = "query";
 // Sprachen des Parsers für Freitext („Rechnungen von Jonas letzte Woche“): Standard = Sprache der Oberfläche plus Englisch, einstellbar
 const PARSER_LANGS = ["de", "en", "fr", "es"];
 const uiLang = () => (messenger.i18n.getUILanguage() || "en").toLowerCase();
+setLogLanguage(uiLang()); // Ereignisprotokoll: Deutsch bei deutscher Oberfläche, sonst Englisch
 const defaultParserLangs = () => {
   const ui = PARSER_LANGS.find((l) => uiLang().startsWith(l)) ?? "en";
   return ui === "en" ? ["en"] : [ui, "en"]; // Hauptsprache (Wortstämme) = Oberfläche, Englisch immer dazu
@@ -141,7 +143,7 @@ async function restoreEvents() {
     if (eventLog.length) {
       events.push(...eventLog);
       eventSeq = Math.max(...eventLog.map((e) => e.n));
-      pushEvent("info", ["── Neustart des NovaBird-DB (Zeilen davor: vorheriger Lauf) ──"]);
+      pushEvent("info", [L("── Neustart des NovaBird-DB (Zeilen davor: vorheriger Lauf) ──", "── NovaBird-DB restarted (lines above: previous run) ──")]);
     }
   } catch {
     /* ohne Speicher einfach leer starten */
@@ -161,7 +163,7 @@ async function buildSeed() {
   );
   const rows = await db.select("SELECT term FROM terms_seed", [], ["term"]);
   termsVocab = new Set(rows.map((r) => r.term));
-  dlog.info(`[novabird-db] Saatliste für die Zerlegung: ${termsVocab.size} Wörter`);
+  dlog.info(L(`[novabird-db] Saatliste für die Zerlegung: ${termsVocab.size} Wörter`, `[novabird-db] Seed list for compound splitting: ${termsVocab.size} words`));
 }
 
 /** Einstellung „Zusammensetzungen“ mit dem Zustand des Index abgleichen (beim Start). */
@@ -193,7 +195,7 @@ async function ensureSeedPass() {
     await buildSeed();
     await db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES ('terms_mode', 'index')");
     if (termsVocab.size === 0) return false;
-    dlog.info("[novabird-db] Zusammensetzungen: Index wird mit der Zerlegung einmal neu eingelesen");
+    dlog.info(L("[novabird-db] Zusammensetzungen: Index wird mit der Zerlegung einmal neu eingelesen", "[novabird-db] Compounds: index is read once more with splitting"));
     await runIndex(true);
     return true;
   } finally {
@@ -213,12 +215,12 @@ async function setCompoundMode(mode) {
     if ((await repo.stats(db)).messages > 0) {
       await buildSeed();
       await db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES ('terms_mode', 'index')");
-      if (termsVocab.size) runIndex(true).catch((e) => dlog.error("[novabird-db] Neuaufbau", e)); // alle Mails neu einlesen, jetzt mit Zerlegung
+      if (termsVocab.size) runIndex(true).catch((e) => dlog.error(L("[novabird-db] Neuaufbau", "[novabird-db] Rebuild"), e)); // alle Mails neu einlesen, jetzt mit Zerlegung
     }
   } else {
     await syncCompoundMode();
   }
-  dlog.info(`[novabird-db] Zusammensetzungen: Modus „${next === "index" ? "beim Indexieren" : "bei der Suche"}“`);
+  dlog.info(L(`[novabird-db] Zusammensetzungen: Modus „${next === "index" ? "beim Indexieren" : "bei der Suche"}“`, `[novabird-db] Compounds: mode "${next === "index" ? "when indexing" : "when searching"}"`));
   return { mode: compoundMode };
 }
 
@@ -241,7 +243,7 @@ async function init() {
   const wanted = dbInfo.fts5Loaded ? "fts5" : "fts4";
   const have = String(caps.ftsMode).startsWith("fts5") ? "fts5" : "fts4";
   if (wanted !== have) {
-    dlog.info(`[novabird-db] Index ${have} -> ${wanted}: wird neu aufgebaut`);
+    dlog.info(L(`[novabird-db] Index ${have} -> ${wanted}: wird neu aufgebaut`, `[novabird-db] Index ${have} -> ${wanted}: rebuilding`));
     await resetIndexAside(forceFts4);
   }
   // Textnormalisierung oder Konversationsdaten (Verweise, Textanfang, Betreff-Schlüssel) geändert: alte Einträge passen nicht
@@ -251,7 +253,8 @@ async function init() {
   const convChanged = String(await metaVal("conv_data")) !== String(CONV_DATA_VERSION);
   if (normChanged || convChanged) {
     if ((await repo.stats(db)).messages > 0) {
-      dlog.info(`[novabird-db] ${normChanged ? `Textnormalisierung -> v${TEXT_NORM_VERSION}` : `Konversationsdaten -> v${CONV_DATA_VERSION}`}: Index wird neu aufgebaut (alte Datei bleibt bis zum Ende erhalten)`);
+      dlog.info(L(`[novabird-db] ${normChanged ? `Textnormalisierung -> v${TEXT_NORM_VERSION}` : `Konversationsdaten -> v${CONV_DATA_VERSION}`}: Index wird neu aufgebaut (alte Datei bleibt bis zum Ende erhalten)`,
+        `[novabird-db] ${normChanged ? `Text normalisation -> v${TEXT_NORM_VERSION}` : `Conversation data -> v${CONV_DATA_VERSION}`}: rebuilding the index (the old file is kept until it is done)`));
       await resetIndexAside(forceFts4);
     }
     await db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES ('text_norm', ?)", [String(TEXT_NORM_VERSION)]);
@@ -263,7 +266,7 @@ async function init() {
   initialDone = (await db.select("SELECT value FROM meta WHERE key = 'initial_done'", [], ["value"])).length > 0;
   // Aufräumen: eine alte Indexdatei von einem früheren Neuaufbau ist nur nötig, solange der neue Index unvollständig ist
   if (initialDone && (await db.hasAside().catch(() => false))) await db.deleteAside().catch(() => {});
-  dlog.info("[novabird-db] bereit:", caps.ftsMode, "·", (await repo.stats(db)).messages, "Mails im Index");
+  dlog.info(L("[novabird-db] bereit:", "[novabird-db] ready:"), caps.ftsMode, "·", (await repo.stats(db)).messages, L("Mails im Index", "mails in the index"));
   indexer?.detachListeners();
   indexer = new Indexer({
     db,
@@ -309,7 +312,7 @@ async function start() {
     if (!reason) throw e;
     // Index unbrauchbar (beschädigt / von neuerer Version): Nutzer fragen, ob neu aufgebaut werden soll.
     // Nicht abwarten: `ready` (und damit ping) darf nicht auf die Antwort des Nutzers warten.
-    handleBroken(reason, String(e?.message ?? e)).catch((err) => dlog.error("[novabird-db] Rückfrage Neuaufbau", err));
+    handleBroken(reason, String(e?.message ?? e)).catch((err) => dlog.error(L("[novabird-db] Rückfrage Neuaufbau", "[novabird-db] Rebuild question"), err));
     return;
   }
   const { testTimings } = await messenger.storage.local.get({ testTimings: null });
@@ -317,8 +320,8 @@ async function start() {
   await beginSession();
   // Erstlauf selbständig starten (kurz warten, bis Betterbird fertig geladen hat)
   setTimeout(() => runIndex().catch((e) => console.error("[novabird-db] Erstlauf", e)), TIMING.start);
-  setTimeout(() => integrityCheck().catch((e) => dlog.error("[novabird-db] Indexprüfung", e)), TIMING.check);
-  setTimeout(() => deepTick().catch((e) => dlog.error("[novabird-db] Tiefenabgleich", e)), TIMING.deepEarliest);
+  setTimeout(() => integrityCheck().catch((e) => dlog.error(L("[novabird-db] Indexprüfung", "[novabird-db] Index check"), e)), TIMING.check);
+  setTimeout(() => deepTick().catch((e) => dlog.error(L("[novabird-db] Tiefenabgleich", "[novabird-db] Deep comparison"), e)), TIMING.deepEarliest);
 }
 
 // ---- Gesundheit des Index ------------------------------------------------------------------------------
@@ -336,7 +339,7 @@ async function beginSession() {
   await metaSet("starts_since_check", starts);
   await metaSet("clean_shutdown", "0");
   checkReason = checkDue({ unclean, starts, lastCheck, now: Date.now() });
-  if (checkReason) dlog.info(`[novabird-db] Indexprüfung geplant (${checkReason})`);
+  if (checkReason) dlog.info(L(`[novabird-db] Indexprüfung geplant (${checkReason})`, `[novabird-db] Index check scheduled (${checkReason})`));
 }
 
 /** PRAGMA quick_check; bei Fehler Rückfrage zum Neuaufbau. */
@@ -354,7 +357,7 @@ async function integrityCheck() {
   } catch (e) {
     detail = String(e?.message ?? e);
   }
-  dlog.info(`[novabird-db] Indexprüfung (${reason}): ${ok ? "in Ordnung" : "FEHLER: " + detail}`);
+  dlog.info(L(`[novabird-db] Indexprüfung (${reason}): ${ok ? "in Ordnung" : "FEHLER: " + detail}`, `[novabird-db] Index check (${reason}): ${ok ? "OK" : "ERROR: " + detail}`));
   if (ok) {
     await metaSet("last_check", Date.now());
     await metaSet("starts_since_check", 0);
@@ -368,7 +371,7 @@ async function handleBroken(reason, detail) {
   brokenInfo = { reason, detail };
   status = { phase: "error", error: `Index unbrauchbar (${reason}): ${detail}` };
   pushStatus(); // NovaBird-Conversation melden: nicht nutzbar (usable false)
-  dlog.error(`[novabird-db] Index unbrauchbar (${reason}): ${detail}`);
+  dlog.error(L(`[novabird-db] Index unbrauchbar (${reason}): ${detail}`, `[novabird-db] Index unusable (${reason}): ${detail}`));
   try {
     indexer?.stop(); // nichts mehr in eine beschädigte Datei schreiben
     indexer?.detachListeners();
@@ -436,7 +439,7 @@ async function deepTick() {
     setTimeout(() => deepTick().catch(() => {}), TIMING.deepRetry);
     return;
   }
-  dlog.info(`[novabird-db] Tiefenabgleich startet (Leerlauf ${idle ?? "?"} s, ${Math.round(since / 60000)} Min nach dem Start)`);
+  dlog.info(L(`[novabird-db] Tiefenabgleich startet (Leerlauf ${idle ?? "?"} s, ${Math.round(since / 60000)} Min nach dem Start)`, `[novabird-db] Deep comparison starts (idle ${idle ?? "?"} s, ${Math.round(since / 60000)} min after start)`));
   const pause = indexer.pauseMs;
   indexer.pauseMs = Math.max(pause, 150); // sanft: längere Pausen zwischen den Paketen
   try {
@@ -452,10 +455,11 @@ async function deepTick() {
 /** Mails nachholen, die die Ereignisse verpasst haben (nur nach fertigem Erstlauf, nicht während eines Laufs oder im angehaltenen Zustand). */
 async function catchUpNow() {
   if (!indexer || !initialDone || status.phase === "folder" || status.phase === "stopped") {
-    dlog.info(`[novabird-db] Nachholen übersprungen (${!indexer ? "nicht bereit" : !initialDone ? "Erstlauf noch nicht fertig" : "Indizierung läuft oder ist angehalten"})`);
+    dlog.info(L(`[novabird-db] Nachholen übersprungen (${!indexer ? "nicht bereit" : !initialDone ? "Erstlauf noch nicht fertig" : "Indizierung läuft oder ist angehalten"})`,
+      `[novabird-db] Catch-up skipped (${!indexer ? "not ready" : !initialDone ? "first run not finished" : "indexing running or paused"})`));
     return null;
   }
-  dlog.info("[novabird-db] Nachholen und Abgleich starten");
+  dlog.info(L("[novabird-db] Nachholen und Abgleich starten", "[novabird-db] Starting catch-up and comparison"));
   const r = await indexer.catchUp();
   const rec = await indexer.reconcile(); // rückwirkend einsortierte Mails: Ordner mit abweichender Mailzahl neu durchgehen
   // Der wöchentliche Tiefenabgleich läuft getrennt im Leerlauf (deepTick)
@@ -494,10 +498,10 @@ async function refreshVocab(reason, { needIdle = false } = {}) {
     await indexer.enqueue(() => refreshVocabWords(db)); // seriell mit dem Schreiben des Indexers
     await metaSet("vocab_words_mark", mark);
     caps.vocabWords = true;
-    dlog.info(`[novabird-db] Wortliste aufgefrischt (${reason}) in ${Math.round(performance.now() - t0)} ms`);
+    dlog.info(L(`[novabird-db] Wortliste aufgefrischt (${reason}) in ${Math.round(performance.now() - t0)} ms`, `[novabird-db] Word list refreshed (${reason}) in ${Math.round(performance.now() - t0)} ms`));
     return true;
   } catch (e) {
-    dlog.error("[novabird-db] Wortliste", e);
+    dlog.error(L("[novabird-db] Wortliste", "[novabird-db] Word list"), e);
     return false;
   } finally {
     vocabBusy = false;
@@ -517,15 +521,15 @@ async function runIndex(force = false) {
   }
   // Neuaufbau vollständig: die zur Seite gelegte alte Indexdatei jetzt löschen
   if (status.phase === "done" && initialDone && (await db.hasAside().catch(() => false))) {
-    await db.deleteAside().catch((e) => dlog.error("[novabird-db] alte Indexdatei", e));
-    dlog.info("[novabird-db] alte Indexdatei gelöscht (Neuaufbau vollständig)");
+    await db.deleteAside().catch((e) => dlog.error(L("[novabird-db] alte Indexdatei", "[novabird-db] old index file"), e));
+    dlog.info(L("[novabird-db] alte Indexdatei gelöscht (Neuaufbau vollständig)", "[novabird-db] old index file deleted (rebuild complete)"));
   }
   pushStatus();
   clearCompoundCache();
   if (status.phase === "done") refreshVocab("Indexlauf").catch(() => {});
-  if (status.phase === "done" && (await ensureSeedPass().catch((e) => (dlog.error("[novabird-db] Saatliste", e), false)))) return { ...(await repo.stats(db)), status };
+  if (status.phase === "done" && (await ensureSeedPass().catch((e) => (dlog.error(L("[novabird-db] Saatliste", "[novabird-db] Seed list"), e), false)))) return { ...(await repo.stats(db)), status };
   // Nachholen/Abgleich erst eine Minute nach dem Lauf, damit Betterbird beim Start nicht zusätzlich belastet wird
-  if (status.phase === "done") setTimeout(() => catchUpNow().catch((e) => dlog.error("[novabird-db] Nachholen", e)), 60_000);
+  if (status.phase === "done") setTimeout(() => catchUpNow().catch((e) => dlog.error(L("[novabird-db] Nachholen", "[novabird-db] Catch-up"), e)), 60_000);
   return { ...(await repo.stats(db)), status };
 }
 
@@ -678,6 +682,9 @@ globalThis.novabirdDbInternal = {
   ready,
   idleSeconds: () => db.idleSeconds(),
   usable: async () => (await externalStatus()).usable,
+  // Bedeutungs-Treffer mit denselben Bedingungen wie die Wortsuche filtern (von:, Zeitraum, Anhang …); null = keine
+  filterIds: (text, ids, { includeTrash = false, folderId = null } = {}) =>
+    filterIds(db, caps, String(text ?? ""), ids, { ...searchOptions, includeTrash, folderId }),
 };
 
 messenger.runtime.onMessage.addListener((msg) => {
@@ -714,6 +721,24 @@ messenger.runtime.onMessage.addListener((msg) => {
         return await findConversation(db, msg);
       case "novabird-db:status":
         return fullStatus();
+      case "novabird-db:headersOnlyFolders": {
+        // Einstellungsseite, Reiter „Index“: wo liegen die Mails ohne Volltext? (Kontoname statt account1 …)
+        const names = new Map((await messenger.accounts.list(false)).map((a) => [a.id, a.name]));
+        const rows = await repo.headersOnlyByFolder(db);
+        return rows.map((r) => ({ ...r, account: names.get(r.accountId) ?? r.accountId }));
+      }
+      case "novabird-db:showFolder": {
+        // Ordner im aktuellen Mail-Tab öffnen (MV2: Konto + Pfad aus der Ordner-ID „account1:/INBOX“ bzw. folder.id)
+        const id = String(msg.folderId ?? "");
+        const i = id.indexOf(":/");
+        if (i < 0) return { ok: false };
+        const [tab] = await messenger.mailTabs.query({ active: true, currentWindow: true }).catch(() => []);
+        const target = tab ?? (await messenger.mailTabs.query({}))[0];
+        if (!target) return { ok: false };
+        await messenger.mailTabs.update(target.id, { displayedFolder: { accountId: id.slice(0, i), path: id.slice(i + 1) } });
+        await messenger.tabs.update(target.id, { active: true });
+        return { ok: true };
+      }
       case "novabird-db:ping": // Einstellungsseite, Reiter „Suche“: derselbe Status wie für die Suchleiste
         return externalStatus();
       case "novabird-db:setCompoundMode":

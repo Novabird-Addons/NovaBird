@@ -30,6 +30,7 @@ async function refresh() {
       return [dt, dd];
     }),
   );
+  $("noText").hidden = !s.headersOnly;
   $("logging").checked = Boolean(s.logSearches);
   $("debugLog").checked = Boolean(s.debugLog);
   const cm = $("compoundMode");
@@ -101,6 +102,32 @@ $("export").addEventListener("click", async () => {
   a.href = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
   a.download = "novabird-db-search-log.txt";
   a.click();
+});
+
+// Mails ohne Volltext nach Ordner (beim Aufklappen laden)
+$("noText").addEventListener("toggle", async () => {
+  if (!$("noText").open) return;
+  const rows = await send({ type: "novabird-db:headersOnlyFolders" });
+  const day = (ms) => (ms ? new Date(ms).toLocaleDateString(lang) : "?");
+  $("noTextList").replaceChildren(
+    ...rows.map((r) => {
+      const tr = document.createElement("tr");
+      const cell = (text, cls) => {
+        const td = document.createElement("td");
+        td.textContent = text;
+        if (cls) td.className = cls;
+        tr.append(td);
+        return td;
+      };
+      cell(num(r.n), "n");
+      cell(`${r.account} › ${r.folderName || r.folderId}`);
+      cell(t("optNoTextRange", [day(r.oldest), day(r.newest)]));
+      const btn = Object.assign(document.createElement("button"), { type: "button", textContent: t("optNoTextOpen") });
+      btn.addEventListener("click", () => send({ type: "novabird-db:showFolder", folderId: r.folderId }));
+      cell("").append(btn);
+      return tr;
+    }),
+  );
 });
 
 let lastEvent = 0;

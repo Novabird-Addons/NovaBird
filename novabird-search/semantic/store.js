@@ -84,6 +84,17 @@ export async function loadAll(model, dims) {
   return { ids, q, s };
 }
 
+/** Vektoren einzelner Mails entfernen (Mail nicht mehr im Index). */
+export async function removeMany(model, ids) {
+  const db = await open();
+  const tx = db.transaction(STORE, "readwrite");
+  const os = tx.objectStore(STORE);
+  for (const id of ids) {
+    os.delete([model, id]);
+  }
+  await txDone(tx);
+}
+
 export async function clear(model) {
   const db = await open();
   const tx = db.transaction(STORE, "readwrite");

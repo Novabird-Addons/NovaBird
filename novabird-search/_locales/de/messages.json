@@ -1113,5 +1113,17 @@
   },
   "semHitsHeading": {
     "message": "Treffer"
+  },
+  "optNoTextShow": {
+    "message": "Wo liegen die Mails ohne Volltext? (nach Ordner)"
+  },
+  "optNoTextHint": {
+    "message": "Von diesen Mails hat Thunderbird nur die Kopfzeilen lokal – meist IMAP-Ordner, die nicht für die Offline-Nutzung gespeichert werden, oder ältere Mails, wenn das Konto nur die letzten Tage bzw. kleine Mails speichert. Abhilfe: Ordner → Rechtsklick → Eigenschaften → Synchronisation („Für die Offline-Nutzung auswählen“) bzw. Konten-Einstellungen → Synchronisation & Speicherplatz. Danach holt NovaBird den Text beim nächsten Abgleich nach."
+  },
+  "optNoTextRange": {
+    "message": "$1 – $2"
+  },
+  "optNoTextOpen": {
+    "message": "Ordner öffnen"
   }
 }

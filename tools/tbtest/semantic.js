@@ -100,6 +100,27 @@ setTimeout(() => finish({ ...out, pass: false, error: `Zeitlimit nach ${secs()} 
     out.queries[q] = { ms: Date.now() - t, rows, error: r?.error };
     check(`semantic: ${q}`, (rows[0] || "").includes(want), rows[0] || r?.error);
   }
+  // Operatoren wirken auch auf die Bedeutungstreffer: von: lässt nur Mails dieses Absenders zu (Schwelle 0: ohne von: mehrere)
+  {
+    const free = await send({ type: "semantic:try", text: "Ferien am Meer", threshold: 0 });
+    const r = await send({ type: "semantic:try", text: "von:reise@example.invalid Ferien am Meer", threshold: 0 });
+    const subjects = await Promise.all((r?.rows || []).map(x => subjectOf(x.header_msg_id)));
+    out.queries.from = { without: free?.rows?.length, with: subjects };
+    check("semantic: von: filtert die Bedeutungstreffer", (free?.rows?.length || 0) > 1 && subjects.length === 1 && subjects[0].includes("Mallorca"), `${free?.rows?.length} -> ${subjects.join(" | ") || r?.error}`);
+  }
+  // Gelöschte Mail: ihr Vektor verschwindet beim Aufräumen (nicht nur aus den Treffern)
+  {
+    const hdr = [...inbox.messages].find(h => h.mime2DecodedSubject.includes("Mallorca"));
+    inbox.deleteMessages([hdr], null, true, false, null, false); // endgültig, ohne Papierkorb
+    let rows = null;
+    for (let i = 0; i < 20; i++) {
+      await sleep(1000);
+      rows = (await send({ type: "semantic:try", text: "Ferien am Meer", threshold: 0 }))?.rows || [];
+      if (rows.length === 4) break;
+    }
+    const pr = await send({ type: "semantic:pruneNow" });
+    check("semantic: gelöschte Mail – Vektor aufgeräumt", rows?.length === 4 && pr?.vectors === 5, `Treffer ${rows?.length}, Vektoren ${pr?.vectors}`);
+  }
   out.t.queries = secs();
 
   // Suchleiste: Stichwortsuche über den FTS-Index (Kompositum und Umlaute)

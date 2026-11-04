@@ -10,7 +10,7 @@
       intro: "Der NovaBird Helper rechnet auf einem PC mit Grafikkarte für alle: Bedeutungssuche, KI-Assistent und Team-Kalender. Einmal verbinden, dann hier wählen, wofür er genutzt wird.",
       none: "Nicht verbunden", noneSub: "Adresse und Kopplungscode stehen in der Web-Oberfläche des Helpers unter „Verbindung“.",
       checking: "Verbinde …", ok: "Verbunden mit $1", okSub: "Gruppe $1 · $2 · Sprachmodell: $3 · Helper $4", noModel: "keins gewählt",
-      fail: "Keine Verbindung: $1", errCode: "Kopplungscode passt nicht", errPerm: "Erlaubnis für die Adresse fehlt – „Verbinden“ klicken",
+      fail: "Keine Verbindung: $1", errCode: "Kopplungscode passt nicht", errPerm: "nicht erreichbar oder Erlaubnis für die Adresse fehlt – läuft der Helper? Sonst unten neu verbinden",
       openWeb: "Web-Oberfläche öffnen", useTitle: "Wofür nutzen?",
       useSearch: "Suche: Bedeutungssuche im Helper rechnen", useAi: "KI-Assistent: Sprachmodell des Helpers",
       searchMissing: "NovaBird-Search ist nicht installiert.", searchOn: "Die Suche rechnet im Helper.", searchOff: "Die Suche rechnet ohne Helper – Einstellungen dafür unter Suche → Bedeutungssuche (Wortsuche bleibt immer).",
@@ -23,8 +23,8 @@
       calErr: { url: "Adresse ungültig.", cert: "Zertifikat des Helpers passt nicht zum Fingerabdruck – nichts eingebunden.", auth: "Benutzername oder Passwort falsch.", none: "Für diesen Benutzer ist kein Kalender freigegeben." },
       calLan: "Andere PCs erreichen die Kalender erst, wenn am Helper-PC unter Einstellungen „Web-Oberfläche auch im Netz erreichbar“ eingeschaltet ist.",
       calOld: "Dieser Helper kennt noch keine Team-Kalender (Update nötig).", readOnly: "nur lesen",
-      connTitle: "Verbindung ändern", connTitleNew: "Verbinden", connText: "Adresse und Kopplungscode der Gruppe aus der Web-Oberfläche des Helpers (Verbindung). Der Name erscheint dort in der Liste der PCs.",
-      url: "Adresse", code: "Kopplungscode", label: "Name dieses PCs", connect: "Verbinden", disconnect: "Trennen",
+      connTitle: "Anderen Helper verbinden", connTitleNew: "Verbinden", connText: "Adresse und Kopplungscode der Gruppe aus der Web-Oberfläche des Helpers (Verbindung). Der Name erscheint dort in der Liste der PCs.",
+      url: "Adresse", code: "Kopplungscode", label: "Name dieses PCs", connect: "Verbinden", connectSwitch: "Wechseln", disconnect: "Trennen",
       confirmDisconnect: "Verbindung zum Helper trennen?\n\nSuche und KI-Assistent nutzen ihn dann nicht mehr; eingebundene Kalender bleiben.",
       findBtn: "Helper im Netz suchen", finding: "Suche …", foundNone: "Kein Helper im Kopplungsmodus gefunden. Am Helper-PC in der Web-Oberfläche unter PCs „Gerät über Kopplung hinzufügen“ klicken und hier noch einmal suchen – oder unten Adresse und Code eintragen.", pairWith: "Koppeln", pairText: "Vergleiche diese Zahl mit der im Helper (Web-Oberfläche → PCs) und klicke dort auf „Zulassen“, wenn sie gleich ist.", pairWait: "Warte auf „Zulassen“ am Helper …", pairDenied: "Am Helper abgelehnt.", pairExpired: "Abgelaufen – bitte neu koppeln.", pairOff: "Der Helper ist nicht (mehr) im Kopplungsmodus.", pairOk: "Gekoppelt.", pairCancel: "Abbrechen", manualTitle: "Oder von Hand: Adresse und Kopplungscode",
     },
@@ -32,7 +32,7 @@
       intro: "The NovaBird Helper computes for everyone on a PC with a graphics card: meaning search, AI assistant and team calendars. Connect once, then choose here what it is used for.",
       none: "Not connected", noneSub: "Address and pairing code are shown in the helper's web interface under “Connection”.",
       checking: "Connecting …", ok: "Connected to $1", okSub: "Group $1 · $2 · Language model: $3 · Helper $4", noModel: "none selected",
-      fail: "No connection: $1", errCode: "Pairing code does not match", errPerm: "Permission for the address missing – click “Connect”",
+      fail: "No connection: $1", errCode: "Pairing code does not match", errPerm: "not reachable or permission for the address missing – is the helper running? Otherwise connect again below",
       openWeb: "Open web interface", useTitle: "Use it for",
       useSearch: "Search: compute the meaning search in the helper", useAi: "AI assistant: the helper's language model",
       searchMissing: "NovaBird-Search is not installed.", searchOn: "Search computes in the helper.", searchOff: "Search computes without the helper – its settings are under Search → Meaning search (word search always stays).",
@@ -45,8 +45,8 @@
       calErr: { url: "Invalid address.", cert: "The helper's certificate does not match the fingerprint – nothing added.", auth: "Wrong user name or password.", none: "No calendar is shared with this user." },
       calLan: "Other PCs reach the calendars only when “Web interface also reachable in the network” is switched on in the settings on the helper PC.",
       calOld: "This helper has no team calendars yet (update needed).", readOnly: "read only",
-      connTitle: "Change connection", connTitleNew: "Connect", connText: "Address and pairing code of the group from the helper's web interface (Connection). The name appears there in the list of PCs.",
-      url: "Address", code: "Pairing code", label: "Name of this PC", connect: "Connect", disconnect: "Disconnect",
+      connTitle: "Connect another helper", connTitleNew: "Connect", connText: "Address and pairing code of the group from the helper's web interface (Connection). The name appears there in the list of PCs.",
+      url: "Address", code: "Pairing code", label: "Name of this PC", connect: "Connect", connectSwitch: "Switch", disconnect: "Disconnect",
       confirmDisconnect: "Disconnect from the helper?\n\nSearch and AI assistant no longer use it; added calendars stay.",
       findBtn: "Search the network for a helper", finding: "Searching …", foundNone: "No helper in pairing mode found. On the helper PC, click “Add device by pairing” under PCs in the web interface and search here again – or enter address and code below.", pairWith: "Pair", pairText: "Compare this number with the one shown in the helper (web interface → PCs) and click “Allow” there if they match.", pairWait: "Waiting for “Allow” on the helper …", pairDenied: "Declined on the helper.", pairExpired: "Expired – please pair again.", pairOff: "The helper is not (or no longer) in pairing mode.", pairOk: "Paired.", pairCancel: "Cancel", manualTitle: "Or by hand: address and pairing code",
     },
@@ -54,7 +54,7 @@
       intro: "Le NovaBird Helper calcule pour tous sur un PC avec carte graphique : recherche par le sens, assistant IA et calendriers d’équipe. Connectez-le une fois, puis choisissez ici son usage.",
       none: "Non connecté", noneSub: "L’adresse et le code d’appairage figurent dans l’interface web du Helper, sous « Connexion ».",
       checking: "Connexion …", ok: "Connecté à $1", okSub: "Groupe $1 · $2 · Modèle de langage : $3 · Helper $4", noModel: "aucun choisi",
-      fail: "Pas de connexion : $1", errCode: "Le code d’appairage ne correspond pas", errPerm: "Autorisation pour l’adresse manquante – cliquez sur « Connecter »",
+      fail: "Pas de connexion : $1", errCode: "Le code d’appairage ne correspond pas", errPerm: "injoignable ou autorisation pour l’adresse manquante – le Helper tourne-t-il ? Sinon, reconnectez ci-dessous",
       openWeb: "Ouvrir l’interface web", useTitle: "Utiliser pour",
       useSearch: "Recherche : calculer la recherche par le sens dans le Helper", useAi: "Assistant IA : modèle de langage du Helper",
       searchMissing: "NovaBird-Search n’est pas installé.", searchOn: "La recherche calcule dans le Helper.", searchOff: "La recherche calcule sans le Helper – réglages sous Recherche → Recherche par le sens (la recherche par mots reste toujours).",
@@ -67,8 +67,8 @@
       calErr: { url: "Adresse invalide.", cert: "Le certificat du Helper ne correspond pas à l’empreinte – rien n’a été ajouté.", auth: "Nom d’utilisateur ou mot de passe incorrect.", none: "Aucun calendrier n’est partagé avec cet utilisateur." },
       calLan: "Les autres PC n’accèdent aux calendriers que si « Interface web accessible aussi sur le réseau » est activé dans les réglages du PC du Helper.",
       calOld: "Ce Helper ne connaît pas encore les calendriers d’équipe (mise à jour nécessaire).", readOnly: "lecture seule",
-      connTitle: "Modifier la connexion", connTitleNew: "Connecter", connText: "Adresse et code d’appairage du groupe, depuis l’interface web du Helper (Connexion). Le nom y apparaît dans la liste des PC.",
-      url: "Adresse", code: "Code d’appairage", label: "Nom de ce PC", connect: "Connecter", disconnect: "Déconnecter",
+      connTitle: "Connecter un autre Helper", connTitleNew: "Connecter", connText: "Adresse et code d’appairage du groupe, depuis l’interface web du Helper (Connexion). Le nom y apparaît dans la liste des PC.",
+      url: "Adresse", code: "Code d’appairage", label: "Nom de ce PC", connect: "Connecter", connectSwitch: "Changer", disconnect: "Déconnecter",
       confirmDisconnect: "Déconnecter le Helper ?\n\nLa recherche et l’assistant IA ne l’utilisent plus ; les calendriers ajoutés restent.",
       findBtn: "Chercher un Helper sur le réseau", finding: "Recherche …", foundNone: "Aucun Helper en mode appairage trouvé. Sur le PC du Helper, cliquez dans l’interface web sous PC sur « Ajouter un appareil par appairage », puis cherchez à nouveau ici – ou saisissez l’adresse et le code ci-dessous.", pairWith: "Appairer", pairText: "Comparez ce nombre avec celui affiché dans le Helper (interface web → PC) et cliquez là-bas sur « Autoriser » s’ils sont identiques.", pairWait: "En attente de « Autoriser » sur le Helper …", pairDenied: "Refusé sur le Helper.", pairExpired: "Expiré – veuillez appairer à nouveau.", pairOff: "Le Helper n’est pas (plus) en mode appairage.", pairOk: "Appairé.", pairCancel: "Annuler", manualTitle: "Ou à la main : adresse et code d’appairage",
     },
@@ -76,7 +76,7 @@
       intro: "El NovaBird Helper calcula para todos en un PC con tarjeta gráfica: búsqueda por significado, asistente IA y calendarios de equipo. Conéctelo una vez y elija aquí para qué se usa.",
       none: "Sin conectar", noneSub: "La dirección y el código de emparejamiento están en la interfaz web del Helper, en «Conexión».",
       checking: "Conectando …", ok: "Conectado a $1", okSub: "Grupo $1 · $2 · Modelo de lenguaje: $3 · Helper $4", noModel: "ninguno elegido",
-      fail: "Sin conexión: $1", errCode: "El código de emparejamiento no coincide", errPerm: "Falta el permiso para la dirección – pulse «Conectar»",
+      fail: "Sin conexión: $1", errCode: "El código de emparejamiento no coincide", errPerm: "no accesible o falta el permiso para la dirección – ¿está en marcha el Helper? Si no, conecte de nuevo abajo",
       openWeb: "Abrir la interfaz web", useTitle: "Usar para",
       useSearch: "Búsqueda: calcular la búsqueda por significado en el Helper", useAi: "Asistente IA: modelo de lenguaje del Helper",
       searchMissing: "NovaBird-Search no está instalado.", searchOn: "La búsqueda calcula en el Helper.", searchOff: "La búsqueda calcula sin el Helper – sus ajustes están en Búsqueda → Búsqueda por significado (la búsqueda por palabras siempre sigue).",
@@ -89,8 +89,8 @@
       calErr: { url: "Dirección no válida.", cert: "El certificado del Helper no coincide con la huella – no se añadió nada.", auth: "Nombre de usuario o contraseña incorrectos.", none: "No hay calendarios compartidos con este usuario." },
       calLan: "Los demás PC solo acceden a los calendarios si en el PC del Helper está activado «Interfaz web accesible también en la red».",
       calOld: "Este Helper aún no tiene calendarios de equipo (hace falta actualizar).", readOnly: "solo lectura",
-      connTitle: "Cambiar conexión", connTitleNew: "Conectar", connText: "Dirección y código de emparejamiento del grupo, de la interfaz web del Helper (Conexión). El nombre aparece allí en la lista de PC.",
-      url: "Dirección", code: "Código de emparejamiento", label: "Nombre de este PC", connect: "Conectar", disconnect: "Desconectar",
+      connTitle: "Conectar otro Helper", connTitleNew: "Conectar", connText: "Dirección y código de emparejamiento del grupo, de la interfaz web del Helper (Conexión). El nombre aparece allí en la lista de PC.",
+      url: "Dirección", code: "Código de emparejamiento", label: "Nombre de este PC", connect: "Conectar", connectSwitch: "Cambiar", disconnect: "Desconectar",
       confirmDisconnect: "¿Desconectar del Helper?\n\nLa búsqueda y el asistente IA dejan de usarlo; los calendarios añadidos se quedan.",
       findBtn: "Buscar un Helper en la red", finding: "Buscando …", foundNone: "No se encontró ningún Helper en modo de emparejamiento. En el PC del Helper, pulse en la interfaz web, en PC, «Añadir dispositivo por emparejamiento» y vuelva a buscar aquí, o introduzca abajo la dirección y el código.", pairWith: "Emparejar", pairText: "Compare este número con el que muestra el Helper (interfaz web → PC) y pulse allí «Permitir» si coinciden.", pairWait: "Esperando «Permitir» en el Helper …", pairDenied: "Rechazado en el Helper.", pairExpired: "Caducado: vuelva a emparejar.", pairOff: "El Helper no está (o ya no está) en modo de emparejamiento.", pairOk: "Emparejado.", pairCancel: "Cancelar", manualTitle: "O a mano: dirección y código de emparejamiento",
     },
@@ -126,7 +126,9 @@
     $("stateSub").textContent = sub;
     $("openWeb").hidden = !(kind === "ok" && webBase());
     $("useBox").classList.toggle("off", kind !== "ok");
+    // verbunden: „Trennen“ oben beim Zustand, unten nur „Anderen Helper verbinden“ (zugeklappt) mit „Wechseln“
     $("connBox").querySelector("summary").textContent = conn ? t.connTitle : t.connTitleNew;
+    $("connect").textContent = conn ? t.connectSwitch : t.connect;
     $("disconnect").hidden = !conn;
   }
 

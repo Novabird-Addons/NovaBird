@@ -1029,5 +1029,17 @@
   },
   "semHitsHeading": {
     "message": "Results"
+  },
+  "optNoTextShow": {
+    "message": "Where are the mails without full text? (by folder)"
+  },
+  "optNoTextHint": {
+    "message": "For these mails Thunderbird keeps only the headers locally – usually IMAP folders that are not stored for offline use, or older mails when the account keeps only recent or small mails. To fix: folder → right-click → Properties → Synchronization (\"Select this folder for offline use\") or Account Settings → Synchronization & Storage. NovaBird then fetches the text at the next comparison."
+  },
+  "optNoTextRange": {
+    "message": "$1 – $2"
+  },
+  "optNoTextOpen": {
+    "message": "Open folder"
   }
 }

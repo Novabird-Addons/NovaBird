@@ -36,6 +36,10 @@
     #indexTab .hint { margin: 4px 0 0; }
     #indexTab dl { display: grid; grid-template-columns: 180px 1fr; gap: 4px 8px; margin: 0; }
     #indexTab dt { color: GrayText; } #indexTab dd { margin: 0; }
+    #noText { margin-top: 0.6em; } #noText summary { cursor: pointer; }
+    #noTextList { border-collapse: collapse; margin-top: 0.4em; }
+    #noTextList td { padding: 0.15em 0.8em 0.15em 0; vertical-align: baseline; }
+    #noTextList td.n { text-align: end; font-variant-numeric: tabular-nums; }
     #msg { color: AccentColor; min-height: 1.2em; }
     #events { font: 11px monospace; height: 220px; overflow: auto; border: 1px solid GrayText; padding: 4px 6px; margin: 6px 0; white-space: pre-wrap; background: Field; color: FieldText; }
     #events .warn { color: #8a6d00; } #events .error { color: #b3261e; }
@@ -142,6 +146,11 @@
 
   <h2 data-i18n="optHStatus"></h2>
   <dl id="status"></dl>
+  <details id="noText" hidden>
+    <summary data-i18n="optNoTextShow"></summary>
+    <p class="hint" data-i18n="optNoTextHint"></p>
+    <table id="noTextList"></table>
+  </details>
 
   <h2 data-i18n="optHIndexing"></h2>
   <div class="row">

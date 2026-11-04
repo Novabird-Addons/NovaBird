@@ -48,6 +48,24 @@ export async function search(db, caps, input, options = {}) {
   return { query, chips, rows, empty: isEmptyQuery(query), suggest };
 }
 
+/**
+ * Bedeutungssuche: ihre Kandidaten (Message-IDs) auf dieselben Bedingungen wie die Wortsuche beschränken – von:/an:/
+ * beteiligt, Zeitraum, Anhang(-typ), Status, Schlagwort, Ordner –, ohne die Suchwörter selbst und ohne Wort-Ausschlüsse.
+ * Ergebnis: Set der erlaubten IDs oder null, wenn die Anfrage außer Suchwörtern keine Bedingung hat.
+ */
+export async function filterIds(db, caps, input, ids, options = {}) {
+  const parsed = typeof input === "string" ? parseQuery(input, { now: options.now, langs: options.langs, dateOrder: options.dateOrder }) : input;
+  // Wörter (auch „nicht X“ als Ausschluss) bleiben der Bedeutung überlassen: „Server nicht erreichbar“ ist ein Satz, kein Filter
+  const query = { ...(await resolvePeople(db, parsed, options)), terms: [], phrases: [], subjectTerms: [], exclude: [] };
+  if (isEmptyQuery(query)) return null;
+  const allowed = new Set();
+  for (let i = 0; i < ids.length; i += 500) {
+    const { sql, params, columns } = buildSearchSql(query, caps, { ...options, sort: "date", limit: -1, offset: 0, dedupe: false, onlyIds: ids.slice(i, i + 500) });
+    for (const r of await db.select(sql, params, columns)) allowed.add(r.header_msg_id);
+  }
+  return allowed;
+}
+
 export { parseQuery } from "./parser/parseQuery.js";
 export { toChips, removeChip } from "./parser/chips.js";
 export { buildSearchSql } from "./query/buildSql.js";

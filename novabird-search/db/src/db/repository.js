@@ -312,6 +312,16 @@ export async function countHeadersOnly(db) {
   return r.n;
 }
 
+/** Mails ohne Volltext je Ordner (meiste zuerst), mit ältester/neuester Mail: zeigt, wo Thunderbird nichts lokal hat. */
+export async function headersOnlyByFolder(db, limit = 50) {
+  return db.select(
+    `SELECT folder_id, MAX(folder_name), MAX(account_id), COUNT(*) AS n, MIN(date), MAX(date)
+       FROM messages WHERE body_hash = ? GROUP BY folder_id ORDER BY n DESC LIMIT ?`,
+    [HEADERS_ONLY, limit],
+    ["folderId", "folderName", "accountId", "n", "oldest", "newest"],
+  );
+}
+
 /** Datum (ms) der neuesten indizierten Mail eines Kontos oder null. */
 export async function newestDate(db, accountId) {
   const [r] = await db.select("SELECT MAX(date) AS d FROM messages WHERE account_id = ?", [accountId], ["d"]);

@@ -17,9 +17,12 @@
 import * as repo from "../db/repository.js";
 import { attachmentsFromParts, folderIdOf, folderTypeOf, textFromParts, toRecord } from "./record.js";
 import { termsDeFor } from "./terms.js";
+import { L } from "../util/logtext.js";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const REPAIR_HINT = "Tipp: Zuerst den Ordner reparieren (Rechtsklick auf den Ordner → Eigenschaften → Ordner reparieren), dann den Index neu prüfen lassen.";
+const REPAIR_HINT = () =>
+  L("Tipp: Zuerst den Ordner reparieren (Rechtsklick auf den Ordner → Eigenschaften → Ordner reparieren), dann den Index neu prüfen lassen.",
+    "Tip: repair the folder first (right-click the folder → Properties → Repair Folder), then let the index check again.");
 
 export class Indexer {
   /**
@@ -96,7 +99,7 @@ export class Indexer {
     try {
       infos = await fn(folders.map((f) => ({ accountId: f.accountId, path: f.path })));
     } catch (e) {
-      this.log.warn("[novabird-db] Ordner-Flags nicht lesbar", e);
+      this.log.warn(L("[novabird-db] Ordner-Flags nicht lesbar", "[novabird-db] folder flags not readable"), e);
       return folders;
     }
     if (!Array.isArray(infos)) return folders;
@@ -148,7 +151,8 @@ export class Indexer {
       const idle = Date.now() - c.since;
       if (idle >= this.limits.stall && Date.now() - lastReport >= this.limits.stall) {
         lastReport = Date.now();
-        this.log.warn(`[novabird-db] Keine Fortschritte seit ${Math.round(idle / 1000)} s: Ordner „${c.folder}“, Schritt „${c.step}“, ${c.seen ?? 0} Mails gesehen. ${REPAIR_HINT}`);
+        this.log.warn(L(`[novabird-db] Keine Fortschritte seit ${Math.round(idle / 1000)} s: Ordner „${c.folder}“, Schritt „${c.step}“, ${c.seen ?? 0} Mails gesehen. ${REPAIR_HINT()}`,
+          `[novabird-db] No progress for ${Math.round(idle / 1000)} s: folder "${c.folder}", step "${c.step}", ${c.seen ?? 0} mails seen. ${REPAIR_HINT()}`));
       }
     }, this.limits.watch);
     return () => {
@@ -159,13 +163,13 @@ export class Indexer {
 
   /** Alle Header einer MessageList (inkl. Folgeseiten). */
   async *pages(list) {
-    this.mark("Liste laden");
+    this.mark(L("Liste laden", "loading list"));
     let page = await this.withTimeout(Promise.resolve(list), this.limits.page, "Nachrichtenliste laden");
     let n = 0;
     while (page) {
       yield page.messages ?? [];
       if (!page.id) break;
-      this.mark(`Seite ${++n + 1} laden`);
+      this.mark(L(`Seite ${++n + 1} laden`, `loading page ${n + 1}`));
       page = await this.withTimeout(this.api.messages.continueList(page.id), this.limits.page, "nächste Seite der Nachrichtenliste");
     }
   }
@@ -202,7 +206,7 @@ export class Indexer {
     try {
       return (await this.api.messages.listAttachments(id)) ?? [];
     } catch (e) {
-      this.log.warn("[novabird-db] listAttachments fehlgeschlagen", id, e);
+      this.log.warn(L("[novabird-db] listAttachments fehlgeschlagen", "[novabird-db] listAttachments failed"), id, e);
       return [];
     }
   }
@@ -237,7 +241,7 @@ export class Indexer {
         if (Array.isArray(lists?.[i])) map.set(h.id, lists[i]);
       });
     } catch (e) {
-      this.log.warn("[novabird-db] Verweise nicht lesbar", e);
+      this.log.warn(L("[novabird-db] Verweise nicht lesbar", "[novabird-db] references not readable"), e);
     }
     return map;
   }
@@ -260,7 +264,8 @@ export class Indexer {
       if (!e.timeout) throw e;
       // Mail hängt: nur Kopfdaten übernehmen, damit der Lauf weitergeht
       this.timeoutsInRow++;
-      this.log.warn(`[novabird-db] Mail nach ${this.limits.mail} ms übersprungen (nur Kopfdaten): „${String(header.subject ?? "").slice(0, 60)}“ (${header.headerMessageId ?? header.id})`);
+      this.log.warn(L(`[novabird-db] Mail nach ${this.limits.mail} ms übersprungen (nur Kopfdaten): „${String(header.subject ?? "").slice(0, 60)}“ (${header.headerMessageId ?? header.id})`,
+        `[novabird-db] Mail skipped after ${this.limits.mail} ms (headers only): "${String(header.subject ?? "").slice(0, 60)}" (${header.headerMessageId ?? header.id})`));
       const rec = { ...toRecord(header, { tagNames: this.tagNames, refs }), bodyHash: repo.HEADERS_ONLY };
       if (vocab) rec.termsDe = termsDeFor(rec, vocab);
       return rec;
@@ -293,16 +298,16 @@ export class Indexer {
     if (this.folderInfo?.size) await repo.saveFolderOffline(this.db, flags);
     const todo = folders.filter((f) => force || changed.has(folderIdOf(f)) || !states.get(folderIdOf(f))?.done);
     this.progress = { done: 0, total: await this.countMessages(todo) };
-    this.log.info(`[novabird-db] Erstlauf: ${todo.length} von ${folders.length} Ordnern, ${this.progress.total ?? "?"} Mails zu lesen`);
+    this.log.info(L(`[novabird-db] Erstlauf: ${todo.length} von ${folders.length} Ordnern, ${this.progress.total ?? "?"} Mails zu lesen`, `[novabird-db] First run: ${todo.length} of ${folders.length} folders, ${this.progress.total ?? "?"} mails to read`));
     for (const folder of todo) {
       if (this.stopped) break;
       try {
         await this.enqueue(() => this.indexFolder(folder));
       } catch (e) {
-        this.log.error("[novabird-db] Ordner fehlgeschlagen", folder.name, e, e?.timeout ? REPAIR_HINT : ""); // nächster Ordner
+        this.log.error(L("[novabird-db] Ordner fehlgeschlagen", "[novabird-db] folder failed"), folder.name, e, e?.timeout ? REPAIR_HINT() : ""); // nächster Ordner
       }
     }
-    this.log.info(`[novabird-db] Erstlauf ${this.stopped ? "angehalten" : "fertig"}`);
+    this.log.info(L(`[novabird-db] Erstlauf ${this.stopped ? "angehalten" : "fertig"}`, `[novabird-db] First run ${this.stopped ? "paused" : "finished"}`));
     this.onProgress({ phase: this.stopped ? "stopped" : "done" });
   }
 
@@ -324,7 +329,7 @@ export class Indexer {
   async indexFolder(folder, { quiet = false } = {}) {
     const fid = folderIdOf(folder);
     const t0 = Date.now();
-    this.log.info(`[novabird-db] ${quiet ? "Abgleich: lese" : "Lese"} Ordner „${folder.name ?? fid}“ …`);
+    this.log.info(L(`[novabird-db] ${quiet ? "Abgleich: lese" : "Lese"} Ordner „${folder.name ?? fid}“ …`, `[novabird-db] ${quiet ? "Comparison: reading" : "Reading"} folder "${folder.name ?? fid}" …`));
     const stopWatch = this.watch(folder.name ?? fid);
     this.timeoutsInRow = 0;
     try {
@@ -364,8 +369,8 @@ export class Indexer {
       const before = Math.floor(read / 5000);
       read += headers.length;
       if (this.cur) this.cur.seen = read;
-      if (Math.floor(read / 5000) > before) this.log.info(`[novabird-db]   „${folder.name ?? fid}“: ${read} Mails gesehen, ${indexed} neu, ${skipped} übersprungen`);
-      this.mark(`Seite mit ${headers.length} Mails prüfen`);
+      if (Math.floor(read / 5000) > before) this.log.info(L(`[novabird-db]   „${folder.name ?? fid}“: ${read} Mails gesehen, ${indexed} neu, ${skipped} übersprungen`, `[novabird-db]   "${folder.name ?? fid}": ${read} mails seen, ${indexed} new, ${skipped} skipped`));
+      this.mark(L(`Seite mit ${headers.length} Mails prüfen`, `checking page of ${headers.length} mails`));
       const tPage = Date.now();
       const known = await this.withTimeout(repo.knownState(this.db, fid, ids), this.limits.step, "Index abfragen");
       const offline = await this.withTimeout(this.offlineMap(headers), this.limits.step, "Offline-Flags lesen");
@@ -393,7 +398,7 @@ export class Indexer {
             try {
               return await this.buildRecord(h, isOffline, refList);
             } catch (e) {
-              this.log.warn("[novabird-db] Nachricht übersprungen", h.subject, e);
+              this.log.warn(L("[novabird-db] Nachricht übersprungen", "[novabird-db] message skipped"), h.subject, e);
               return null;
             }
           }),
@@ -411,7 +416,7 @@ export class Indexer {
       }
       this.dbg(`Seite fertig: ${headers.length} Mails, ${work.length} zu lesen, ${Date.now() - tPage} ms (Ordner „${folder.name ?? fid}“, ${read} gesehen)`);
     }
-    this.mark("Abschluss");
+    this.mark(L("Abschluss", "finishing"));
     await flush();
 
     // Abgleich: Einträge, die es im Ordner nicht mehr gibt, entfernen
@@ -423,7 +428,8 @@ export class Indexer {
     // der nächste Lauf holt den Text nach, sobald er lokal ist
     await repo.setFolderDone(this.db, fid, this.onlineOnly(fid) || (noBody === 0 && !(await repo.hasHeadersOnly(this.db, fid))));
     await this.noteTotal(folder);
-    this.log.info(`[novabird-db] Ordner „${folder.name ?? fid}“ fertig: ${read} Mails gesehen, ${indexed} neu, ${skipped} übersprungen, ${stale.length} entfernt, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+    this.log.info(L(`[novabird-db] Ordner „${folder.name ?? fid}“ fertig: ${read} Mails gesehen, ${indexed} neu, ${skipped} übersprungen, ${stale.length} entfernt, ${((Date.now() - t0) / 1000).toFixed(1)} s`,
+      `[novabird-db] Folder "${folder.name ?? fid}" done: ${read} mails seen, ${indexed} new, ${skipped} skipped, ${stale.length} removed, ${((Date.now() - t0) / 1000).toFixed(1)} s`));
   }
 
   /** Mailzahl des Ordners nach vollständigem Durchgang merken (dauerhaft in meta), Grundlage für reconcile(). */
@@ -450,7 +456,7 @@ export class Indexer {
       try {
         records.push(await this.buildRecord(h, offline.get(h.id) ?? true, refs.get(h.id)));
       } catch (e) {
-        this.log.warn("[novabird-db] Nachricht übersprungen", h.subject, e);
+        this.log.warn(L("[novabird-db] Nachricht übersprungen", "[novabird-db] message skipped"), h.subject, e);
       }
     }
     await repo.upsertMessages(this.db, this.caps, records);
@@ -478,7 +484,7 @@ export class Indexer {
       try {
         list = this.api.messages.query({ accountId: a.id, fromDate: from, includeSubFolders: true });
       } catch (e) {
-        this.log.warn("[novabird-db] Nachholen: messages.query nicht möglich", a.id, e);
+        this.log.warn(L("[novabird-db] Nachholen: messages.query nicht möglich", "[novabird-db] Catch-up: messages.query not possible"), a.id, e);
         continue;
       }
       for await (const headers of this.pages(list)) {
@@ -487,7 +493,7 @@ export class Indexer {
         added += await this.indexNew(headers);
       }
     }
-    this.log.info(`[novabird-db] Nachholen nach Datum: ${checked} Mails geprüft, ${added} neu`);
+    this.log.info(L(`[novabird-db] Nachholen nach Datum: ${checked} Mails geprüft, ${added} neu`, `[novabird-db] Catch-up by date: ${checked} mails checked, ${added} new`));
     return { checked, added };
   }
 
@@ -529,15 +535,16 @@ export class Indexer {
       if (!deep && !(fid in totals) && Math.abs(total - have) <= Math.max(5, total * 0.01)) {
         // erster Abgleich für diesen Ordner und nur kleine Abweichung (doppelte Message-IDs u. ä.): als Basiswert merken statt den ganzen Ordner zu lesen
         baseline[fid] = total;
-        this.log.info(`[novabird-db] Abgleich: „${folder.name ?? fid}“ Basiswert ${total} (Index ${have}) gemerkt`);
+        this.log.info(L(`[novabird-db] Abgleich: „${folder.name ?? fid}“ Basiswert ${total} (Index ${have}) gemerkt`, `[novabird-db] Comparison: "${folder.name ?? fid}" base value ${total} (index ${have}) stored`));
         continue;
       }
-      if (!deep) this.log.info(`[novabird-db] Abgleich: „${folder.name ?? fid}“ weicht ab (Betterbird ${total}, Index ${have}, zuletzt ${totals[fid] ?? "unbekannt"}) → neu lesen`);
+      if (!deep) this.log.info(L(`[novabird-db] Abgleich: „${folder.name ?? fid}“ weicht ab (Betterbird ${total}, Index ${have}, zuletzt ${totals[fid] ?? "unbekannt"}) → neu lesen`,
+        `[novabird-db] Comparison: "${folder.name ?? fid}" differs (Thunderbird ${total}, index ${have}, last ${totals[fid] ?? "unknown"}) → reading again`));
       const before = have;
       try {
         await this.enqueue(() => this.indexFolder(folder, { quiet: true }));
       } catch (e) {
-        this.log.error("[novabird-db] Abgleich fehlgeschlagen", folder.name, e);
+        this.log.error(L("[novabird-db] Abgleich fehlgeschlagen", "[novabird-db] comparison failed"), folder.name, e);
         continue;
       }
       rescanned++;
@@ -545,7 +552,7 @@ export class Indexer {
       added += Math.max(0, after - before);
     }
     if (Object.keys(baseline).length) await repo.saveFolderTotals(this.db, { ...(await repo.loadFolderTotals(this.db)), ...baseline });
-    this.log.info(`[novabird-db] ${deep ? "Tiefenvergleich" : "Abgleich"} fertig: ${checked} Ordner geprüft, ${rescanned} neu gelesen, ${added} neu`);
+    this.log.info(L(`[novabird-db] ${deep ? "Tiefenvergleich" : "Abgleich"} fertig: ${checked} Ordner geprüft, ${rescanned} neu gelesen, ${added} neu`, `[novabird-db] ${deep ? "Deep comparison" : "Comparison"} done: ${checked} folders checked, ${rescanned} read again, ${added} new`));
     return { checked, rescanned, added };
   }
 

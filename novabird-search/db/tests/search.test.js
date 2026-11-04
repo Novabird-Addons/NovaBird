@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createNodeAdapter } from "./helpers/node-adapter.js";
 import { MESSAGES, NOW } from "./helpers/fixtures.js";
-import { migrate, repository, search, buildSearchSql, parseQuery } from "../src/search.js";
+import { migrate, repository, search, filterIds, buildSearchSql, parseQuery } from "../src/search.js";
 import { removeChip } from "../src/parser/chips.js";
 
 const ME = ["leitung@firma.example"];
@@ -161,5 +161,29 @@ describe("Suche – Fallback-Modi", async () => {
     const ctx = await setup("fts4");
     expect(ids(await run(ctx, "speiseplan von Jonas"))).toContain("m1");
     expect(ids(await run(ctx, "speiseplan von Petra"))).not.toContain("m1");
+  });
+});
+
+describe("Bedeutungssuche: Kandidaten mit den Bedingungen der Wortsuche filtern", async () => {
+  const ctx = await setup();
+  const all = MESSAGES.map((m) => m.headerMessageId);
+  const allowed = (text, opts = {}) => filterIds(ctx.db, ctx.caps, text, all, { now: NOW, myEmails: ME, ...opts });
+
+  it("nur Suchwörter: keine Bedingung (null), auch „nicht X“ ist hier kein Ausschluss", async () => {
+    expect(await allowed("rechnung bezahlen")).toBeNull();
+    expect(await allowed("Server nicht erreichbar")).toBeNull();
+  });
+
+  it("von: lässt nur Mails dieses Absenders durch, die Suchwörter selbst filtern nicht", async () => {
+    const got = await allowed("von:jonas.mueller@firma.example ganz anderes thema");
+    expect([...got].map((id) => id.split("@")[0]).sort()).toEqual(
+      [...new Set(MESSAGES.filter((m) => m.authorEmail === "jonas.mueller@firma.example" && !["trash", "junk"].includes(m.folderType)).map((m) => m.headerMessageId.split("@")[0]))].sort(),
+    );
+  });
+
+  it("Papierkorb nur mit includeTrash", async () => {
+    const without = await allowed("von:jonas.mueller@firma.example x");
+    const withTrash = await allowed("von:jonas.mueller@firma.example x", { includeTrash: true });
+    expect(withTrash.size).toBeGreaterThanOrEqual(without.size);
   });
 });

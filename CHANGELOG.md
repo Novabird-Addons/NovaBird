@@ -9,6 +9,22 @@ NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the opti
 - The "What's new?" button was aligned to the left edge of "New message" and at least as wide, so with a wider label it stuck out on one side only. Both buttons now share the same centre line: the wider one sticks out equally on the left and right; in a very narrow folder pane it stays inside the pane.
 - Tested: Thunderbird 159 and 158 with folder pane widths 360/260/200/150 px and different numbers on the button: centres within 1 px, button never outside the pane.
 
+### Meaning search: same filters as the word search, vectors of deleted mails removed
+- **Operators now also filter the meaning hits.** Before, "from:meier invoice" could add similar mails of other senders: the meaning hits were only filtered by date range, unread, attachment, folder and trash. Now the candidates go through the same SQL conditions as the word search (`filterIds` in `db/src/search.js`, `onlyIds` in `buildSearchSql`): from/to/involving, date range, attachment (type), status, tag, folder, "without:" – only the search words themselves (and word exclusions like "not X", which belong to the meaning) are left out.
+- **Vectors of deleted mails are removed** (`pruneGone` in `semantic/main.js`): when all mails are computed, at most every 6 hours, in packets of 500 message IDs against the index; only while the word index is usable, and nothing is deleted if more than half would go (then the index is more likely incomplete). Before, they stayed in memory and on disk until the model was reset.
+- Same behaviour as the Android app (checked together).
+- Tested: unit tests (from: filter, "not" is no filter, trash only on request); Thunderbird 159 with the real model: all meaning queries as before, "from:" leaves exactly the sender's mail of 5 candidates, a permanently deleted mail disappears from the hits and its vector is removed (6 → 5).
+
+### Search → Index: event log in English, mails without full text by folder
+- The event log (Settings → Search → Index) is now written in English unless Thunderbird runs in German, so users of other languages can paste it into bug reports (`db/src/util/logtext.js`, all messages of the index and the indexer, including the "no progress" hint).
+- "of which without full text" now has a fold-out list **"Where are the mails without full text? (by folder)"**: account › folder, number, date of the oldest and newest such mail, and a button that opens the folder. With a short explanation why (folders not kept for offline use, account keeps only recent or small mails) and where to change it. Shown only when there are such mails.
+- Tested: unit test for the per-folder query (all three full-text modes), Thunderbird 159 (log, empty list hidden).
+
+### Settings → AI → NovaBird Helper: no "Connect" while connected
+- "Connected" at the top and a "Connect" button further down were misleading. Now "Disconnect" sits next to the connection state at the top; the block below is called "Connect another helper" (closed while connected) and its button "Switch". Without a connection it stays "Connect" and is open.
+- The error for an unreachable helper no longer says "click Connect" but "not reachable or permission for the address missing – is the helper running? Otherwise connect again below".
+- Tested: Thunderbird 159 (without connection, with a saved connection).
+
 ### NovaBird-Conversation 0.15.6: switching within a thread shows the selected message (issue #6)
 - Selecting another message of the same thread kept the conversation view on the message first looked up (going down a thread worked, going back up stayed "stuck" on the last one). The conversation cache is shared by all messages of a thread and also stored which message was selected; on a cache hit that old selection was used. It only happened on the Gloda/search paths, i.e. while the NovaBird index did not know the message yet (index updating) – which is why it looked index-related and went away later.
 - Now a cache hit takes the selection from the message actually shown (`selectIn` in `conversation.js`).

@@ -1029,5 +1029,17 @@
   },
   "semHitsHeading": {
     "message": "Resultados"
+  },
+  "optNoTextShow": {
+    "message": "¿Dónde están los correos sin texto completo? (por carpeta)"
+  },
+  "optNoTextHint": {
+    "message": "De estos correos Thunderbird solo guarda localmente los encabezados: normalmente carpetas IMAP que no se guardan para uso sin conexión, o correos antiguos cuando la cuenta solo guarda los recientes o los pequeños. Solución: carpeta → clic derecho → Propiedades → Sincronización («Seleccionar esta carpeta para uso sin conexión») o Configuración de cuentas → Sincronización y almacenamiento. Después NovaBird recupera el texto en la siguiente comparación."
+  },
+  "optNoTextRange": {
+    "message": "$1 – $2"
+  },
+  "optNoTextOpen": {
+    "message": "Abrir carpeta"
   }
 }

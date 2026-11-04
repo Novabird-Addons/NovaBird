@@ -110,6 +110,7 @@ export function buildSearchSql(q, caps, options = {}) {
     termsIndex = false, // Modus „Zusammensetzungen beim Indexieren“: Zusatzindex terms_fts mit durchsuchen
     folderId = null, // nur diesen Ordner durchsuchen (Papierkorb/Spam-Ausschluss entfällt dann)
     fields = null, // Felder, in denen der Freitext gesucht wird: Teilmenge von from|to|subject|body (null/leer/alle = überall)
+    onlyIds = null, // nur diese Message-IDs (Bedeutungssuche: ihre Kandidaten mit denselben Bedingungen prüfen)
   } = options;
   const mode = caps.ftsMode === "fts4" ? "fts4" : "fts5";
   const where = [];
@@ -229,6 +230,10 @@ export function buildSearchSql(q, caps, options = {}) {
     params.push(`%${escapeLike(q.folder.name)}%`);
   } else if (!includeTrash) {
     where.push("m.folder_type NOT IN ('trash', 'junk')");
+  }
+  if (Array.isArray(onlyIds)) {
+    where.push(onlyIds.length ? `m.header_msg_id IN (${onlyIds.map(() => "?").join(",")})` : "0");
+    params.push(...onlyIds.map(String));
   }
 
   // Relevanz (nur FTS5): bm25 des gesamten positiven Ausdrucks; Spaltengewichte: Betreff 3, Absender 2, Empfänger 1,5, Text/Anhang 1
