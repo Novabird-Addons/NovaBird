@@ -72,7 +72,7 @@ sealed class Service : ServiceBase
         // die nur dieser Benutzer lesen kann und die der erhöhte Prozess sofort löscht.
         var handoff = Path.Combine(Path.GetTempPath(), $"nbhelper-handoff-{Guid.NewGuid():N}.json");
         var s = Settings.Load();
-        var secrets = new JsonObject { ["userDir"] = Settings.UserDir };
+        var secrets = new JsonObject { ["userDir"] = Settings.UserDir, ["firewall"] = FirewallScope };
         if (s["netCode"] is JsonNode c) secrets["netCode"] = Encoding.UTF8.GetString(Settings.Unprotect((string)c));
         secrets["groups"] = Groups.ExportPlain(); // Codes und Salze der Gruppen (für den Rechner neu verschlüsseln)
         File.WriteAllText(handoff, secrets.ToJsonString());
@@ -233,9 +233,9 @@ sealed class Service : ServiceBase
             // 3) Datenordner mit eigenen Rechten, Daten übernehmen
             PrepareDataDir();
             Migrate((string)handoff["userDir"], (string)handoff["netCode"], handoff["groups"] as JsonArray);
-            // 4) Firewall: nur private Netzwerke
+            // 4) Firewall: wie im Installations-Assistenten gewählt (lokales Netz in allen Profilen oder nur private Netzwerke)
             Settings.ServiceMode = true;
-            Firewall(Core.PortSetting, Core.WebPortSetting);
+            Firewall(ServiceExe, Core.PortSetting, Core.WebPortSetting, (string)handoff["firewall"] == FwLan ? FwLan : FwPrivate);
             // 5) laufenden Netz-Modus des Benutzers beenden, Dienst starten
             StopUserServers();
             using (var sc = new ServiceController(Name))
@@ -366,13 +366,65 @@ sealed class Service : ServiceBase
         }
     }
 
-    static void Firewall(int netPort, int webPort)
+    // ---- Firewall ----------------------------------------------------------------------------------------------------------
+    // lan: alle Netzwerkprofile, aber nur Geräte im eigenen Subnetz. Nötig, wenn Windows trotz Heimnetz „Öffentlich“ anwendet
+    // (z. B. mit Hyper-V-Switch oder VPN-Adapter). private: nur Profil „Privat“ (wie bis 0.5.0). none: keine Regeln, Windows
+    // fragt beim ersten Start im Netz selbst.
+    public const string FwLan = "lan", FwPrivate = "private", FwNone = "none";
+
+    /// <summary>Gewählte Freigabe aus den Einstellungen (Installations-Assistent); ohne Angabe wie bisher nur private Netzwerke.</summary>
+    public static string FirewallScope
+    {
+        get
+        {
+            var v = (string)Settings.Load()["firewall"];
+            return v is FwLan or FwNone ? v : FwPrivate;
+        }
+        set
+        {
+            var s = Settings.Load();
+            s["firewall"] = value;
+            Settings.Save(s);
+        }
+    }
+
+    /// <summary>Regeln für exe setzen (Aufruf über UAC aus RequestFirewall oder beim Einrichten des Dienstes).</summary>
+    static void Firewall(string exe, int netPort, int webPort, string scope)
     {
         foreach (var r in FirewallRules) Netsh($"advfirewall firewall delete rule name=\"{r}\"", quiet: true); // fehlt sie, ist das kein Fehler
-        Netsh($"advfirewall firewall add rule name=\"{FirewallRules[0]}\" dir=in action=allow protocol=TCP localport={netPort} profile=private program=\"{ServiceExe}\"");
-        Netsh($"advfirewall firewall add rule name=\"{FirewallRules[1]}\" dir=in action=allow protocol=TCP localport={webPort} profile=private program=\"{ServiceExe}\"");
+        if (scope == FwNone) return;
+        var where = scope == FwLan ? "profile=any remoteip=localsubnet" : "profile=private";
+        Netsh($"advfirewall firewall add rule name=\"{FirewallRules[0]}\" dir=in action=allow protocol=TCP localport={netPort} {where} program=\"{exe}\"");
+        Netsh($"advfirewall firewall add rule name=\"{FirewallRules[1]}\" dir=in action=allow protocol=TCP localport={webPort} {where} program=\"{exe}\"");
         // Kopplung: Thunderbird sucht den Helper per UDP-Multicast (Pairing.cs); er antwortet nur im Kopplungsmodus
-        Netsh($"advfirewall firewall add rule name=\"{FirewallRules[2]}\" dir=in action=allow protocol=UDP localport={Pairing.DiscoveryPort} profile=private program=\"{ServiceExe}\"");
+        Netsh($"advfirewall firewall add rule name=\"{FirewallRules[2]}\" dir=in action=allow protocol=UDP localport={Pairing.DiscoveryPort} {where} program=\"{exe}\"");
+        Log.Write($"Firewall-Regeln gesetzt ({scope})");
+    }
+
+    /// <summary>Erhöhter Teil von RequestFirewall: --firewall &lt;scope&gt; &lt;exe&gt; &lt;netPort&gt; &lt;webPort&gt;.</summary>
+    public static int FirewallElevated(string[] args)
+    {
+        try
+        {
+            if (args.Length < 5 || args[1] is not (FwLan or FwPrivate or FwNone) || !int.TryParse(args[3], out var net) || !int.TryParse(args[4], out var web)
+                || net is < 1024 or > 65535 || web is < 1024 or > 65535
+                || !File.Exists(args[2]) || !string.Equals(Path.GetFileName(args[2]), "nbhelper.exe", StringComparison.OrdinalIgnoreCase))
+                return 2;
+            Firewall(Path.GetFullPath(args[2]), net, web, args[1]);
+            return 0;
+        }
+        catch (Exception e)
+        {
+            Log.Write("Firewall-Regeln fehlgeschlagen: " + e);
+            return 2;
+        }
+    }
+
+    /// <summary>Firewall-Regeln für das Programm im Benutzerkonto setzen (fragt per UAC). null = ok.</summary>
+    public static string RequestFirewall(string scope, string exe)
+    {
+        int code = Elevated($"--firewall {scope} \"{exe}\" {Core.PortSetting} {Core.WebPortSetting}");
+        return code == 0 ? null : code == 1223 ? L.T("abgebrochen (UAC)", "cancelled (UAC)") : L.T($"fehlgeschlagen (Code {code}, siehe Protokoll)", $"failed (code {code}, see log)");
     }
 
     static void Sc(string args) => Tool("sc.exe", args, check: true);

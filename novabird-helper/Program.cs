@@ -31,6 +31,7 @@ static class Program
             if (args.Contains("--service")) return Service.RunService();
             if (args.Length > 1 && args[0] == "--service-install") return Service.Install(args[1]);
             if (args.Contains("--service-remove")) return Service.Remove();
+            if (args.Length > 1 && args[0] == "--firewall") return Service.FirewallElevated(args);
             if (args.Contains("--service-update")) return Service.Update();
             if (args.Contains("--tray")) return Tray.RunTray();
             if (args.Contains("--server")) return Tray.Run();

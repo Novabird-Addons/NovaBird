@@ -41,7 +41,7 @@ Auf den anderen PCs in Thunderbird: NovaBird-Search → Semantische Suche → Er
 Web-Oberfläche (an diesem PC) → Einstellungen → **„Als Windows-Dienst einrichten …“** oder Rechtsklick auf das Symbol. Windows fragt einmal nach Adminrechten. Danach läuft der Netz-Modus ohne Anmeldung an Windows:
 - Konto `NT SERVICE\NovaBirdHelper` (virtuelles Dienstkonto), Programm in `%ProgramFiles%\NovaBird Helper`, Daten in `%ProgramData%\NovaBird\Helper` (nur SYSTEM, Administratoren und das Dienstkonto), Schlüssel mit DPAPI für den Rechner geschützt.
 - Übernommen werden Einstellungen, Gruppen mit Kopplungscodes (die PCs müssen nichts ändern), geteilte Vektoren, PC-Liste, Benutzer der Web-Oberfläche, Schlüssel externer Programme, Team-Kalender und Modelle.
-- Firewall-Regeln für beide Ports, nur private Netzwerke. Neustart nach einem Absturz.
+- Firewall-Regeln für beide Ports und den UDP-Port zum Koppeln, wie im Installations-Assistenten gewählt: lokales Netz (eigenes Subnetz) in allen Netzwerkprofilen oder nur private Netzwerke. Neustart nach einem Absturz.
 - Das Symbol im Infobereich (`--tray`, startet mit der Anmeldung) zeigt den Zustand und öffnet die Web-Oberfläche; **„Zurück zum Programm im Benutzerkonto …“** entfernt den Dienst wieder.
 
 ## Sprachmodell (KI-Zusammenfassung)

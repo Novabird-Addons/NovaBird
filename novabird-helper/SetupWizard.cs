@@ -1,6 +1,7 @@
 // Installations-Assistent beim ersten Doppelklick auf nbhelper.exe (Installer.Interactive): Willkommen → Admin der
-// Web-Oberfläche anlegen → Installieren (pro Benutzer, ohne Adminrechte) und Netz-Modus starten → Fertig: öffnet die
-// Web-Oberfläche mit dem Einrichtungs-Assistenten (#wizard: Funktionen, Speicher, Netz, Geräte koppeln).
+// Web-Oberfläche anlegen → Firewall (lokales Netz in allen Profilen / nur private Netzwerke / Windows fragt selbst) →
+// Installieren (pro Benutzer, ohne Adminrechte; nur die Firewall-Regeln fragen per UAC) und Netz-Modus starten → Fertig:
+// öffnet die Web-Oberfläche mit dem Einrichtungs-Assistenten (#wizard: Funktionen, Speicher, Netz, Geräte koppeln).
 // Das Passwort geht nur an Users.Add in diesem Prozess (nie auf eine Befehlszeile oder ins Protokoll).
 // Aktualisieren und Entfernen laufen weiter über die Rückfragen in Installer.cs.
 using System.Diagnostics;
@@ -16,6 +17,8 @@ sealed class SetupWizard : Form
     readonly TextBox name = new() { Width = 260, Text = "admin" };
     readonly TextBox pw1 = new() { Width = 260, UseSystemPasswordChar = true }, pw2 = new() { Width = 260, UseSystemPasswordChar = true };
     readonly Label error = new() { AutoSize = true, ForeColor = Color.Firebrick, MaximumSize = new Size(480, 0) };
+    readonly RadioButton fwLan = new() { AutoSize = true, Checked = true }, fwPrivate = new() { AutoSize = true }, fwNone = new() { AutoSize = true };
+    string fwResult; // Ergebnis der Firewall-Regeln für die Seite „Fertig“
     readonly bool needAdmin = !Users.Any(); // Neuinstallation nach früherer: vorhandene Benutzer bleiben
     int step;
     public bool Done { get; private set; }
@@ -61,9 +64,10 @@ sealed class SetupWizard : Form
         using var f = new SetupWizard { StartPosition = FormStartPosition.Manual, Location = new Point(-4000, -4000), ShowInTaskbar = false };
         f.Show(); // außerhalb des Bildschirms: nur so ordnet das Fenster seine Inhalte an
         Application.DoEvents();
-        foreach (var (s, file) in new[] { (0, "setup-1-willkommen"), (1, "setup-2-admin"), (3, "setup-3-fertig") })
+        foreach (var (s, file) in new[] { (0, "setup-1-willkommen"), (1, "setup-2-admin"), (2, "setup-3-firewall"), (4, "setup-4-fertig") })
         {
             f.step = s - 1;
+            if (s == 4) f.fwResult = L.T("Firewall: im lokalen Netz freigegeben (alle Netzwerkprofile).", "Firewall: allowed in the local network (all network profiles).");
             f.ShowPage(s);
             if (s == 1) f.error.Text = L.T("Die Passwörter sind verschieden.", "The passwords differ.");
             f.PerformLayout();
@@ -75,15 +79,15 @@ sealed class SetupWizard : Form
         return 0;
     }
 
-    // Schritte: 0 Willkommen, 1 Admin (nur ohne vorhandene Benutzer), 2 Installieren, 3 Fertig
+    // Schritte: 0 Willkommen, 1 Admin (nur ohne vorhandene Benutzer), 2 Firewall, 3 Installieren, 4 Fertig
     void ShowPage(int s)
     {
         if (s == 1 && !needAdmin) s = step < 1 ? 2 : 0;
         step = s;
         body.Controls.Clear();
         error.Text = "";
-        back.Visible = s is 1 or 2 && s > 0;
-        cancel.Visible = s < 3;
+        back.Visible = s is 1 or 2;
+        cancel.Visible = s < 4;
         next.Enabled = true;
         var flow = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true };
         Control Head(string t) => new Label { Text = t, AutoSize = true, Font = new Font(Font.FontFamily, Font.Size * 1.5f, FontStyle.Bold), Margin = new Padding(0, 0, 0, 12) };
@@ -98,6 +102,9 @@ sealed class SetupWizard : Form
                 flow.Controls.Add(Text(L.T(
                     "Installiert wird nur für diesen Windows-Benutzer, ohne Adminrechte, nach:\n",
                     "It is installed for this Windows user only, without admin rights, to:\n") + Installer.InstallDirPath));
+                flow.Controls.Add(Text(L.T(
+                    "Nur für die Freigabe in der Windows-Firewall fragt Windows einmal nach Adminrechten (übernächste Seite).",
+                    "Only for the Windows Firewall rules Windows asks once for admin rights (page after next).")));
                 flow.Controls.Add(Text(L.T(
                     "Danach öffnet sich die Web-Oberfläche des Helpers und fragt, was er machen soll. Modelle werden erst dort geladen.",
                     "Afterwards the helper's web interface opens and asks what it should do. Models are only downloaded there.")));
@@ -114,14 +121,34 @@ sealed class SetupWizard : Form
                     flow.Controls.Add(box);
                 }
                 flow.Controls.Add(error);
-                next.Text = L.T("Installieren", "Install");
+                next.Text = L.T("Weiter >", "Next >");
                 break;
             case 2:
+                flow.Controls.Add(Head(L.T("Im Netz erreichbar?", "Reachable in the network?")));
+                flow.Controls.Add(Text(L.T(
+                    $"Andere PCs und Handys erreichen den Helper nur, wenn die Windows-Firewall seine Ports freigibt (TCP {Core.PortSetting} und {Core.WebPortSetting}, UDP {Pairing.DiscoveryPort} zum Finden beim Koppeln).",
+                    $"Other PCs and phones reach the helper only if the Windows Firewall allows its ports (TCP {Core.PortSetting} and {Core.WebPortSetting}, UDP {Pairing.DiscoveryPort} for finding it when pairing).")));
+                fwLan.Text = L.T("Im lokalen Netz freigeben, für alle Netzwerkprofile (empfohlen)", "Allow in the local network, for all network profiles (recommended)");
+                fwPrivate.Text = L.T("Nur in Netzwerken, die Windows als „Privat“ führt", "Only in networks Windows lists as “Private”");
+                fwNone.Text = L.T("Nichts freigeben – Windows fragt beim ersten Start selbst", "Allow nothing – Windows asks itself on first start");
+                foreach (var (radio, hint) in new[] {
+                    (fwLan, L.T("Nur Geräte aus dem eigenen Subnetz (z. B. im selben WLAN), nie aus dem Internet. Hilft, wenn Windows das Heimnetz trotzdem als „Öffentlich“ behandelt – das passiert z. B. mit Hyper-V, WSL oder einem VPN-Adapter.",
+                                "Only devices from your own subnet (e.g. on the same Wi-Fi), never from the internet. Helps when Windows still treats the home network as “Public” – which happens e.g. with Hyper-V, WSL or a VPN adapter.")),
+                    (fwPrivate, L.T("Wie bisher. In Netzwerken „Öffentlich“ bleibt der Helper unerreichbar.", "As before. In “Public” networks the helper stays unreachable.")),
+                    (fwNone, L.T("Für einen Helper nur auf diesem PC; Thunderbird hier braucht keine Freigabe.", "For a helper on this PC only; Thunderbird here needs no rule.")) })
+                {
+                    radio.Margin = new Padding(0, 6, 0, 0);
+                    flow.Controls.Add(radio);
+                    flow.Controls.Add(new Label { Text = hint, AutoSize = true, MaximumSize = new Size(480, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(18, 0, 0, 4) });
+                }
+                next.Text = L.T("Installieren", "Install");
+                break;
+            case 3:
                 flow.Controls.Add(Head(L.T("Installieren …", "Installing …")));
                 flow.Controls.Add(error);
                 next.Enabled = back.Visible = cancel.Visible = false;
                 break;
-            case 3:
+            case 4:
                 flow.Controls.Add(Head(L.T("Fertig", "Done")));
                 flow.Controls.Add(Text(L.T(
                     "Der Helper ist installiert und läuft (Symbol im Infobereich). Im nächsten Schritt öffnet sich die Web-Oberfläche: dort anmelden, dann fragt ein Assistent, was der Helper machen soll, wie lange er Modelle im Speicher hält, ob er im Netz erreichbar ist – und zum Schluss, welche Geräte du hinzufügen möchtest.",
@@ -129,12 +156,13 @@ sealed class SetupWizard : Form
                 flow.Controls.Add(Text(L.T(
                     "In Thunderbird: Einstellungen → NovaBird → KI → NovaBird Helper → „Helper im Netz suchen“.",
                     "In Thunderbird: Settings → NovaBird → AI → NovaBird Helper → “Search the network for a helper”.")));
+                if (!string.IsNullOrEmpty(fwResult)) flow.Controls.Add(Text(fwResult));
                 next.Text = L.T("Web-Oberfläche öffnen", "Open web interface");
                 break;
         }
         body.Controls.Add(flow);
         if (s == 1) BeginInvoke(() => (string.IsNullOrEmpty(pw1.Text) ? pw1 : name).Focus());
-        if (s == 2 && IsHandleCreated) BeginInvoke(Install);
+        if (s == 3 && IsHandleCreated) BeginInvoke(Install);
     }
 
     void Next()
@@ -148,7 +176,8 @@ sealed class SetupWizard : Form
             ShowPage(2);
             return;
         }
-        if (step == 3)
+        if (step == 2) { ShowPage(3); return; }
+        if (step == 4)
         {
             Done = true;
             try { Process.Start(new ProcessStartInfo($"http://localhost:{Core.WebPortSetting}/#wizard") { UseShellExecute = true }); } catch { /* Browser fehlt */ }
@@ -164,6 +193,13 @@ sealed class SetupWizard : Form
             if (!Installer.Install(quiet: true)) throw new InvalidOperationException(L.T("Kopieren fehlgeschlagen (siehe helper.log).", "Copying failed (see helper.log)."));
             if (needAdmin && !Users.Any()) Users.Add(name.Text.Trim(), pw1.Text, Users.Admin);
             pw1.Text = pw2.Text = "";
+            // Firewall vor dem ersten Start im Netz, sonst fragt Windows selbst (nur „Privat“/„Öffentlich“, ohne Subnetz)
+            var scope = fwLan.Checked ? Service.FwLan : fwPrivate.Checked ? Service.FwPrivate : Service.FwNone;
+            var fwError = scope == Service.FwNone ? null : await Task.Run(() => Service.RequestFirewall(scope, Installer.InstalledExePath));
+            Service.FirewallScope = fwError == null ? scope : Service.FwNone;
+            fwResult = fwError != null ? L.T("Firewall-Freigabe ", "Firewall rules ") + fwError + L.T(" – Windows fragt beim ersten Start selbst.", " – Windows will ask itself on first start.")
+                : scope == Service.FwLan ? L.T("Firewall: im lokalen Netz freigegeben (alle Netzwerkprofile).", "Firewall: allowed in the local network (all network profiles).")
+                : scope == Service.FwPrivate ? L.T("Firewall: in privaten Netzwerken freigegeben.", "Firewall: allowed in private networks.") : null;
             // Netz-Modus starten (Symbol im Infobereich, Web-Oberfläche) und warten, bis die Oberfläche antwortet
             if (!Service.IsInstalled())
                 Process.Start(new ProcessStartInfo(Installer.InstalledExePath, "--server") { UseShellExecute = false });
@@ -175,7 +211,7 @@ sealed class SetupWizard : Form
             }
             Log.Write("Installations-Assistent: fertig");
             UseWaitCursor = false;
-            ShowPage(3);
+            ShowPage(4);
         }
         catch (Exception e)
         {
