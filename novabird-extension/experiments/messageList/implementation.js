@@ -491,7 +491,8 @@ function undoHeader(cw) {
 // „Was gibt's Neues?“ unter „Neue Nachricht“ im Ordnerbereich: in der oberen Leiste hängt Thunderbird Add-on-Knöpfe ans
 // Ende (rechts außen) oder sie ist ganz ausgeblendet. Zahl = neue Mails im letzten automatischen Überblick. Ein Klick meldet
 // onNewsButton mit der Bildschirmposition unter dem Knopf; die Extension öffnet den Überblick dort.
-// Aussehen wie „Neue Nachricht“ (button-primary, folgt dem Theme), bündig darunter und mindestens so breit (alignNews).
+// Aussehen wie „Neue Nachricht“ (button-primary, folgt dem Theme), darunter auf derselben Mittelachse: der breitere der
+// beiden Knöpfe steht links und rechts gleich weit über (alignNews).
 const NEWS_ROW = "nbx-news-row";
 const NEWS_STYLE = "nbx-news-style";
 const NEWS_CSS = `#${NEWS_ROW} { display: flex; padding: 0 6px 6px; }
@@ -506,10 +507,22 @@ function alignNews(doc) {
   const row = doc.getElementById(NEWS_ROW), bar = doc.getElementById("folderPaneHeaderBar");
   const write = doc.getElementById("folderPaneWriteMessage");
   if (!row || !bar) return;
+  const button = row.firstChild;
   const ok = write && !write.hidden && write.offsetWidth > 0 && !bar.hidden;
-  const left = ok ? write.getBoundingClientRect().left - bar.getBoundingClientRect().left : 0;
-  row.style.paddingInlineStart = ok ? `${Math.max(0, Math.round(left))}px` : "";
-  row.firstChild.style.minWidth = ok ? `${write.offsetWidth}px` : "";
+  if (!ok) {
+    button.style.marginInlineStart = "";
+    return;
+  }
+  // Abstand vom Anfang der Zeile so, dass beide Mitten übereinander liegen; nie über den Rand des Ordnerbereichs
+  const cs = doc.defaultView.getComputedStyle(row);
+  const rowBox = row.getBoundingClientRect(), writeBox = write.getBoundingClientRect();
+  const padLeft = parseFloat(cs.paddingLeft) || 0;
+  const inner = row.clientWidth - padLeft - (parseFloat(cs.paddingRight) || 0);
+  const width = button.offsetWidth;
+  const center = writeBox.left + writeBox.width / 2 - rowBox.left - padLeft;
+  const left = Math.min(Math.max(0, center - width / 2), Math.max(0, inner - width));
+  const start = cs.direction === "rtl" ? inner - width - left : left;
+  button.style.marginInlineStart = `${Math.max(0, Math.round(start))}px`;
 }
 function applyNews(cw) {
   const doc = cw.document;
@@ -544,6 +557,7 @@ function applyNews(cw) {
       ro.observe(bar);
       const write = doc.getElementById("folderPaneWriteMessage");
       if (write) ro.observe(write);
+      ro.observe(button); // eigene Breite ändert sich mit Zahl und Beschriftung
       newsObservers.set(cw, ro);
     }
   }
