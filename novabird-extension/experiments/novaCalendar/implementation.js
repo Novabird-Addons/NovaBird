@@ -513,17 +513,17 @@ const ATTACH_CSS = `
 #${ATTACH_BOX_ID} .sa-head { display: flex; align-items: center; gap: 8px; padding: 8px 12px 6px; font-weight: 600; }
 #${ATTACH_BOX_ID} .sa-head > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #${ATTACH_BOX_ID} .sa-scope { display: flex; flex: none; border-radius: 99px; padding: 2px; background: color-mix(in srgb, currentColor 9%, transparent); }
-#${ATTACH_BOX_ID} .sa-scope button { flex: none; min-width: 0; margin: 0; border: 0; border-radius: 99px; background: transparent; color: inherit; font-size: 12px; font-weight: 500; padding: 2px 10px; cursor: pointer; }
+#${ATTACH_BOX_ID} .sa-scope button { flex: none; min-width: 0; margin: 0; border: 0; border-radius: 99px; background: transparent; color: inherit; font-size: 1.4257rem; font-weight: 500; padding: 2px 10px; cursor: pointer; }
 #${ATTACH_BOX_ID} .sa-scope button[aria-pressed="true"] { background: var(--sidebar-background-color); box-shadow: 0 1px 2px color-mix(in srgb, currentColor 25%, transparent); font-weight: 600; }
 #${ATTACH_BOX_ID} .sa-list { flex: 1; overflow-y: auto; padding: 0 6px 8px; min-height: 0; }
 #${ATTACH_BOX_ID} .sa-row { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 8px; cursor: pointer; }
 #${ATTACH_BOX_ID} .sa-row:hover { background: color-mix(in srgb, currentColor 9%, transparent); }
 #${ATTACH_BOX_ID} .sa-row.sa-current { background: color-mix(in srgb, var(--lwt-toolbarbutton-icon-fill-attention, #2F6BD8) 14%, transparent); }
-#${ATTACH_BOX_ID} .sa-ico { flex: none; width: 30px; padding: 2px 0; border-radius: 5px; color: #fff; font-size: 9.5px; font-weight: 700; letter-spacing: .03em; text-align: center; line-height: 1.2; }
+#${ATTACH_BOX_ID} .sa-ico { flex: none; width: 30px; padding: 2px 0; border-radius: 5px; color: #fff; font-size: 1.1287rem; font-weight: 700; letter-spacing: .03em; text-align: center; line-height: 1.2; }
 #${ATTACH_BOX_ID} .sa-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 #${ATTACH_BOX_ID} .sa-name, #${ATTACH_BOX_ID} .sa-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#${ATTACH_BOX_ID} .sa-meta { opacity: .6; font-size: 11.5px; }
-#${ATTACH_BOX_ID} .sa-size { opacity: .6; font-size: 12px; white-space: nowrap; }
+#${ATTACH_BOX_ID} .sa-meta { opacity: .6; font-size: 1.3663rem; }
+#${ATTACH_BOX_ID} .sa-size { opacity: .6; font-size: 1.4257rem; white-space: nowrap; }
 #${ATTACH_BOX_ID} .sa-empty { opacity: .55; padding: 6px 12px; }
 `;
 

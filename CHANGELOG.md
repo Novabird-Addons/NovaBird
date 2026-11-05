@@ -5,6 +5,9 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.6 · Helper 0.5.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### Relative sizes instead of fixed pixels (Extension, Send)
+- NovaContact, the rule wizard and the settings page use rem instead of px for spacing and sizes; the font sizes in the message list (avatars), the attachment box of the Today pane and the undo-send overlay too. Converted 1:1 with the font sizes measured in Thunderbird 159 (17 px on extension pages, 8.4167 px system font on the settings page and in the main window), so nothing moves at the default size – checked with pixel comparison of all 14 views (10 settings views as in the hub, 3 NovaContact views, the wizard): identical. With a larger Thunderbird font size (the root of the main window follows `mail.uifontsize`) or a larger system font, spacing and text now grow together. Borders, corner radii, shadows and media queries stay in px.
+
 ### Search: speed in very large mailboxes (index core, also used by Android)
 - **Copies of the same mail** (same Message-ID in several folders) are merged after sorting instead of numbering every hit in SQL first (`ROW_NUMBER()` over all hits prevented SQLite from stopping at the maximum). Same choice of folder as before (inbox > archive > sent > other > trash/spam); with very many copies further pages are read (at most 5).
 - **Sender names** (`from:name`, name resolution) use a small new index `idx_messages_author_norm` instead of reading the whole table. A new index gets it at once; an existing index gets it once while the computer is idle (it can take minutes on slow disks) – until then the search works as before.
