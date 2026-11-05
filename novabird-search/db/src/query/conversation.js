@@ -5,6 +5,8 @@
 //  2. Betreff-Ersatz nur für Mails OHNE Kette (Komponente aus genau einer Message-ID): "off" | "subject" | "smart".
 //  3. Papierkorb und Spam raus, außer die Zielnachricht selbst. Dieselbe Message-ID in mehreren Ordnern: alle Zeilen.
 
+import { HEADERS_ONLY } from "../db/repository.js";
+
 export const MAX_COMPONENT = 500; // höchstens so viele Message-IDs je Kette (Schutz vor Sammelverweisen)
 export const DEFAULT_LIMIT = 200; // Nachrichten, die geliefert werden (die neuesten)
 export const MAX_LIMIT = 5000;
@@ -12,7 +14,7 @@ const MAX_CANDIDATES = 5000; // Betreff-Ersatz: höchstens so viele Kandidaten p
 
 const COLS = [
   "header_msg_id", "folder_id", "folder_name", "folder_type", "date", "author_name", "author_email", "recipients",
-  "subject", "subject_key", "is_read", "has_attachment", "attachment_names", "snippet", "indexed_at",
+  "subject", "subject_key", "is_read", "has_attachment", "attachment_names", "snippet", "indexed_at", "body_hash",
 ];
 const SELECT = `SELECT ${COLS.join(", ")} FROM messages`;
 
@@ -60,6 +62,9 @@ function toMessage(r) {
     hasAttachment: Boolean(r.has_attachment),
     attachmentNames: r.attachment_names ? r.attachment_names.split(", ").filter(Boolean) : [],
     snippet: r.snippet ?? "",
+    // Text liegt lokal vor (sonst nur Kopfzeilen im Index, z. B. IMAP ohne Offline-Kopie). Nicht am Snippet ablesbar: das ist
+    // leer, wenn die Mail nur aus Zitat, Bild oder Anhang besteht.
+    local: r.body_hash !== HEADERS_ONLY,
   };
 }
 

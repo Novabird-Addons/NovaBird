@@ -4,12 +4,11 @@
 // Lernt automatisch aus den eigenen Mails (Wortliste = Wörter des Index). Nur FTS5.
 
 import { norm } from "../util/normalize.js";
+import { FUGEN, MIN_PART } from "../indexer/terms.js"; // dieselben Fugen/Mindestlänge wie beim Zerlegen im Index
 
 export const MIN_LEN = 4; // kürzere Begriffe würden zu viele Wörter ergänzen; ab 4 Zeichen („plan“) sorgt die Vorsatzprüfung für Präzision
 export const MAX_EXPANSIONS = 20; // je Suchbegriff, häufigste zuerst
 
-const FUGEN = ["", "s", "n", "en", "e", "es", "er"]; // Fugenelemente: „wochen“ → „woche“, „arbeits“ → „arbeit“
-const MIN_PART = 3; // der Vorsatz vor dem Suchbegriff muss ein echtes Wort sein („an“+„meldung“ zählt nicht)
 
 /** Mögliche Wörter, die als Vorsatz in Frage kommen („wochen“ → wochen, woche …). */
 function prefixForms(pre) {

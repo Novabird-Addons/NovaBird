@@ -4,9 +4,9 @@
 
 import { foldDe } from "../util/normalize.js";
 
-const FUGEN = ["", "s", "n", "en", "e", "es", "er"];
+export const FUGEN = ["", "s", "n", "en", "e", "es", "er"]; // Fugenelemente: „wochen“ → „woche“, „arbeits“ → „arbeit“
 export const MIN_WORD = 8; // kürzere Wörter werden nicht zerlegt
-export const MIN_PART = 3;
+export const MIN_PART = 3; // Teile ab 3 Zeichen („an“+„meldung“ zählt nicht)
 
 /** Zerlegt ein (gefaltetes) Wort; liefert Set der Teile oder null. */
 export function decompose(word, vocab, depth = 0) {

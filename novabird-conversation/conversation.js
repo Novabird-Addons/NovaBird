@@ -106,15 +106,20 @@ function pickExpanded(messages, mode) {
   return open;
 }
 
+// Eine Kopie je Schlüssel: die mit dem kleinsten Rang (bei Gleichstand die erste); die Reihenfolge der Liste bleibt
+function keepBest(items, keyOf, rankOf) {
+  const best = new Map();
+  for (const r of items) {
+    const have = best.get(keyOf(r));
+    if (!have || rankOf(r) < rankOf(have)) best.set(keyOf(r), r);
+  }
+  return items.filter(r => best.get(keyOf(r)) === r);
+}
+const folderRank = r => (SKIP_FOLDER_TYPES.includes(r.folderType) ? 2 : 1); // Papierkorb/Spam zuletzt
+
 // Gloda/Suche: eine Kopie je Message-ID (items: { id, mid, folderType }); die gewählte Nachricht zuerst, Papierkorb/Spam zuletzt
 function dedupeByMid(items, targetId) {
-  const best = new Map();
-  const rank = r => (r.id === targetId ? 0 : SKIP_FOLDER_TYPES.includes(r.folderType) ? 2 : 1);
-  for (const r of items) {
-    const have = best.get(r.mid);
-    if (!have || rank(r) < rank(have)) best.set(r.mid, r);
-  }
-  return items.filter(r => best.get(r.mid) === r);
+  return keepBest(items, r => r.mid, r => (r.id === targetId ? 0 : folderRank(r)));
 }
 
 // ---------- Zeilen aus dem NovaBird-DB-Index ----------
@@ -125,13 +130,7 @@ const splitKey = key => { const i = String(key).indexOf(ROW_SEP); return i < 0 ?
 
 // Eine Kopie je Message-ID: die Kopie im Ordner der gewählten Nachricht, sonst eine außerhalb von Papierkorb/Spam, sonst die erste.
 function dedupeRows(rows, targetHeaderId, targetFolderId) {
-  const best = new Map();
-  const rank = r => (r.headerMessageId === targetHeaderId && r.folderId === targetFolderId ? 0 : SKIP_FOLDER_TYPES.includes(r.folderType) ? 2 : 1);
-  for (const r of rows) {
-    const have = best.get(r.headerMessageId);
-    if (!have || rank(r) < rank(have)) best.set(r.headerMessageId, r);
-  }
-  return rows.filter(r => best.get(r.headerMessageId) === r);
+  return keepBest(rows, r => r.headerMessageId, r => (r.headerMessageId === targetHeaderId && r.folderId === targetFolderId ? 0 : folderRank(r)));
 }
 
 // "Name <a@b>, Name2 <c@d>" → ["Name", "Name2"] (Kommas in Anzeigenamen bleiben heil)
@@ -162,7 +161,9 @@ function rowToView(row) {
     read: !!row.isRead,
     subject: row.subject ?? "",
     folder: row.folderName ?? "",
-    local: !!row.snippet,   // ohne lokalen Text liefert der Index kein Snippet
+    // lokal gespeichert: der Index meldet es (local, NovaBird-Search ab 2.0); ältere Stände nur übers Snippet (leer auch bei
+    // Mails nur aus Zitat/Bild/Anhang – die bekamen fälschlich ☁, klappten nicht auf und hatten keine Vorschau)
+    local: typeof row.local === "boolean" ? row.local : !!row.snippet,
     mine: row.folderType === "sent",
     folderType: row.folderType ?? "",
     snippet: row.snippet ?? "",

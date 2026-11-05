@@ -196,3 +196,19 @@ describe("Konversationsabfrage", () => {
     expect(ids.length).toBeLessThanOrEqual(MAX_COMPONENT + 1);
   });
 });
+
+describe("lokal gespeichert (☁ im Conversation)", () => {
+  it("local folgt body_hash, nicht dem Snippet: nur Zitat = lokal, nur Kopfzeilen = nicht lokal", async () => {
+    const { db, caps } = await setup();
+    const folder = { id: "a:/INBOX", accountId: "a", path: "/INBOX", name: "INBOX", specialUse: ["inbox"] };
+    const header = (mid) => ({ headerMessageId: mid, subject: "Plan", author: "Jonas <j@x>", recipients: ["i@x"], ccList: [], date: new Date(T0), read: false, flagged: false, tags: [], folder });
+    const quoteOnly = toRecord(header("zitat@x"), { content: { plain: ["> nur ein Zitat", "> der alten Mail"].join(String.fromCharCode(10)) } });
+    const remote = { ...toRecord(header("fern@x"), {}), bodyHash: repo.HEADERS_ONLY };
+    await repo.upsertMessages(db, caps, [quoteOnly, remote], 1000);
+    const byId = async (id) => (await findConversation(db, { headerMessageId: id, fallback: "off" })).messages.find((m) => m.headerMessageId === id);
+    const q = await byId("zitat@x");
+    expect(q.snippet).toBe("");
+    expect(q.local).toBe(true);
+    expect((await byId("fern@x")).local).toBe(false);
+  });
+});
