@@ -109,7 +109,7 @@ html:is([data-nbx-ml="soft"], [data-nbx-ml="thread"]) #threadTree[rows="thread-c
 html:is([data-nbx-ml="soft"], [data-nbx-ml="thread"])[data-nbx-ml-av="1"] #threadTree[rows="thread-card"] .card-layout:not([data-properties~="dummy"]) .card-container .nbx-av {
   display: flex; align-items: center; justify-content: center; position: relative;
   inline-size: 30px; block-size: 30px; border-radius: 50%; flex: none;
-  font-size: 1.3069rem; font-weight: 600; letter-spacing: .02em; line-height: 1;
+  font-size: 11px; font-weight: 600; letter-spacing: .02em; line-height: 1;
   background: color-mix(in srgb, currentColor 10%, transparent); color: color-mix(in srgb, currentColor 75%, transparent);
 }
 html:is([data-nbx-ml="soft"], [data-nbx-ml="thread"])[data-nbx-ml-av="1"] #threadTree[rows="thread-card"] .card-layout[data-properties~="unread"] .card-container .nbx-av {
@@ -182,7 +182,7 @@ html:is([data-nbx-ml="soft"], [data-nbx-ml="thread"]) #threadTree[rows="thread-c
 }
 html[data-nbx-ml="soft"][data-nbx-ml-av="1"] #threadTree[rows="thread-card"] .card-layout.children:not([data-properties~="dummy"]) .card-container .nbx-av2 {
   display: flex; align-items: center; justify-content: center; position: absolute; inset-inline-start: 20px; inset-block-start: 50%; margin-block-start: -10px;
-  inline-size: 24px; block-size: 24px; border-radius: 50%; font-size: 1.1881rem; font-weight: 600; line-height: 1; z-index: 0;
+  inline-size: 24px; block-size: 24px; border-radius: 50%; font-size: 10px; font-weight: 600; line-height: 1; z-index: 0;
   background: color-mix(in srgb, currentColor 10%, var(--tree-card-background)); color: color-mix(in srgb, currentColor 75%, transparent);
   border: 2px solid var(--tree-card-background);
 }

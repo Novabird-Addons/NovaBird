@@ -130,7 +130,7 @@ const CSS = `
   min-width: 340px;
   max-width: min(560px, calc(90vw / var(--sp-scale, 1)));
   font: menu;
-  font-size: 1.5446rem; /* 13 px bei Standardgröße; rem = Schriftgröße von Thunderbird (mail.uifontsize setzt die Wurzel) */
+  font-size: 13px;
 }
 #${NOTICES_ID} { order: 1; display: flex; flex-direction: column; gap: 8px; }
 #${OVERLAY_ID} {
@@ -149,7 +149,7 @@ const CSS = `
   padding: 12px 14px 12px 16px;
 }
 #${OVERLAY_ID} .sp-text { flex: 1; min-width: 0; }
-#${OVERLAY_ID} .sp-status { color: var(--sp-muted); font-size: 1.4257rem; }
+#${OVERLAY_ID} .sp-status { color: var(--sp-muted); font-size: 12px; }
 #${OVERLAY_ID} .sp-subject {
   font-weight: 600;
   white-space: nowrap;
