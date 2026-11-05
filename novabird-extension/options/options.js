@@ -1191,34 +1191,8 @@ const TEXTS = {
     hint: "Los cambios se aplican de inmediato; las ventanas abiertas los toman la próxima vez que se abran.",
   },
 };
-const DEFAULTS = {
-  attachPane: true,
-  paneLayout: "nova",
-  agendaDays: 5,
-  eventTime: true,
-  colorMode: "theme",
-  uiTheme: "", // NovaBird-Design (sand, cobalt, springlight); "" = Theme aus dem Add-ons-Manager
-  pilotEnabled: true,
-  pilotLog: false,
-  rulesEnabled: false,
-  previewEnabled: true,
-  previewDelay: 400,
-  listStyle: "default",
-  listPreview: true,
-  listAvatars: true,
-  listDensity: "airy",
-  listAcct: "none",
-  listScroll: true,
-  listAcctColors: {},
-  folderInboxes: false,
-  folderInboxesHide: [],
-  colors: { bg: "#EEF2F8", fg: "#1B2433", border: "#D2DAE6", accent: "#2F6BD8" },
-  mainColors: { light: {}, dark: {} },
-  fontFamily: "", fontRow: 100, fontPad: 100,
-  fontCompose: 100, fontSubject: 100, fontLabels: 100, fontSample: 100,
-  fontSettings: 100, fontContact: 100,
-  screenEnabled: false, screenFhd: 100, screenQhd: 125, screenUhd: 150,
-};
+// Standardwerte: options/defaults.js (gemeinsam mit dem Hintergrund)
+const DEFAULTS = { ...NBX_DEFAULTS };
 
 const forcedLang = new URLSearchParams(location.search).get("lang"); // nur zum Testen: options.html?lang=fr
 const lang = (forcedLang || messenger.i18n.getUILanguage() || "en").slice(0, 2).toLowerCase();

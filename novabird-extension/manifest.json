@@ -27,6 +27,7 @@
       "ai/write.js",
       "ai/spoken.js",
       "ai/speech.js",
+      "options/defaults.js",
       "background.js"
     ]
   },

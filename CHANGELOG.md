@@ -13,6 +13,7 @@ NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the opti
 - **AI address [::1]:** IPv6 loopback counted as local, so no permission was requested – but only localhost/127.0.0.1 are in the manifest, so requests failed silently. It now asks for the permission like any other address (`nbAI.needsPermission`); the "remote server" note still treats it as local.
 - **AI button checkmark** only when the tab still shows that mail (or one of the thread).
 - **Settings opened twice** (hub and add-on manager): account colours, hidden inboxes, colours, and managed updates read the stored value fresh and change only their own entry, instead of writing back an old copy.
+- **One source for the settings defaults** of the Extension (`options/defaults.js`, used by the background and the settings page); before, the same list stood in both files.
 - **Removed unused code:** `semantic:helperConnect`/`helperPrepare` (no sender), `searchBar.onStateChanged` (no listener), `rebuildDeclinedAt` (never read), the update note about separate theme add-ons (they are part of the Extension since 2.0), the settings view `general`, two unused NovaContact texts.
 - Tested: extension 51/51, conversation 21/21, search 33/33; Thunderbird 159: UI test 23/23, conversation switch test, selection test (new green, old fails).
 

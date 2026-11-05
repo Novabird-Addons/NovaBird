@@ -1,36 +1,8 @@
 /* NovaBird-Extension – startet die Experimente und gibt die Einstellungen weiter. */
 "use strict";
 
-const DEFAULTS = {
-  attachPane: true,
-  paneLayout: "nova",
-  agendaDays: 5,
-  eventTime: true, // Uhrzeit unter dem Titel der Termine (Tages- und Wochenansicht)
-  colorMode: "theme",
-  uiTheme: "", // NovaBird-Design (sand, cobalt, springlight); "" = Theme aus dem Add-ons-Manager
-  pilotEnabled: true,
-  pilotLog: false,
-  previewEnabled: true,
-  previewDelay: 400,
-  listStyle: "default",
-  listPreview: true,
-  listAvatars: true,
-  listDensity: "airy",
-  listAcct: "none",
-  listScroll: true,
-  listAcctColors: {},
-  folderInboxes: false, // Rubrik „Posteingänge“ im Ordnerbereich
-  folderInboxesHide: [], // Konto-IDs, deren Posteingang dort fehlen soll (neue Konten erscheinen also)
-  rulesEnabled: false,
-  aiEnabled: false,
-  aiFeatures: {}, // KI-Funktionen einzeln aus (false); fehlend = an
-  colors: { bg: "#EEF2F8", fg: "#1B2433", border: "#D2DAE6", accent: "#2F6BD8" },
-  mainColors: { light: {}, dark: {} }, // geänderte Farben des Hauptfensters (nur was vom Theme abweicht), je Hell/Dunkel
-  fontFamily: "", fontRow: 100, fontPad: 100, // Schriftart, Zeilenhöhe und -abstand im Hauptfenster
-  fontCompose: 100, fontSubject: 100, fontLabels: 100, fontSample: 100, // Verfassen-Fenster (Prozent der bisherigen Größe)
-  fontSettings: 100, fontContact: 100, // Einstellungen/Konten, Nova-Contact
-  screenEnabled: false, screenFhd: 100, screenQhd: 125, screenUhd: 150, // Screen Scaling (experimentell): Skalierung in Prozent je Auflösung
-};
+// Standardwerte: options/defaults.js (gemeinsam mit der Einstellungsseite); hier zusätzlich die KI-Schalter
+const DEFAULTS = { ...NBX_DEFAULTS, aiEnabled: false, aiFeatures: {} };
 
 // KI-Knöpfe: alle nur mit eingeschalteter KI; der Knopf der Nachrichtenansicht, solange einer seiner Reiter an ist
 function applyAiButtons(s) {
