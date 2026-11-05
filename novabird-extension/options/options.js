@@ -1766,7 +1766,7 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
   // Sprachmodell gehören dorthin. Sonst der eigene Server (Ollama, OpenAI-kompatibel) mit Hinweis auf den Helper.
   const { helperConn } = await messenger.storage.local.get({ helperConn: null });
   const viaHelper = conf.aiType === "nbhelper";
-  document.getElementById("aiViaHelper").hidden = !viaHelper;
+  document.getElementById("aiViaHelperBox").hidden = !viaHelper; // nicht „aiViaHelper“: gleichnamiger Text würde den Inhalt ersetzen
   document.getElementById("aiOwn").hidden = viaHelper;
   if (viaHelper) {
     let host = conf.aiUrl;

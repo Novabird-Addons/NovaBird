@@ -5,6 +5,10 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.6 · Helper 0.5.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### Settings → AI: empty checkboxes and speed list when the AI runs in the NovaBird Helper
+- With the AI running in the helper, the AI settings showed no checkmarks (although the overview listed all features as on) and the read-aloud speed list was empty. The text key `aiViaHelper` had the same name as the box holding the helper note; the loop that fills all texts replaced the box's content, the page script then stopped at the missing paragraph – before checkboxes, calendar, speed and "prepare" were filled. Box renamed (`aiViaHelperBox`); a test now fails if a text key matches an element that has child elements.
+- Tested: Thunderbird 159 with the AI set to the helper: AI on, features checked, 7 speeds, no page error (before: reproduced exactly).
+
 ### Search: no full pass over all folders at every start (large mailboxes)
 - Report: with about 1.8 million mails the index walked through all mails after every start (about 30 minutes, progress overlay showing all mails). Cause: an offline (IMAP) folder whose mails Thunderbird does not all keep locally (sync "only the last X days", size limit) stayed "not finished" forever, so every start listed it completely again – nothing new, just paging through all headers.
 - **Now:** a folder is finished after one complete pass. Texts that Thunderbird downloads later are fetched in a targeted way during the regular catch-up (`fillBodies` in `db/src/indexer/indexer.js`): only the entries without text are looked up by Message-ID (`resolveMessages`), and only in folders whose local store has grown since the last check (`folderInfo` now also returns the store size). Quiet, no overlay.

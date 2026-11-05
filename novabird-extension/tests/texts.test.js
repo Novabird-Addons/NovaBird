@@ -54,3 +54,17 @@ test("Einrichtungs-Assistent: vier Sprachen, gleiche Schlüssel und Platzhalter,
   for (const [, k] of code.matchAll(/\bt\.(\w+)/g)) if (!(k in T.en)) problems.push(`benutzt, aber nicht vorhanden: t.${k}`);
   assert.deepEqual(problems, []);
 });
+
+test("Optionsseite: kein Textschlüssel heißt wie ein Element mit Inhalt (die Textschleife würde ihn ersetzen)", () => {
+  // options.js setzt für jeden Schlüssel textContent des gleichnamigen Elements – trägt ein Container dieselbe id, sind
+  // seine Kinder weg (Fehler 05.11.: „aiViaHelper“ löschte Absatz und Knopf, die KI-Einstellungen brachen danach ab)
+  const html = require("node:fs").readFileSync(path.join(root, "options/options.html"), "utf8");
+  const keys = new Set(Object.values(TEXTS).flatMap((o) => Object.keys(o)));
+  const hits = [];
+  for (const m of html.matchAll(/<(\w+)\b[^>]*\bid="([^"]+)"[^>]*>/g)) {
+    if (!keys.has(m[2])) continue;
+    const after = html.slice(m.index + m[0].length).trimStart();
+    if (after.startsWith("<") && !after.startsWith("</")) hits.push(`${m[2]} (${m[1]})`);
+  }
+  assert.deepEqual(hits, []);
+});
