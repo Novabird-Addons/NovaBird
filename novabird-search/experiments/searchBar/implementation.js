@@ -2113,18 +2113,23 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           const opts = normalizeState(criteriaState);
           const folders = searchFoldersFor(opts, currentFolderId);
           const t0 = Date.now();
+          const F = Ci.nsMsgFolderFlags;
+          const current = currentFolderId ? getFolder(currentFolderId).folder : null;
+          const unread = criteria.unread ?? (opts.unread ? true : undefined);
+          const wantAttachment = criteria.attachment ?? (opts.attachment ? true : undefined);
+          // Gloda kennt die Filter nicht: keep() prüft sie erst nach der Abfrage mit Höchstzahl (neueste zuerst). Mit Filter
+          // daher breiter holen (×5, höchstens 20000), sonst fehlen ältere passende Mails – nur ohne eigenen Suchindex relevant
+          const limit = Number(criteriaState?.limit) || GLODA_LIMIT;
+          const filtered = unread !== undefined || wantAttachment !== undefined || criteria.flagged === true || Boolean(current) ||
+            Boolean(criteria.fromDate || criteria.toDate || criteria.author || criteria.recipients || criteria.subject);
           const [headerHits, glodaHits] = await Promise.all([
             searchHeaders(criteria, opts, folders).catch(e => { dbg("header search failed", String(e)); return []; }),
-            searchGloda(criteria, opts, Number(criteriaState?.limit) || GLODA_LIMIT).catch(e => { dbg("gloda failed", String(e)); return []; }),
+            searchGloda(criteria, opts, filtered ? Math.min(limit * 5, 20000) : limit).catch(e => { dbg("gloda failed", String(e)); return []; }),
           ]);
           if (run !== bar.root._nbsRun) {
             return -1; // überholt
           }
           // Vereinigung, ohne Doppelte; Gloda-Treffer nach den Optionen filtern
-          const F = Ci.nsMsgFolderFlags;
-          const current = currentFolderId ? getFolder(currentFolderId).folder : null;
-          const unread = criteria.unread ?? (opts.unread ? true : undefined);
-          const wantAttachment = criteria.attachment ?? (opts.attachment ? true : undefined);
           const keep = hdr => {
             const folder = hdr.folder;
             if (!folder || folder.getFlag(F.Virtual)) return false;

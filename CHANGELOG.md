@@ -5,6 +5,9 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.6 · Helper 0.5.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### Search without the own index (Gloda): filters miss fewer mails
+- Gloda knows nothing of the filters unread / with attachment / time window / flagged; they are checked after the query, which stops at the maximum (newest first). With such a filter the query now fetches five times as many (at most 20,000), so older matching mails are no longer cut off silently. Only relevant without the own search index (e.g. while it is being built for the first time).
+
 ### Conversation: ☁ only for mails that are really not stored locally
 - With the index of NovaBird-Search as source, "not downloaded" (☁) was guessed from the snippet. Mails that consist only of a quote, an image or an attachment have an empty snippet, so they got ☁, were not expanded when unread and had no preview. The index now tells it directly (`local`, from whether it has only the headers of the mail); older Search versions keep the old guess.
 - Small cleanups: one helper for "one copy per Message-ID" in Conversation, the joint elements of German compounds in one place in the index; the loader for shared code (the same in six experiments, it cannot load itself) is now guarded by a test that fails as soon as one copy differs.
