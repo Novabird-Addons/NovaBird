@@ -52,7 +52,8 @@ export default {
   ],
   orWords: ["or"],
   notWords: ["without", "not", "except", "excluding", "no"],
-  stemRules: [["ies", "y"], ["ing", ""], ["ed", ""], ["es", ""], ["s", ""]],
+  // Längste Endung zuerst; ist der Rest zu kurz, gilt die nächste (der Stamm wird als Präfix gesucht: „compan*“ trifft company und companies)
+  stemRules: [["ations", ""], ["ation", ""], ["ments", ""], ["ment", ""], ["nesses", ""], ["ness", ""], ["ingly", ""], ["ings", ""], ["ing", ""], ["edly", ""], ["ies", ""], ["ied", ""], ["ly", ""], ["ed", ""], ["es", ""], ["s", ""], ["e", ""], ["y", ""]],
   ops: {
     from: [], to: [], cc: [], with: ["with"], subject: [], attachment: [], text: [], is: [], tag: [], folder: [], since: [], until: [], date: [],
   },

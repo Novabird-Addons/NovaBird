@@ -99,3 +99,19 @@ describe("Stemming", () => {
     ["KW14", "kw14"],
   ])("%s -> %s", (w, s) => expect(stem(w)).toBe(s));
 });
+
+describe("Stemming FR/ES/EN und mehrere Sprachen", async () => {
+  const { stemWith, stemsWith } = await import("../src/parser/stem.js");
+  const { PACKS } = await import("../src/parser/lang/index.js");
+  it.each([
+    ["fr", "facturation", "factur"], ["fr", "facture", "factur"], ["fr", "envoyé", "envoy"], ["fr", "envoyer", "envoy"],
+    ["fr", "paiement", "paie"], ["fr", "réunions", "réun"], ["fr", "client", "client"],
+    ["es", "facturación", "factur"], ["es", "factura", "factur"], ["es", "enviado", "envi"], ["es", "enviar", "envi"], ["es", "envío", "enví"],
+    ["en", "companies", "compan"], ["en", "company", "compan"], ["en", "monday", "monda"], ["en", "notes", "note"], ["en", "meeting", "meet"], ["en", "payments", "payment"],
+  ])("%s: %s -> %s", (lang, w, s) => expect(stemWith(PACKS[lang])(w)).toBe(s));
+  it("mehrere Sprachen: nur die kürzesten Stämme, Hauptsprache vorn", () => {
+    expect(stemsWith([PACKS.de, PACKS.en])("Rechnungen")).toEqual(["rechnung"]);
+    expect(stemsWith([PACKS.de, PACKS.en])("meeting")).toEqual(["meet"]);
+    expect(stemsWith([PACKS.fr, PACKS.en])("notes")).toEqual(["note"]);
+  });
+});

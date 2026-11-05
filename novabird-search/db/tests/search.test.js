@@ -187,3 +187,42 @@ describe("Bedeutungssuche: Kandidaten mit den Bedingungen der Wortsuche filtern"
     expect(withTrash.size).toBeGreaterThanOrEqual(without.size);
   });
 });
+
+describe("Wortformen in Französisch, Spanisch und Englisch (Stamm als Präfix)", async () => {
+  const db = createNodeAdapter();
+  const caps = await migrate(db, {});
+  const mail = (id, subject, body) => ({
+    accountId: "account1", folderId: "inbox", folderName: "Inbox", folderType: "inbox", recipients: "x <x@example.invalid>",
+    hasAttachment: false, attachmentTypes: [], attachmentNames: [], tags: [], isRead: true, isFlagged: false, attachmentText: "",
+    headerMessageId: `${id}@example.invalid`, date: +new Date(2026, 8, 1), authorName: "A", authorEmail: "a@example.invalid", subject, body,
+  });
+  await repository.upsertMessages(db, caps, [
+    mail("fr1", "Facturation septembre", "Votre facturation est disponible."),
+    mail("fr2", "Colis envoyé", "Le colis a été envoyé hier."),
+    mail("fr3", "Réunions de projet", "Les réunions auront lieu mardi."),
+    mail("es1", "Facturación", "Adjuntamos la facturación del mes."),
+    mail("es2", "Pedido enviado", "Su pedido ha sido enviado."),
+    mail("en1", "Companies list", "All companies in the region."),
+    mail("en2", "Note", "A short note for you."),
+    mail("en3", "Booking confirmation", "Your booking is confirmed."),
+  ], +NOW);
+  const find = async (text, langs) => (await search(db, caps, text, { now: NOW, langs })).rows.map((x) => x.header_msg_id.split("@")[0]).sort();
+
+  it("Französisch", async () => {
+    expect(await find("facture", ["fr"])).toEqual(["es1", "fr1"]); // „factur*“: auch die spanische
+    expect(await find("envoyer", ["fr"])).toEqual(["fr2"]);
+    expect(await find("réunion", ["fr"])).toEqual(["fr3"]);
+  });
+  it("Spanisch", async () => {
+    expect(await find("factura", ["es"])).toEqual(["es1", "fr1"]);
+    expect(await find("enviar", ["es"])).toEqual(["es2"]);
+  });
+  it("Englisch", async () => {
+    expect(await find("company", ["en"])).toEqual(["en1"]);
+    expect(await find("notes", ["en"])).toEqual(["en2"]);
+  });
+  it("mehrere Sprachen: Englisch kürzt bei deutscher Oberfläche mit", async () => {
+    expect(await find("booked", ["de"])).toEqual([]); // nur deutsche Endungen: „booked*“
+    expect(await find("booked", ["de", "en"])).toEqual(["en3"]); // dazu Englisch: „book*“
+  });
+});

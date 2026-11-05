@@ -62,7 +62,7 @@
       "meet"
      ],
      [
-      "notes"
+      "note"
      ]
     ],
     "dateFrom": "2026-05-01",
@@ -343,10 +343,10 @@
    "expect": {
     "terms": [
      [
-      "notes"
+      "note"
      ],
      [
-      "réunion"
+      "réun"
      ]
     ],
     "dateFrom": "2026-05-01",

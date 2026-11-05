@@ -52,7 +52,8 @@ export default {
   ],
   orWords: ["ou"],
   notWords: ["sans", "pas", "sauf", "aucun", "aucune"],
-  stemRules: [["es", ""], ["s", ""], ["x", ""], ["e", ""]],
+  // Längste Endung zuerst; ist der Rest zu kurz, gilt die nächste („factur*“ trifft facture und facturation, „envoy*“ envoyé und envoyer)
+  stemRules: [["issements", ""], ["issement", ""], ["ations", ""], ["ation", ""], ["atrices", ""], ["atrice", ""], ["ateurs", ""], ["ateur", ""], ["ements", ""], ["ement", ""], ["ments", ""], ["ment", ""], ["euses", ""], ["euse", ""], ["eux", ""], ["ités", ""], ["ité", ""], ["ables", ""], ["able", ""], ["ances", ""], ["ance", ""], ["ences", ""], ["ence", ""], ["ives", ""], ["ive", ""], ["ifs", ""], ["if", ""], ["ions", ""], ["ion", ""], ["ées", ""], ["ée", ""], ["és", ""], ["é", ""], ["aient", ""], ["ait", ""], ["ent", ""], ["ez", ""], ["er", ""], ["es", ""], ["s", ""], ["x", ""], ["e", ""]],
   ops: {
     from: ["de"], to: ["à", "pour"], cc: [], with: ["avec"], subject: ["objet", "sujet"], attachment: ["pj", "pièce"],
     text: ["texte"], is: ["est"], tag: ["étiquette"], folder: ["dossier"], since: ["depuis", "dès"], until: ["jusque", "avant"], date: [],

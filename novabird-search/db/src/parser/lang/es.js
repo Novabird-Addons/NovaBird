@@ -53,7 +53,8 @@ export default {
   ],
   orWords: ["o"],
   notWords: ["sin", "excepto", "salvo", "ningún", "ninguno", "ninguna", "no"],
-  stemRules: [["es", ""], ["s", ""], ["a", ""], ["o", ""]],
+  // Längste Endung zuerst; ist der Rest zu kurz, gilt die nächste („factur*“ trifft factura und facturación, „envi*“ enviado, enviar, envío)
+  stemRules: [["aciones", ""], ["ación", ""], ["iciones", ""], ["ición", ""], ["amientos", ""], ["amiento", ""], ["imientos", ""], ["imiento", ""], ["mente", ""], ["idades", ""], ["idad", ""], ["ando", ""], ["iendo", ""], ["adas", ""], ["ados", ""], ["ada", ""], ["ado", ""], ["idas", ""], ["idos", ""], ["ida", ""], ["ido", ""], ["aron", ""], ["ieron", ""], ["amos", ""], ["emos", ""], ["imos", ""], ["ar", ""], ["er", ""], ["ir", ""], ["es", ""], ["s", ""], ["a", ""], ["o", ""]],
   ops: {
     from: ["de"], to: ["para", "a"], cc: [], with: ["con"], subject: ["asunto"], attachment: ["adjunto"],
     text: ["texto"], is: ["es"], tag: ["etiqueta"], folder: ["carpeta"], since: ["desde"], until: ["hasta"], date: ["fecha"],

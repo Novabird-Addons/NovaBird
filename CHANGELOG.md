@@ -5,6 +5,13 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.6 · Helper 0.5.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### Search: better word forms in French, Spanish and English
+- The word search shortens a search word to a stem and looks it up as a prefix. French and Spanish only removed plural endings, so "facture" did not find "facturation", "envoyer" not "envoyé", "factura" not "facturación", "enviar" not "enviado"; English "company" did not find "companies". The rules now cover the common endings (FR: -ation, -ement, -ité, -ion, -é/-ée, -er …; ES: -ación, -miento, -mente, -idad, -ado/-ido, -ar/-er/-ir …; EN: -ation, -ment, -ness, -ing, -ed, -ies, -y …), longest first.
+- If an ending would leave a stem shorter than 4 letters, the next shorter ending is tried instead of keeping the whole word ("notes" → "note", before: "notes", which missed "note").
+- All search languages shorten a word, not only the first one; the shortest stem is used. With German as main language and English always on, "booked" now also finds "booking". Exclusions ("-word", "without …") still use only the main language.
+- German rules unchanged.
+- Tested: unit tests for word pairs in each language and several languages at once, search against a test database (FR, ES, EN, German + English); existing golden tests unchanged except "notes" → "note" and "réunion" → "réun".
+
 ### AI sorting (beta): the AI moves new mails into folders you describe
 - New page Settings → AI → "Sorting (beta)" → "Rules and suggestions …" (`ai/sort.html`, background `ai/sort.js`). Each rule is a target folder plus a description in your own words ("invoices, payment receipts and reminders"). The AI assigns each new mail in the inbox to at most one rule – one request for all rules, the answer is a number, 0 = none (`sortPrompt`/`parseSort` in `ai/ai.js`; the mail is fenced off as foreign data like everywhere else, and "when unsure, leave it" is part of the instruction).
 - **Scope per rule:** the inbox of the account the target folder belongs to (for Local Folders: the global inbox), or all inboxes.
