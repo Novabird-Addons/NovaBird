@@ -822,16 +822,12 @@ async function leaveStaleSearchFolder() {
   for (const tab of tabs) {
     const folder = tab.displayedFolder;
     if (folder?.isVirtual && folder.name === "Suchergebnisse") {
-      const accounts = await messenger.accounts.list();
+      const accounts = await messenger.accounts.list(true); // mit Unterordnern: sonst fehlt rootFolder.subFolders
       for (const account of accounts) {
-        const inbox = account.folders?.find(f => f.specialUse?.includes("inbox"));
+        // beim Start gibt es noch keinen Controller einer Suchleiste (ein ctl hier war ein ReferenceError: Wechsel brach ab)
+        const inbox = (account.rootFolder?.subFolders ?? account.folders)?.find(f => f.specialUse?.includes("inbox"));
         if (inbox) {
-          ctl.ownChange = true;
-          try {
-            await messenger.mailTabs.update(tab.id, { displayedFolder: inbox.id });
-          } finally {
-            ctl.ownChange = false;
-          }
+          await messenger.mailTabs.update(tab.id, { displayedFolder: inbox.id ?? inbox });
           return;
         }
       }

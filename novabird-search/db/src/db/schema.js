@@ -149,6 +149,9 @@ export async function migrate(db, options = {}) {
     );
     await db.batch(statements);
   }
+  // Teilindex für die Mails ohne Volltext (Zählen alle 3 s in den Einstellungen, fillBodies): ohne Schemaversion, damit ältere
+  // Add-on-Stände den Index weiter öffnen können. Die Abfragen nennen den Wert wörtlich, sonst nimmt SQLite den Teilindex nicht.
+  await db.execute("CREATE INDEX IF NOT EXISTS idx_messages_headers_only ON messages(folder_id) WHERE body_hash = 'headers-only'");
   // nicht gespeichert: gilt, solange die Zusatztabelle existiert (FTS5)
   return { ...caps, termsFts: caps.ftsMode !== "fts4" };
 }

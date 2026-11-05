@@ -504,5 +504,15 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
         }
       }
     }
+    // eigene Nachrichtenfenster (Doppelklick auf eine Mail): dort sonst bleibt der Kopf nach dem Abschalten ausgeblendet
+    for (const win of Services.wm.getEnumerator("mail:messageWindow")) {
+      try {
+        const doc = win.messageBrowser?.contentDocument;
+        doc?.getElementById(STYLE_ID)?.remove();
+        doc?.documentElement?.removeAttribute(ATTR);
+      } catch (e) {
+        /* Fenster im Abbau */
+      }
+    }
   }
 };

@@ -86,14 +86,19 @@ function applyToken(criteria, prop, value) {
 function parseDate(value) {
   const rel = value.match(/^(\d+)([twmj])$/i);
   if (rel) {
+    // wie der Index (db/src/parser): ab Tagesbeginn, Monate/Jahre am Monatsende gekappt (31.03. − 1 Monat = 28./29.02.).
+    // Mit Uhrzeit warf die Leiste sonst die Treffer des ersten Tages vor der aktuellen Uhrzeit wieder hinaus.
     const n = parseInt(rel[1], 10);
-    const d = new Date();
+    const now = new Date();
     const unit = rel[2].toLowerCase();
-    if (unit === "t") d.setDate(d.getDate() - n);
-    if (unit === "w") d.setDate(d.getDate() - n * 7);
-    if (unit === "m") d.setMonth(d.getMonth() - n);
-    if (unit === "j") d.setFullYear(d.getFullYear() - n);
-    return d;
+    if (unit === "t" || unit === "w") {
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate() - n * (unit === "w" ? 7 : 1));
+    }
+    const months = unit === "m" ? n : n * 12;
+    const y = now.getFullYear();
+    const m = now.getMonth() - months;
+    const last = new Date(y, m + 1, 0).getDate(); // letzter Tag des Zielmonats
+    return new Date(y, m, Math.min(now.getDate(), last));
   }
   const slash = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/); // 31/01/2026 (Tag/Monat/Jahr)
   if (slash) {

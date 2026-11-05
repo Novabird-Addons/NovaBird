@@ -161,6 +161,20 @@ export async function moveMessage(db, caps, headerMessageId, fromFolderId, targe
   ]);
 }
 
+/** JSON-Wert aus meta ({} wenn fehlend oder kaputt) – gemeinsamer Lader für die Ordner-Maps (Mailzahl, Offline, Größe). */
+async function loadJsonMeta(db, key) {
+  const rows = await db.select("SELECT value FROM meta WHERE key = ?", [key], ["value"]);
+  try {
+    return rows.length ? JSON.parse(rows[0].value) : {};
+  } catch {
+    return {};
+  }
+}
+
+async function saveJsonMeta(db, key, value) {
+  await db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES (?, ?)", [key, JSON.stringify(value)]);
+}
+
 /** Alle Einträge eines Ordners entfernen (Ordner gelöscht/umbenannt). */
 export async function deleteFolder(db, caps, folderId) {
   const sub = "(SELECT id FROM messages WHERE folder_id = ?)";
@@ -176,6 +190,14 @@ export async function deleteFolder(db, caps, folderId) {
     { sql: "DELETE FROM message_refs WHERE NOT EXISTS (SELECT 1 FROM messages m WHERE m.header_msg_id = message_refs.header_msg_id)", params: [] },
   );
   await db.batch(stmts);
+  // gemerkte Werte des Ordners mit entfernen (sonst hielte der Erstlauf einen wiederhergestellten Ordner gleichen Namens für gelesen)
+  for (const [load, save] of [[loadFolderTotals, saveFolderTotals], [loadFolderSizes, saveFolderSizes], [loadFolderOffline, saveFolderOffline]]) {
+    const map = await load(db);
+    if (folderId in map) {
+      delete map[folderId];
+      await save(db, map);
+    }
+  }
 }
 
 /** Alle indizierten Message-IDs eines Ordners (für den Abgleich nach dem Durchlauf). */
@@ -300,15 +322,15 @@ export async function knownState(db, folderId, headerIds) {
 
 export async function hasHeadersOnly(db, folderId) {
   const [r] = await db.select(
-    "SELECT COUNT(*) AS n FROM messages WHERE folder_id = ? AND body_hash = ?",
-    [folderId, HEADERS_ONLY],
+    `SELECT COUNT(*) AS n FROM messages WHERE folder_id = ? AND body_hash = '${HEADERS_ONLY}'`,
+    [folderId],
     ["n"],
   );
   return r.n > 0;
 }
 
 export async function countHeadersOnly(db) {
-  const [r] = await db.select("SELECT COUNT(*) AS n FROM messages WHERE body_hash = ?", [HEADERS_ONLY], ["n"]);
+  const [r] = await db.select(`SELECT COUNT(*) AS n FROM messages WHERE body_hash = '${HEADERS_ONLY}'`, [], ["n"]);
   return r.n;
 }
 
@@ -316,8 +338,8 @@ export async function countHeadersOnly(db) {
 export async function headersOnlyByFolder(db, limit = 50) {
   return db.select(
     `SELECT folder_id, MAX(folder_name), MAX(account_id), COUNT(*) AS n, MIN(date), MAX(date)
-       FROM messages WHERE body_hash = ? GROUP BY folder_id ORDER BY n DESC LIMIT ?`,
-    [HEADERS_ONLY, limit],
+       FROM messages WHERE body_hash = '${HEADERS_ONLY}' GROUP BY folder_id ORDER BY n DESC LIMIT ?`,
+    [limit],
     ["folderId", "folderName", "accountId", "n", "oldest", "newest"],
   );
 }
@@ -325,8 +347,8 @@ export async function headersOnlyByFolder(db, limit = 50) {
 /** Ordner mit Mails ohne Volltext (nur Kopfdaten): Map folderId -> Anzahl. */
 export async function headersOnlyCounts(db) {
   const rows = await db.select(
-    "SELECT folder_id, COUNT(*) FROM messages WHERE body_hash = ? GROUP BY folder_id",
-    [HEADERS_ONLY],
+    `SELECT folder_id, COUNT(*) FROM messages WHERE body_hash = '${HEADERS_ONLY}' GROUP BY folder_id`,
+    [],
     ["folder_id", "n"],
   );
   return new Map(rows.map((r) => [r.folder_id, r.n]));
@@ -335,25 +357,16 @@ export async function headersOnlyCounts(db) {
 /** Seite der Mails ohne Volltext eines Ordners (nach id, ab afterId): [{id, header_msg_id}]. */
 export async function headersOnlyPage(db, folderId, afterId = 0, limit = 1000) {
   return db.select(
-    "SELECT id, header_msg_id FROM messages WHERE folder_id = ? AND body_hash = ? AND id > ? ORDER BY id LIMIT ?",
-    [folderId, HEADERS_ONLY, afterId, limit],
+    `SELECT id, header_msg_id FROM messages WHERE folder_id = ? AND body_hash = '${HEADERS_ONLY}' AND id > ? ORDER BY id LIMIT ?`,
+    [folderId, afterId, limit],
     ["id", "header_msg_id"],
   );
 }
 
 /** Größe des Offline-Speichers je Ordner bei der letzten Prüfung ({folderId: Bytes}); wächst er, hat Thunderbird Texte geholt. */
-export async function loadFolderSizes(db) {
-  const rows = await db.select("SELECT value FROM meta WHERE key = 'folder_sizes'", [], ["value"]);
-  try {
-    return rows.length ? JSON.parse(rows[0].value) : {};
-  } catch {
-    return {};
-  }
-}
+export const loadFolderSizes = (db) => loadJsonMeta(db, "folder_sizes");
 
-export async function saveFolderSizes(db, sizes) {
-  await db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES ('folder_sizes', ?)", [JSON.stringify(sizes)]);
-}
+export const saveFolderSizes = (db, map) => saveJsonMeta(db, "folder_sizes", map);
 
 /** Datum (ms) der neuesten indizierten Mail eines Kontos oder null. */
 export async function newestDate(db, accountId) {
@@ -362,29 +375,11 @@ export async function newestDate(db, accountId) {
 }
 
 /** Mailzahl je Ordner beim letzten vollständigen Durchgang ({folderId: n}); Grundlage des Ordner-Abgleichs. */
-export async function loadFolderTotals(db) {
-  const rows = await db.select("SELECT value FROM meta WHERE key = 'folder_totals'", [], ["value"]);
-  try {
-    return rows.length ? JSON.parse(rows[0].value) : {};
-  } catch {
-    return {};
-  }
-}
+export const loadFolderTotals = (db) => loadJsonMeta(db, "folder_totals");
 
-export async function saveFolderTotals(db, totals) {
-  await db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES ('folder_totals', ?)", [JSON.stringify(totals)]);
-}
+export const saveFolderTotals = (db, map) => saveJsonMeta(db, "folder_totals", map);
 
 /** Offline-Speicher je Ordner beim letzten Lauf ({folderId: bool}); eine Änderung stößt ein erneutes Lesen an. */
-export async function loadFolderOffline(db) {
-  const rows = await db.select("SELECT value FROM meta WHERE key = 'folder_offline'", [], ["value"]);
-  try {
-    return rows.length ? JSON.parse(rows[0].value) : {};
-  } catch {
-    return {};
-  }
-}
+export const loadFolderOffline = (db) => loadJsonMeta(db, "folder_offline");
 
-export async function saveFolderOffline(db, map) {
-  await db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES ('folder_offline', ?)", [JSON.stringify(map)]);
-}
+export const saveFolderOffline = (db, map) => saveJsonMeta(db, "folder_offline", map);

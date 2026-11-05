@@ -252,9 +252,6 @@
   "remoteAll": {
     "message": "Ganze Unterhaltung"
   },
-  "remoteCancel": {
-    "message": "Abbrechen"
-  },
   "remoteAsk": {
     "message": "Externe Inhalte laden für"
   },

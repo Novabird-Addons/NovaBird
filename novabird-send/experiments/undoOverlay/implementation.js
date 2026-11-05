@@ -229,6 +229,14 @@ var undoOverlay = class extends ExtensionCommon.ExtensionAPI {
     ExtensionSupport.unregisterWindowListener(LISTENER_NAME);
     for (const win of Services.wm.getEnumerator("msgcompose")) {
       unwrapCompose(win);
+      // während des Countdowns versteckte Fenster wieder zeigen: nach Abschalten/Update ist die Warteschlange weg, die Mail
+      // würde nie gesendet und das Fenster bliebe unsichtbar (beim Beenden ggf. mit hängender Frage „Änderungen speichern?“)
+      try {
+        const baseWin = win.docShell.treeOwner.QueryInterface(Ci.nsIBaseWindow);
+        if (!baseWin.visibility) baseWin.visibility = true;
+      } catch (e) {
+        /* Fenster im Abbau */
+      }
     }
     for (const win of Services.wm.getEnumerator("mail:3pane")) {
       win.document.getElementById(STACK_ID)?.remove();

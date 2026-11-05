@@ -395,6 +395,7 @@ function dbg(...parts) {
 // (folderPane._onSelect bricht dann ab). Ansicht wie beim Mehrfachauswählen verwerfen und den
 // gewählten Ordner normal öffnen.
 function leaveSyntheticView(cw) {
+  cw.document?.getElementById("nbsHeaderNote")?.remove(); // „· N beste oben …“ gehört zur Trefferliste, nicht zum Ordner
   try {
     cw.gViewWrapper?.close();
   } catch (e) {
@@ -421,11 +422,13 @@ function leaveSyntheticView(cw) {
 // - aufgeklappt: die neueste Nachricht bekommt die Klasse "nbs-newest".
 // Zeilen der Tabellen- und der Kartenansicht (thread-row, thread-card)
 function patchThreadRows(cw) {
+  delete cw._nbsUnpatched; // wieder eingeschaltet (doppeltes Patchen verhindert _nbsOriginalFillRow)
   for (const name of ["thread-row", "thread-card"]) {
     const Row = cw.customElements.get(name);
     if (!Row && name === "thread-card") {
       // die Kartenansicht wird erst bei Bedarf geladen: danach anpassen
-      cw.customElements.whenDefined(name).then(() => patchThreadRows(cw)).catch(() => {});
+      // nach unpatchThreadRows (Abschalten, Update) nicht mehr patchen: _nbsUnpatched ist dann gesetzt
+      cw.customElements.whenDefined(name).then(() => !cw._nbsUnpatched && patchThreadRows(cw)).catch(() => {});
       continue;
     }
     if (!Row || typeof Row.prototype.fillRow !== "function" || Row.prototype._nbsOriginalFillRow) {
@@ -454,6 +457,7 @@ function patchThreadRows(cw) {
 const RANK_COL = "nbsRankCol";
 
 function unpatchThreadRows(cw) {
+  cw._nbsUnpatched = true;
   for (const name of ["thread-row", "thread-card"]) {
     const Row = cw.customElements?.get(name);
     if (Row?.prototype._nbsOriginalFillRow) {
@@ -1593,7 +1597,13 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
       setCount();
       setTitle();
       setHeaderNote(cw, note);
-      win.setTimeout(() => (setCount(), setTitle(), setHeaderNote(cw, note)), 400);
+      // nur, wenn die Trefferliste noch angezeigt wird (sonst schrieben wir „Suchergebnisse“ und den Hinweis auf einen Ordner)
+      win.setTimeout(() => {
+        if (cw.gViewWrapper?._syntheticView !== view) return;
+        setCount();
+        setTitle();
+        setHeaderNote(cw, note);
+      }, 400);
       try {
         // Standard: flach (sonst steht ein alter Thread-Anfang oben); Option: nach Konversation gruppieren
         if (group) {
@@ -1833,14 +1843,6 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
       }
       const F = Ci.nsMsgFolderFlags;
       // Gilt auch für Unterordner (z. B. Papierkorb/Infizierte Objekte).
-      const inFlagged = (folder, flag) => {
-        for (let f = folder; f && !f.isServer; f = f.parent) {
-          if (f.getFlag(flag)) {
-            return true;
-          }
-        }
-        return false;
-      };
       const result = [];
       for (const server of MailServices.accounts.allServers) {
         for (const folder of [server.rootFolder, ...server.rootFolder.descendants]) {
@@ -1848,8 +1850,8 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
             folder.isServer ||
             folder.getFlag(F.Virtual) ||
             folder.getFlag(F.Queue) ||
-            (!criteriaState.trash && inFlagged(folder, F.Trash)) ||
-            (!criteriaState.spam && inFlagged(folder, F.Junk))
+            (!criteriaState.trash && inFlaggedFolder(folder, F.Trash)) ||
+            (!criteriaState.spam && inFlaggedFolder(folder, F.Junk))
           ) {
             continue;
           }
@@ -2008,6 +2010,8 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           if (!b) {
             return;
           }
+          b.root._nbsRun = (b.root._nbsRun || 0) + 1; // laufende Suche (Kopfzeilen/Gloda) überholt: ihr Ergebnis nicht mehr zeigen
+          b.cw?.document?.getElementById("nbsHeaderNote")?.remove();
           try {
             if (b.cw?.gViewWrapper?.isSynthetic && !b.tab._nbsSnapshot) {
               leaveSyntheticView(b.cw);
@@ -2364,6 +2368,7 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           if (!root) {
             return;
           }
+          root._nbsRun = (root._nbsRun || 0) + 1; // Ende der Suche: ein noch laufender Lauf darf die Liste nicht mehr füllen
           root._nbsState = { ...DEFAULT_STATE }; // Ende der Suche: alle Filter/Optionen dieser Leiste zurück auf Standard
           root.querySelector("input").value = "";
           root.removeAttribute("data-has-text");

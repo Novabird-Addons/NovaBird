@@ -475,6 +475,59 @@ describe("Fehlende Mailtexte gezielt nachholen statt Ordner neu durchzublättern
   });
 });
 
+describe("Code-Review 2.0: Zustand rund um die Läufe", () => {
+  it("reread liest auch Mails mit Text neu (Zusammensetzungen beim Indexieren), force allein nicht", async () => {
+    const { fake, indexer } = await setup();
+    fake.addMessage("inbox", { subject: "A", body: "x" });
+    await indexer.fullRun();
+    const reads = fake.calls.listInlineTextParts;
+    await indexer.fullRun({ force: true });
+    expect(fake.calls.listInlineTextParts).toBe(reads);
+    await indexer.fullRun({ force: true, reread: true });
+    expect(fake.calls.listInlineTextParts).toBe(reads + 1);
+  });
+
+  it("gelöschter und wiederhergestellter Ordner wird neu gelesen (keine alten Meta-Werte)", async () => {
+    const { fake, indexer, db, caps, count } = await setup();
+    fake.addMessage("inbox", { subject: "A", body: "x" });
+    fake.api.novabirdDb = { resolveMessages: async () => [], folderInfo: async (fs) => fs.map(() => ({ virtual: false, offline: true, size: 1 })), offlineFlags: async (ids) => ids.map(() => true) };
+    fake.api.messages.get = async () => null;
+    await indexer.fullRun();
+    const { deleteFolder, loadFolderTotals } = await import("../src/db/repository.js");
+    await deleteFolder(db, caps, "account1://INBOX");
+    expect("account1://INBOX" in (await loadFolderTotals(db))).toBe(false);
+    expect(await count()).toBe(0);
+    await indexer.fullRun();
+    expect(await count()).toBe(1);
+  });
+
+  it("Abgleich: Index und Betterbird gleich viele Mails – Ordner wird nicht durchgeblättert, Zahl gemerkt", async () => {
+    const { fake, indexer } = await setup();
+    fake.addMessage("inbox", { subject: "A", body: "x" });
+    await indexer.fullRun();
+    const h = fake.addMessage("inbox", { subject: "B", body: "y" });
+    await indexer.processHeaders([h]); // per Ereignis schon im Index
+    const listed = [];
+    const orig = fake.api.messages.list;
+    fake.api.messages.list = async (id) => (listed.push(id), orig(id));
+    expect(await indexer.reconcile()).toMatchObject({ rescanned: 0 });
+    expect(listed).toEqual([]);
+  });
+
+  it("Tiefenabgleich entfernt Ordner, die es nicht mehr gibt", async () => {
+    const { fake, indexer, db, caps, count } = await setup();
+    fake.addMessage("inbox", { subject: "A", body: "x" });
+    await indexer.fullRun();
+    const { upsertMessages } = await import("../src/db/repository.js");
+    const { toRecord } = await import("../src/indexer/record.js");
+    const ghost = { id: 999, headerMessageId: "ghost@x", subject: "Alt", author: "a@x", recipients: [], ccList: [], date: new Date(2020, 1, 1), read: true, flagged: false, tags: [], folder: { id: "account9://Weg", accountId: "account9", path: "/Weg", name: "Weg" } };
+    await upsertMessages(db, caps, [toRecord(ghost, { content: "", attachments: [], tagNames: new Map() })]);
+    expect(await count()).toBe(2);
+    await indexer.reconcile({ deep: true });
+    expect(await count()).toBe(1);
+  });
+});
+
 describe("Hänger: Zeitgrenzen und Wächter", () => {
   const capture = () => {
     const lines = [];

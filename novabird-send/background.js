@@ -144,7 +144,7 @@ async function startNext() {
     if (item && active === item) {
       active = null;
       await showWindow(item.windowId);
-      await startNext();
+      if (!active) await startNext(); // währenddessen kann onBeforeSend schon die nächste gestartet haben
     }
   }
 }
@@ -222,7 +222,8 @@ async function undoActive() {
   const item = active;
   active = null;
   await showWindow(item.windowId);
-  await startNext();
+  // währenddessen gestartete Mail (onBeforeSend) nicht überschreiben – sonst bliebe sie versteckt ohne Countdown
+  if (!active) await startNext();
 }
 
 messenger.undoOverlay.onUndo.addListener(undoActive);

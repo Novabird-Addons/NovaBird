@@ -126,7 +126,12 @@ function touch() {
   const ms = KEEP_MS[cfg.keep] ?? KEEP_MS["10min"];
   if (ms !== Infinity) {
     unloadTimer = setTimeout(() => {
-      if (!indexing) {
+      // Nur entladen, wenn gerade nichts gerechnet oder heruntergeladen wird; sonst später noch einmal versuchen.
+      // (indexing bleibt während der ganzen Schleife true, auch in „done“/„waiting-idle“/„paused“ – darum zählt die Phase;
+      // ein Download läuft im Worker und würde beim Entladen mit „entladen“ abbrechen.)
+      if (state.phase === "indexing" || state.phase === "downloading") {
+        touch();
+      } else {
         unloadWorker();
       }
     }, ms);

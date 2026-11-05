@@ -50,9 +50,13 @@ test("Datum: ISO, deutsch, relativ", () => {
   assert.deepEqual([de.getFullYear(), de.getMonth(), de.getDate()], [2026, 0, 31]);
   const short = parseDate("31.1.26");
   assert.equal(short.getFullYear(), 2026);
+  // relativ ab Tagesbeginn wie der Index (sonst fielen Treffer des ersten Tages vor der aktuellen Uhrzeit heraus)
   const rel = parseDate("7t");
-  const diff = Math.round((Date.now() - rel.getTime()) / 864e5);
-  assert.equal(diff, 7);
+  const now = new Date();
+  assert.equal(rel.getTime(), new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7).getTime());
+  // Monate am Monatsende gekappt, wie addMonths im Index
+  const m = parseDate("1m");
+  assert.equal(m.getHours() + m.getMinutes(), 0);
 });
 
 test("anh:ja seit:30t kombiniert", () => {

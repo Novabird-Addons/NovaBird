@@ -6,7 +6,7 @@ const MAX_MESSAGES = 120;
 
 const STRING_KEYS = [
   "messagesCount", "toNames", "newBadge", "reply", "replyAll", "more", "forward", "forwardAsAttachment",
-  "editAsNew", "expandAll", "collapseAll", "showFull", "showLess", "quoteToggle", "remoteBlocked", "remoteShow", "remoteThis", "remoteAll", "remoteCancel", "remoteAsk", "remoteSender",
+  "editAsNew", "expandAll", "collapseAll", "showFull", "showLess", "quoteToggle", "remoteBlocked", "remoteShow", "remoteThis", "remoteAll", "remoteAsk", "remoteSender",
   "aiSummary", "attOpen", "attSave", "noText", "loading", "loadFailed", "history", "notDownloaded", "delete", "deleteTip", "originalBtn", "originalTip", "backToConversation", "spam", "spamTip", "notSpam", "notSpamTip", "copyAddress",
 ];
 
@@ -41,10 +41,16 @@ async function aiAvailable() {
   return available;
 }
 
+// Generation der Zwischenspeicher: eine Suche, die vor dem Leeren begann, schreibt ihr (veraltetes) Ergebnis nicht mehr hinein –
+// sonst zeigte z. B. eine eben als gelesen markierte Mail 60 s lang weiter „Neu“
+let cacheGen = 0;
+const helloSeq = new Map(); // tabId → Nummer der letzten hello-Anfrage
 function clearCaches() {
+  cacheGen++;
   convCache.clear();
   bodyCache.clear();
   idCache.clear();
+  lookups.clear();
 }
 
 function withTimeout(promise, ms) {
@@ -230,19 +236,7 @@ async function findViaDb(target, timing) {
   if (!own) {
     if (res.truncated && rows.length) {
       // Der Index hat nur die neuesten `limit` geliefert; die gewählte (ältere) Nachricht kommt immer dazu
-      views.push({
-        id: target.id,
-        author: personName(target.author),
-        email: emailOf(target.author),
-        recipients: (target.recipients ?? []).map(personName),
-        date: target.date instanceof Date ? target.date.getTime() : Number(target.date) || 0,
-        read: !!target.read,
-        subject: target.subject ?? "",
-        folder: target.folder?.name ?? "",
-        local: true,
-        folderType: target.folder?.type ?? "",
-        snippet: "",
-      });
+      views.push({ ...toView(target, target.folder?.name ?? "", true), snippet: "" }); // wie die anderen Quellen (mit „mine“)
       timing.source = "db";
       return { messages: views, selectedKey: target.id, truncated: true };
     }
@@ -371,22 +365,26 @@ async function lookup(shown, timing = {}) {
   }
   let pending = lookups.get(shown.id);
   if (!pending) {
+    const gen = cacheGen;
     pending = (async () => {
       const viaIndex = (await findViaDb(shown, timing)) ?? (await findViaGloda(shown, timing));
       let e;
       if (viaIndex) {
         e = { at: Date.now(), messages: viaIndex.messages, selectedKey: viaIndex.selectedKey };
-        idCache.set(viaIndex.selectedKey, shown.id); // die gewählte Nachricht kennen wir schon
-        for (const m of viaIndex.messages) convCache.set(m.id, e);
       } else {
         const messages = await findConversation(shown, timing);
         timing.source = "query";
         e = { at: Date.now(), messages, selectedKey: shown.id };
-        for (const m of messages) convCache.set(m.id, e);
       }
-      convCache.set(shown.id, e);
+      if (gen === cacheGen) {
+        if (viaIndex) idCache.set(viaIndex.selectedKey, shown.id); // die gewählte Nachricht kennen wir schon
+        for (const m of e.messages) convCache.set(m.id, e);
+        convCache.set(shown.id, e);
+      }
       return e;
-    })().finally(() => lookups.delete(shown.id));
+    })().finally(() => {
+      if (lookups.get(shown.id) === pending) lookups.delete(shown.id);
+    });
     lookups.set(shown.id, pending);
   } else {
     timing.shared = true;
@@ -544,13 +542,20 @@ async function runAction(raw, tabId) {
 messenger.runtime.onMessage.addListener((msg, sender) => {
   const tabId = sender.tab?.id;
   switch (msg?.type) {
-    case "hello":
-      return tabId == null ? Promise.resolve(null)
-        : hello(tabId).catch(e => { console.error("NovaBird-Conversation: Konversation", e); return null; }).then(data => applyHeader(tabId, data));
+    case "hello": {
+      if (tabId == null) return Promise.resolve(null);
+      // Kopfzeile nur für die zuletzt angefragte Mail des Tabs umschalten: eine langsame Antwort zur vorigen Mail (schnelles
+      // Blättern) blendete sonst den Kopf der jetzt angezeigten aus
+      const seq = (helloSeq.get(tabId) ?? 0) + 1;
+      helloSeq.set(tabId, seq);
+      return hello(tabId).catch(e => { console.error("NovaBird-Conversation: Konversation", e); return null; })
+        .then(data => (helloSeq.get(tabId) === seq ? applyHeader(tabId, data) : data));
+    }
     case "summarize":
       // die Ansicht kennt Nachrichten über Schlüssel (Text), die Extension braucht die Zahlen-IDs von Thunderbird
-      return Array.isArray(msg.ids) && msg.ids.length && msg.ids.length <= MAX_MESSAGES
-        ? Promise.all(msg.ids.map(id => resolveId(id)))
+      // lange Fäden (Index liefert bis zur eingestellten Grenze): die neuesten MAX_MESSAGES zusammenfassen statt still nichts
+      return Array.isArray(msg.ids) && msg.ids.length
+        ? Promise.all(msg.ids.slice(-MAX_MESSAGES).map(id => resolveId(id)))
           .then(ids => messenger.runtime.sendMessage(EXTENSION_ID, { type: "summarize", ids }))
           .then(() => true, e => { console.error("NovaBird-Conversation: Zusammenfassung", e); return false; })
         : Promise.resolve(false);

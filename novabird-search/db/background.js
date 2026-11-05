@@ -20,6 +20,10 @@ let status = { phase: "starting" };
 let includeAccounts = [];
 let includeFolders = [];
 // Zeiten (Millisekunden). Für Tests über storage.local `testTimings` überschreibbar.
+// Werte der Tabelle meta (Versionen, Prüf- und Abgleichszeiten)
+const metaGet = async (key) => (await db.select("SELECT value FROM meta WHERE key = ?", [key], ["value"]))[0]?.value;
+const metaSet = (key, value) => db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES (?, ?)", [key, String(value)]);
+
 const TIMING = {
   start: 10_000, // Indexaufbau erst nach dem Start von Betterbird (10 s)
   deepEarliest: 5 * 60_000, // Tiefenabgleich frühestens 5 Minuten nach dem Start ...
@@ -196,7 +200,9 @@ async function ensureSeedPass() {
     await db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES ('terms_mode', 'index')");
     if (termsVocab.size === 0) return false;
     dlog.info(L("[novabird-db] Zusammensetzungen: Index wird mit der Zerlegung einmal neu eingelesen", "[novabird-db] Compounds: index is read once more with splitting"));
-    await runIndex(true);
+    // auch Mails mit Text: die Zerlegung muss in alle vorhandenen Mails. Direkt (nicht runIndex): wir laufen hier schon
+    // innerhalb eines Indexlaufs, runIndex würde auf sich selbst warten
+    await runIndexOnce(true, { reread: true });
     return true;
   } finally {
     seedPassRunning = false;
@@ -215,7 +221,7 @@ async function setCompoundMode(mode) {
     if ((await repo.stats(db)).messages > 0) {
       await buildSeed();
       await db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES ('terms_mode', 'index')");
-      if (termsVocab.size) runIndex(true).catch((e) => dlog.error(L("[novabird-db] Neuaufbau", "[novabird-db] Rebuild"), e)); // alle Mails neu einlesen, jetzt mit Zerlegung
+      if (termsVocab.size) runIndex(true, { reread: true }).catch((e) => dlog.error(L("[novabird-db] Neuaufbau", "[novabird-db] Rebuild"), e)); // alle Mails neu einlesen, jetzt mit Zerlegung
     }
   } else {
     await syncCompoundMode();
@@ -233,6 +239,7 @@ async function resetIndexAside(forceFts4) {
 }
 
 async function init() {
+  countCache = { n: 0, at: 0, busy: false }; // neuer/neu geöffneter Index: Mailzahl neu zählen
   await restoreEvents();
   await loadSettings();
   const { forceFts4 } = await messenger.storage.local.get({ forceFts4: false }); // nur für Tests/Rückfall
@@ -248,9 +255,8 @@ async function init() {
   }
   // Textnormalisierung oder Konversationsdaten (Verweise, Textanfang, Betreff-Schlüssel) geändert: alte Einträge passen nicht
   // mehr, einmal neu aufbauen
-  const metaVal = async (key) => (await db.select("SELECT value FROM meta WHERE key = ?", [key], ["value"]))[0]?.value;
-  const normChanged = String(await metaVal("text_norm")) !== String(TEXT_NORM_VERSION);
-  const convChanged = String(await metaVal("conv_data")) !== String(CONV_DATA_VERSION);
+  const normChanged = String(await metaGet("text_norm")) !== String(TEXT_NORM_VERSION);
+  const convChanged = String(await metaGet("conv_data")) !== String(CONV_DATA_VERSION);
   if (normChanged || convChanged) {
     if ((await repo.stats(db)).messages > 0) {
       dlog.info(L(`[novabird-db] ${normChanged ? `Textnormalisierung -> v${TEXT_NORM_VERSION}` : `Konversationsdaten -> v${CONV_DATA_VERSION}`}: Index wird neu aufgebaut (alte Datei bleibt bis zum Ende erhalten)`,
@@ -325,8 +331,6 @@ async function start() {
 }
 
 // ---- Gesundheit des Index ------------------------------------------------------------------------------
-const metaGet = async (key) => (await db.select("SELECT value FROM meta WHERE key = ?", [key], ["value"]))[0]?.value;
-const metaSet = (key, value) => db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES (?, ?)", [key, String(value)]);
 let checkReason = null; // Grund der geplanten Prüfung (unclean | starts | days) oder null
 
 /** Beginn einer Sitzung: war das letzte Beenden sauber? Starts mitzählen; Marke auf „läuft“ setzen. */
@@ -444,7 +448,8 @@ async function deepTick() {
   indexer.pauseMs = Math.max(pause, 150); // sanft: längere Pausen zwischen den Paketen
   try {
     const deep = await indexer.reconcile({ deep: true });
-    await metaSet("last_deep", Date.now());
+    // nur einen vollständigen Abgleich als erledigt merken (angehalten oder Index kaputt: bald erneut, nicht erst in 7 Tagen)
+    if (!indexer.stopped && !brokenInfo) await metaSet("last_deep", Date.now());
     lastCatchUp = { ...(lastCatchUp ?? { at: Date.now() }), deep };
     if (deep?.added) console.info("[novabird-db] Tiefenabgleich:", deep);
   } finally {
@@ -454,6 +459,7 @@ async function deepTick() {
 
 /** Mails nachholen, die die Ereignisse verpasst haben (nur nach fertigem Erstlauf, nicht während eines Laufs oder im angehaltenen Zustand). */
 async function catchUpNow() {
+  if (brokenInfo) return null; // Index als beschädigt erkannt: nicht hineinschreiben (wie runIndex, deepTick, refreshVocab)
   if (!indexer || !initialDone || status.phase === "folder" || status.phase === "stopped") {
     dlog.info(L(`[novabird-db] Nachholen übersprungen (${!indexer ? "nicht bereit" : !initialDone ? "Erstlauf noch nicht fertig" : "Indizierung läuft oder ist angehalten"})`,
       `[novabird-db] Catch-up skipped (${!indexer ? "not ready" : !initialDone ? "first run not finished" : "indexing running or paused"})`));
@@ -510,11 +516,23 @@ async function refreshVocab(reason, { needIdle = false } = {}) {
 }
 setInterval(() => refreshVocab("Leerlauf", { needIdle: true }).catch(() => {}), 10 * 60_000);
 
-async function runIndex(force = false) {
+// Ein Lauf zur Zeit: ein zweiter Aufruf (Doppelklick auf „Fortsetzen“, Saat-Durchgang während des Laufs) wartet auf den
+// laufenden statt jeden Ordner parallel ein zweites Mal durchzugehen
+let runningIndex = null;
+async function runIndex(force = false, opts = {}) {
+  while (runningIndex) await runningIndex.catch(() => {});
+  runningIndex = runIndexOnce(force, opts);
+  try {
+    return await runningIndex;
+  } finally {
+    runningIndex = null;
+  }
+}
+async function runIndexOnce(force, { reread = false } = {}) {
   if (brokenInfo || !indexer) return; // unbrauchbarer Index: erst nach dem Neuaufbau
   startedAt = Date.now();
   lastLogged = 0;
-  await indexer.fullRun({ force });
+  await indexer.fullRun({ force, reread });
   if (status.phase === "done" && !initialDone) {
     await db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES ('initial_done', '1')");
     await db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES ('last_deep', ?)", [String(Date.now())]); // frisch gelesen: Tiefenabgleich erst in einer Woche
@@ -647,10 +665,34 @@ async function pushStatus() {
   }
 }
 
+// Mailzahl für den Status anderer Add-ons: zwischengespeichert. NovaBird-Conversation fragt bei jeder Konversation mit einer
+// Zeitgrenze von 300 ms – ein COUNT(*) über einen Index mit Millionen Mails (dazu MIN/MAX) riss sie und ließ Conversation den
+// Index bis zu 10 min meiden. Nach dem ersten Mal wird die Zahl höchstens jede Minute im Hintergrund aufgefrischt.
+let countCache = { n: 0, at: 0, busy: false };
+async function cachedMessageCount() {
+  const refresh = async () => {
+    countCache.busy = true;
+    try {
+      const [r] = await db.select("SELECT COUNT(*) AS n FROM messages", [], ["n"]);
+      countCache = { n: r?.n ?? 0, at: Date.now(), busy: false };
+    } finally {
+      countCache.busy = false;
+    }
+  };
+  if (!countCache.at) await refresh();
+  else if (Date.now() - countCache.at > 60_000 && !countCache.busy) refresh().catch(() => {});
+  return countCache.n;
+}
+
 async function externalStatus() {
   let messages = 0;
   try {
-    messages = (await repo.stats(db)).messages;
+    messages = await cachedMessageCount();
+    // leerer Zwischenstand (z. B. gleich nach dem Löschen/Neuaufbau): billig nachsehen, ob es schon Mails gibt
+    if (!messages && (await db.select("SELECT 1 AS x FROM messages LIMIT 1", [], ["x"])).length) {
+      countCache.at = 0;
+      messages = await cachedMessageCount();
+    }
   } catch {
     /* Datenbank nicht lesbar: ping darf nie werfen */
   }
@@ -739,7 +781,8 @@ messenger.runtime.onMessage.addListener((msg) => {
         const [tab] = await messenger.mailTabs.query({ active: true, currentWindow: true }).catch(() => []);
         const target = tab ?? (await messenger.mailTabs.query({}))[0];
         if (!target) return { ok: false };
-        await messenger.mailTabs.update(target.id, { displayedFolder: { accountId: id.slice(0, i), path: id.slice(i + 1) } });
+        // Ordner-ID „account1://INBOX“ = Konto + „:/“ + Pfad „/INBOX“ (slice(i + 1) ergab „//INBOX“: Ordner nicht gefunden)
+        await messenger.mailTabs.update(target.id, { displayedFolder: { accountId: id.slice(0, i), path: id.slice(i + 2) } });
         await messenger.tabs.update(target.id, { active: true });
         return { ok: true };
       }

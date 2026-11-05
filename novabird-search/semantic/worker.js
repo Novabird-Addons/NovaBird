@@ -55,6 +55,8 @@ async function modelStatus(modelId) {
 // gespeichert wird unter der Hugging-Face-Adresse, geprüft wird genauso.
 const TEST_BASE = /^http:\/\/(127\.0\.0\.1|localhost):\d+\/$/;
 
+const DOWNLOAD_IDLE_MS = 60_000; // so lange ohne neue Daten, dann gilt der Download als hängend
+
 async function download(modelId, testBase) {
   const model = MODELS[modelId];
   const cache = await caches.open(CACHE);
@@ -68,32 +70,52 @@ async function download(modelId, testBase) {
       continue;
     }
     const from = TEST_BASE.test(testBase || "") ? `${testBase}${model.repo}/resolve/${model.revision}/${f.path}` : url;
-    const res = await fetch(from, { credentials: "omit", cache: "no-store" });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status} (${f.path})`);
-    }
-    const reader = res.body.getReader();
+    // Zeitgrenze ohne Daten (stehende Verbindung) und „Abbrechen“ auch dann, wenn gerade nichts ankommt: beides beendet den
+    // Abruf über ein AbortController-Signal (vorher hing die Phase „downloading“ in diesem Fall dauerhaft)
+    const ctrl = new AbortController();
+    let idle = null;
+    const arm = () => {
+      clearTimeout(idle);
+      idle = setTimeout(() => ctrl.abort(), DOWNLOAD_IDLE_MS);
+    };
+    const poll = setInterval(() => cancelDownload && ctrl.abort(), 500);
     const bytes = new Uint8Array(f.size);
     let got = 0;
-    let lastPost = 0;
-    for (;;) {
-      const { done: end, value } = await reader.read();
-      if (end) {
-        break;
+    try {
+      arm();
+      const res = await fetch(from, { credentials: "omit", cache: "no-store", signal: ctrl.signal });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} (${f.path})`);
       }
-      if (cancelDownload) {
-        await reader.cancel();
-        throw new Error("abgebrochen");
+      const reader = res.body.getReader();
+      let lastPost = 0;
+      for (;;) {
+        const { done: end, value } = await reader.read();
+        if (end) {
+          break;
+        }
+        arm();
+        if (got + value.length > bytes.length) {
+          throw new Error(`Datei größer als erwartet (${f.path})`);
+        }
+        bytes.set(value, got);
+        got += value.length;
+        if (Date.now() - lastPost > 250) {
+          lastPost = Date.now();
+          postMessage({ type: "progress", what: "download", done: done + got, total, file: f.path });
+        }
       }
-      if (got + value.length > bytes.length) {
-        throw new Error(`Datei größer als erwartet (${f.path})`);
+    } catch (e) {
+      if (ctrl.signal.aborted) {
+        throw new Error(cancelDownload ? "abgebrochen" : `keine Daten seit ${DOWNLOAD_IDLE_MS / 1000} s (${f.path})`);
       }
-      bytes.set(value, got);
-      got += value.length;
-      if (Date.now() - lastPost > 250) {
-        lastPost = Date.now();
-        postMessage({ type: "progress", what: "download", done: done + got, total, file: f.path });
-      }
+      throw e;
+    } finally {
+      clearTimeout(idle);
+      clearInterval(poll);
+    }
+    if (cancelDownload) {
+      throw new Error("abgebrochen");
     }
     const data = got === bytes.length ? bytes : bytes.subarray(0, got);
     if (!(await verify(f, data))) {

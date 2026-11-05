@@ -252,9 +252,6 @@
   "remoteAll": {
     "message": "Entire conversation"
   },
-  "remoteCancel": {
-    "message": "Cancel"
-  },
   "remoteAsk": {
     "message": "Load remote content for"
   },
