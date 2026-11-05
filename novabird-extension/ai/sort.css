@@ -1,0 +1,40 @@
+/* KI-Einsortieren – Größen in em/rem, damit die Seite mit der Schriftgröße von Thunderbird/Windows mitwächst */
+:root { color-scheme: light dark; --acc: #2F6BD8; --line: color-mix(in srgb, currentColor 18%, transparent); --soft: color-mix(in srgb, currentColor 5%, transparent); --dim: color-mix(in srgb, currentColor 65%, transparent); }
+body { font: message-box; font-size: 1rem; margin: 0; padding: 1.2em 1.5em 2em; line-height: 1.45; background: Canvas; color: CanvasText; }
+main { max-width: 62em; margin: 0 auto; }
+h1 { font-size: 1.4em; margin: 0 0 .3em; }
+h2 { font-size: 1.1em; margin: 0 0 .3em; display: flex; align-items: center; gap: .5em; }
+.badge { font-size: .75em; font-weight: 600; padding: .05em .55em; border-radius: 99em; border: 1px solid var(--acc); color: var(--acc); vertical-align: middle; }
+.count { font-size: .8em; font-weight: 600; padding: .05em .6em; border-radius: 99em; background: var(--acc); color: #fff; }
+.count:empty { display: none; }
+.intro, .help { color: var(--dim); margin: .15em 0 .7em; }
+.help { font-size: .93em; }
+.warn { color: #b3261e; font-weight: 600; }
+.box { border: 1px solid var(--line); border-radius: .7em; padding: .8em 1em; margin: .9em 0; }
+.rule { border: 1px solid var(--line); border-radius: .6em; padding: .6em .8em; margin: 0 0 .7em; background: var(--soft); display: grid; grid-template-columns: auto 1fr; gap: .45em .8em; align-items: center; }
+.rule > label { font-weight: 600; }
+.rule textarea { font: inherit; width: 100%; box-sizing: border-box; min-height: 3.2em; resize: vertical; padding: .3em .45em; }
+.rule select { font: inherit; max-width: 100%; }
+.rule .opts { display: flex; gap: .4em 1.2em; flex-wrap: wrap; align-items: center; }
+.rule .opts label { display: inline-flex; gap: .35em; align-items: center; }
+.rule .foot { grid-column: 1 / -1; display: flex; gap: .8em; align-items: center; flex-wrap: wrap; }
+.rule .stats { color: var(--dim); font-size: .9em; flex: 1; }
+.rule.off { opacity: .7; }
+.rows { list-style: none; padding: 0; margin: 0; }
+.rows li { display: grid; grid-template-columns: 6em minmax(6em, 12em) 1fr auto; gap: .6em; align-items: center; padding: .3em 0; border-top: 1px solid var(--line); font-size: .95em; }
+.rows li:first-child { border-top: 0; }
+.rows li > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rows .d { color: var(--dim); }
+.rows .to { color: var(--acc); font-weight: 600; }
+.rows .st { color: var(--dim); font-size: .9em; }
+.rows .err { color: #b3261e; font-size: .9em; }
+.rows .btns { display: flex; gap: .35em; }
+.bar { display: flex; gap: .7em; align-items: center; flex-wrap: wrap; margin-top: .6em; }
+button { font: inherit; padding: .3em .9em; border-radius: .4em; border: 1px solid var(--line); background: var(--soft); color: inherit; cursor: pointer; }
+button.primary { background: var(--acc); border-color: var(--acc); color: #fff; font-weight: 600; }
+button:disabled { opacity: .45; cursor: default; }
+@media (max-width: 40em) {
+  .rule { grid-template-columns: 1fr; }
+  .rows li { grid-template-columns: 1fr auto; }
+  .rows li .d, .rows li .a { display: none; }
+}

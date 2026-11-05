@@ -12,7 +12,7 @@ const vm = require("node:vm");
 const src = ["../../shared/nbnet.js", "../ai/ai.js"].map(f => fs.readFileSync(path.join(__dirname, f), "utf8")).join("\n");
 const ctx = vm.createContext({ crypto, TextEncoder, TextDecoder, btoa, atob, console });
 vm.runInContext(src + "\nthis.nbAI = nbAI;", ctx);
-const { sentences, guessLang } = ctx.nbAI;
+const { sentences, quickStart, guessLang } = ctx.nbAI;
 
 const SUMMARY = `**Kernpunkte**
 - Herr Becker bittet um einen Termin für die Abnahme der Heizungsanlage
@@ -43,6 +43,34 @@ test("Sätze: lange werden an Kommas geteilt (höchstens 280 Zeichen), leerer Te
   assert.ok(s.length > 1 && s.every(x => x.length <= 280));
   assert.equal(s.join(" ").replace(/\s+/g, " ").length >= long.length - 5, true);
   assert.deepEqual([...sentences("  \n\n ")], []);
+});
+
+test("Schneller Start: kurzer erster Satz bleibt ganz", () => {
+  const s = ["Die Rechnung ist da.", "Bitte bis Freitag zahlen."];
+  assert.deepEqual([...quickStart(s)], s);
+  assert.deepEqual([...quickStart([])], []);
+});
+
+test("Schneller Start: langer erster Satz am letzten Komma vor Zeichen 100 geteilt", () => {
+  const first = "Herr Meier schickt die Rechnung für die Wartung der Heizung im Oktober, " +
+    "die Summe beträgt 120 Euro, fällig ist sie bis zum 15. November.";
+  assert.deepEqual([...quickStart([first, "Zweiter Satz."])], [
+    "Herr Meier schickt die Rechnung für die Wartung der Heizung im Oktober, die Summe beträgt 120 Euro,",
+    "fällig ist sie bis zum 15. November.",
+    "Zweiter Satz.",
+  ]);
+  // nur der erste Satz wird geteilt
+  assert.deepEqual([...quickStart(["Kurz und gut.", first])], ["Kurz und gut.", first]);
+});
+
+test("Schneller Start: ohne Komma erst ab 160 Zeichen an einem Leerzeichen", () => {
+  const medium = "Wort ".repeat(25).trim() + ".";
+  assert.deepEqual([...quickStart([medium])], [medium]);
+  const long = "Wort ".repeat(40).trim() + ".";
+  const parts = quickStart([long]);
+  assert.equal(parts.length, 2);
+  assert.ok(parts[0].length <= 100);
+  assert.equal(parts.join(" "), long);
 });
 
 test("Sprache am Text erkennen, sonst Rückfall", () => {

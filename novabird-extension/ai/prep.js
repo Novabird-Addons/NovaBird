@@ -72,6 +72,7 @@
   function localValue(e, kind, variant) {
     if (kind === "digest") return e.digest && e.digestLang === variant ? e.digest : null;
     if (kind === "phish") return e.phish && e.phish.v === variant ? e.phish.value : null;
+    if (kind === "sort") return e.sort && e.sort.v === variant ? e.sort.value : null;
     return e.sum && e.sum.v === variant ? e.sum.text : null;
   }
 
@@ -79,6 +80,7 @@
     const e = await entry(src);
     if (kind === "digest") Object.assign(e, { digest: value, digestLang: variant });
     else if (kind === "phish") e.phish = { v: variant, value };
+    else if (kind === "sort") e.sort = { v: variant, value };
     else e.sum = { v: variant, text: value };
     save();
   }
@@ -192,9 +194,14 @@
   let busy = false;
   let wake = null;
 
-  function enqueue(messageId, front = false) {
-    if (queue.some(q => q.messageId === messageId)) return;
-    const item = { messageId, tries: 0, due: 0 };
+  // fresh: neu eingetroffen (nur solche Mails sortiert die KI ein, nicht jede geöffnete)
+  function enqueue(messageId, front = false, fresh = false) {
+    const known = queue.find(q => q.messageId === messageId);
+    if (known) {
+      known.fresh ||= fresh;
+      return;
+    }
+    const item = { messageId, tries: 0, due: 0, fresh };
     front ? queue.unshift(item) : queue.push(item);
     pump();
   }
@@ -213,7 +220,7 @@
         }
         const [item] = queue.splice(i, 1);
         try {
-          if ((await prepare(item.messageId)) === PENDING && ++item.tries < 6) queue.push({ ...item, due: Date.now() + RETRY_MS });
+          if ((await prepare(item.messageId, item.fresh)) === PENDING && ++item.tries < 6) queue.push({ ...item, due: Date.now() + RETRY_MS });
         } catch (e) {
           console.warn("NovaBird-Extension: KI vorbereiten", e);
           if (++item.tries < 2) queue.push({ ...item, due: Date.now() + 5 * 60_000 });
@@ -224,9 +231,13 @@
     }
   }
 
-  async function prepare(messageId) {
+  // gleich nach dem Start sind die Regeln evtl. noch nicht geladen: abwarten statt eine neue Mail zu übergehen
+  const sortOn = async () => Boolean(await globalThis.nbSort?.active());
+
+  async function prepare(messageId, fresh = false) {
     const c = await config();
-    if (!ready(c) || !(c.aiPrepare || phishOn(c))) return null;
+    const sorting = fresh && (await sortOn());
+    if (!ready(c) || !(c.aiPrepare || phishOn(c) || sorting)) return null;
     const lang = uiLang();
     const src = await source(c, messageId);
     if (!src.text) return null;
@@ -242,6 +253,15 @@
         throw e;
       }
     }
+    // KI-Einsortieren (ai/sort.js): vor der Einordnung, damit eine Mail schnell in ihrem Ordner ist
+    if (sorting) {
+      try {
+        if ((await nbSort.handle(c, src, messageId)) === PENDING) pending = true;
+      } catch (e) {
+        if (!c.aiPrepare) throw e;
+        console.warn("NovaBird-Extension: KI-Einsortieren", e);
+      }
+    }
     if (!c.aiPrepare) return pending ? PENDING : null;
     if (nbAI.feature(c, "overview") || nbAI.feature(c, "deadlines")) {
       if ((await obtain(c, "digest", lang, src, () => computeDigest(c, lang, src))) === PENDING) pending = true;
@@ -254,12 +274,12 @@
 
   async function newMessages(folder, list) {
     const c = await config();
-    if (!ready(c) || !(c.aiPrepare || phishOn(c))) return;
+    if (!ready(c) || !(c.aiPrepare || phishOn(c) || (await sortOn()))) return;
     const inbox = folder?.type === "inbox" || (folder?.specialUse || []).includes("inbox");
     if (!inbox) return;
     let page = list;
     for (;;) {
-      for (const m of page?.messages || []) if (!m.junk) enqueue(m.id);
+      for (const m of page?.messages || []) if (!m.junk) enqueue(m.id, false, true);
       if (!page?.id) break;
       page = await messenger.messages.continueList(page.id);
     }
@@ -438,7 +458,7 @@
     if (msg?.type === "nbx-deadlines") return deadlines(Number(msg.days) || 7);
     // Mails von Hand vorbereiten (wie beim Eintreffen; auch für Tests, ohne Fenster meldet Thunderbird keine neuen Mails)
     if (msg?.type === "nbx-prepare" && Array.isArray(msg.ids)) {
-      msg.ids.filter(Number.isInteger).slice(0, 200).forEach(id => enqueue(id));
+      msg.ids.filter(Number.isInteger).slice(0, 200).forEach(id => enqueue(id, false, true));
       return Promise.resolve(true);
     }
     if (msg?.type === "nbx-reminded" && typeof msg.msgId === "string" && Number.isInteger(msg.i)) return markReminded(msg.msgId, msg.i);
@@ -447,5 +467,5 @@
 
   const reminded = async msgId => (await load())[msgId]?.reminded || [];
 
-  globalThis.nbPrep = { lookup, remember, digestFor, overview, reminded, sumVariant };
+  globalThis.nbPrep = { lookup, remember, obtain, source, header, PENDING, digestFor, overview, reminded, sumVariant };
 })();

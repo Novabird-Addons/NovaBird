@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>NovaBird</title>
+  <link rel="stylesheet" href="sort.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1><span id="title"></span> <span class="badge" id="beta"></span></h1>
+      <p class="intro" id="intro"></p>
+      <p class="warn" id="aiOff" hidden></p>
+    </header>
+
+    <section class="box">
+      <h2 id="rulesTitle"></h2>
+      <p class="help" id="rulesHelp"></p>
+      <div id="rules"></div>
+      <p class="help" id="noRules" hidden></p>
+      <button type="button" id="add"></button>
+    </section>
+
+    <section class="box">
+      <h2><span id="sugTitle"></span> <span class="count" id="sugCount"></span></h2>
+      <p class="help" id="sugHelp"></p>
+      <ul class="rows" id="sug"></ul>
+      <p class="help" id="sugNone"></p>
+      <div class="bar" id="sugBar" hidden><button type="button" id="sugAll"></button><button type="button" id="sugNoAll"></button></div>
+    </section>
+
+    <section class="box">
+      <h2 id="scanTitle"></h2>
+      <p class="help" id="scanHelp"></p>
+      <div class="bar">
+        <label><span id="scanDaysL"></span> <select id="scanDays"><option value="7"></option><option value="30" selected></option><option value="90"></option></select></label>
+        <button type="button" id="scanStart"></button>
+        <button type="button" id="scanStop" hidden></button>
+        <span id="scanState" class="help" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <section class="box">
+      <h2 id="logTitle"></h2>
+      <p class="help" id="logHelp"></p>
+      <ul class="rows" id="log"></ul>
+      <p class="help" id="logNone"></p>
+      <div class="bar" id="logBar" hidden><button type="button" id="logClear"></button></div>
+    </section>
+  </main>
+  <script src="sort-page.js"></script>
+</body>
+</html>

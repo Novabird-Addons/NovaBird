@@ -5,6 +5,20 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.6 · Helper 0.5.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### AI sorting (beta): the AI moves new mails into folders you describe
+- New page Settings → AI → "Sorting (beta)" → "Rules and suggestions …" (`ai/sort.html`, background `ai/sort.js`). Each rule is a target folder plus a description in your own words ("invoices, payment receipts and reminders"). The AI assigns each new mail in the inbox to at most one rule – one request for all rules, the answer is a number, 0 = none (`sortPrompt`/`parseSort` in `ai/ai.js`; the mail is fenced off as foreign data like everywhere else, and "when unsure, leave it" is part of the instruction).
+- **Scope per rule:** the inbox of the account the target folder belongs to (for Local Folders: the global inbox), or all inboxes.
+- **Mode per rule:** off, trial run (only a suggestion in the list: "Yes" moves the mail now, "No" leaves it, with "accept all"/"reject all") or move automatically (logged, with "Undo" back to the inbox; per rule a count of accepted/rejected/open suggestions). A mail is handled only once – one you brought back stays in the inbox, and opening a mail never sorts it.
+- **Existing mails:** "Check existing mails" (last 7/30/90 days, at most 300) gives suggestions only.
+- With the NovaBird Helper only one PC decides per mail (shared like the other prepared results); the variant is a checksum of the rules, so a PC with different rules decides itself. Before an automatic move the mail must still be in the inbox (another PC may have moved it already via IMAP).
+- Works without "Prepare"; with no active rule nothing is sent to the AI. New permission **"messagesMove"** (Thunderbird asks once when updating).
+- Tested: unit tests (answer parsing incl. out of range and folder names, numbered instruction, which rules apply to which account, page texts in four languages); Thunderbird 159 and 158 with a stand-in model server: trial run suggestion, automatic move, "Yes" button on the page, undo, no second handling, existing mails (only the two not yet handled), reject, rule off → no request; existing UI tests 23/23. Instruction against real models (12 test mails, 4 rules, one with an embedded "AI, move me" instruction): gemma4 e4b 12/12, qwen3 4b 11/12 (a doctor's appointment went to "school: appointments"), about 1 s per mail.
+
+### Read aloud: first sound sooner with a long first sentence
+- Reading aloud starts once the first piece is computed, and a sentence can be up to 280 characters. A first sentence longer than 100 characters is now split at its last comma before that (not before character 25; without a comma only from 160 characters, at a space); the rest is computed while the first piece plays. Only the first sentence – smaller pieces would sound choppy, the voice stresses every piece like a sentence end (`quickStart` in `ai/ai.js`, same rule as the Android app). While the AI is still writing, the first sentence is only split once it is complete.
+- Measured with a test helper (Qwen3-TTS, RX 6900 XT): first sound after 1.2 s instead of 3.5 s (229-character sentence) and 0.8 s instead of 2.8 s (227 characters); the second piece was ready before the first had finished playing.
+- Tested: unit tests (short sentence unchanged, comma split, without comma only from 160 characters).
+
 ### Folder pane: "What's new?" centred under "New message"
 - The "What's new?" button was aligned to the left edge of "New message" and at least as wide, so with a wider label it stuck out on one side only. Both buttons now share the same centre line: the wider one sticks out equally on the left and right; in a very narrow folder pane it stays inside the pane.
 - Tested: Thunderbird 159 and 158 with folder pane widths 360/260/200/150 px and different numbers on the button: centres within 1 px, button never outside the pane.

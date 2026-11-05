@@ -186,6 +186,7 @@ const TEXTS = {
     aiCalendarLabel: "Termine und Aufgaben in",
     aiCalendarAsk: "Jedes Mal fragen",
     aiPrepTitle: "Vorbereiten",
+    aiSortTitle: "Einsortieren (Beta)", aiSortDesc: "Die KI verschiebt neue Mails in Ordner, die du in eigenen Worten beschreibst – erst im Probelauf als Vorschlag, dann auf Wunsch automatisch. Auch für Mails, die schon im Posteingang liegen.", aiSortOpen: "Regeln und Vorschläge …",
     aiPrepareLabel: "Neue Mails gleich beim Eintreffen vorbereiten",
     aiPrepareDesc: "Jede neue Mail im Posteingang wird sofort eingeordnet (Abschnitt, ein Satz, Aufgaben und Fristen), längere Mails bekommen schon ihre Zusammenfassung – ebenso eine längere Mail, die du 2 Sekunden offen hast. „Was gibt's Neues?“ ist dann sofort da. Dafür geht jede neue Mail automatisch an die KI-Adresse oben. Mit dem NovaBird Helper rechnet nur ein PC je Mail; die anderen PCs derselben Gruppe holen das Ergebnis verschlüsselt ab.",
     aiSpeechRateLabel: "Vorlesen: Tempo",
@@ -483,6 +484,7 @@ const TEXTS = {
     aiCalendarLabel: "Appointments and tasks in",
     aiCalendarAsk: "Ask every time",
     aiPrepTitle: "Prepare",
+    aiSortTitle: "Sorting (beta)", aiSortDesc: "The AI moves new mails into folders you describe in your own words – first as suggestions in a trial run, then automatically if you like. Also for mails already in the inbox.", aiSortOpen: "Rules and suggestions …",
     aiPrepareLabel: "Prepare new mail as soon as it arrives",
     aiPrepareDesc: "Every new message in the inbox is sorted right away (section, one sentence, tasks and deadlines); longer messages already get their summary – as does a longer message you keep open for 2 seconds. “What's new?” is then ready at once. For this, every new message is sent automatically to the AI address above. With the NovaBird Helper only one PC works on each message; the other PCs of the same group fetch the result in encrypted form.",
     aiSpeechRateLabel: "Read aloud: speed",
@@ -780,6 +782,7 @@ const TEXTS = {
     aiCalendarLabel: "Rendez-vous et tâches dans",
     aiCalendarAsk: "Demander à chaque fois",
     aiPrepTitle: "Préparer",
+    aiSortTitle: "Tri (bêta)", aiSortDesc: "L’IA déplace les nouveaux messages dans des dossiers que vous décrivez avec vos propres mots – d’abord comme suggestions lors d’un essai, puis automatiquement si vous le souhaitez. Aussi pour les messages déjà dans la boîte de réception.", aiSortOpen: "Règles et suggestions …",
     aiPrepareLabel: "Préparer les nouveaux messages dès leur arrivée",
     aiPrepareDesc: "Chaque nouveau message de la boîte de réception est classé immédiatement (section, une phrase, tâches et échéances) ; les messages longs reçoivent déjà leur résumé – de même qu’un message long que vous gardez ouvert 2 secondes. « Quoi de neuf ? » est alors prêt tout de suite. Pour cela, chaque nouveau message est envoyé automatiquement à l’adresse IA ci-dessus. Avec NovaBird Helper, un seul PC traite chaque message ; les autres PC du même groupe récupèrent le résultat chiffré.",
     aiSpeechRateLabel: "Lecture : vitesse",
@@ -1077,6 +1080,7 @@ const TEXTS = {
     aiCalendarLabel: "Citas y tareas en",
     aiCalendarAsk: "Preguntar cada vez",
     aiPrepTitle: "Preparar",
+    aiSortTitle: "Clasificar (beta)", aiSortDesc: "La IA mueve los correos nuevos a carpetas que describes con tus palabras – primero como sugerencias en una prueba, luego automáticamente si quieres. También para correos que ya están en la bandeja de entrada.", aiSortOpen: "Reglas y sugerencias …",
     aiPrepareLabel: "Preparar el correo nuevo en cuanto llega",
     aiPrepareDesc: "Cada correo nuevo de la bandeja de entrada se clasifica enseguida (sección, una frase, tareas y plazos); los correos largos ya reciben su resumen, igual que un correo largo que tenga abierto 2 segundos. «¿Qué hay de nuevo?» está listo al instante. Para ello, cada correo nuevo se envía automáticamente a la dirección de IA de arriba. Con NovaBird Helper solo un PC procesa cada correo; los demás PC del mismo grupo recogen el resultado cifrado.",
     aiSpeechRateLabel: "Lectura: velocidad",
@@ -1811,6 +1815,7 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
   const prepare = document.getElementById("aiPrepare");
   prepare.checked = conf.aiPrepare === true;
   prepare.addEventListener("change", () => save({ aiPrepare: prepare.checked }));
+  document.getElementById("aiSortOpen").addEventListener("click", () => messenger.tabs.create({ url: messenger.runtime.getURL("ai/sort.html") }));
   // Anweisung an die KI anzeigen und erklären (Text aus ai/ai.js, in der Sprache der Oberfläche)
   document.getElementById("aiPromptText").textContent = nbAI.promptTemplate(document.documentElement.lang, false);
   const safeList = document.getElementById("aiPromptList");

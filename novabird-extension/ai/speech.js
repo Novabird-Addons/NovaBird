@@ -104,7 +104,9 @@ if (typeof module !== "undefined") module.exports = { nbStretch };
           cur = job.text || cur;
           done = job.status !== "running";
         }
-        const all = nbAI.sentences(cur);
+        let all = nbAI.sentences(cur);
+        // langen ersten Satz teilen (schneller der erste Ton) – erst wenn er fertig ist, sonst wanderte die Teilung mit
+        if (done || all.length > 1) all = nbAI.quickStart(all);
         if (job && all.length + 1 < spoken) break; // Auftrag neu gestartet (Text wieder kürzer): nicht weiterlesen
         if (spoken >= (done ? all.length : all.length - 1)) {
           if (done) break;
