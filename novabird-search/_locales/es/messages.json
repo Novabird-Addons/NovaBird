@@ -44,6 +44,22 @@
   "includeLabel": {
     "message": "Incluir"
   },
+  "sortLabel": {
+    "message": "Orden",
+    "description": "Optionsmenü der Suchleiste: Überschrift der Reihenfolge"
+  },
+  "sortBest": {
+    "message": "Mejores primero",
+    "description": "Optionsmenü: beste Treffer oben, danach nach Datum"
+  },
+  "sortDate": {
+    "message": "Más recientes primero",
+    "description": "Optionsmenü: nach Datum, neueste zuerst"
+  },
+  "sortRelevance": {
+    "message": "Relevancia",
+    "description": "Optionsmenü: ganze Liste nach Relevanz"
+  },
   "busy": {
     "message": "Buscando en el texto de los mensajes …"
   },
@@ -168,7 +184,7 @@
     "message": "El índice de búsqueda propio no se usa (ajuste «Nunca»)."
   },
   "optSort": {
-    "message": "Orden de resultados (índice de búsqueda):"
+    "message": "Orden predeterminado de resultados (índice de búsqueda):"
   },
   "optSortBest": {
     "message": "Mejores resultados primero, luego por fecha"
@@ -177,10 +193,10 @@
     "message": "Fecha (más recientes primero)"
   },
   "optSortRelevance": {
-    "message": "Relevancia – EXPERIMENTAL (con bonificación para mensajes recientes)"
+    "message": "Relevancia (mejores arriba, con bonificación para mensajes recientes)"
   },
   "optSortHint": {
-    "message": "Por defecto: hasta 10 resultados que encajan especialmente bien van primero (la palabra tal como se escribió en el asunto o el texto; con la búsqueda por significado, también el sentido) – ligeramente resaltados, con una línea debajo. Después, todos los resultados por fecha. «Relevancia» ordena toda la lista por relevancia (experimental). Solo se aplica con el índice de búsqueda propio; los resultados de Gloda y la búsqueda rápida en encabezados siguen ordenados por fecha."
+    "message": "Por defecto: hasta 10 resultados que encajan especialmente bien van primero (la palabra tal como se escribió en el asunto o el texto; con la búsqueda por significado, también el sentido) – ligeramente resaltados, con una línea debajo. Después, todos los resultados por fecha. «Relevancia» ordena toda la lista según lo bien que encaja – útil para una búsqueda concreta. Para una sola búsqueda, el orden se cambia en el menú de opciones de la barra de búsqueda (⚙). Solo se aplica con el índice de búsqueda propio; los resultados de Gloda y la búsqueda rápida en encabezados siguen ordenados por fecha."
   },
   "suggest": {
     "message": "¿Quiso decir: {text}?"

@@ -87,6 +87,10 @@ const DEFAULT_STRINGS = {
   optTrash: "Trash",
   optSpam: "Spam",
   includeLabel: "Include",
+  sortLabel: "Order",
+  sortBest: "Best first",
+  sortDate: "Newest first",
+  sortRelevance: "Relevance",
   busy: "Searching message text …",
   clear: "Clear search",
   rangeAll: "All",
@@ -123,7 +127,9 @@ const DEFAULT_STATE = {
   trash: false,
   spam: false,
   range: "all", // Zeitfenster: all | today | 3d | 7d | 30d
+  sort: "", // Reihenfolge nur für diese Suche: best | date | relevance; "" = Standard aus den Einstellungen (sortDefault)
 };
+const SORT_MODES = ["best", "date", "relevance"];
 
 // Systemfarben statt fester Werte: folgen dem Theme (hell/dunkel).
 const CSS = `
@@ -809,6 +815,7 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
     // Jede Suchleiste (je about:3pane-Tab, auch in weiteren Hauptfenstern) hat eine feste ID und einen eigenen Zustand
     // (Haken, Bereich, Filter). Alle Ereignisse tragen die ID, alle Antworten des Hintergrunds gehen an genau diese Leiste.
     let barSeq = 0;
+    let sortDefault = "best"; // Reihenfolge aus den Einstellungen (setSortDefault); das Menü zeigt sie, solange state.sort leer ist
     const stateOf = root => (root._nbsState ??= { ...DEFAULT_STATE });
     const barOf = barId => {
       for (const win of Services.wm.getEnumerator("mail:3pane")) {
@@ -830,6 +837,8 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           out.scope = raw?.scope === "folder" ? "folder" : "all";
         } else if (key === "range") {
           out.range = ["today", "3d", "7d", "30d"].includes(raw?.range) ? raw.range : "all";
+        } else if (key === "sort") {
+          out.sort = SORT_MODES.includes(raw?.sort) ? raw.sort : "";
         } else if (typeof raw?.[key] === "boolean") {
           out[key] = raw[key];
         }
@@ -878,6 +887,7 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           key === "scope-all" ? state.scope === "all"
           : key === "scope-folder" ? state.scope === "folder"
           : key.startsWith("range:") ? state.range === key.slice(6)
+          : key.startsWith("sort:") ? (state.sort || sortDefault) === key.slice(5)
           : state[key] === true;
         item.setAttribute("aria-checked", String(checked));
       }
@@ -953,6 +963,11 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
       const includeLabel = el("span", "nbs-label nbs-text");
       includeLabel.dataset.labelOnly = "includeLabel";
       includeRow.append(includeLabel, item("trash", "optTrash", "toggle"), item("spam", "optSpam", "toggle"));
+      // Reihenfolge der Treffer nur für diese Suche (Standard: Einstellungen); wie die Haken zurück auf Standard am Ende der Suche
+      const sortRow = el("div", "nbs-row");
+      const sortLabel = el("span", "nbs-label nbs-text");
+      sortLabel.dataset.labelOnly = "sortLabel";
+      sortRow.append(sortLabel);
       optMenu.append(
         item("from", "optFrom", "check"),
         item("to", "optTo", "check"),
@@ -963,6 +978,11 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
         item("unread", "optUnread", "toggle"),
         el("div", "nbs-sep"),
         includeRow,
+        el("div", "nbs-sep"),
+        sortRow,
+        item("sort:best", "sortBest", "radio"),
+        item("sort:date", "sortDate", "radio"),
+        item("sort:relevance", "sortRelevance", "radio"),
         el("div", "nbs-sep"),
         (() => {
           const b = item("settings", "openSettings", "action");
@@ -1077,7 +1097,11 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           return;
         }
         if (key.startsWith("range:")) state.range = key.slice(6);
-        else if (key === "scope-all") state.scope = "all";
+        else if (key.startsWith("sort:")) {
+          const mode = key.slice(5);
+          if (state.sort === mode || (!state.sort && mode === sortDefault)) return; // schon gewählt: nicht neu suchen
+          state.sort = mode === sortDefault ? "" : mode; // gleich dem Standard: kein „geändert“-Punkt am Zahnrad
+        } else if (key === "scope-all") state.scope = "all";
         else if (key === "scope-folder") state.scope = "folder";
         else state[key] = !state[key];
         refresh(root); // nur diese Leiste: der Zustand gilt je Fenster/Tab
@@ -1998,6 +2022,14 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           strings = { ...DEFAULT_STRINGS, ...newStrings };
           refreshAll();
           refreshLabels();
+        },
+        async setSortDefault(mode) {
+          sortDefault = SORT_MODES.includes(mode) ? mode : "best";
+          for (const root of roots()) {
+            const st = stateOf(root);
+            if (st.sort === sortDefault) st.sort = ""; // gewählte Reihenfolge ist jetzt der Standard
+          }
+          refreshAll();
         },
         async highlight(barId, word) {
           const b = barOf(barId);

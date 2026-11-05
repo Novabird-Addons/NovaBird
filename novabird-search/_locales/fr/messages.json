@@ -44,6 +44,22 @@
   "includeLabel": {
     "message": "Inclure"
   },
+  "sortLabel": {
+    "message": "Ordre",
+    "description": "Optionsmenü der Suchleiste: Überschrift der Reihenfolge"
+  },
+  "sortBest": {
+    "message": "Meilleurs d’abord",
+    "description": "Optionsmenü: beste Treffer oben, danach nach Datum"
+  },
+  "sortDate": {
+    "message": "Plus récents d’abord",
+    "description": "Optionsmenü: nach Datum, neueste zuerst"
+  },
+  "sortRelevance": {
+    "message": "Pertinence",
+    "description": "Optionsmenü: ganze Liste nach Relevanz"
+  },
   "busy": {
     "message": "Recherche dans le texte des messages …"
   },
@@ -168,7 +184,7 @@
     "message": "L’index de recherche propre n’est pas utilisé (réglage « Jamais »)."
   },
   "optSort": {
-    "message": "Ordre des résultats (index de recherche) :"
+    "message": "Ordre par défaut des résultats (index de recherche) :"
   },
   "optSortBest": {
     "message": "Meilleurs résultats d’abord, puis par date"
@@ -177,10 +193,10 @@
     "message": "Date (plus récents d’abord)"
   },
   "optSortRelevance": {
-    "message": "Pertinence – EXPÉRIMENTAL (bonus pour les messages récents)"
+    "message": "Pertinence (meilleurs en haut, bonus pour les messages récents)"
   },
   "optSortHint": {
-    "message": "Par défaut : jusqu’à 10 résultats particulièrement pertinents en tête (le mot tel que saisi dans l’objet ou le texte, avec la recherche par le sens aussi le sens) – légèrement surlignés, avec une ligne en dessous. Ensuite tous les résultats par date. « Pertinence » trie toute la liste par pertinence (expérimental). S’applique uniquement avec l’index de recherche propre ; les résultats Gloda et la recherche rapide dans les en-têtes restent triés par date."
+    "message": "Par défaut : jusqu’à 10 résultats particulièrement pertinents en tête (le mot tel que saisi dans l’objet ou le texte, avec la recherche par le sens aussi le sens) – légèrement surlignés, avec une ligne en dessous. Ensuite tous les résultats par date. « Pertinence » trie toute la liste selon la correspondance – utile pour une recherche ciblée. Pour une seule recherche, l’ordre se change dans le menu d’options de la barre de recherche (⚙). S’applique uniquement avec l’index de recherche propre ; les résultats Gloda et la recherche rapide dans les en-têtes restent triés par date."
   },
   "suggest": {
     "message": "Vouliez-vous dire : {text} ?"

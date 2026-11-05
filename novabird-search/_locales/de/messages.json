@@ -59,6 +59,22 @@
     "message": "Einbeziehen",
     "description": "Beschriftung der Zeile mit Papierkorb und Spam"
   },
+  "sortLabel": {
+    "message": "Reihenfolge",
+    "description": "Optionsmenü der Suchleiste: Überschrift der Reihenfolge"
+  },
+  "sortBest": {
+    "message": "Beste zuerst",
+    "description": "Optionsmenü: beste Treffer oben, danach nach Datum"
+  },
+  "sortDate": {
+    "message": "Neueste zuerst",
+    "description": "Optionsmenü: nach Datum, neueste zuerst"
+  },
+  "sortRelevance": {
+    "message": "Relevanz",
+    "description": "Optionsmenü: ganze Liste nach Relevanz"
+  },
   "busy": {
     "message": "Nachrichtentext wird durchsucht …",
     "description": "Tooltip des Lade-Symbols im Suchfeld"
@@ -212,7 +228,7 @@
     "message": "Der eigene Suchindex wird nicht verwendet (Einstellung „Nie“)."
   },
   "optSort": {
-    "message": "Sortierung der Treffer (Suchindex):"
+    "message": "Standard-Reihenfolge der Treffer (Suchindex):"
   },
   "optSortBest": {
     "message": "Beste Treffer zuerst, danach nach Datum"
@@ -221,10 +237,10 @@
     "message": "Datum (neueste zuerst)"
   },
   "optSortRelevance": {
-    "message": "Relevanz – EXPERIMENTELL (mit Bonus für neuere Mails)"
+    "message": "Relevanz (beste oben, mit Bonus für neuere Mails)"
   },
   "optSortHint": {
-    "message": "Standard: Oben stehen bis zu 10 Treffer, die besonders gut passen (das Wort genau so in Betreff oder Text, mit Bedeutungssuche auch der Sinn) – leicht hinterlegt, mit einer Linie darunter. Danach folgen alle Treffer nach Datum. „Relevanz“ ordnet die ganze Liste nach Relevanz (experimentell). Gilt nur, wenn der eigene Suchindex genutzt wird; Gloda-Treffer und die schnelle Kopfzeilen-Suche bleiben nach Datum sortiert."
+    "message": "Standard: Oben stehen bis zu 10 Treffer, die besonders gut passen (das Wort genau so in Betreff oder Text, mit Bedeutungssuche auch der Sinn) – leicht hinterlegt, mit einer Linie darunter. Danach folgen alle Treffer nach Datum. „Relevanz“ ordnet die ganze Liste nach Passung – gut für eine gezielte Suche. Für eine einzelne Suche lässt sich die Reihenfolge im Optionsmenü der Suchleiste (⚙) umstellen. Gilt nur, wenn der eigene Suchindex genutzt wird; Gloda-Treffer und die schnelle Kopfzeilen-Suche bleiben nach Datum sortiert."
   },
   "suggest": {
     "message": "Meinten Sie: {text}?"

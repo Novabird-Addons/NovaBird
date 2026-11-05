@@ -5,6 +5,11 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.6 · Helper 0.5.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### Search: order of the hits in the options menu
+- The options menu of the search bar (⚙, next to "With attachment") has a new section **Order**: "Best first" (default), "Newest first", "Relevance". The choice applies to this search only and goes back to the default with the other options when the search ends (✕) – like the filters. The default stays in the settings (now "Default order of results"); the gear shows the "changed" mark while another order is chosen.
+- "Relevance" is no longer marked experimental (it really sorts since "best matches first"); the hint explains when it helps (targeted search: the whole list by fit instead of by date after the top block).
+- Tested in Thunderbird 159: menu texts, check marks, newest first (no highlight, by date), relevance (no highlight, not by date, best fit on top), back to best first, reset on clear (15/15).
+
 ### Code review for 2.0: remaining points
 - **Conversation:** a mail just deleted or moved to spam no longer shows up again in the rebuilt view (the index of NovaBird-Search processes the move through its queue and often still had it in the old folder); such mails are left out of the index results for two minutes.
 - **Search bar:** a hit selected while the meaning search adds its hits stays selected (before, the rebuilt list jumped to another mail – checked in Thunderbird with the old version as counter-test).

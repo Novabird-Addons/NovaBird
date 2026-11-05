@@ -237,6 +237,11 @@ function shownLimit(res) {
   return Math.min(res.rows.length, dbLimit()).toLocaleString(messenger.i18n.getUILanguage());
 }
 
+// Reihenfolge der Treffer: im Optionsmenü der Suchleiste für diese Suche gewählt, sonst die Einstellung
+function sortOf(state) {
+  return ["best", "date", "relevance"].includes(state?.sort) ? state.sort : settings.sortMode;
+}
+
 // Rohtreffer vom NovaBird-DB (rows) oder null, wenn er nicht bereit ist / nicht antwortet.
 async function novabirdDbFetch(text, state, folderId, limit) {
   if (!(await novabirdDbStatus())) {
@@ -278,7 +283,7 @@ async function novabirdDbSearch(ctl, text, criteria, state, gen, folderId) {
         folderId: folderId || undefined, // „Aktueller Ordner“: nur dieser Ordner
         fields: ["from", "to", "subject", "body"].filter(k => state[k]), // Haken des Optionsmenüs: wo gesucht wird
         filters: dbFilters(state, criteria), // ungelesen, Anhang, Zeitraum: vor der Höchstzahl
-        sort: settings.sortMode, // best (Standard): beste oben, danach nach Datum (bestIds) | date | relevance
+        sort: sortOf(state), // best (Standard): beste oben, danach nach Datum (bestIds) | date | relevance
       }),
       DB_SEARCH_MS
     );
@@ -291,8 +296,8 @@ async function novabirdDbSearch(ctl, text, criteria, state, gen, folderId) {
     ctl.sb.setSuggestion(res.rows.length ? "" : res.suggest?.text ?? "").catch(() => {});
     // Aktueller Ordner: auch im Papierkorb/Spam-Ordner selbst anzeigen
     const showState = folderId ? { ...state, trash: true, spam: true } : state;
-    const best = settings.sortMode === "best";
-    const count = await ctl.sb.idSearch(res.rows, criteria, { ...showState, group: settings.group }, settings.sortMode !== "date",
+    const best = sortOf(state) === "best";
+    const count = await ctl.sb.idSearch(res.rows, criteria, { ...showState, group: settings.group }, sortOf(state) !== "date",
       moreNote(res), best ? res.bestIds || [] : [], messenger.i18n.getMessage("headerBest", ["{n}"]));
     if (count >= 0 && res.more && gen === ctl.generation) {
       // gekürzt: sagen, dass es mehr gibt und wie man an die älteren kommt (statt still weniger Treffer zu zeigen)
@@ -340,18 +345,19 @@ async function semanticAugment(ctl, text, criteria, showState, gen, folderId, le
     if (!extra.length) {
       return;
     }
-    const relevance = settings.sortMode === "relevance";
+    const sort = sortOf(showState);
+    const relevance = sort === "relevance";
     // „Beste zuerst“: Wort- und Bedeutungstreffer gemeinsam bewerten (Kern: fuseBest), Rest nach Datum
     const core = globalThis.novabirdDbInternal;
     let rows = relevance ? fuseRanks(lexRows, res.rows) : [...lexRows, ...extra];
     let bestIds = [];
-    if (settings.sortMode === "best" && core?.fuseBest) {
+    if (sort === "best" && core?.fuseBest) {
       ({ rows, bestIds } = core.bestThenDate(core.fuseBest(lexRes.relevant || [], res.rows), [...lexRows, ...extra]));
     }
     // Option (Suche → Semantik, Standard an): in der Kopfzeile zeigen, wie viele Treffer aus der Bedeutungssuche kommen
     const { semantic: semCfg } = await messenger.storage.local.get({ semantic: {} });
     const note = [moreNote(lexRes), semCfg?.headerCount === false ? "" : messenger.i18n.getMessage("headerSimilar", [String(extra.length)])].filter(Boolean).join(" ");
-    const count = await ctl.sb.idSearch(rows, criteria, { ...showState, group: settings.group }, settings.sortMode !== "date", note,
+    const count = await ctl.sb.idSearch(rows, criteria, { ...showState, group: settings.group }, sort !== "date", note,
       bestIds, messenger.i18n.getMessage("headerBest", ["{n}"]));
     if (count >= 0 && gen === ctl.generation) {
       showNote(ctl, messenger.i18n.getMessage("noteSimilar", [String(extra.length)]), messenger.i18n.getMessage("noteSimilarTip"), "info");
@@ -841,6 +847,7 @@ messenger.storage.onChanged.addListener(changes => {
   if (changes[SETTINGS_KEY]) {
     const before = [settings.sharedFolders, settings.sharedInboxMonths];
     settings = sanitizeSettings(changes[SETTINGS_KEY].newValue);
+    messenger.searchBar.setSortDefault(settings.sortMode).catch(() => {});
     if (settings.sharedFolders !== before[0] || settings.sharedInboxMonths !== before[1]) {
       syncSharedFolders();
     }
@@ -852,11 +859,12 @@ async function init() {
   const strings = {};
   for (const key of [
     "placeholder", "scopeAll", "scopeFolder", "options", "optFrom", "optTo", "optSubject",
-    "optBody", "optAttachment", "optUnread", "optTrash", "optSpam", "includeLabel", "busy", "clear", "openSettings", "rangeAll", "rangeToday", "range3", "range7", "range30", "suggest", "resultsTitle", "historyTitle", "historyClear", "historyRemove", "refinePlaceholder", "askTitle", "askFilter", "askAnalyze", "askRemember", "markAllRead",
+    "optBody", "optAttachment", "optUnread", "optTrash", "optSpam", "includeLabel", "sortLabel", "sortBest", "sortDate", "sortRelevance", "busy", "clear", "openSettings", "rangeAll", "rangeToday", "range3", "range7", "range30", "suggest", "resultsTitle", "historyTitle", "historyClear", "historyRemove", "refinePlaceholder", "askTitle", "askFilter", "askAnalyze", "askRemember", "markAllRead",
   ]) {
     strings[key] = messenger.i18n.getMessage(key) || key;
   }
   await messenger.searchBar.setStrings(strings);
+  await messenger.searchBar.setSortDefault(settings.sortMode).catch(() => {});
   // Filter und Optionen gelten nur für die laufende Sitzung: nach dem Start immer Standard (alter gespeicherter Zustand wird verworfen)
   await messenger.storage.local.remove(STATE_KEY).catch(() => {});
   messenger.searchBar.setHistory((await readHistory()).slice(0, HISTORY_SHOWN)).catch(() => {});

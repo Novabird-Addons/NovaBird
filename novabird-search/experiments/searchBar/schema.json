@@ -55,6 +55,17 @@
             "type": "boolean",
             "optional": true
           },
+          "sort": {
+            "type": "string",
+            "enum": [
+              "",
+              "best",
+              "date",
+              "relevance"
+            ],
+            "optional": true,
+            "description": "Reihenfolge nur für diese Suche; leer = Standard aus den Einstellungen."
+          },
           "group": {
             "type": "boolean",
             "optional": true
@@ -220,6 +231,23 @@
           {
             "name": "strings",
             "$ref": "Strings"
+          }
+        ]
+      },
+      {
+        "name": "setSortDefault",
+        "type": "function",
+        "async": true,
+        "description": "Standard-Reihenfolge der Treffer (Einstellungen); das Optionsmenü zeigt sie, solange die Suche keine eigene hat.",
+        "parameters": [
+          {
+            "name": "mode",
+            "type": "string",
+            "enum": [
+              "best",
+              "date",
+              "relevance"
+            ]
           }
         ]
       },

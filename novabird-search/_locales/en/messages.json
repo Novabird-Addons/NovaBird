@@ -44,6 +44,22 @@
   "includeLabel": {
     "message": "Include"
   },
+  "sortLabel": {
+    "message": "Order",
+    "description": "Optionsmenü der Suchleiste: Überschrift der Reihenfolge"
+  },
+  "sortBest": {
+    "message": "Best first",
+    "description": "Optionsmenü: beste Treffer oben, danach nach Datum"
+  },
+  "sortDate": {
+    "message": "Newest first",
+    "description": "Optionsmenü: nach Datum, neueste zuerst"
+  },
+  "sortRelevance": {
+    "message": "Relevance",
+    "description": "Optionsmenü: ganze Liste nach Relevanz"
+  },
   "busy": {
     "message": "Searching message text …"
   },
@@ -168,7 +184,7 @@
     "message": "The own search index is not used (setting \"Never\")."
   },
   "optSort": {
-    "message": "Result order (search index):"
+    "message": "Default order of results (search index):"
   },
   "optSortBest": {
     "message": "Best matches first, then by date"
@@ -177,10 +193,10 @@
     "message": "Date (newest first)"
   },
   "optSortRelevance": {
-    "message": "Relevance – EXPERIMENTAL (with bonus for newer mails)"
+    "message": "Relevance (best on top, with bonus for newer mails)"
   },
   "optSortHint": {
-    "message": "Default: up to 10 hits that fit especially well come first (the word exactly as typed in subject or text, with meaning search also the sense) – slightly highlighted, with a line below. All other hits follow by date. “Relevance” orders the whole list by relevance (experimental). Only applies when the own search index is used; Gloda hits and the quick header search stay sorted by date."
+    "message": "Default: up to 10 hits that fit especially well come first (the word exactly as typed in subject or text, with meaning search also the sense) – slightly highlighted, with a line below. All other hits follow by date. “Relevance” orders the whole list by how well it fits – good for a targeted search. For a single search, the order can be changed in the options menu of the search bar (⚙). Only applies when the own search index is used; Gloda hits and the quick header search stay sorted by date."
   },
   "suggest": {
     "message": "Did you mean: {text}?"
