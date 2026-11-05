@@ -409,7 +409,8 @@ export class Indexer {
       const rest = headers.filter((h) => h.headerMessageId && (this.reread || known.get(h.headerMessageId) !== true));
       skipped += headers.length - rest.length;
       const offline = await this.withTimeout(this.offlineMap(rest), this.limits.step, "Offline-Flags lesen");
-      const pending = rest.filter((h) => !known.has(h.headerMessageId) || (offline.get(h.id) ?? true) || (this.reread && known.get(h.headerMessageId) === true));
+      // reread: Mails mit Text nur neu lesen, wenn sie noch lokal liegen – sonst würde der Text durch einen Kopfdaten-Eintrag ersetzt
+      const pending = rest.filter((h) => !known.has(h.headerMessageId) || (offline.get(h.id) ?? true));
       skipped += rest.length - pending.length; // nur Kopfdaten drin und weiter nicht lokal
       const refs = await this.withTimeout(this.refsMap(pending), this.limits.step, "Verweise lesen");
       const work = pending.map((h) => ({ h, isOffline: offline.get(h.id) ?? true, refs: refs.get(h.id) }));

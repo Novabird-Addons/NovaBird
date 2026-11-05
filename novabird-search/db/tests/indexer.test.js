@@ -487,6 +487,17 @@ describe("Code-Review 2.0: Zustand rund um die Läufe", () => {
     expect(fake.calls.listInlineTextParts).toBe(reads + 1);
   });
 
+  it("reread lässt Text von Mails, die nicht mehr lokal liegen, stehen (kein Kopfdaten-Eintrag statt Text)", async () => {
+    const { fake, indexer, db, caps } = await setup();
+    fake.addMessage("inbox", { subject: "A", body: "Wartungsfenster" });
+    await indexer.fullRun();
+    fake.api.novabirdDb = { offlineFlags: async (ids) => ids.map(() => false) }; // Thunderbird hat die lokale Kopie verworfen
+    const reads = fake.calls.listInlineTextParts;
+    await indexer.fullRun({ force: true, reread: true });
+    expect(fake.calls.listInlineTextParts).toBe(reads);
+    expect((await search(db, caps, "Wartungsfenster")).rows.length).toBe(1);
+  });
+
   it("gelöschter und wiederhergestellter Ordner wird neu gelesen (keine alten Meta-Werte)", async () => {
     const { fake, indexer, db, caps, count } = await setup();
     fake.addMessage("inbox", { subject: "A", body: "x" });
