@@ -194,6 +194,12 @@
   "noteDbMissing": {
     "message": "Search index is starting – Gloda search"
   },
+  "noteDbSlow": {
+    "message": "The search in the index takes too long."
+  },
+  "noteDbSlowTip": {
+    "message": "Please search more precisely: add words, a time range, “from:” or a folder."
+  },
   "noteDbBuilding": {
     "message": "Search index is being built – Gloda search"
   },
@@ -936,6 +942,15 @@
   },
   "headerSimilar": {
     "message": "· $1 of them by meaning"
+  },
+  "headerMore": {
+    "message": "· newest $1 – there are more"
+  },
+  "noteMore": {
+    "message": "More than $1 hits – the newest are shown."
+  },
+  "noteMoreTip": {
+    "message": "Older hits: narrow the search (time range, more words, unread/attachment) or raise the maximum (Settings → Search)."
   },
   "headerBest": {
     "message": "· $1 best on top, then by date"

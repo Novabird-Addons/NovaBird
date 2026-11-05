@@ -194,6 +194,12 @@
   "noteDbMissing": {
     "message": "L’index de recherche démarre – recherche Gloda"
   },
+  "noteDbSlow": {
+    "message": "La recherche dans l’index prend trop de temps."
+  },
+  "noteDbSlowTip": {
+    "message": "Précisez la recherche : d’autres mots, une période, « de: » ou un dossier."
+  },
   "noteDbBuilding": {
     "message": "L’index de recherche est en construction – recherche Gloda"
   },
@@ -936,6 +942,15 @@
   },
   "headerSimilar": {
     "message": "· dont $1 par le sens"
+  },
+  "headerMore": {
+    "message": "· les $1 plus récents – il y en a d’autres"
+  },
+  "noteMore": {
+    "message": "Plus de $1 résultats – les plus récents sont affichés."
+  },
+  "noteMoreTip": {
+    "message": "Résultats plus anciens : affinez la recherche (période, autres mots, non lus/pièce jointe) ou augmentez le maximum (Paramètres → Recherche)."
   },
   "headerBest": {
     "message": "· $1 meilleurs en tête, puis par date"

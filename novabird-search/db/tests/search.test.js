@@ -226,3 +226,54 @@ describe("Wortformen in Französisch, Spanisch und Englisch (Stamm als Präfix)"
     expect(await find("booked", ["de", "en"])).toEqual(["en3"]); // dazu Englisch: „book*“
   });
 });
+
+describe("Filter der Oberfläche vor der Höchstzahl (Haken „ungelesen“/„Anhang“, Zeitfenster) und Hinweis „es gibt mehr“", async () => {
+  // 30 neue gelesene Rechnungen ohne Anhang, 3 ältere ungelesene, 2 ältere mit Anhang – Höchstzahl 10
+  const db = createNodeAdapter();
+  const caps = await migrate(db);
+  const day = (n) => +NOW - n * 864e5;
+  const base = { accountId: "account1", folderId: "inbox", folderName: "Posteingang", folderType: "inbox", recipients: "a@x.example",
+    attachmentTypes: [], attachmentNames: [], tags: [], isFlagged: false, attachmentText: "", authorName: "Shop", authorEmail: "shop@x.example" };
+  const mails = [];
+  for (let i = 0; i < 30; i++) mails.push({ ...base, headerMessageId: `neu${i}@x`, date: day(i + 1), subject: `Rechnung ${i}`, body: "Ihre Rechnung", isRead: true, hasAttachment: false });
+  for (let i = 0; i < 3; i++) mails.push({ ...base, headerMessageId: `alt-ungelesen${i}@x`, date: day(400 + i), subject: `Rechnung alt ${i}`, body: "Ihre Rechnung", isRead: false, hasAttachment: false });
+  for (let i = 0; i < 2; i++) mails.push({ ...base, headerMessageId: `alt-anhang${i}@x`, date: day(500 + i), subject: `Rechnung PDF ${i}`, body: "Ihre Rechnung", isRead: true, hasAttachment: true });
+  await repository.upsertMessages(db, caps, mails, +NOW);
+  const go = (opts) => search(db, caps, "rechnung", { now: NOW, limit: 10, ...opts });
+
+  it("ohne Filter: die neuesten 10, more = true", async () => {
+    const r = await go({});
+    expect(r.rows.length).toBe(10);
+    expect(r.more).toBe(true);
+  });
+
+  it("ungelesen: auch die alten ungelesenen (lagen hinter der Höchstzahl), more = false", async () => {
+    const r = await go({ filters: { unread: true } });
+    expect(r.rows.map((x) => x.header_msg_id).sort()).toEqual(["alt-ungelesen0@x", "alt-ungelesen1@x", "alt-ungelesen2@x"]);
+    expect(r.more).toBe(false);
+  });
+
+  it("Anhang: die alten mit Anhang", async () => {
+    const r = await go({ filters: { attachment: true } });
+    expect(r.rows.map((x) => x.header_msg_id).sort()).toEqual(["alt-anhang0@x", "alt-anhang1@x"]);
+  });
+
+  it("Zeitraum: nur ab dateFrom, Chips bleiben ohne Filter", async () => {
+    const r = await go({ filters: { dateFrom: day(5) } });
+    expect(r.rows.length).toBe(5);
+    expect(r.chips.some((c) => /date|seit/i.test(c.kind ?? ""))).toBe(false);
+  });
+
+  it("„Beste zuerst“ nimmt dieselben Filter", async () => {
+    const r = await go({ sort: "best", filters: { unread: true } });
+    expect(r.rows.every((x) => x.header_msg_id.startsWith("alt-ungelesen"))).toBe(true);
+    expect(r.relevant.every((x) => x.header_msg_id.startsWith("alt-ungelesen"))).toBe(true);
+  });
+
+  it("ungültige Filter werden ignoriert, strengerer Zeitraum gewinnt", async () => {
+    const r = await go({ filters: { unread: "ja", dateFrom: "x" } });
+    expect(r.rows.length).toBe(10);
+    const both = await search(db, caps, "rechnung seit:3t", { now: NOW, limit: 10, filters: { dateFrom: day(20) } });
+    expect(both.rows.length).toBeLessThanOrEqual(3);
+  });
+});

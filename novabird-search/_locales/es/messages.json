@@ -194,6 +194,12 @@
   "noteDbMissing": {
     "message": "El índice de búsqueda se está iniciando – búsqueda con Gloda"
   },
+  "noteDbSlow": {
+    "message": "La búsqueda en el índice tarda demasiado."
+  },
+  "noteDbSlowTip": {
+    "message": "Precise la búsqueda: más palabras, un periodo, «de:» o una carpeta."
+  },
   "noteDbBuilding": {
     "message": "El índice de búsqueda se está creando – búsqueda con Gloda"
   },
@@ -936,6 +942,15 @@
   },
   "headerSimilar": {
     "message": "· $1 de ellos por significado"
+  },
+  "headerMore": {
+    "message": "· los $1 más recientes – hay más"
+  },
+  "noteMore": {
+    "message": "Más de $1 resultados – se muestran los más recientes."
+  },
+  "noteMoreTip": {
+    "message": "Resultados más antiguos: acote la búsqueda (periodo, más palabras, no leídos/adjunto) o aumente el máximo (Ajustes → Búsqueda)."
   },
   "headerBest": {
     "message": "· $1 mejores arriba, luego por fecha"

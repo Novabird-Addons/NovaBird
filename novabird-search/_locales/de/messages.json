@@ -238,6 +238,12 @@
   "noteDbMissing": {
     "message": "Suchindex startet – Gloda-Suche"
   },
+  "noteDbSlow": {
+    "message": "Die Suche im Index dauert zu lange."
+  },
+  "noteDbSlowTip": {
+    "message": "Bitte genauer suchen: weitere Begriffe, einen Zeitraum, „von:“ oder einen Ordner angeben."
+  },
   "noteDbBuilding": {
     "message": "Suchindex wird aufgebaut – Gloda-Suche"
   },
@@ -1020,6 +1026,15 @@
   },
   "headerSimilar": {
     "message": "· davon $1 per Bedeutungssuche"
+  },
+  "headerMore": {
+    "message": "· neueste $1 – es gibt mehr"
+  },
+  "noteMore": {
+    "message": "Mehr als $1 Treffer – angezeigt werden die neuesten."
+  },
+  "noteMoreTip": {
+    "message": "Ältere Treffer: Suche eingrenzen (Zeitraum, weitere Begriffe, ungelesen/Anhang) oder die Höchstzahl erhöhen (Einstellungen → Suche)."
   },
   "headerBest": {
     "message": "· $1 beste oben, danach nach Datum"

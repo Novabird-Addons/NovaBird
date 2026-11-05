@@ -36,6 +36,14 @@ describe("Parser – Randfälle", () => {
     expect(isEmptyQuery(parseQuery("   ich suche alle mails  ", { now: NOW }))).toBe(true);
   });
 
+  it("nur ein Füllwort („E-Mail“, „mail“) wird gesucht statt alle Mails zu zeigen; mit Bedingung bleibt es Füllwort", () => {
+    expect(parseQuery("e-mail", { now: NOW }).phrases).toEqual(["e mail"]);
+    expect(parseQuery("mail", { now: NOW }).terms).toEqual([["mail"]]);
+    const withPerson = parseQuery("Mail von Jonas", { now: NOW });
+    expect(withPerson.terms).toEqual([]);
+    expect(withPerson.from.length).toBe(1);
+  });
+
   it("Monatsende: letzte 1 Monat am 31.03.", () => {
     const q = parseQuery("letzten 1 Monat", { now: new Date(2026, 2, 31, 10) });
     expect(isoDate(q.dateFrom)).toBe("2026-02-28");

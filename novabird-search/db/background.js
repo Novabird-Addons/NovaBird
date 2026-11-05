@@ -907,9 +907,17 @@ function handleExternal(msg, senderId) {
           includeTrash: Boolean(msg.includeTrash),
           folderId: msg.folderId ? String(msg.folderId) : null, // optional: nur dieser Ordner („Aktueller Ordner“)
           fields: Array.isArray(msg.fields) ? msg.fields : null, // optional: ["from","to","subject","body"] (Teilmenge)
+          // optional: Haken/Zeitfenster der Suchleiste – gefiltert wird in der Abfrage, also vor der Höchstzahl
+          filters: msg.filters && typeof msg.filters === "object" ? {
+            unread: msg.filters.unread === true,
+            attachment: msg.filters.attachment === true,
+            dateFrom: Number.isFinite(Number(msg.filters.dateFrom)) && msg.filters.dateFrom != null ? Number(msg.filters.dateFrom) : undefined,
+            dateTo: Number.isFinite(Number(msg.filters.dateTo)) && msg.filters.dateTo != null ? Number(msg.filters.dateTo) : undefined,
+          } : undefined,
         });
         return {
           ok: true,
+          more: Boolean(res.more), // es gibt mehr Treffer als limit (Liste gekürzt)
           chips: res.chips,
           empty: res.empty,
           suggest: res.suggest ? { text: res.suggest.text, words: res.suggest.words } : null,

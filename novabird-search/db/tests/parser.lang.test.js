@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
-import { parseQuery } from "../src/parser/parseQuery.js";
+import { parseQuery, isEmptyQuery } from "../src/parser/parseQuery.js";
 import { isoDate } from "../src/parser/dates.js";
 import { LANGUAGES, resolvePacks } from "../src/parser/lang/index.js";
 
@@ -55,5 +55,29 @@ describe("Sprachpakete: Aufbau", () => {
   it("Verhältniswort „de“ vor Kleinbuchstaben ist keine Person (fr/es)", () => {
     expect(compact(parseQuery("notes de réunion", { now: NOW, langs: ["fr"] })).from).toBeUndefined();
     expect(compact(parseQuery("notes de Jonas", { now: NOW, langs: ["fr"] })).from).toEqual([{ name: "Jonas" }]);
+  });
+});
+
+describe("Füllwort allein wird gesucht (alle Suchsprachen)", () => {
+  const cases = {
+    de: [["e-mail", "e mail"], ["nachricht", null]],
+    en: [["email", null], ["e-mail", "e mail"]],
+    fr: [["courriel", null], ["e-mail", "e mail"]],
+    es: [["correo", null], ["mensaje", null]],
+  };
+  for (const [lang, list] of Object.entries(cases)) {
+    it(`${lang}: einzelnes Füllwort ist Suchbegriff, ein Satz aus Füllwörtern bleibt „alle Mails“`, () => {
+      for (const [text, phrase] of list) {
+        const q = parseQuery(text, { langs: [lang] });
+        if (phrase) expect(q.phrases).toEqual([phrase]);
+        else expect(q.terms.length).toBe(1);
+      }
+    });
+  }
+  it("Satz aus Füllwörtern und Füllwort mit Absender bleiben wie bisher", () => {
+    expect(isEmptyQuery(parseQuery("find all emails", { langs: ["en"] }))).toBe(true);
+    expect(isEmptyQuery(parseQuery("tous les mails", { langs: ["fr"] }))).toBe(true);
+    expect(isEmptyQuery(parseQuery("todos los correos", { langs: ["es"] }))).toBe(true);
+    expect(parseQuery("correo de Juan", { langs: ["es"] }).terms).toEqual([]);
   });
 });

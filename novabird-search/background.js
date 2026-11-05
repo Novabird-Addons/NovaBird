@@ -206,9 +206,36 @@ function novabirdDbApiOk(st) {
   return Number(st.api) >= REQUIRED_DB_API || (st.api === undefined && versionAtLeast(st.version, [1, 0]));
 }
 
+// So lange wartet die Leiste auf den Index (Lade-Symbol dreht). Vorher 8 s: bei sehr großen Postfächern brach eine Suche
+// mit allgemeinem Begriff ab und fiel still auf Gloda zurück.
+const DB_SEARCH_MS = 30000;
+
 // Höchstzahl der Treffer: 0 = unbegrenzt (NovaBird-DB) bzw. höchstens 20000 (Gloda, sonst zu langsam)
 const dbLimit = () => settings.glodaLimit || 1000000;
 const glodaCap = () => Math.min(settings.glodaLimit || 20000, 20000);
+
+// Haken und Zeitfenster der Leiste als Filter für den Index: dort wirken sie in der Abfrage selbst, also VOR der Höchstzahl.
+// (Vorher filterte erst die Leiste die schon gekürzte Liste: „Nur ungelesen“ zeigte nur die Ungelesenen unter den neuesten
+// 1.000 Treffern, ältere ungelesene fehlten ohne Hinweis.) criteria.toDate ist der letzte Tag (inklusiv) -> exklusiv +1 Tag.
+function dbFilters(state, criteria = {}) {
+  const from = Math.max(criteria.fromDate || 0, rangeStart(state.range));
+  return {
+    unread: state.unread === true || criteria.unread === true,
+    attachment: state.attachment === true || criteria.attachment === true,
+    dateFrom: from || undefined,
+    dateTo: criteria.toDate ? criteria.toDate + 864e5 : undefined,
+  };
+}
+
+// Kopfzeilen-Hinweis, wenn die Liste an der Höchstzahl gekürzt ist (der Index meldet more)
+function moreNote(res) {
+  if (!res?.more) return "";
+  return messenger.i18n.getMessage("headerMore", [shownLimit(res)]);
+}
+// „neueste N“: die Höchstzahl (bei „Beste zuerst“ kommen die besten oben dazu, die zählen hier nicht mit)
+function shownLimit(res) {
+  return Math.min(res.rows.length, dbLimit()).toLocaleString(messenger.i18n.getUILanguage());
+}
 
 // Rohtreffer vom NovaBird-DB (rows) oder null, wenn er nicht bereit ist / nicht antwortet.
 async function novabirdDbFetch(text, state, folderId, limit) {
@@ -224,9 +251,10 @@ async function novabirdDbFetch(text, state, folderId, limit) {
         includeTrash: Boolean(state.trash || state.spam || folderId),
         folderId: folderId || undefined,
         fields: ["from", "to", "subject", "body"].filter(k => state[k]),
+        filters: dbFilters(state),
         sort: "date",
       }),
-      15000
+      DB_SEARCH_MS
     );
     return res?.ok ? res : null;
   } catch (e) {
@@ -249,9 +277,10 @@ async function novabirdDbSearch(ctl, text, criteria, state, gen, folderId) {
         includeTrash: Boolean(state.trash || state.spam || folderId),
         folderId: folderId || undefined, // „Aktueller Ordner“: nur dieser Ordner
         fields: ["from", "to", "subject", "body"].filter(k => state[k]), // Haken des Optionsmenüs: wo gesucht wird
+        filters: dbFilters(state, criteria), // ungelesen, Anhang, Zeitraum: vor der Höchstzahl
         sort: settings.sortMode, // best (Standard): beste oben, danach nach Datum (bestIds) | date | relevance
       }),
-      8000
+      DB_SEARCH_MS
     );
     if (!res?.ok) {
       return null;
@@ -264,12 +293,25 @@ async function novabirdDbSearch(ctl, text, criteria, state, gen, folderId) {
     const showState = folderId ? { ...state, trash: true, spam: true } : state;
     const best = settings.sortMode === "best";
     const count = await ctl.sb.idSearch(res.rows, criteria, { ...showState, group: settings.group }, settings.sortMode !== "date",
-      "", best ? res.bestIds || [] : [], messenger.i18n.getMessage("headerBest", ["{n}"]));
+      moreNote(res), best ? res.bestIds || [] : [], messenger.i18n.getMessage("headerBest", ["{n}"]));
+    if (count >= 0 && res.more && gen === ctl.generation) {
+      // gekürzt: sagen, dass es mehr gibt und wie man an die älteren kommt (statt still weniger Treffer zu zeigen)
+      showNote(ctl, messenger.i18n.getMessage("noteMore", [shownLimit(res)]), messenger.i18n.getMessage("noteMoreTip"), "info");
+    }
     if (count >= 0) {
       semanticAugment(ctl, text, criteria, showState, gen, folderId, res); // nicht abwarten: Worttreffer stehen schon
     }
     return count === -2 ? null : count;
   } catch (e) {
+    if (e?.message === "timeout") {
+      // Der Index rechnet noch (sehr große Postfächer, sehr allgemeine Begriffe): ehrlich sagen, nicht auf Gloda ausweichen
+      // und den Index nicht als „startet“ abstempeln – sonst lieferten auch die folgenden Suchen 0 Treffer (Test 05.11.)
+      console.warn("NovaBird-Search: Suche im Index dauert zu lange", text);
+      if (gen === ctl.generation) {
+        showNote(ctl, messenger.i18n.getMessage("noteDbSlow"), messenger.i18n.getMessage("noteDbSlowTip"), "info");
+      }
+      return -1;
+    }
     console.warn("NovaBird-Search: NovaBird-DB-Suche fehlgeschlagen, nutze Gloda", e);
     novabirdDbCache = { at: 0, status: null };
     return null;
@@ -308,7 +350,7 @@ async function semanticAugment(ctl, text, criteria, showState, gen, folderId, le
     }
     // Option (Suche → Semantik, Standard an): in der Kopfzeile zeigen, wie viele Treffer aus der Bedeutungssuche kommen
     const { semantic: semCfg } = await messenger.storage.local.get({ semantic: {} });
-    const note = semCfg?.headerCount === false ? "" : messenger.i18n.getMessage("headerSimilar", [String(extra.length)]);
+    const note = [moreNote(lexRes), semCfg?.headerCount === false ? "" : messenger.i18n.getMessage("headerSimilar", [String(extra.length)])].filter(Boolean).join(" ");
     const count = await ctl.sb.idSearch(rows, criteria, { ...showState, group: settings.group }, settings.sortMode !== "date", note,
       bestIds, messenger.i18n.getMessage("headerBest", ["{n}"]));
     if (count >= 0 && gen === ctl.generation) {
@@ -378,7 +420,10 @@ function rangeStart(range) {
   if (range === "today") {
     return new Date().setHours(0, 0, 0, 0);
   }
-  return days ? Date.now() - days * 864e5 : 0;
+  // ab Tagesbeginn, wie „seit:7t“ im Index (sonst fielen Treffer des ersten Tages vor der aktuellen Uhrzeit heraus)
+  if (!days) return 0;
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() - days).getTime();
 }
 
 async function runSearch(ctl, query) {

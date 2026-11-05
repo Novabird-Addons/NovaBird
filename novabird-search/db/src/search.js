@@ -14,8 +14,11 @@ import { expandCompounds } from "./query/compounds.js";
  * @param caps    Ergebnis von migrate()
  * @param input   Freitext aus der Suchleiste ODER bereits geparste Anfrage
  *                (z. B. nach removeChip)
- * @param options { now, myEmails, sort, limit, offset, lookupContacts, includeTrash, langs, dateOrder }
+ * @param options { now, myEmails, sort, limit, offset, lookupContacts, includeTrash, langs, dateOrder, filters }
  *                langs: Sprachen des Parsers (Standard ["de"]); dateOrder: "dmy" | "mdy" für 3/4/2026
+ *                filters: { unread, attachment, dateFrom, dateTo } aus der Oberfläche (Haken, Zeitfenster) – wirken in der
+ *                Abfrage selbst, also vor der Höchstzahl (wie getippte Angaben „ungelesen“, „anh:ja“, „seit:“)
+ * Ergebnis zusätzlich more: true, wenn es mehr Treffer als limit gibt (die Liste ist dann gekürzt).
  */
 export async function search(db, caps, input, options = {}) {
   const parsed = typeof input === "string" ? parseQuery(input, { now: options.now, langs: options.langs, dateOrder: options.dateOrder }) : input;
@@ -25,17 +28,20 @@ export async function search(db, caps, input, options = {}) {
   const relevance = options.sort === "relevance" && caps.ftsMode !== "fts4";
   const limit = options.limit ?? 200;
   // Komposita im Text: Suchbegriffe um Wörter aus der Wortliste erweitern, die den Begriff enthalten (nur für die SQL-Abfrage; Chips bleiben unverändert)
-  let sqlQuery = query;
+  // Filter der Oberfläche nur in die Abfrage, nicht in die Chips (die Leiste zeigt ihre Haken selbst)
+  let sqlQuery = withFilters(query, options.filters);
   // Modus „Beim Indexieren“ (terms_de): die Zerlegung steckt im Index, keine Erweiterung aus der Wortliste nötig
   const termsIndex = options.compoundMode === "index" && caps.termsFts;
   try {
-    if (!termsIndex) sqlQuery = await expandCompounds(db, caps, query);
+    if (!termsIndex) sqlQuery = await expandCompounds(db, caps, sqlQuery);
   } catch {
-    sqlQuery = query; // Wortliste fehlt (alter Index)
+    // Wortliste fehlt (alter Index): ohne Erweiterung, Filter bleiben
   }
-  const { sql, params, columns } = buildSearchSql(sqlQuery, caps, relevance ? { ...options, termsIndex, limit: Math.max(limit * 3, 600) } : { ...options, sort: "date", termsIndex });
+  // einen Treffer mehr holen als erlaubt: so ist ohne teures Zählen bekannt, ob die Liste gekürzt ist
+  const { sql, params, columns } = buildSearchSql(sqlQuery, caps, relevance ? { ...options, termsIndex, limit: Math.max(limit * 3, 600) } : { ...options, sort: "date", termsIndex, limit: limit + 1 });
   let rows = await db.select(sql, params, columns);
-  if (relevance) rows = rerank(rows, options.now ? +options.now : Date.now()).slice(0, limit);
+  const more = rows.length > limit;
+  rows = relevance ? rerank(rows, options.now ? +options.now : Date.now()).slice(0, limit) : rows.slice(0, limit);
   // „Beste zuerst“: die Liste nach Datum wie sonst, dazu eine kleine Relevanz-Abfrage über alle Treffer; deren starke
   // Treffer stehen oben. relevant (die besten 100 nach Relevanz) brauchen die Aufrufer, um Bedeutungstreffer einzumischen.
   let bestIds = [];
@@ -55,7 +61,23 @@ export async function search(db, caps, input, options = {}) {
       suggest = null; // Wortliste fehlt (alter Index) -> kein Vorschlag
     }
   }
-  return { query, chips, rows, bestIds, relevant, empty: isEmptyQuery(query), suggest };
+  return { query, chips, rows, bestIds, relevant, more, empty: isEmptyQuery(query), suggest };
+}
+
+/**
+ * Filter der Oberfläche in die Anfrage übernehmen (strenger gewinnt): unread/attachment nur „ja“ (true), Zeitraum in ms
+ * (dateFrom inklusiv, dateTo exklusiv). Unbekanntes oder Ungültiges wird ignoriert.
+ */
+export function withFilters(query, filters) {
+  if (!filters || typeof filters !== "object") return query;
+  const q = { ...query };
+  if (filters.unread === true) q.unread = true;
+  if (filters.attachment === true) q.hasAttachment = true;
+  const from = Number(filters.dateFrom);
+  const to = Number(filters.dateTo);
+  if (filters.dateFrom != null && Number.isFinite(from)) q.dateFrom = q.dateFrom == null ? from : Math.max(q.dateFrom, from);
+  if (filters.dateTo != null && Number.isFinite(to)) q.dateTo = q.dateTo == null ? to : Math.min(q.dateTo, to);
+  return q;
 }
 
 /**
