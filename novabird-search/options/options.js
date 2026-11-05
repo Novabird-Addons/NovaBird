@@ -8,7 +8,7 @@ document.getElementById("version").textContent = messenger.runtime.getManifest()
 // Hinweis, wenn Funktionen wegen fehlender Betterbird-Interna aus sind (Selbsttest, shared/selftest-ui.js)
 nbShowSelfTest(document.getElementById("nb-selftest"), (key, subs) => messenger.i18n.getMessage(key, subs));
 
-const fields = Object.keys(SETTINGS_DEFAULTS);
+const fields = Object.keys(SETTINGS_DEFAULTS).filter(key => document.getElementById(key)); // sortV hat kein Feld
 const saved = document.getElementById("saved");
 let hideTimer = null;
 
@@ -18,6 +18,7 @@ function readForm() {
     const input = document.getElementById(key);
     raw[key] = input.type === "checkbox" ? input.checked : input.value;
   }
+  raw.sortV = 2; // die Reihenfolge ist jetzt bewusst gewählt
   return sanitizeSettings(raw);
 }
 

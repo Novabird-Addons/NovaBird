@@ -170,6 +170,9 @@
   "optSort": {
     "message": "Orden de resultados (índice de búsqueda):"
   },
+  "optSortBest": {
+    "message": "Mejores resultados primero, luego por fecha"
+  },
   "optSortDate": {
     "message": "Fecha (más recientes primero)"
   },
@@ -177,7 +180,7 @@
     "message": "Relevancia – EXPERIMENTAL (con bonificación para mensajes recientes)"
   },
   "optSortHint": {
-    "message": "Experimental: la ordenación por relevancia aún no está madura. Solo se aplica con el índice de búsqueda propio. Los resultados de Gloda y la búsqueda rápida en las cabeceras siguen ordenados por fecha."
+    "message": "Por defecto: hasta 10 resultados que encajan especialmente bien van primero (la palabra tal como se escribió en el asunto o el texto; con la búsqueda por significado, también el sentido) – ligeramente resaltados, con una línea debajo. Después, todos los resultados por fecha. «Relevancia» ordena toda la lista por relevancia (experimental). Solo se aplica con el índice de búsqueda propio; los resultados de Gloda y la búsqueda rápida en encabezados siguen ordenados por fecha."
   },
   "suggest": {
     "message": "¿Quiso decir: {text}?"
@@ -933,6 +936,9 @@
   },
   "headerSimilar": {
     "message": "· $1 de ellos por significado"
+  },
+  "headerBest": {
+    "message": "· $1 mejores arriba, luego por fecha"
   },
   "semHeaderCount": {
     "message": "Mostrar arriba en los resultados cuántos provienen de la búsqueda por significado"

@@ -5,7 +5,7 @@ import { parseQuery, isEmptyQuery } from "./parser/parseQuery.js";
 import { toChips } from "./parser/chips.js";
 import { resolvePeople } from "./query/resolvePeople.js";
 import { buildSearchSql } from "./query/buildSql.js";
-import { rerank } from "./query/rank.js";
+import { rerank, splitBest, bestThenDate } from "./query/rank.js";
 import { suggestForQuery } from "./query/suggest.js";
 import { expandCompounds } from "./query/compounds.js";
 
@@ -33,9 +33,19 @@ export async function search(db, caps, input, options = {}) {
   } catch {
     sqlQuery = query; // Wortliste fehlt (alter Index)
   }
-  const { sql, params, columns } = buildSearchSql(sqlQuery, caps, relevance ? { ...options, termsIndex, limit: Math.max(limit * 3, 600) } : { ...options, termsIndex });
+  const { sql, params, columns } = buildSearchSql(sqlQuery, caps, relevance ? { ...options, termsIndex, limit: Math.max(limit * 3, 600) } : { ...options, sort: "date", termsIndex });
   let rows = await db.select(sql, params, columns);
   if (relevance) rows = rerank(rows, options.now ? +options.now : Date.now()).slice(0, limit);
+  // „Beste zuerst“: die Liste nach Datum wie sonst, dazu eine kleine Relevanz-Abfrage über alle Treffer; deren starke
+  // Treffer stehen oben. relevant (die besten 100 nach Relevanz) brauchen die Aufrufer, um Bedeutungstreffer einzumischen.
+  let bestIds = [];
+  let relevant = [];
+  if (options.sort === "best" && caps.ftsMode !== "fts4" && rows.length) {
+    const now = options.now ? +options.now : Date.now();
+    const rel = buildSearchSql(sqlQuery, caps, { ...options, sort: "relevance", termsIndex, limit: 300, offset: 0 });
+    relevant = rerank(await db.select(rel.sql, rel.params, rel.columns), now).slice(0, 100);
+    ({ rows, bestIds } = bestThenDate(splitBest(relevant, { now }), rows));
+  }
   // Keine Treffer: Tippfehler-Vorschlag aus der Wortliste (nur FTS5)
   let suggest = null;
   if (!rows.length && typeof input === "string") {
@@ -45,7 +55,7 @@ export async function search(db, caps, input, options = {}) {
       suggest = null; // Wortliste fehlt (alter Index) -> kein Vorschlag
     }
   }
-  return { query, chips, rows, empty: isEmptyQuery(query), suggest };
+  return { query, chips, rows, bestIds, relevant, empty: isEmptyQuery(query), suggest };
 }
 
 /**
@@ -69,7 +79,7 @@ export async function filterIds(db, caps, input, ids, options = {}) {
 export { parseQuery } from "./parser/parseQuery.js";
 export { toChips, removeChip } from "./parser/chips.js";
 export { buildSearchSql } from "./query/buildSql.js";
-export { rerank, recencyWeight } from "./query/rank.js";
+export { rerank, recencyWeight, splitBest, fuseBest, bestThenDate, BEST_MAX } from "./query/rank.js";
 export { suggestForQuery, editDistance, similarWords } from "./query/suggest.js";
 export { compoundsOf, expandCompounds, clearCompoundCache, refreshVocabWords, vocabWordsBuiltAt, VOCAB_TABLE, VOCAB_VIEW } from "./query/compounds.js";
 export { resolvePeople } from "./query/resolvePeople.js";

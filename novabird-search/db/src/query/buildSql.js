@@ -247,7 +247,11 @@ export function buildSearchSql(q, caps, options = {}) {
       "WITH ranked AS MATERIALIZED (SELECT rowid AS rid, bm25(messages_fts, 3, 2, 1.5, 1, 1, 1) AS score FROM messages_fts WHERE messages_fts MATCH ?)\n";
     joinSql = "LEFT JOIN ranked r ON r.rid = m.id";
     scoreSql = "r.score";
-    scoreParams.push(positive.join(" AND "));
+    // Wörter wie getippt zusätzlich (ODER): eine Mail mit „facture“ trifft dann „factur*“ und „facture*“ und rückt vor
+    // „facturation“. Die Treffermenge bestimmt weiter nur WHERE.
+    const boost = (q.words ?? []).map((w) => ftsTerm(w, mode)).filter(Boolean).map(withCols);
+    const all = positive.join(" AND ");
+    scoreParams.push(boost.length ? `(${all}) OR ${boost.join(" OR ")}` : all);
   }
 
   const whereSql = where.length ? `WHERE ${where.join("\n  AND ")}` : "";

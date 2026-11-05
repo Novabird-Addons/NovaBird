@@ -249,7 +249,7 @@ async function novabirdDbSearch(ctl, text, criteria, state, gen, folderId) {
         includeTrash: Boolean(state.trash || state.spam || folderId),
         folderId: folderId || undefined, // „Aktueller Ordner“: nur dieser Ordner
         fields: ["from", "to", "subject", "body"].filter(k => state[k]), // Haken des Optionsmenüs: wo gesucht wird
-        sort: settings.sortMode === "relevance" ? "relevance" : "date",
+        sort: settings.sortMode, // best (Standard): beste oben, danach nach Datum (bestIds) | date | relevance
       }),
       8000
     );
@@ -262,9 +262,11 @@ async function novabirdDbSearch(ctl, text, criteria, state, gen, folderId) {
     ctl.sb.setSuggestion(res.rows.length ? "" : res.suggest?.text ?? "").catch(() => {});
     // Aktueller Ordner: auch im Papierkorb/Spam-Ordner selbst anzeigen
     const showState = folderId ? { ...state, trash: true, spam: true } : state;
-    const count = await ctl.sb.idSearch(res.rows, criteria, { ...showState, group: settings.group }, settings.sortMode === "relevance");
+    const best = settings.sortMode === "best";
+    const count = await ctl.sb.idSearch(res.rows, criteria, { ...showState, group: settings.group }, settings.sortMode !== "date",
+      "", best ? res.bestIds || [] : [], messenger.i18n.getMessage("headerBest", ["{n}"]));
     if (count >= 0) {
-      semanticAugment(ctl, text, criteria, showState, gen, folderId, res.rows); // nicht abwarten: Worttreffer stehen schon
+      semanticAugment(ctl, text, criteria, showState, gen, folderId, res); // nicht abwarten: Worttreffer stehen schon
     }
     return count === -2 ? null : count;
   } catch (e) {
@@ -278,7 +280,8 @@ async function novabirdDbSearch(ctl, text, criteria, state, gen, folderId) {
 // nach der Anzeige der Worttreffer, damit das Tippen nicht langsamer wird; der Hinweis „+N ähnlich“ zählt die ergänzten.
 // Dieselben Filter wie bei der Wortsuche (Zeitraum, ungelesen, Anhang, Papierkorb/Spam, aktueller Ordner).
 // Solange sie rechnet, dreht das Lade-Symbol weiter (eigener Tooltip); die Worttreffer sind schon benutzbar.
-async function semanticAugment(ctl, text, criteria, showState, gen, folderId, lexRows) {
+async function semanticAugment(ctl, text, criteria, showState, gen, folderId, lexRes) {
+  const lexRows = lexRes.rows;
   const sem = globalThis.novabirdSemantic;
   if (!sem?.enabled()) {
     return;
@@ -296,11 +299,18 @@ async function semanticAugment(ctl, text, criteria, showState, gen, folderId, le
       return;
     }
     const relevance = settings.sortMode === "relevance";
-    const rows = relevance ? fuseRanks(lexRows, res.rows) : [...lexRows, ...extra];
+    // „Beste zuerst“: Wort- und Bedeutungstreffer gemeinsam bewerten (Kern: fuseBest), Rest nach Datum
+    const core = globalThis.novabirdDbInternal;
+    let rows = relevance ? fuseRanks(lexRows, res.rows) : [...lexRows, ...extra];
+    let bestIds = [];
+    if (settings.sortMode === "best" && core?.fuseBest) {
+      ({ rows, bestIds } = core.bestThenDate(core.fuseBest(lexRes.relevant || [], res.rows), [...lexRows, ...extra]));
+    }
     // Option (Suche → Semantik, Standard an): in der Kopfzeile zeigen, wie viele Treffer aus der Bedeutungssuche kommen
     const { semantic: semCfg } = await messenger.storage.local.get({ semantic: {} });
     const note = semCfg?.headerCount === false ? "" : messenger.i18n.getMessage("headerSimilar", [String(extra.length)]);
-    const count = await ctl.sb.idSearch(rows, criteria, { ...showState, group: settings.group }, relevance, note);
+    const count = await ctl.sb.idSearch(rows, criteria, { ...showState, group: settings.group }, settings.sortMode !== "date", note,
+      bestIds, messenger.i18n.getMessage("headerBest", ["{n}"]));
     if (count >= 0 && gen === ctl.generation) {
       showNote(ctl, messenger.i18n.getMessage("noteSimilar", [String(extra.length)]), messenger.i18n.getMessage("noteSimilarTip"), "info");
     }

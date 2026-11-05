@@ -149,6 +149,26 @@ tr.nbs-newest td {
 tr.nbs-newest td:first-of-type {
   box-shadow: inset 5px 0 0 #f5a800;
 }
+/* „Beste Treffer zuerst“: die besten leicht hinterlegt, mit Linie darunter; danach folgt die Liste nach Datum */
+tr.nbs-best td {
+  background-color: color-mix(in srgb, #2F6BD8 9%, transparent);
+}
+tr.nbs-best td:first-of-type {
+  box-shadow: inset 0.2em 0 0 color-mix(in srgb, #2F6BD8 70%, transparent);
+}
+tr.nbs-best-last td {
+  border-bottom: 0.15em solid color-mix(in srgb, #2F6BD8 65%, transparent) !important;
+}
+/* Kartenansicht: die Karte selbst hinterlegen (sie hat einen eigenen Hintergrund), Linie unter der letzten Karte */
+tr.card-layout.nbs-best td { background-color: transparent; }
+tr.card-layout.nbs-best:not(.selected) .card-container {
+  background-color: color-mix(in srgb, #2F6BD8 10%, Canvas) !important;
+}
+tr.card-layout.nbs-best .card-container {
+  box-shadow: inset 0.25em 0 0 color-mix(in srgb, #2F6BD8 70%, transparent);
+}
+tr.card-layout.nbs-best td:first-of-type { box-shadow: none; }
+tr.card-layout.nbs-best-last td { padding-bottom: 0.35em; }
 #${ROOT_ID} { margin-inline: 8px; }
 /* Gemeinsame Ordner (Gemeinsamer Eingang, Alle ungelesenen, Wiedervorlage) bleiben oben fixiert, auch wenn man durch die Konten scrollt */
 #folderTree li.nbs-shared { position: sticky; z-index: 3; }
@@ -399,33 +419,64 @@ function leaveSyntheticView(cw) {
 // ThreadRow.fillRow füllt jede Zeile der Nachrichtenliste. Wir ergänzen danach (nur solange cw._nbsGroup gesetzt ist):
 // - zugeklappte Konversation: Datumsspalte zeigt die neueste Nachricht statt der ersten,
 // - aufgeklappt: die neueste Nachricht bekommt die Klasse "nbs-newest".
+// Zeilen der Tabellen- und der Kartenansicht (thread-row, thread-card)
 function patchThreadRows(cw) {
-  const Row = cw.customElements.get("thread-row");
-  if (!Row || typeof Row.prototype.fillRow !== "function" || Row.prototype._nbsOriginalFillRow) {
-    if (!Row || typeof Row.prototype.fillRow !== "function") nb.nbReportMissing?.("threadDates", "thread-row.fillRow");
-    return;
-  }
-  const original = Row.prototype.fillRow;
-  Row.prototype._nbsOriginalFillRow = original;
-  Row.prototype.fillRow = function (...args) {
-    original.apply(this, args);
-    try {
-      adjustThreadRow(cw, this);
-    } catch (e) {
-      if (!cw._nbsAdjustLogged) {
-        cw._nbsAdjustLogged = true;
-        dbg("adjustThreadRow failed", String(e));
-      }
+  for (const name of ["thread-row", "thread-card"]) {
+    const Row = cw.customElements.get(name);
+    if (!Row && name === "thread-card") {
+      // die Kartenansicht wird erst bei Bedarf geladen: danach anpassen
+      cw.customElements.whenDefined(name).then(() => patchThreadRows(cw)).catch(() => {});
+      continue;
     }
-  };
+    if (!Row || typeof Row.prototype.fillRow !== "function" || Row.prototype._nbsOriginalFillRow) {
+      if (name === "thread-row" && (!Row || typeof Row.prototype.fillRow !== "function")) nb.nbReportMissing?.("threadDates", "thread-row.fillRow");
+      continue;
+    }
+    const original = Row.prototype.fillRow;
+    Row.prototype._nbsOriginalFillRow = original;
+    Row.prototype.fillRow = function (...args) {
+      original.apply(this, args);
+      try {
+        markBestRow(cw, this);
+        if (name === "thread-row") adjustThreadRow(cw, this);
+      } catch (e) {
+        if (!cw._nbsAdjustLogged) {
+          cw._nbsAdjustLogged = true;
+          dbg("adjustThreadRow failed", String(e));
+        }
+      }
+    };
+  }
 }
 
+// Eigene Reihenfolge der Trefferliste (beste zuerst, Relevanz): Thunderbird macht aus „keine Sortierung“ bei dieser Ansicht
+// „Datum aufsteigend“; deshalb sortiert eine unsichtbare Spalte nach der Position in unserer Liste.
+const RANK_COL = "nbsRankCol";
+
 function unpatchThreadRows(cw) {
-  const Row = cw.customElements?.get("thread-row");
-  if (Row?.prototype._nbsOriginalFillRow) {
-    Row.prototype.fillRow = Row.prototype._nbsOriginalFillRow;
-    delete Row.prototype._nbsOriginalFillRow;
+  for (const name of ["thread-row", "thread-card"]) {
+    const Row = cw.customElements?.get(name);
+    if (Row?.prototype._nbsOriginalFillRow) {
+      Row.prototype.fillRow = Row.prototype._nbsOriginalFillRow;
+      delete Row.prototype._nbsOriginalFillRow;
+    }
   }
+  delete cw._nbsBest;
+}
+
+// „Beste Treffer zuerst“: die ersten count Zeilen unserer Trefferansicht markieren – nur flach und in unserer Reihenfolge
+// (hat der Nutzer nach einer Spalte sortiert oder gruppiert, stimmt die Position nicht mehr: dann keine Markierung)
+function markBestRow(cw, row) {
+  row.classList.remove("nbs-best", "nbs-best-last");
+  const best = cw._nbsBest;
+  const wrapper = cw.gViewWrapper;
+  if (!best?.count || !wrapper || wrapper._syntheticView !== best.view) return;
+  if (wrapper._viewFlags & Ci.nsMsgViewFlagsType.kThreadedDisplay) return;
+  const dbv = wrapper.dbView;
+  if (dbv?.sortType !== Ci.nsMsgViewSortType.byCustom || dbv.curCustomColumn !== RANK_COL) return;
+  const index = row._index;
+  if (index < best.count) row.classList.add("nbs-best");
+  if (index === best.count - 1) row.classList.add("nbs-best-last");
 }
 
 function adjustThreadRow(cw, row) {
@@ -1433,10 +1484,25 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           this.searchListener.onSearchHit(hdr, hdr.folder);
         }
       };
-      // Relevanz: Reihenfolge der Trefferliste beibehalten (byNone), sonst neueste zuerst
+      // Beste zuerst / Relevanz: Reihenfolge der Trefferliste beibehalten (Spalte RANK_COL, siehe applyRankSort), sonst neueste zuerst
       view.defaultSort = keepOrder
         ? [[Ci.nsMsgViewSortType.byNone, Ci.nsMsgViewSortOrder.ascending]]
         : [[Ci.nsMsgViewSortType.byDate, Ci.nsMsgViewSortOrder.descending]];
+      if (keepOrder) {
+        const key = hdr => `${hdr.folder?.URI}#${hdr.messageKey}`;
+        const rank = new Map(hdrs.map((hdr, i) => [key(hdr), i]));
+        view.customColumns = [{
+          id: RANK_COL,
+          QueryInterface: ChromeUtils.generateQI(["nsIMsgCustomColumnHandler"]),
+          bindToView() {},
+          getCellText: () => "",
+          getSortStringForRow: () => "",
+          getSortLongForRow: hdr => rank.get(key(hdr)) ?? 0x7fffffff,
+          isString: () => false,
+          getRowProperties: () => "",
+          getImageSrc: () => "",
+        }];
+      }
       return view;
     };
 
@@ -1466,14 +1532,41 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
       }
     };
 
-    const showHeaders = (b, hdrs, title, group, keepOrder = false, keepName = false, note = "") => {
+    // best: { ids: Set der besten Message-IDs, note: Text mit $1 } – die führenden Treffer daraus werden markiert
+    const showHeaders = (b, hdrs, title, group, keepOrder = false, keepName = false, note = "", best = null) => {
       const win = b?.win;
       const cw = b?.cw;
       if (!cw?.restoreState) {
         return false;
       }
       b.root._nbsLastHdrs = hdrs; // Treffer der zuletzt angezeigten Volltext-Ansicht dieser Leiste
-      cw.restoreState({ syntheticView: makeView(hdrs, keepOrder), folderPaneVisible: true, title });
+      const view = makeView(hdrs, keepOrder);
+      let count = 0;
+      if (keepOrder && !group && best?.ids?.size) {
+        while (count < hdrs.length && best.ids.has(hdrs[count].messageId)) count++;
+        if (count >= hdrs.length) count = 0; // alles „beste“: keine Linie
+      }
+      cw._nbsBest = count ? { view, count } : null;
+      if (count && best.note) note = best.note.replace("{n}", String(count)) + (note ? " " + note : "");
+      cw.restoreState({ syntheticView: view, folderPaneVisible: true, title });
+      // eigene Reihenfolge: nach der Rang-Spalte sortieren (gleich und nach dem Laden noch einmal, falls Thunderbird
+      // inzwischen wieder nach Datum sortiert hat; eine Sortierung des Nutzers bleibt)
+      const applyRankSort = (onlyIfDefault) => {
+        try {
+          const wrapper = cw.gViewWrapper;
+          const dbv = cw.gDBView;
+          if (!keepOrder || !dbv || wrapper?._syntheticView !== view) return;
+          if (onlyIfDefault && !(dbv.sortType === Ci.nsMsgViewSortType.byDate && dbv.sortOrder === Ci.nsMsgViewSortOrder.ascending)) return;
+          dbv.curCustomColumn = RANK_COL;
+          dbv.sort(Ci.nsMsgViewSortType.byCustom, Ci.nsMsgViewSortOrder.ascending);
+          wrapper._sort = [[Ci.nsMsgViewSortType.byCustom, Ci.nsMsgViewSortOrder.ascending, RANK_COL]];
+          cw.threadTree?.invalidate();
+        } catch (e) {
+          dbg("rank sort failed", String(e));
+        }
+      };
+      applyRankSort(false);
+      win.setTimeout(() => applyRankSort(true), 400);
       // Die Kopfzeile zählt sonst die Nachrichten des zuletzt gewählten Ordners (hier: der alte Suchordner)
       const setCount = () => {
         try {
@@ -2012,7 +2105,7 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           const shown = showHeaders(bar, hdrs, SEARCH_FOLDER_NAME, criteriaState?.group === true);
           return shown ? hdrs.length : -2;
         },
-        async idSearch(barId, rows, criteria, criteriaState, keepOrder, headerNote) {
+        async idSearch(barId, rows, criteria, criteriaState, keepOrder, headerNote, bestIds, bestNote) {
           const bar = barOf(barId);
           if (!bar) {
             return -2;
@@ -2026,7 +2119,8 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           if (!keepOrder) hdrs.sort((a, b) => b.date - a.date);
           dbg("id search", { rows: rows.length, shown: hdrs.length });
           Services.console.logStringMessage(`NovaBird-Search: NovaBird-DB lieferte ${rows.length} Treffer, angezeigt ${hdrs.length} (Ordner unbekannt ${lost.unknownFolder}, Papierkorb/Spam ${lost.trashSpam}, Kopfzeile fehlt ${lost.noHeader}, durch Filter ${lost.filtered})` + (unknownIds.size ? `; unbekannte Ordner: ${[...unknownIds].slice(0, 5).join(" | ")}` : ""));
-          const shown = showHeaders(bar, hdrs, SEARCH_FOLDER_NAME, criteriaState?.group === true, Boolean(keepOrder), criteriaState?.scope === "folder", headerNote || "");
+          const best = Array.isArray(bestIds) && bestIds.length ? { ids: new Set(bestIds), note: bestNote || "" } : null;
+          const shown = showHeaders(bar, hdrs, SEARCH_FOLDER_NAME, criteriaState?.group === true, Boolean(keepOrder), criteriaState?.scope === "folder", headerNote || "", best);
           return shown ? hdrs.length : -2;
         },
         // „In den Treffern suchen“ im Treffer-Tab: zeigt nur die Treffer der Ausgangsmenge, die auch zu den NovaBird-DB-Zeilen passen.

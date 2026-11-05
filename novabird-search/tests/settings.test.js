@@ -48,3 +48,12 @@ test("Trefferzahl wird auf 100 bis 5000 begrenzt", () => {
   assert.equal(sanitizeSettings({ glodaLimit: "700" }).glodaLimit, 700);
   assert.equal(sanitizeSettings({ glodaLimit: "abc" }).glodaLimit, SETTINGS_DEFAULTS.glodaLimit);
 });
+
+test("Sortierung: Standard „beste zuerst“, alte Standard-Einstellung „date“ wird einmal umgestellt, bewusste Wahl bleibt", () => {
+  assert.equal(sanitizeSettings({}).sortMode, "best");
+  assert.equal(sanitizeSettings({ sortMode: "date" }).sortMode, "best"); // vor 2.0 gespeichert (ohne sortV)
+  assert.equal(sanitizeSettings({ sortMode: "relevance" }).sortMode, "relevance");
+  assert.equal(sanitizeSettings({ sortMode: "date", sortV: 2 }).sortMode, "date"); // im Optionsfenster gewählt
+  assert.equal(sanitizeSettings({ sortMode: "quatsch", sortV: 2 }).sortMode, "best");
+  assert.equal(sanitizeSettings({}).sortV, 2);
+});

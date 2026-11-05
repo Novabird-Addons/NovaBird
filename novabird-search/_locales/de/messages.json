@@ -214,6 +214,9 @@
   "optSort": {
     "message": "Sortierung der Treffer (Suchindex):"
   },
+  "optSortBest": {
+    "message": "Beste Treffer zuerst, danach nach Datum"
+  },
   "optSortDate": {
     "message": "Datum (neueste zuerst)"
   },
@@ -221,7 +224,7 @@
     "message": "Relevanz – EXPERIMENTELL (mit Bonus für neuere Mails)"
   },
   "optSortHint": {
-    "message": "Experimentell: Die Relevanz-Sortierung ist noch nicht ausgereift. Gilt nur, wenn der eigene Suchindex genutzt wird. Gloda-Treffer und die schnelle Kopfzeilen-Suche bleiben nach Datum sortiert."
+    "message": "Standard: Oben stehen bis zu 10 Treffer, die besonders gut passen (das Wort genau so in Betreff oder Text, mit Bedeutungssuche auch der Sinn) – leicht hinterlegt, mit einer Linie darunter. Danach folgen alle Treffer nach Datum. „Relevanz“ ordnet die ganze Liste nach Relevanz (experimentell). Gilt nur, wenn der eigene Suchindex genutzt wird; Gloda-Treffer und die schnelle Kopfzeilen-Suche bleiben nach Datum sortiert."
   },
   "suggest": {
     "message": "Meinten Sie: {text}?"
@@ -1017,6 +1020,9 @@
   },
   "headerSimilar": {
     "message": "· davon $1 per Bedeutungssuche"
+  },
+  "headerBest": {
+    "message": "· $1 beste oben, danach nach Datum"
   },
   "semHeaderCount": {
     "message": "Oben in der Trefferliste anzeigen, wie viele Treffer aus der Bedeutungssuche kommen"

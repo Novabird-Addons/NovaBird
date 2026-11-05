@@ -38,6 +38,7 @@ export function emptyQuery(raw = "") {
     flagged: null,
     tags: [],
     folder: null, // { type } oder { name }
+    words: [], // Suchwörter wie getippt (ungekürzt): nur fürs Ranking – Mails mit genau diesem Wort zählen mehr
   };
 }
 
@@ -559,6 +560,7 @@ function extractTerms(rest, q, ctx) {
       continue;
     }
     const ss = ctx.stems(clean);
+    if (!q.words.includes(clean)) q.words.push(clean);
     if (pendingOr && q.terms.length) {
       const last = q.terms[q.terms.length - 1];
       for (const s of ss) if (!last.includes(s)) last.push(s);

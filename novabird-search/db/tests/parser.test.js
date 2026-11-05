@@ -11,7 +11,7 @@ const NOW = new Date(2026, 9, 5, 12, 0);
 function compact(q) {
   const o = {};
   for (const [k, v] of Object.entries(q)) {
-    if (k === "raw") continue;
+    if (k === "raw" || k === "words") continue;
     if (Array.isArray(v) && !v.length) continue;
     if (v == null) continue;
     o[k] = k.startsWith("date") ? isoDate(v) : v;

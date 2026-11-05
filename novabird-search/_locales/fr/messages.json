@@ -170,6 +170,9 @@
   "optSort": {
     "message": "Ordre des résultats (index de recherche) :"
   },
+  "optSortBest": {
+    "message": "Meilleurs résultats d’abord, puis par date"
+  },
   "optSortDate": {
     "message": "Date (plus récents d’abord)"
   },
@@ -177,7 +180,7 @@
     "message": "Pertinence – EXPÉRIMENTAL (bonus pour les messages récents)"
   },
   "optSortHint": {
-    "message": "Expérimental : le tri par pertinence n’est pas encore abouti. S’applique uniquement avec l’index de recherche propre. Les résultats Gloda et la recherche rapide dans les en-têtes restent triés par date."
+    "message": "Par défaut : jusqu’à 10 résultats particulièrement pertinents en tête (le mot tel que saisi dans l’objet ou le texte, avec la recherche par le sens aussi le sens) – légèrement surlignés, avec une ligne en dessous. Ensuite tous les résultats par date. « Pertinence » trie toute la liste par pertinence (expérimental). S’applique uniquement avec l’index de recherche propre ; les résultats Gloda et la recherche rapide dans les en-têtes restent triés par date."
   },
   "suggest": {
     "message": "Vouliez-vous dire : {text} ?"
@@ -933,6 +936,9 @@
   },
   "headerSimilar": {
     "message": "· dont $1 par le sens"
+  },
+  "headerBest": {
+    "message": "· $1 meilleurs en tête, puis par date"
   },
   "semHeaderCount": {
     "message": "Afficher en haut des résultats combien proviennent de la recherche par le sens"

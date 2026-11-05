@@ -608,6 +608,19 @@
             "type": "string",
             "optional": true,
             "description": "Zusatz hinter der Trefferzahl in der Kopfzeile (z. B. wie viele Treffer aus der Bedeutungssuche kommen)."
+          },
+          {
+            "name": "bestIds",
+            "type": "array",
+            "items": { "type": "string" },
+            "optional": true,
+            "description": "„Beste Treffer zuerst“: Message-IDs der besten Treffer; die führenden Zeilen daraus werden markiert, mit Linie darunter (nur mit keepOrder, nicht gruppiert)."
+          },
+          {
+            "name": "bestNote",
+            "type": "string",
+            "optional": true,
+            "description": "Text vor headerNote, wenn beste Treffer markiert sind; {n} = deren Anzahl."
           }
         ],
         "returns": {

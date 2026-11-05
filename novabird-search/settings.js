@@ -9,7 +9,9 @@ const SETTINGS_DEFAULTS = {
   sharedFolders: true, // gemeinsame Ordner anlegen: Gemeinsamer Eingang, Alle ungelesenen, Wiedervorlage
   sharedInboxMonths: 3, // Gemeinsamer Eingang zeigt nur Nachrichten der letzten N Monate (0 = alle)
   glodaLimit: 1000,    // höchstens so viele Volltext-Treffer (neueste zuerst); 0 = unbegrenzt
-  sortMode: "date",    // Treffer-Reihenfolge der NovaBird-DB-Suche: "date" (neueste zuerst, Standard) | "relevance"
+  sortMode: "best",    // Treffer-Reihenfolge der NovaBird-DB-Suche: "best" (beste Treffer oben, danach nach Datum; Standard) |
+                       // "date" (neueste zuerst) | "relevance"
+  sortV: 2,            // Stand der Einstellung: vor 2 war "date" der Standard und wird einmal auf "best" umgestellt
   novabirdDb: "auto",     // NovaBird-DB (eigener Suchindex) nutzen: "auto" = wenn erkannt und bereit, "off" = nie
 };
 
@@ -24,7 +26,9 @@ function sanitizeSettings(raw) {
     group: r.group === true,
     sharedFolders: r.sharedFolders !== false,
     sharedInboxMonths: Number.isFinite(months) ? Math.min(60, Math.max(0, months)) : SETTINGS_DEFAULTS.sharedInboxMonths,
-    sortMode: r.sortMode === "relevance" ? "relevance" : "date",
+    // bis 2.0: "date" war Standard (meist nie bewusst gewählt) → einmal auf „beste zuerst“; danach gilt die Wahl
+    sortMode: ["best", "date", "relevance"].includes(r.sortMode) && (r.sortV === 2 || r.sortMode === "relevance") ? r.sortMode : "best",
+    sortV: 2,
     novabirdDb: r.novabirdDb === "off" ? "off" : "auto",
     glodaLimit: Number.isFinite(limit) ? (limit === 0 ? 0 : Math.min(1000000, Math.max(100, limit))) : SETTINGS_DEFAULTS.glodaLimit,
   };

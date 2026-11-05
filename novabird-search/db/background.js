@@ -4,7 +4,7 @@ import { createExperimentAdapter } from "./src/db/adapter.js";
 import { migrate, resetTermsTables } from "./src/db/schema.js";
 import * as repo from "./src/db/repository.js";
 import { Indexer } from "./src/indexer/indexer.js";
-import { search, filterIds, clearCompoundCache, refreshVocabWords, vocabWordsBuiltAt } from "./src/search.js";
+import { search, filterIds, clearCompoundCache, refreshVocabWords, vocabWordsBuiltAt, fuseBest, bestThenDate } from "./src/search.js";
 import { removeChip } from "./src/parser/chips.js";
 import { TEXT_NORM_VERSION } from "./src/util/normalize.js";
 import { CONV_DATA_VERSION } from "./src/db/schema.js";
@@ -685,6 +685,9 @@ globalThis.novabirdDbInternal = {
   // Bedeutungs-Treffer mit denselben Bedingungen wie die Wortsuche filtern (von:, Zeitraum, Anhang …); null = keine
   filterIds: (text, ids, { includeTrash = false, folderId = null } = {}) =>
     filterIds(db, caps, String(text ?? ""), ids, { ...searchOptions, includeTrash, folderId }),
+  // „Beste zuerst“ mit Bedeutungstreffern (Suchleiste, background.js): gleiche Regeln wie im Kern
+  fuseBest,
+  bestThenDate,
 };
 
 messenger.runtime.onMessage.addListener((msg) => {
@@ -855,7 +858,7 @@ function handleExternal(msg, senderId) {
       case "search": {
         const res = await search(db, caps, String(msg.text ?? ""), {
           ...searchOptions,
-          sort: msg.sort === "relevance" ? "relevance" : "date",
+          sort: ["relevance", "best"].includes(msg.sort) ? msg.sort : "date",
           limit: Math.min(Number(msg.limit) || 1000, 1000000),
           includeTrash: Boolean(msg.includeTrash),
           folderId: msg.folderId ? String(msg.folderId) : null, // optional: nur dieser Ordner („Aktueller Ordner“)
@@ -867,6 +870,10 @@ function handleExternal(msg, senderId) {
           empty: res.empty,
           suggest: res.suggest ? { text: res.suggest.text, words: res.suggest.words } : null,
           rows: res.rows.map((r) => ({ header_msg_id: r.header_msg_id, folder_id: r.folder_id, date: r.date })),
+          // „Beste zuerst“ (sort: best): IDs der besten (oben in rows) und die besten 100 nach Relevanz mit bm25-Wert,
+          // damit die Suchleiste Bedeutungstreffer nach denselben Regeln einmischen kann
+          bestIds: res.bestIds ?? [],
+          relevant: (res.relevant ?? []).map((r) => ({ header_msg_id: r.header_msg_id, folder_id: r.folder_id, date: r.date, score: r.score })),
         };
       }
       case "conversation": {
