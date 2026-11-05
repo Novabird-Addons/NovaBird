@@ -277,3 +277,88 @@ describe("Filter der Oberfläche vor der Höchstzahl (Haken „ungelesen“/„A
     expect(both.rows.length).toBeLessThanOrEqual(3);
   });
 });
+
+describe("Tempo im großen Postfach: Kopien nach dem Sortieren, Absender-Index, „Beste zuerst“ nur mit Suchwort", async () => {
+  const ctx = await setup();
+  const { selectUnique } = await import("../src/search.js");
+
+  it("Kopien über Seitengrenzen: je Message-ID eine Stelle, bevorzugt der Posteingang", async () => {
+    // 3 Kopien je Nachricht, die im Posteingang zuletzt: muss die erste Stelle übernehmen
+    const data = [];
+    for (let i = 0; i < 200; i++) for (const t of ["archives", "other", "inbox"]) data.push({ header_msg_id: `n${i}`, folder_type: t, date: 1000 - i });
+    const db = { calls: 0, async select(sql, [n, offset]) { this.calls++; return data.slice(offset, offset + n); } };
+    const build = (n, offset) => ({ sql: "x", params: [n, offset], columns: [] });
+    const r = await selectUnique(db, build, 150);
+    expect(r.rows).toHaveLength(150);
+    expect(new Set(r.rows.map((x) => x.header_msg_id)).size).toBe(150);
+    expect(r.rows.every((x) => x.folder_type === "inbox")).toBe(true);
+    expect(r.rows.map((x) => x.header_msg_id).slice(0, 3)).toEqual(["n0", "n1", "n2"]);
+    expect(db.calls).toBe(2); // erste Seite (300 Zeilen) ergibt 100, die zweite reicht
+    expect(r.cut).toBe(false);
+  });
+
+  it("lauter Kopien: nach 5 Seiten Schluss, Liste gilt als gekürzt", async () => {
+    const data = Array.from({ length: 5000 }, () => ({ header_msg_id: "gleich", folder_type: "other", date: 1 }));
+    const db = { calls: 0, async select(sql, [n, offset]) { this.calls++; return data.slice(offset, offset + n); } };
+    const r = await selectUnique(db, (n, offset) => ({ sql: "x", params: [n, offset], columns: [] }), 10);
+    expect(r.rows).toHaveLength(1);
+    expect(db.calls).toBe(5);
+    expect(r.cut).toBe(true);
+  });
+
+  it("dedupe: false behält die Kopien (eine Abfrage)", async () => {
+    const data = [{ header_msg_id: "a", folder_type: "inbox" }, { header_msg_id: "a", folder_type: "archives" }];
+    const db = { async select(sql, [n, offset]) { return data.slice(offset, offset + n); } };
+    const r = await selectUnique(db, (n, offset) => ({ sql: "x", params: [n, offset], columns: [] }), 5, true);
+    expect(r.rows).toHaveLength(2);
+  });
+
+  it("migrate legt den Absender-Index an und meldet ihn", async () => {
+    expect(ctx.caps.authorIndex).toBe(true);
+    const rows = await ctx.db.select("SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'idx_messages_author_norm'", [], ["name"]);
+    expect(rows).toHaveLength(1);
+  });
+
+  it("bestehender Index ohne Absender-Index: migrate legt ihn nicht an (Leerlauf), createAuthorIndex schon; Teilindex bleibt", async () => {
+    const { createAuthorIndex, hasAuthorIndex } = await import("../src/search.js");
+    const c2 = await setup();
+    await c2.db.execute("DROP INDEX idx_messages_author_norm");
+    const caps = await migrate(c2.db);
+    expect(caps.authorIndex).toBe(false);
+    expect(await hasAuthorIndex(c2.db)).toBe(false);
+    // ohne Index: alter Weg (kein INDEXED BY, sonst Fehler) mit denselben Treffern
+    expect(ids(await search(c2.db, caps, "von Jonas", { now: NOW, myEmails: ME }))).toEqual(["m1", "m2", "m3", "m4"]);
+    expect(await createAuthorIndex(c2.db)).toBe(true);
+    expect(await hasAuthorIndex(c2.db)).toBe(true);
+    const partial = await c2.db.select("SELECT name FROM sqlite_master WHERE name = 'idx_messages_headers_only'", [], ["name"]);
+    expect(partial).toHaveLength(1);
+  });
+
+  it("von:Name über den Absender-Index: dieselben Treffer wie über die Tabelle", async () => {
+    for (const text of ["von Jonas", "von becker", "mit Petra", "von firma speiseplan"]) {
+      const viaIndex = await run(ctx, text);
+      const viaTable = await search(ctx.db, { ...ctx.caps, authorIndex: false }, text, { now: NOW, myEmails: ME });
+      expect(ids(viaIndex), text).toEqual(ids(viaTable));
+    }
+    const sql = buildSearchSql(parseQuery("von:jonas"), ctx.caps, {}).sql;
+    expect(sql).toContain("m.id IN (SELECT rowid FROM messages WHERE author_norm LIKE ?");
+    expect(buildSearchSql(parseQuery("von:jonas"), { ...ctx.caps, authorIndex: false }, {}).sql).toContain("m.author_norm LIKE ?");
+  });
+
+  it("„Beste zuerst“ ohne Suchwort: keine zweite Abfrage, mit Suchwort schon", async () => {
+    let ranked = 0;
+    const db = { ...ctx.db, async select(sql, ...a) { if (sql.includes("WITH ranked")) ranked++; return ctx.db.select(sql, ...a); } };
+    const plain = await search(db, ctx.caps, "von Jonas", { now: NOW, myEmails: ME, sort: "best" });
+    expect(plain.rows.length).toBeGreaterThan(0);
+    expect(plain.relevant).toEqual([]);
+    expect(ranked).toBe(0);
+    await search(db, ctx.caps, "speiseplan", { now: NOW, myEmails: ME, sort: "best" });
+    expect(ranked).toBe(1);
+  });
+
+  it("offset überspringt erst nach dem Entfernen der Kopien", async () => {
+    const all = await run(ctx, "speiseplan");
+    const rest = await run(ctx, "speiseplan", { offset: 1 });
+    expect(rest.rows.map((x) => x.header_msg_id)).toEqual(all.rows.slice(1).map((x) => x.header_msg_id));
+  });
+});

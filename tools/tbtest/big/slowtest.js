@@ -27,7 +27,7 @@ const out = { runs: [] };
       q,
       s: Math.round((Date.now() - t0) / 1000),
       rows: cw.gViewWrapper?.isSynthetic ? cw.gDBView?.rowCount ?? 0 : "keine Trefferliste",
-      note: bar.querySelector(".nbs-note")?.textContent || bar.querySelector("[class*=note]")?.textContent || "",
+      note: (n => (n && !n.hidden ? n.textContent : ""))(bar.querySelector(".nbs-note")), // ausgeblendet = kein Hinweis (Text bleibt stehen)
       header: d3.getElementById("nbsHeaderNote")?.textContent || "",
     });
     // Feld leeren: zurück zur Ordneransicht

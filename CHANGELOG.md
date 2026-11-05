@@ -5,6 +5,13 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.6 · Helper 0.5.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### Search: speed in very large mailboxes (index core, also used by Android)
+- **Copies of the same mail** (same Message-ID in several folders) are merged after sorting instead of numbering every hit in SQL first (`ROW_NUMBER()` over all hits prevented SQLite from stopping at the maximum). Same choice of folder as before (inbox > archive > sent > other > trash/spam); with very many copies further pages are read (at most 5).
+- **Sender names** (`from:name`, name resolution) use a small new index `idx_messages_author_norm` instead of reading the whole table. A new index gets it at once; an existing index gets it once while the computer is idle (it can take minutes on slow disks) – until then the search works as before.
+- **"Best first" without a search word** (only from:/to:/date) no longer runs the second query: without words there is no score and so nothing "best".
+- Measured on 1.2 million mails (query time): from:jeff 25 s → 0.2 s, to:jeff 19 s → 0.3 s, from:jeff meeting 9.9 s → 2.5 s (best first) / 0.25 s (date), "please" best first 4.7 s → 3.4 s, by date 1.3 s → 0.6 s. In Thunderbird 159 with the test archive, from:müller took 25 s before, now about 2 s plus the test's fixed waiting time.
+- Checked old against new on the 1.2-million archive: the same hits and folders; differences only in the order of exact ties (same score, same minute – e.g. the same Enron mail in several mailboxes), which was arbitrary before as well. New unit tests for copies across pages, the sender index with and without, and "best first" without a word.
+
 ### Search: order of the hits in the options menu
 - The options menu of the search bar (⚙, next to "With attachment") has a new section **Order**: "Best first" (default), "Newest first", "Relevance". The choice applies to this search only and goes back to the default with the other options when the search ends (✕) – like the filters. The default stays in the settings (now "Default order of results"); the gear shows the "changed" mark while another order is chosen.
 - "Relevance" is no longer marked experimental (it really sorts since "best matches first"); the hint explains when it helps (targeted search: the whole list by fit instead of by date after the top block).

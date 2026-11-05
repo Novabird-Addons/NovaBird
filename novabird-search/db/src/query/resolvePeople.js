@@ -15,11 +15,14 @@
 
 import { escapeLike, norm } from "../util/normalize.js";
 
-async function indexCandidates(db, name, field) {
+async function indexCandidates(db, name, field, authorIndex) {
   const like = `%${escapeLike(norm(name))}%`;
   if (field === "from" || field === "involves") {
+    // Mit dem schmalen Absender-Index (createAuthorIndex) ihn ausdrücklich nehmen: sonst wählt SQLite für GROUP BY den Index
+    // der Adressen und liest jede Zeile der Tabelle (1,2 Mio. Mails: 6,7 s → 0,07 s). INDEXED BY scheitert ohne den Index,
+    // daher nur mit authorIndex.
     return db.select(
-      `SELECT author_name, author_email, COUNT(*) AS c FROM messages
+      `SELECT author_name, author_email, COUNT(*) AS c FROM messages${authorIndex ? " INDEXED BY idx_messages_author_norm" : ""}
        WHERE author_norm LIKE ? ESCAPE '\\' AND author_email != ''
        GROUP BY author_email ORDER BY c DESC LIMIT 10`,
       [like],
@@ -56,7 +59,7 @@ export async function resolvePeople(db, q, options = {}) {
   for (const [field, list] of lists) {
     for (const p of list) {
       if (p.me || p.email || !p.name) continue;
-      const fromIndex = await indexCandidates(db, p.name, field);
+      const fromIndex = await indexCandidates(db, p.name, field, options.authorIndex);
       const fromBook = options.lookupContacts ? await options.lookupContacts(p.name) : [];
       let candidates = mergeCandidates(fromIndex, fromBook ?? []);
       p.candidates = candidates;

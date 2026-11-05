@@ -152,8 +152,33 @@ export async function migrate(db, options = {}) {
   // Teilindex für die Mails ohne Volltext (Zählen alle 3 s in den Einstellungen, fillBodies): ohne Schemaversion, damit ältere
   // Add-on-Stände den Index weiter öffnen können. Die Abfragen nennen den Wert wörtlich, sonst nimmt SQLite den Teilindex nicht.
   await db.execute("CREATE INDEX IF NOT EXISTS idx_messages_headers_only ON messages(folder_id) WHERE body_hash = 'headers-only'");
+  // Absender-Index (siehe createAuthorIndex): bei leerem Index gleich anlegen (kostet nichts, wächst beim Indexieren mit);
+  // einen bestehenden großen Index nicht beim Start (Minuten auf langsamen Platten) – das macht der Hintergrund im Leerlauf.
+  let authorIndex = await hasAuthorIndex(db);
+  if (!authorIndex && !(await db.select("SELECT 1 AS x FROM messages LIMIT 1", [], ["x"])).length) {
+    authorIndex = await createAuthorIndex(db);
+  }
   // nicht gespeichert: gilt, solange die Zusatztabelle existiert (FTS5)
-  return { ...caps, termsFts: caps.ftsMode !== "fts4" };
+  return { ...caps, termsFts: caps.ftsMode !== "fts4", authorIndex };
+}
+
+/**
+ * Schmaler Index für Absender-Namen (von:name, Namensauflösung): LIKE '%…%' springt keinen Index an, liest aber den kleinen
+ * Index statt der ganzen Tabelle (1,2 Mio. Mails: 9 s → 0,1 s). Ohne Schemaversion (wie der Teilindex), damit ältere
+ * Add-on-Stände den Index weiter öffnen. Anlegen bei 1,2 Mio. Mails: 3 s auf schnellem PC, ~90 MB. true = vorhanden.
+ */
+export const AUTHOR_INDEX = "idx_messages_author_norm";
+export async function createAuthorIndex(db) {
+  try {
+    await db.execute(`CREATE INDEX IF NOT EXISTS ${AUTHOR_INDEX} ON messages(author_norm, author_email, author_name)`);
+    return true;
+  } catch {
+    return false; // dann sucht die Suche wie bisher über die Tabelle
+  }
+}
+export async function hasAuthorIndex(db) {
+  const rows = await db.select("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?", [AUTHOR_INDEX], ["name"]);
+  return rows.length > 0;
 }
 
 /** Zusatzindex der Zerlegung (terms_de) leeren: Tabelle neu anlegen, Saatliste löschen (beim Zurückschalten auf „Bei der Suche“). */

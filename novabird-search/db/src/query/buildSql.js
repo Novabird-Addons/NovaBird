@@ -64,7 +64,7 @@ function subjectLikeGroup(group, params) {
 
 // ------------------------------------------------------------ Personen
 
-function personCondition(p, field, myEmails, params) {
+function personCondition(p, field, myEmails, params, caps) {
   // field: "from" | "to"
   const emails = p.me ? myEmails : p.resolved?.emails ?? (p.email ? [p.email] : null);
   if (emails) {
@@ -80,14 +80,18 @@ function personCondition(p, field, myEmails, params) {
     return `(${parts.join(" OR ")})`;
   }
   params.push(`%${escapeLike(norm(p.name))}%`);
+  if (field === "from" && caps?.authorIndex) {
+    // schmaler Index idx_messages_author_norm (migrate): LIKE über ihn statt über die ganze Tabelle (1,2 Mio. Mails: 9 s → 0,1 s)
+    return "m.id IN (SELECT rowid FROM messages WHERE author_norm LIKE ? ESCAPE '\\')";
+  }
   return field === "from"
     ? "m.author_norm LIKE ? ESCAPE '\\'"
     : "m.recipients_norm LIKE ? ESCAPE '\\'";
 }
 
-function personsCondition(list, field, myEmails, params) {
+function personsCondition(list, field, myEmails, params, caps) {
   if (!list.length) return null;
-  const parts = list.map((p) => personCondition(p, field, myEmails, params));
+  const parts = list.map((p) => personCondition(p, field, myEmails, params, caps));
   return parts.length === 1 ? parts[0] : `(${parts.join(" OR ")})`;
 }
 
@@ -183,13 +187,13 @@ export function buildSearchSql(q, caps, options = {}) {
   }
 
   // Personen
-  const fromC = personsCondition(q.from, "from", myEmails, params);
+  const fromC = personsCondition(q.from, "from", myEmails, params, caps);
   if (fromC) where.push(fromC);
-  const toC = personsCondition(q.to, "to", myEmails, params);
+  const toC = personsCondition(q.to, "to", myEmails, params, caps);
   if (toC) where.push(toC);
   if (q.involves.length) {
-    const a = personsCondition(q.involves, "from", myEmails, params);
-    const b = personsCondition(q.involves, "to", myEmails, params);
+    const a = personsCondition(q.involves, "from", myEmails, params, caps);
+    const b = personsCondition(q.involves, "to", myEmails, params, caps);
     where.push(`(${a} OR ${b})`);
   }
 
@@ -290,5 +294,6 @@ LIMIT ? OFFSET ?`;
     sql,
     params: [...scoreParams, ...params, limit, offset],
     columns: RESULT_COLUMNS,
+    ranked: scoreParams.length > 0, // false: keine Bewertung möglich (FTS4, nur Filter ohne Suchwort) – score bleibt leer
   };
 }

@@ -1,7 +1,7 @@
 // Suchindex von NovaBird-Search (bis 1.x eigenes Add-on NovaBird-DB, dessen ID das gemeinsame Add-on behält).
 // Indexer, Suche, Wartung und Schnittstelle für die Suchleiste (direkt) und andere Add-ons (NovaBird-Conversation).
 import { createExperimentAdapter } from "./src/db/adapter.js";
-import { migrate, resetTermsTables } from "./src/db/schema.js";
+import { migrate, resetTermsTables, createAuthorIndex } from "./src/db/schema.js";
 import * as repo from "./src/db/repository.js";
 import { Indexer } from "./src/indexer/indexer.js";
 import { search, filterIds, clearCompoundCache, refreshVocabWords, vocabWordsBuiltAt, fuseBest, bestThenDate } from "./src/search.js";
@@ -514,6 +514,33 @@ async function refreshVocab(reason, { needIdle = false } = {}) {
   }
 }
 setInterval(() => refreshVocab("Leerlauf", { needIdle: true }).catch(() => {}), 10 * 60_000);
+
+// Absender-Index (schema.js createAuthorIndex) für einen schon bestehenden Index: nicht beim Start (in sehr großen Postfächern
+// auf langsamen Platten Minuten, Suchen warteten so lange), sondern einmalig im Leerlauf, seriell mit dem Schreiben des
+// Indexers. Bis dahin sucht von:Name wie bisher über die Tabelle.
+let authorIndexBusy = false;
+async function buildAuthorIndex() {
+  if (!caps || caps.authorIndex || !indexer || brokenInfo || !initialDone || authorIndexBusy) return false;
+  if (status.phase === "folder" || status.phase === "stopped") return false;
+  let idle = null;
+  try {
+    idle = await db.idleSeconds();
+  } catch {
+    /* ohne Leerlauferkennung: nicht im Hintergrund anlegen */
+  }
+  if (!(typeof idle === "number" && idle >= 60)) return false;
+  authorIndexBusy = true;
+  try {
+    const t0 = performance.now();
+    const ok = await indexer.enqueue(() => createAuthorIndex(db));
+    if (ok) caps.authorIndex = true;
+    dlog.info(L(`[novabird-db] Absender-Index ${ok ? "angelegt" : "nicht angelegt"} in ${Math.round(performance.now() - t0)} ms`, `[novabird-db] Sender index ${ok ? "created" : "not created"} in ${Math.round(performance.now() - t0)} ms`));
+    return ok;
+  } finally {
+    authorIndexBusy = false;
+  }
+}
+setInterval(() => buildAuthorIndex().catch(() => {}), 10 * 60_000);
 
 // Ein Lauf zur Zeit: ein zweiter Aufruf (Doppelklick auf „Fortsetzen“, Saat-Durchgang während des Laufs) wartet auf den
 // laufenden statt jeden Ordner parallel ein zweites Mal durchzugehen

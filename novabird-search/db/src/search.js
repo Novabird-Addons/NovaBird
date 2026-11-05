@@ -22,7 +22,7 @@ import { expandCompounds } from "./query/compounds.js";
  */
 export async function search(db, caps, input, options = {}) {
   const parsed = typeof input === "string" ? parseQuery(input, { now: options.now, langs: options.langs, dateOrder: options.dateOrder }) : input;
-  const query = await resolvePeople(db, parsed, options);
+  const query = await resolvePeople(db, parsed, { ...options, authorIndex: caps.authorIndex });
   const chips = toChips(query, options.langs?.[0]);
   // Relevanz: breiter holen, dann mit Bonus für neuere Mails neu ordnen und kürzen
   const relevance = options.sort === "relevance" && caps.ftsMode !== "fts4";
@@ -38,18 +38,23 @@ export async function search(db, caps, input, options = {}) {
     // Wortliste fehlt (alter Index): ohne Erweiterung, Filter bleiben
   }
   // einen Treffer mehr holen als erlaubt: so ist ohne teures Zählen bekannt, ob die Liste gekürzt ist
-  const { sql, params, columns } = buildSearchSql(sqlQuery, caps, relevance ? { ...options, termsIndex, limit: Math.max(limit * 3, 600) } : { ...options, sort: "date", termsIndex, limit: limit + 1 });
-  let rows = await db.select(sql, params, columns);
-  const more = rows.length > limit;
+  const mainOpts = { ...options, sort: relevance ? "relevance" : "date", termsIndex, dedupe: false }; // Kopien: selectUnique
+  const skip = Math.max(0, Math.floor(Number(options.offset) || 0)); // Seiten: erst nach dem Entfernen der Kopien überspringen
+  const copies = options.dedupe === false; // alle Kopien zeigen (Aufrufer will sie ausdrücklich)
+  const got = await selectUnique(db, (n, offset) => buildSearchSql(sqlQuery, caps, { ...mainOpts, limit: n, offset }), skip + (relevance ? Math.max(limit * 3, 600) : limit + 1), copies);
+  let rows = got.rows.slice(skip);
+  const more = rows.length > limit || got.cut;
   rows = relevance ? rerank(rows, options.now ? +options.now : Date.now()).slice(0, limit) : rows.slice(0, limit);
   // „Beste zuerst“: die Liste nach Datum wie sonst, dazu eine kleine Relevanz-Abfrage über alle Treffer; deren starke
   // Treffer stehen oben. relevant (die besten 100 nach Relevanz) brauchen die Aufrufer, um Bedeutungstreffer einzumischen.
   let bestIds = [];
   let relevant = [];
-  if (options.sort === "best" && caps.ftsMode !== "fts4" && rows.length) {
+  // Ohne Suchwort (nur von:/an:/Zeitraum …) gibt es keine Bewertung und damit keine „besten“: die zweite Abfrage entfällt
+  // (sie wiederholte sonst nur die Liste nach Datum – bei „von:name“ im großen Postfach doppelte Zeit).
+  const relBuild = (n, offset) => buildSearchSql(sqlQuery, caps, { ...options, sort: "relevance", termsIndex, dedupe: false, limit: n, offset });
+  if (options.sort === "best" && caps.ftsMode !== "fts4" && rows.length && relBuild(1, 0).ranked) {
     const now = options.now ? +options.now : Date.now();
-    const rel = buildSearchSql(sqlQuery, caps, { ...options, sort: "relevance", termsIndex, limit: 300, offset: 0 });
-    relevant = rerank(await db.select(rel.sql, rel.params, rel.columns), now).slice(0, 100);
+    relevant = rerank((await selectUnique(db, relBuild, 300, copies)).rows, now).slice(0, 100);
     ({ rows, bestIds } = bestThenDate(splitBest(relevant, { now }), rows));
   }
   // Keine Treffer: Tippfehler-Vorschlag aus der Wortliste (nur FTS5)
@@ -62,6 +67,47 @@ export async function search(db, caps, input, options = {}) {
     }
   }
   return { query, chips, rows, bestIds, relevant, more, empty: isEmptyQuery(query), suggest };
+}
+
+// Kopien derselben Nachricht (gleiche Message-ID in mehreren Ordnern): bevorzugt Posteingang > Archiv > Gesendet > Rest >
+// Papierkorb/Spam – dieselbe Wahl wie vorher ROW_NUMBER() in SQL.
+const FOLDER_RANK = { inbox: 0, archives: 1, sent: 2, trash: 9, junk: 9 };
+const folderRank = (type) => FOLDER_RANK[type] ?? 3;
+
+/**
+ * Treffer ohne Kopien: die Abfrage (build(n, offset), ohne dedupe) liefert sortiert, hier bleibt je Message-ID die erste
+ * Stelle, belegt mit der bevorzugten Kopie. Vorher nummerierte SQL (ROW_NUMBER) alle Treffer, bevor LIMIT griff – im großen
+ * Postfach Sekunden („von:jeff“ 1,2 Mio. Mails: 9,4 s → 0,4 s). Viele Kopien (z. B. Gmail „Alle Nachrichten“): weitere
+ * Seiten, höchstens 5. cut: abgebrochen, obwohl es weitere Treffer gibt (dann gilt die Liste als gekürzt). copies: Kopien
+ * behalten (eine Abfrage, wie dedupe: false).
+ */
+export async function selectUnique(db, build, want, copies = false) {
+  if (copies) {
+    const { sql, params, columns } = build(want, 0);
+    return { rows: await db.select(sql, params, columns), cut: false };
+  }
+  const page = Math.max(want * 2, 200);
+  const out = [];
+  const at = new Map();
+  let offset = 0;
+  let full = false;
+  for (let round = 0; round < 5; round++) {
+    const { sql, params, columns } = build(page, offset);
+    const rows = await db.select(sql, params, columns);
+    for (const r of rows) {
+      const i = at.get(r.header_msg_id);
+      if (i === undefined) {
+        at.set(r.header_msg_id, out.length);
+        out.push(r);
+      } else if (folderRank(r.folder_type) < folderRank(out[i].folder_type)) {
+        out[i] = r;
+      }
+    }
+    offset += rows.length;
+    full = rows.length === page;
+    if (!full || out.length >= want) break;
+  }
+  return { rows: out.slice(0, want), cut: full && out.length < want };
 }
 
 /**
@@ -88,7 +134,7 @@ export function withFilters(query, filters) {
 export async function filterIds(db, caps, input, ids, options = {}) {
   const parsed = typeof input === "string" ? parseQuery(input, { now: options.now, langs: options.langs, dateOrder: options.dateOrder }) : input;
   // Wörter (auch „nicht X“ als Ausschluss) bleiben der Bedeutung überlassen: „Server nicht erreichbar“ ist ein Satz, kein Filter
-  const query = { ...(await resolvePeople(db, parsed, options)), terms: [], phrases: [], subjectTerms: [], exclude: [] };
+  const query = { ...(await resolvePeople(db, parsed, { ...options, authorIndex: caps.authorIndex })), terms: [], phrases: [], subjectTerms: [], exclude: [] };
   if (isEmptyQuery(query)) return null;
   const allowed = new Set();
   for (let i = 0; i < ids.length; i += 500) {
@@ -105,6 +151,6 @@ export { rerank, recencyWeight, splitBest, fuseBest, bestThenDate, BEST_MAX } fr
 export { suggestForQuery, editDistance, similarWords } from "./query/suggest.js";
 export { compoundsOf, expandCompounds, clearCompoundCache, refreshVocabWords, vocabWordsBuiltAt, VOCAB_TABLE, VOCAB_VIEW } from "./query/compounds.js";
 export { resolvePeople } from "./query/resolvePeople.js";
-export { migrate } from "./db/schema.js";
+export { migrate, createAuthorIndex, hasAuthorIndex } from "./db/schema.js";
 export * as repository from "./db/repository.js";
 export { createExperimentAdapter } from "./db/adapter.js";
