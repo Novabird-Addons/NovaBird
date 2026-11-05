@@ -323,7 +323,7 @@
   /** Ergebnis (oder Fehler) an das Phishing-Add-on nachreichen, wenn es auf diese Mail wartet. */
   function deliver(messageId, r, src) {
     if (!phishWanted.has(messageId)) return;
-    const injection = phishWanted.get(messageId) ?? nbAI.suspicious(src?.text || "");
+    const injection = phishWanted.get(messageId) ?? nbAI.suspicious(`${src?.msg?.subject || ""}\n${src?.text || ""}`);
     phishWanted.delete(messageId);
     const res = r instanceof Error || !r?.value ? { ok: false, error: errorCode(r), injection } : phishAnswer(r, injection);
     messenger.runtime.sendMessage(PHISH_ADDON, { type: "phish:result", messageId, ...res }).catch(() => {}); // Add-on fehlt oder aus
@@ -333,7 +333,7 @@
     if (!Number.isInteger(messageId)) return { ok: false, error: "error" };
     const c = await config();
     const src = await source(c, messageId);
-    const injection = nbAI.suspicious(src.text); // regelbasiert, ohne Modell: auch wenn die KI aus ist
+    const injection = nbAI.suspicious(`${src.msg?.subject || ""}\n${src.text}`); // regelbasiert, ohne Modell: auch wenn die KI aus ist; mit Betreff
     if (!ready(c)) return { ok: false, error: "off", injection };
     if (!nbAI.feature(c, "phish")) return { ok: false, error: "feature", injection };
     if (!nbAI.phishLocal(c)) return { ok: false, error: "cloud", injection };
@@ -396,7 +396,7 @@
       let d = null;
       try {
         const src = await source(c, m.id);
-        suspicious ||= nbAI.suspicious(src.text);
+        suspicious ||= nbAI.suspicious(`${m.subject || ""}\n${src.text}`);
         d = src.text ? await digestFor(c, lang, src, { wait: true }) : null;
       } catch (e) {
         if (e.name === "AbortError") throw e;

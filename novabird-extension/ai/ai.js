@@ -466,6 +466,13 @@ const nbAI = (() => {
     return `${thread ? p.thread : p.mail}\n\n${p.after}\n${p.flag}`;
   }
 
+  // Fremder Inhalt für den markierten Bereich: Kopfzeilen (Betreff, Absender – ebenso fremd gesteuert wie der Text) stehen mit
+  // darin, nicht davor. Markierungen im fremden Inhalt werden entschärft (die Kennung ist zufällig, das ist ein zweiter Riegel).
+  function inFence(header, body) {
+    const defuse = s => String(s || "").replace(/<<<\s*(MAIL|END)/gi, "‹‹‹ $1");
+    return header ? `${defuse(header)}\n\n${defuse(body)}` : defuse(body);
+  }
+
   function prompt(c, uiLang, header, body, thread) {
     const p = PROMPTS[uiLang] || PROMPTS.en;
     const tag = Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(16).padStart(2, "0")).join("");
@@ -475,17 +482,15 @@ const nbAI = (() => {
       .replace("{ZIEL}", c.aiLang === "mail" ? p.target.mail : p.target.ui)
       .replace("{OPEN}", open)
       .replace("{CLOSE}", close);
-    // Markierungen im Mailtext selbst entschärfen (die Kennung ist zufällig, das hier ist nur ein zweiter Riegel)
-    const safe = body.replace(/<<<\s*(MAIL|END)/gi, "‹‹‹ $1");
     // Erinnerung nach dem Mailtext: kleine Modelle befolgen Fremdanweisungen sonst oft (docs/llm-test, DE-08 mit Qwen3-4B:
     // 9 von 10 Läufen ohne, 0 von 10 mit Erinnerung). Bei erkannter Fremdanweisung warnt die Zusammenfassung selbst davor.
     let after = p.after.replace("{OPEN}", open).replace("{CLOSE}", close);
-    if (suspicious(body)) {
+    if (suspicious(`${header}\n${body}`)) {
       after += ` ${p.flag}`;
     }
     const messages = [
       { role: "system", content: system },
-      { role: "user", content: `${header}\n\n${open}\n${safe}\n${close}\n\n${after}` },
+      { role: "user", content: `${open}\n${inFence(header, body)}\n${close}\n\n${after}` },
     ];
     // Für den NovaBird Helper: daraus setzt er eine dort eingestellte eigene Anweisung zusammen (nicht Teil der Nachrichten)
     Object.defineProperty(messages, "meta", {
@@ -711,10 +716,9 @@ const nbAI = (() => {
     const open = `<<<MAIL ${tag}>>>`;
     const close = `<<<END ${tag}>>>`;
     const put = text => Object.entries({ ...fill, OPEN: open, CLOSE: close }).reduce((s, [k, v]) => s.split(`{${k}}`).join(v), text);
-    const safe = body.replace(/<<<\s*(MAIL|END)/gi, "‹‹‹ $1");
     return [
       { role: "system", content: put(system) },
-      { role: "user", content: `${header ? header + "\n\n" : ""}${open}\n${safe}\n${close}\n\n${put(after)}` },
+      { role: "user", content: `${open}\n${inFence(header, body)}\n${close}\n\n${put(after)}` },
     ];
   }
 
@@ -1188,7 +1192,7 @@ const nbAI = (() => {
     const mails = items.map(m => ({ id: m.id, msgId: m.msgId, subject: m.subject, author: m.author }));
     if (!items.length) return { text: "", mails, total, suspicious: false };
     const text = await chat(c, overviewPrompt(uiLang, items), onText, signal, { maxNew: 1500 });
-    return { text, mails, total, suspicious: items.some(m => suspicious(m.text)) };
+    return { text, mails, total, suspicious: items.some(m => suspicious(`${m.subject || ""}\n${m.text}`)) };
   }
 
   /** Mehrere Nachrichten (Konversation): älteste zuerst, jede mit Absender und Datum; der Platz wird auf die Nachrichten verteilt. */

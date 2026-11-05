@@ -42,7 +42,6 @@
         ? (limit < Infinity ? { text: thread.text.slice(0, limit), truncated: thread.truncated || thread.text.length > limit, quoted: thread.quoted } : thread)
         : await nbAI.mailText(message.id, conf, limit, { onlyNew: true });
       if (!text) throw new Error("empty");
-      j.warn = nbAI.suspicious(text);
       if (!nbAI.isLocal(nbAI.base(conf))) {
         let host;
         try {
@@ -53,6 +52,7 @@
         j.notes.push({ k: "remote", v: host });
       }
       const subject = thread ? thread.subject || "" : message.subject || "";
+      j.warn = nbAI.suspicious(`${subject}\n${text}`); // Betreff mitprüfen: ebenso fremd gesteuert wie der Text
       const header = thread
         ? `Subject: ${subject}`
         : `Subject: ${subject}\nFrom: ${message.author || ""}\nDate: ${message.date ? new Date(message.date).toLocaleString() : ""}`;
