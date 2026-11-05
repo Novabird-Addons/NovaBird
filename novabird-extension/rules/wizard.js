@@ -35,6 +35,7 @@ const TEXTS = {
     doneTitle: "Regel gespeichert", doneText: "Die Regel „$1“ steht jetzt in Betterbirds Nachrichtenfiltern ($2), ganz unten in der Liste.", doneApplied: " Vorhandene Mails im Posteingang wurden sortiert.",
     doneHelp: "Ändern, abschalten oder löschen kannst du sie unter Extras → Nachrichtenfilter. Eine Sicherung der vorherigen Filter liegt im Profil neben der Filterdatei (msgFilterRules.dat.nbx-last).",
     errSave: "Speichern fehlgeschlagen: $1",
+    errLoad: "Konten, Ordner oder Schlagwörter ließen sich nicht laden: $1",
   },
   en: {
     title: "Rule assistant", beta: "Beta",
@@ -67,6 +68,7 @@ const TEXTS = {
     doneTitle: "Rule saved", doneText: "The rule \"$1\" is now in Betterbird's message filters ($2), at the bottom of the list.", doneApplied: " Existing mails in the inbox have been sorted.",
     doneHelp: "You can change, disable or delete it under Tools → Message Filters. A backup of the previous filters is kept in the profile next to the filter file (msgFilterRules.dat.nbx-last).",
     errSave: "Saving failed: $1",
+    errLoad: "Could not load accounts, folders or tags: $1",
   },
   fr: {
     title: "Assistant de règles", beta: "Bêta",
@@ -99,6 +101,7 @@ const TEXTS = {
     doneTitle: "Règle enregistrée", doneText: "La règle « $1 » figure maintenant dans les filtres de messages de Betterbird ($2), en bas de la liste.", doneApplied: " Les messages existants de la boîte de réception ont été triés.",
     doneHelp: "Vous pouvez la modifier, la désactiver ou la supprimer sous Outils → Filtres de messages. Une sauvegarde des filtres précédents se trouve dans le profil à côté du fichier de filtres (msgFilterRules.dat.nbx-last).",
     errSave: "Échec de l'enregistrement : $1",
+    errLoad: "Impossible de charger les comptes, dossiers ou étiquettes : $1",
   },
   es: {
     title: "Asistente de reglas", beta: "Beta",
@@ -131,6 +134,7 @@ const TEXTS = {
     doneTitle: "Regla guardada", doneText: "La regla «$1» está ahora en los filtros de mensajes de Betterbird ($2), al final de la lista.", doneApplied: " Los correos existentes de la bandeja de entrada se han ordenado.",
     doneHelp: "Puedes cambiarla, desactivarla o borrarla en Herramientas → Filtros de mensajes. Una copia de los filtros anteriores queda en el perfil junto al archivo de filtros (msgFilterRules.dat.nbx-last).",
     errSave: "No se pudo guardar: $1",
+    errLoad: "No se pudieron cargar las cuentas, carpetas o etiquetas: $1",
   },
 };
 const lang = (messenger.i18n.getUILanguage() || "en").slice(0, 2).toLowerCase();
@@ -374,10 +378,19 @@ function fillSelects() {
     sumTitle: "sumTitle", nameL: "nameL", cancel: "cancel", save: "save", doneTitle: "doneTitle", doneHelp: "doneHelp", close: "close",
   })) $(id).textContent = t(key);
   document.title = t("title");
-  [accounts, folders, tags] = await Promise.all([messenger.mailRules.listAccounts(), messenger.mailRules.listFolders(), messenger.mailRules.listTags()]);
+  // Schließen zuerst: scheitert das Laden unten, lässt sich das Fenster trotzdem zumachen
+  $("cancel").addEventListener("click", () => window.close());
+  $("close").addEventListener("click", () => window.close());
+  try {
+    [accounts, folders, tags] = await Promise.all([messenger.mailRules.listAccounts(), messenger.mailRules.listFolders(), messenger.mailRules.listTags()]);
+  } catch (e) {
+    $("error").textContent = t("errLoad", String(e?.message || e));
+    $("error").hidden = false;
+    return;
+  }
   fillSelects();
   buildConditions();
-  for (const id of ["aMove", "aTag", "aRead", "aStar", "aDelete", "aMoveF", "aTagV", "acctOne", "acctAll", "acctSel", "onNew", "applyNow"]) {
+  for (const id of ["aMove", "aTag", "aRead", "aStar", "aDelete", "acctOne", "acctAll", "acctSel", "onNew", "applyNow"]) {
     $(id).addEventListener("change", () => {
       if (id === "acctSel") $("acctOne").checked = true;
       update();
@@ -387,7 +400,5 @@ function fillSelects() {
   $("aTagV").addEventListener("change", () => { $("aTag").checked = true; update(); });
   $("name").addEventListener("input", () => { nameTouched = true; update(); });
   $("save").addEventListener("click", save);
-  $("cancel").addEventListener("click", () => window.close());
-  $("close").addEventListener("click", () => window.close());
   update();
 })();

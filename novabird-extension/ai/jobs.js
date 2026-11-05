@@ -43,7 +43,15 @@
         : await nbAI.mailText(message.id, conf, limit, { onlyNew: true });
       if (!text) throw new Error("empty");
       j.warn = nbAI.suspicious(text);
-      if (!nbAI.isLocal(nbAI.base(conf))) j.notes.push({ k: "remote", v: new URL(nbAI.base(conf)).host });
+      if (!nbAI.isLocal(nbAI.base(conf))) {
+        let host;
+        try {
+          host = new URL(nbAI.base(conf)).host;
+        } catch {
+          throw new Error("url"); // ungültige Adresse: Hinweistext statt rohem TypeError
+        }
+        j.notes.push({ k: "remote", v: host });
+      }
       const subject = thread ? thread.subject || "" : message.subject || "";
       const header = thread
         ? `Subject: ${subject}`
@@ -66,7 +74,9 @@
         messages = nbAI.eventsPrompt(r.uiLang, thread ? new Date() : new Date(message.date), header, text);
         opts = { maxNew: 1200, json: true };
       }
-      const result = shared?.value ?? await nbAI.chat(conf, messages, partial => {
+      // „Neu erstellen“ (force): auch ein beim Helper schon vorhandenes Ergebnis nicht übernehmen, sondern neu rechnen
+      const prepared = r.force ? null : shared?.value;
+      const result = prepared ?? await nbAI.chat(conf, messages, partial => {
         if (r.mode !== "events") {
           j.text = partial;
           publish(j);
@@ -78,12 +88,12 @@
       } else {
         j.text = result;
       }
-      if (shared?.value) j.notes.push({ k: "prepared" });
+      if (prepared) j.notes.push({ k: "prepared" });
       if (quoted) j.notes.push({ k: "quoted" });
       if (truncated) j.notes.push({ k: "truncated" });
       j.status = "done";
       if (src && r.mode === "summary" && result) {
-        if (!shared?.value) nbPrep.remember(conf, "sum", nbPrep.sumVariant(conf, r.uiLang), src, result, shared?.id).catch(() => {});
+        if (!prepared) nbPrep.remember(conf, "sum", nbPrep.sumVariant(conf, r.uiLang), src, result, shared?.id).catch(() => {});
         deadlinesFor = src;
       }
     } catch (e) {
@@ -96,6 +106,9 @@
       j.error = String(e.message || e);
       j.text = "";
     }
+    // inzwischen abgebrochen (z. B. „Neu erstellen“, während hier noch auf einen anderen PC gewartet wurde): nichts mehr melden –
+    // der neue Auftrag benutzt dieselben Ports und denselben Schlüssel
+    if (j.controller.signal.aborted) return;
     publish(j);
     // fertig, während niemand zusieht: Häkchen am KI-Knopf des Tabs
     if (j.status === "done" && j.ports.size === 0 && j.tabId != null) {

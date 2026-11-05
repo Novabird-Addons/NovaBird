@@ -139,5 +139,7 @@
   downBtn.addEventListener("click", () => install((last?.rows || []).filter(r => r.managed && r.status === "newer")));
   restartBtn.addEventListener("click", () => messenger.onlineUpdates.restart());
 
-  if (enable.checked) runCheck();
+  // nur auf der Seite „Updates“ selbst prüfen (Hub-Ansicht oder ganze Seite), nicht in jeder anderen Ansicht dieser Seite –
+  // sonst fragte jede geöffnete Hub-Ansicht GitHub und verschob die tägliche Prüfung im Hintergrund
+  if (enable.checked && (!VIEW || VIEW_TAB === "updatesTab")) runCheck();
 })();

@@ -13,6 +13,10 @@ const nbAI = (() => {
     aiSpeechRate: 1, // Vorlesen: Tempo (Tonhöhe bleibt, ai/speech.js)
   };
   const SPEECH_RATES = [0.8, 0.9, 1, 1.1, 1.2, 1.35, 1.5];
+  // Fehler, die an der Einrichtung liegen (nicht an der einzelnen Mail): Läufe über viele Mails brechen dabei ab,
+  // statt jede Mail einzeln scheitern zu lassen. Eine Liste für Überblick, Einsortieren und Phishing-Fakten.
+  const CONFIG_ERRORS = ["code", "permission", "url", "disabled", "off", "model", "nomodel", "forbidden", "helper"];
+  const isConfigError = e => CONFIG_ERRORS.includes(String(e?.message ?? e));
   const FEATURES = ["summary", "translate", "events", "overview", "deadlines", "speech", "compose", "phish"];
   const OPT_IN = ["phish"]; // erst an, wenn der Nutzer sie einschaltet (schickt jede neue Mail von selbst an die KI)
   const feature = (c, name) => (OPT_IN.includes(name) ? c?.aiFeatures?.[name] === true : c?.aiFeatures?.[name] !== false);
@@ -205,12 +209,21 @@ const nbAI = (() => {
     if (c.aiType === "nbhelper") {
       // Helper rechnet; die Antwort wird in Stücken abgeholt (jede Abfrage verschlüsselt)
       const { id } = await netCall(c, "chat", { messages, maxNew, ...(messages.meta ? { meta: messages.meta } : {}), ...(c.aiHelperModel ? { model: c.aiHelperModel } : {}) }, signal);
+      // Abbruch: dem Helper Bescheid geben, sonst rechnet er den verworfenen Auftrag zu Ende. Meist kommt der Abbruch
+      // mitten in einer Abfrage (der Helper hält sie bis zu 1 s offen) – dann wirft netCall, und auch hier muss chatCancel raus
+      const cancel = () => {
+        netCall(c, "chatCancel", { id }).catch(() => {});
+        return new DOMException("abgebrochen", "AbortError");
+      };
       for (;;) {
-        if (signal?.aborted) {
-          netCall(c, "chatCancel", { id }).catch(() => {});
-          throw new DOMException("abgebrochen", "AbortError");
+        if (signal?.aborted) throw cancel();
+        let r;
+        try {
+          r = await netCall(c, "chatPoll", { id }, signal);
+        } catch (e) {
+          if (signal?.aborted) throw cancel();
+          throw e;
         }
-        const r = await netCall(c, "chatPoll", { id }, signal);
         if (r.text) emit(r.text);
         if (r.error) throw new Error(r.error);
         if (r.done) {
@@ -1205,7 +1218,7 @@ const nbAI = (() => {
   }
 
   return {
-    DEFAULTS, FEATURES, SPEECH_RATES, feature, isLocal, origin, listModels, chat, helperHello, speak, sentences, quickStart, guessLang, mailText, threadText, prompt, promptTemplate, suspicious, base, stats: () => lastStats,
+    DEFAULTS, FEATURES, SPEECH_RATES, CONFIG_ERRORS, isConfigError, feature, isLocal, origin, listModels, chat, helperHello, speak, sentences, quickStart, guessLang, mailText, threadText, prompt, promptTemplate, suspicious, base, stats: () => lastStats,
     TRANSLATE_LANGS, languageName, translatePrompt, eventsPrompt, parseItems, newMails, stripQuotedText, overview,
     writePrompt, digestPrompt, parseDigest, digestOverviewText, PHISH_VARIANT, phishPrompt, parsePhish, sortPrompt, parseSort, privateHost, phishLocal, textHash, shareId, mailKey, seal, unseal, shareGet, sharePut, shareRelease,
   };

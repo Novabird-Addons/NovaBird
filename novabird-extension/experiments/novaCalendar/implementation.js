@@ -1309,9 +1309,6 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
           }
           return Services.prefs.getBoolPref("calendar.view.showLocation", false);
         },
-        async setOrder() {
-          // Reihenfolge ist fest (Aufgaben-Tab: Aufgaben oben, sonst Termine oben)
-        },
         async start() {
           ExtensionSupport.registerWindowListener(LISTENER_NAME, {
             chromeURLs: [MAIN_URL, ...DIALOG_URLS],

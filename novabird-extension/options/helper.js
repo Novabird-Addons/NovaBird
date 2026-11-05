@@ -200,12 +200,20 @@
     }
   }
 
+  // KI lief über den Helper: abschalten und auf den eigenen Server (Standard) zurückstellen. Sonst bliebe aiType „nbhelper“
+  // stehen – Einstellungen → KI blendete das Formular für einen eigenen Server dauerhaft aus, und nach „Trennen“ verbände die
+  // Übernahme unten beim nächsten Öffnen wieder
+  const releaseAi = async () => {
+    const c = await messenger.storage.local.get({ aiType: "" });
+    if (c.aiType !== "nbhelper") return;
+    await messenger.storage.local.set({ aiEnabled: false, aiHelperModel: "", aiType: nbAI.DEFAULTS.aiType, aiUrl: nbAI.DEFAULTS.aiUrl, aiKey: "" });
+  };
+
   $("useAi").addEventListener("change", async () => {
     if ($("useAi").checked) {
       await messenger.storage.local.set({ aiEnabled: true, aiType: "nbhelper", aiUrl: conn.url, aiKey: conn.code });
     } else {
-      const c = await messenger.storage.local.get({ aiType: "" });
-      if (c.aiType === "nbhelper") await messenger.storage.local.set({ aiEnabled: false, aiHelperModel: "" });
+      await releaseAi();
     }
     showAi();
   });
@@ -382,8 +390,7 @@
 
   $("disconnect").addEventListener("click", async () => {
     if (!confirm(t.confirmDisconnect)) return;
-    const c = await messenger.storage.local.get({ aiType: "" });
-    if (c.aiType === "nbhelper") await messenger.storage.local.set({ aiEnabled: false });
+    await releaseAi();
     await messenger.runtime.sendMessage(SEARCH_ID, { type: "helper:useForSearch", use: false }).catch(() => {});
     await messenger.storage.local.remove("helperConn");
     conn = info = null;

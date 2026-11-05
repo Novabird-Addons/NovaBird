@@ -68,3 +68,16 @@ test("Optionsseite: kein Textschlüssel heißt wie ein Element mit Inhalt (die T
   }
   assert.deepEqual(hits, []);
 });
+
+test("HTML-Seiten der Extension: keine doppelten IDs (getElementById/querySelector fänden das falsche Element)", () => {
+  // Fehler 05.11.: „cList“ war Zähler im Reiter und Trefferliste beim Aufräumen – die Liste landete im Zähler
+  const fs = require("node:fs");
+  const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) =>
+    e.isDirectory() ? (["node_modules", "tests"].includes(e.name) ? [] : walk(path.join(d, e.name))) : e.name.endsWith(".html") ? [path.join(d, e.name)] : []);
+  const dups = [];
+  for (const f of walk(root)) {
+    const ids = [...fs.readFileSync(f, "utf8").matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]);
+    for (const id of new Set(ids.filter((x, i) => ids.indexOf(x) !== i))) dups.push(`${path.relative(root, f)}: ${id}`);
+  }
+  assert.deepEqual(dups, []);
+});

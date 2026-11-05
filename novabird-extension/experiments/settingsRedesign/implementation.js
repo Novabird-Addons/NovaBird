@@ -1,6 +1,9 @@
 "use strict";
 
 var settingsRedesign = (() => {
+// Im Experiment gibt es keinen Fenster-Timer: ohne Import warf waitFor/showAccounts einen ReferenceError, und
+// „Konten“ ging dann zeitweise in einem zweiten Tab auf
+const { setTimeout } = ChromeUtils.importESModule("resource://gre/modules/Timer.sys.mjs");
 /* Settings Redesign – experiment API (parent process).
  *
  *  - One shared navigation on about:preferences and about:accountsettings
@@ -1564,7 +1567,6 @@ return class extends ExtensionCommon.ExtensionAPI {
         // Ein Optionsobjekt statt zweier optionaler Zahlen: sonst landet discoverHelpers(1500) im letzten Parameter (Port)
         async discoverHelpers({ waitMs, port } = {}) {
           const found = new Map();
-          const { setTimeout } = ChromeUtils.importESModule("resource://gre/modules/Timer.sys.mjs"); // im Experiment kein Fenster-Timer
           let sock = null;
           try {
             sock = Cc["@mozilla.org/network/udp-socket;1"].createInstance(Ci.nsIUDPSocket);
@@ -1656,6 +1658,20 @@ return class extends ExtensionCommon.ExtensionAPI {
             chromeURLs: WINDOWS,
             onLoadWindow(win) {
               setupWindow(win, win.location.href == MAIN);
+            },
+            // Fenster zu (v. a. Verfassen-Fenster, die ständig auf- und zugehen): seine Rücknahmen ausführen und den Eintrag
+            // löschen – sonst hielte perWindow Formatleiste, Beobachter und das ganze Fenster bis zum Abschalten fest
+            onUnloadWindow(win) {
+              const undo = perWindow.get(win);
+              if (!undo) return;
+              perWindow.delete(win);
+              undo.splice(0).reverse().forEach(fn => {
+                try {
+                  fn();
+                } catch (e) {
+                  /* Fenster schon abgebaut */
+                }
+              });
             },
           });
         },

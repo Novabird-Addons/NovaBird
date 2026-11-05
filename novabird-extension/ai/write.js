@@ -28,7 +28,15 @@
       if (!conf.aiUrl) throw new Error("off");
       if (!conf.aiModel && conf.aiType !== "nbhelper") throw new Error("model");
       if (!nbAI.feature(conf, "compose")) throw new Error("feature");
-      if (!nbAI.isLocal(nbAI.base(conf))) j.notes.push({ k: "remote", v: new URL(nbAI.base(conf)).host });
+      if (!nbAI.isLocal(nbAI.base(conf))) {
+        let host;
+        try {
+          host = new URL(nbAI.base(conf)).host;
+        } catch {
+          throw new Error("url"); // ungültige Adresse: Hinweistext statt rohem TypeError
+        }
+        j.notes.push({ k: "remote", v: host });
+      }
       let messages;
       if (r.kind === "reply" && r.relatedId) {
         const msg = await messenger.messages.get(r.relatedId);
@@ -55,6 +63,7 @@
       j.status = "error";
       j.error = String(e.message || e);
     }
+    if (j.controller.signal.aborted) return; // ersetzter Auftrag: nichts mehr an die (übernommenen) Ports melden
     publish(j);
   }
 
@@ -65,18 +74,23 @@
       if (!Number.isInteger(msg?.tabId) || !["reply", "fix", "tone", "translate"].includes(msg.kind)) return;
       const key = `${msg.tabId}|${msg.kind}`;
       let j = jobs.get(key);
-      // reuse: automatischer Start beim Öffnen – ein vorhandenes Ergebnis bleibt
-      if (msg.type === "start" && !(msg.reuse && j && j.status !== "error")) {
+      const r = {
+        kind: msg.kind, uiLang: String(msg.uiLang || "en"), text: String(msg.text || ""), wish: String(msg.wish || ""),
+        tone: String(msg.tone || ""), toLang: String(msg.toLang || ""), relatedId: Number.isInteger(msg.relatedId) ? msg.relatedId : null,
+      };
+      const source = msg.source === "selection" ? "selection" : "own";
+      // Eingabe des Auftrags: ein vorhandenes Ergebnis passt nur zur selben Eingabe (sonst ersetzte „Übernehmen“ einen
+      // inzwischen weitergeschriebenen Text durch das Ergebnis zum alten)
+      const input = JSON.stringify([r.text, r.wish, r.tone, r.toLang, r.relatedId, source]);
+      // reuse: automatischer Start beim Öffnen – ein vorhandenes Ergebnis zur selben Eingabe bleibt
+      if (msg.type === "start" && !(msg.reuse && j && j.status !== "error" && j.input === input)) {
         j?.controller.abort();
         j = {
           key, kind: msg.kind, status: "running", text: "", error: "", notes: [], ports: j?.ports || new Set(), controller: new AbortController(),
-          source: msg.source === "selection" ? "selection" : "own",
+          source, input,
         };
         jobs.set(key, j);
-        compute(j, {
-          kind: msg.kind, uiLang: String(msg.uiLang || "en"), text: String(msg.text || ""), wish: String(msg.wish || ""),
-          tone: String(msg.tone || ""), toLang: String(msg.toLang || ""), relatedId: Number.isInteger(msg.relatedId) ? msg.relatedId : null,
-        });
+        compute(j, r);
       } else if (msg.type !== "watch" && msg.type !== "start") {
         return;
       }

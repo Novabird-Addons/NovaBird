@@ -61,7 +61,10 @@
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       const now = Date.now();
-      log = log.filter(e => now - (e.at || 0) < KEEP_MS).slice(-MAX_LOG);
+      // an Ort und Stelle kürzen: handle() und die Prüfung vorhandener Mails halten das Array über den KI-Aufruf hinweg und
+      // schreiben danach hinein – ein neues Array ließe solche Einträge verloren gehen
+      const keep = log.filter(e => now - (e.at || 0) < KEEP_MS).slice(-MAX_LOG);
+      log.splice(0, log.length, ...keep);
       messenger.storage.local.set({ [LOG]: log }).catch(e => console.warn("NovaBird-Extension: Einsortieren-Protokoll", e));
     }, 300);
   }
@@ -209,7 +212,7 @@
             }
           }
         } catch (e) {
-          if (["code", "permission", "url", "disabled", "off", "model", "nomodel", "forbidden", "helper"].includes(String(e?.message))) {
+          if (nbAI.isConfigError(e)) {
             scan.error = String(e.message);
             break;
           }
@@ -233,9 +236,11 @@
       return Promise.resolve(true);
     }
     if (msg.op === "clear") {
-      log = (log || []).filter(e => e.state === "suggested");
-      saveLog();
-      return Promise.resolve(true);
+      return loadLog().then(all => {
+        all.splice(0, all.length, ...all.filter(e => e.state === "suggested")); // an Ort und Stelle (siehe saveLog)
+        saveLog();
+        return true;
+      });
     }
     return undefined;
   });

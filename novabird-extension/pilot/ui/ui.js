@@ -282,7 +282,7 @@ function render() {
   const contacts = computeContacts();
   $("#cOpen").textContent = open.length;
   $("#cAll").textContent = props.length;
-  $("#cList").textContent = contacts.length;
+  $("#cListN").textContent = contacts.length; // Zähler im Reiter (nicht #cList: das ist die Liste beim Aufräumen)
   set($("#summary"),
     statTile("at", "c1", fmtNum(S.entries.length), t("statAddr"), t("statAddrSub")),
     statTile("users", "c2", fmtNum(contacts.length), t("statPeople"), t("statPeopleSub", S.min)),

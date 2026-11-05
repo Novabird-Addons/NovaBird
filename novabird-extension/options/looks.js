@@ -59,7 +59,7 @@
     }
     return e;
   };
-  const fmt = n => String(Math.round(n * 10) / 10).replace(".", ",");
+  const fmt = n => (Math.round(n * 10) / 10).toLocaleString(document.documentElement.lang || undefined); // Dezimalzeichen der Oberflächensprache
 
   let mode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   const mainColors = { light: { ...(s.mainColors?.light || {}) }, dark: { ...(s.mainColors?.dark || {}) } };

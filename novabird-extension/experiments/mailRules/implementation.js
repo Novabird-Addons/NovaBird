@@ -34,12 +34,6 @@ const ACTIONS = {
 const PREVIEW_MAX_HEADERS = 200000; // je Aufruf höchstens so viele Kopfzeilen prüfen
 const PREVIEW_MS = 4000;
 
-const reverse = table => {
-  const out = new Map();
-  for (const [k, f] of Object.entries(table)) out.set(f(), k);
-  return out;
-};
-
 function filterServers() {
   const out = [];
   for (const account of MailServices.accounts.accounts) {
@@ -161,52 +155,6 @@ function previewFolders(spec) {
     if (inbox) out.push(inbox);
   }
   return out;
-}
-
-function describeRule(filter, index, account) {
-  const fields = reverse(FIELDS);
-  const ops = reverse(OPS);
-  const acts = reverse(ACTIONS);
-  const terms = [];
-  let simple = true;
-  let match = "all";
-  for (const term of filter.searchTerms) {
-    const field = fields.get(term.attrib);
-    const op = ops.get(term.op);
-    if (!term.booleanAnd) match = "any";
-    if (!field || !op) simple = false;
-    terms.push({ field: field ?? "other", op: op ?? "other", value: field && op ? term.value.str : "", text: field && op ? "" : String(term.termAsString ?? "") });
-  }
-  const actions = [];
-  for (let i = 0; i < filter.actionCount; i++) {
-    const a = filter.getActionAt(i);
-    const type = acts.get(a.type) ?? "other";
-    if (type === "other") simple = false;
-    const entry = { type };
-    if (type === "move" || type === "copy") {
-      entry.folder = a.targetFolderUri;
-      const f = MailServices.folderLookup.getFolderForURL(a.targetFolderUri);
-      entry.folderName = f ? folderPath(f) : a.targetFolderUri;
-    }
-    if (type === "tag") {
-      entry.tag = a.strValue;
-      try { entry.tagName = MailServices.tags.getTagForKey(a.strValue); } catch (e) { entry.tagName = a.strValue; }
-    }
-    actions.push(entry);
-  }
-  return {
-    account: account.key,
-    accountName: account.incomingServer.prettyName,
-    index,
-    name: filter.filterName,
-    enabled: filter.enabled,
-    onNew: !!(filter.filterType & Ci.nsMsgFilterType.InboxRule),
-    manual: !!(filter.filterType & Ci.nsMsgFilterType.Manual),
-    match,
-    terms,
-    actions,
-    simple,
-  };
 }
 
 function applyToInbox(server, filter) {
@@ -392,17 +340,6 @@ const API = class extends ExtensionCommon.ExtensionAPI {
         },
         async listTags() {
           return MailServices.tags.getAllTags().map(t => ({ key: t.key, name: t.tag, color: t.color }));
-        },
-        async listRules() {
-          const out = [];
-          for (const { account, server } of filterServers()) {
-            let list;
-            try { list = server.rootFolder.getEditableFilterList(null); } catch (e) { continue; }
-            for (let i = 0; i < list.filterCount; i++) {
-              try { out.push(describeRule(list.getFilterAt(i), i, account)); } catch (e) { /* unlesbarer Filter: auslassen */ }
-            }
-          }
-          return out;
         },
         // spec als JSON: {terms:[{field,op,value}], match, accounts:"all"|[keys]}; Ergebnis {count, scanned, samples, partial}
         async preview(specJson, limit) {

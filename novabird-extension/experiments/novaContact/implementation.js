@@ -342,8 +342,11 @@ function build(cw) {
     pop.style.left = Math.max(4, Math.min(r.left, doc.documentElement.clientWidth - 240)) + "px";
     pop.style.top = r.bottom + 4 + "px";
   };
-  doc.addEventListener("mousedown", e => { if (!pop.hidden && !pop.contains(e.target) && !e.target.closest?.("#kp-bar")) closePop(); }, true);
-  doc.addEventListener("keydown", e => { if (e.key === "Escape") { closePop(); closeDialog(); } }, true);
+  // alle Listener dieses Aufbaus an einem Signal: unbuild() nimmt sie zurück (sonst liefen sie nach dem Ausschalten weiter,
+  // der select-Handler baute die Tag-Überschrift wieder um, und nach erneutem Einschalten wären sie doppelt)
+  const listen = new doc.defaultView.AbortController();
+  doc.addEventListener("mousedown", e => { if (!pop.hidden && !pop.contains(e.target) && !e.target.closest?.("#kp-bar")) closePop(); }, { capture: true, signal: listen.signal });
+  doc.addEventListener("keydown", e => { if (e.key === "Escape") { closePop(); closeDialog(); } }, { capture: true, signal: listen.signal });
 
   /* Aktiver Tag-Filter als Chip. Das Suchfeld bleibt frei für Namen/Adressen: cardsPane.getQuery wird so umhüllt, dass der Tag
      als zusätzliches Suchwort (UND) in jede Suche des Adressbuchs eingeht (Wechsel des Buchs, Tippen im Suchfeld). */
@@ -516,18 +519,19 @@ function build(cw) {
     btnUndo.disabled = !undoStack.length;
     btnUndo.replaceChildren("↶ ", T("Rückgängig", "Undo", "Annuler", "Deshacer"), undoStack.length ? " (" + undoStack.length + ")" : "");
   };
-  const view = { cw, doc, refresh, bar, style, pop, back, restoreQuery: () => { if (typeof origGetQuery === "function") cards.getQuery = origGetQuery; } };
+  const view = { cw, doc, refresh, bar, style, pop, back, listen, restoreQuery: () => { if (typeof origGetQuery === "function") cards.getQuery = origGetQuery; } };
   views.add(view);
   hookDetails(view);
   { const cur = cw.detailsPane?.currentCard; if (cur) fixCategories(doc, cur); }
   cards.cardsList.addEventListener("select", () => {
     for (const c of cards.selectedCards.slice(0, 60)) if (c) snapshot(c);
     refresh();
-  });
+  }, { signal: listen.signal });
   refresh();
 }
 
 function unbuild(view) {
+  try { view.listen.abort(); } catch (e) { /* Tab geschlossen */ }
   try { view.restoreQuery(); } catch (e) { /* Tab geschlossen */ }
   unhookDetails(view);
   view.bar.remove(); view.style.remove(); view.pop.remove(); view.back.remove();

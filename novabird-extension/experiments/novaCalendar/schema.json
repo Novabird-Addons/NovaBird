@@ -10,22 +10,6 @@
         "parameters": []
       },
       {
-        "name": "setOrder",
-        "type": "function",
-        "async": true,
-        "description": "Legt fest, ob die Terminliste oben (events-top) oder unten (tasks-top) im rechten Bereich steht.",
-        "parameters": [
-          {
-            "name": "order",
-            "type": "string",
-            "enum": [
-              "events-top",
-              "tasks-top"
-            ]
-          }
-        ]
-      },
-      {
         "name": "setPaneLayout",
         "type": "function",
         "async": true,

@@ -312,7 +312,7 @@
   const errorCode = e => {
     const m = String(e?.message || e);
     if (e?.name === "AbortError" || /timeout|timed out/i.test(m)) return "timeout";
-    if (["code", "permission", "url", "disabled", "off", "model", "nomodel", "forbidden"].includes(m)) return "off";
+    if (nbAI.isConfigError(m)) return "off";
     return "error";
   };
   const phishAnswer = (r, injection) => {
@@ -400,7 +400,7 @@
         d = src.text ? await digestFor(c, lang, src, { wait: true }) : null;
       } catch (e) {
         if (e.name === "AbortError") throw e;
-        if (["code", "permission", "url", "disabled", "off", "model", "forbidden", "nomodel"].includes(String(e.message))) throw e;
+        if (nbAI.isConfigError(e)) throw e; // Einrichtung kaputt: abbrechen statt still mit Betreffzeilen auffüllen
       }
       entries.push(d || { cat: "info", who: m.author || "", what: m.subject || "", tasks: [] });
     }

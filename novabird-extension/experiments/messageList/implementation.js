@@ -716,6 +716,7 @@ function undoWindow(cw) {
   st.cardClass.prototype.fillRow = st.baseFill;
   cw.threadPane.densityChange = st.baseDensity;
   doc.getElementById(STYLE_ID)?.remove();
+  doc.getElementById(SB_ID)?.remove(); // breite Scrollleisten (applyScroll)
   const root = doc.documentElement;
   for (const a of ["data-nbx-ml", "data-nbx-ml-av", "data-nbx-ml-pv", "data-nbx-ml-ac"]) root.removeAttribute(a);
   cleanDoc(doc);

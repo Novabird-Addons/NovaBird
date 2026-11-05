@@ -1443,8 +1443,11 @@ const save = patch => messenger.storage.local.set(patch);
   et.addEventListener("change", () => save({ eventTime: et.checked }));
   // Ort: Thunderbirds eigene Einstellung, hier nur gelesen und gesetzt (kein eigener Wert)
   const el = document.getElementById("eventLocation");
-  messenger.novaCalendar.eventLocation().then(on => (el.checked = on), () => (el.disabled = true));
-  el.addEventListener("change", () => messenger.novaCalendar.eventLocation(el.checked).catch(() => {}));
+  // Experimente können in einzelnen Seiten-Instanzen fehlen (im UI-Test gesehen): dann nur dieses Feld aus, nicht die ganze Seite
+  const cal = messenger.novaCalendar;
+  if (cal) cal.eventLocation().then(on => (el.checked = on), () => (el.disabled = true));
+  else el.disabled = true;
+  el.addEventListener("change", () => cal?.eventLocation(el.checked).catch(() => {}));
   const ap = document.getElementById("attachPane");
   ap.checked = s.attachPane !== false;
   ap.addEventListener("change", () => {
@@ -1765,7 +1768,8 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
   // Rechnet der NovaBird Helper (eingeschaltet im Reiter „NovaBird Helper“), steht hier nur, wie es läuft – Adresse, Code und
   // Sprachmodell gehören dorthin. Sonst der eigene Server (Ollama, OpenAI-kompatibel) mit Hinweis auf den Helper.
   const { helperConn } = await messenger.storage.local.get({ helperConn: null });
-  const viaHelper = conf.aiType === "nbhelper";
+  // nur solange die KI über den Helper eingeschaltet ist (ältere Stände ließen aiType „nbhelper“ nach dem Abschalten stehen)
+  const viaHelper = conf.aiType === "nbhelper" && conf.aiEnabled === true;
   document.getElementById("aiViaHelperBox").hidden = !viaHelper; // nicht „aiViaHelper“: gleichnamiger Text würde den Inhalt ersetzen
   document.getElementById("aiOwn").hidden = viaHelper;
   if (viaHelper) {
@@ -1801,7 +1805,8 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
   }
   // Fester Kalender für Termine und Aufgaben; leer = der Termin-Dialog fragt
   const calSel = document.getElementById("aiCalendar");
-  const calendars = await messenger.novaCalendar.itemCalendars().catch(() => []);
+  // ohne Kalender-Experiment nur leere Liste – ein TypeError hier brach früher den Rest (Tempo, Vorbereiten) ab
+  const calendars = await (messenger.novaCalendar?.itemCalendars() ?? Promise.resolve([])).catch(() => []);
   calSel.append(...calendars.map(c => new Option(c.name, c.id)));
   calSel.value = calendars.some(c => c.id === conf.aiCalendar) ? conf.aiCalendar : "";
   calSel.addEventListener("change", () => save({ aiCalendar: calSel.value }));
