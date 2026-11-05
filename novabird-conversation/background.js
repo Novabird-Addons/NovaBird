@@ -63,6 +63,22 @@ function withTimeout(promise, ms) {
 // gleiches Format wie NovaBird-DB (src/indexer/record.js): folder.id, sonst <Konto>:/<Pfad> (Pfad beginnt selbst mit "/")
 const folderIdOf = folder => (folder ? (folder.id ?? `${folder.accountId}:/${folder.path}`) : undefined);
 
+// Eben gelöschte/als Spam verschobene Mails (Message-ID|Ordner, aus dem sie kamen) für kurze Zeit merken: Die Ansicht baut sich
+// sofort neu auf, der Index von NovaBird-Search verarbeitet das Verschieben aber über seine Warteschlange und kennt die Mail
+// dann oft noch im alten Ordner – sie tauchte wieder auf.
+const REMOVED_MS = 120_000;
+const recentlyRemoved = new Map(); // "headerMessageId|folderId" → Zeitpunkt
+function noteRemoved(message) {
+  if (!message?.headerMessageId) return;
+  const now = Date.now();
+  for (const [k, at] of recentlyRemoved) if (now - at > REMOVED_MS) recentlyRemoved.delete(k);
+  recentlyRemoved.set(`${message.headerMessageId}|${folderIdOf(message.folder)}`, now);
+}
+const wasRemoved = row => {
+  const at = recentlyRemoved.get(`${row.headerMessageId}|${row.folderId}`);
+  return at != null && Date.now() - at <= REMOVED_MS;
+};
+
 // "/Pfad" aus dem Rest der Ordner-ID ("//Pfad" bei <Konto>:/<Pfad> mit führendem Schrägstrich)
 const folderPathOf = rest => (rest.startsWith("//") ? rest.slice(1) : rest);
 
@@ -229,7 +245,7 @@ async function findViaDb(target, timing) {
   if (!res?.ok || !Array.isArray(res.messages)) return dbFailed(timing, res?.error ?? "Fehler");
   dbState.usable = true;
   dbState.failures = 0;
-  const rows = dedupeRows(res.messages, target.headerMessageId, folderIdOf(target.folder));
+  const rows = dedupeRows(res.messages.filter(r => !wasRemoved(r)), target.headerMessageId, folderIdOf(target.folder));
   const own = rows.find(r => r.headerMessageId === target.headerMessageId && r.folderId === folderIdOf(target.folder))
     ?? rows.find(r => r.headerMessageId === target.headerMessageId);
   const views = rows.map(rowToView);
@@ -509,6 +525,7 @@ async function runAction(raw, tabId) {
     case "saveAttachment": return messenger.conversationView.saveAttachment(msg.id, String(msg.partName), String(msg.name || "attachment"), String(msg.contentType || ""));
     // in den Papierkorb (je nach Kontoeinstellung), nie endgültig löschen
     case "delete": {
+      noteRemoved(await messenger.messages.get(msg.id).catch(() => null));
       const result = await messenger.messages.delete([msg.id]);
       clearCaches();
       return result;
@@ -530,6 +547,7 @@ async function runAction(raw, tabId) {
       };
       const target = account ? find(account.folders, junk ? "junk" : "inbox") : null;
       if (target && target.path !== info.folder.path && (junk ? info.folder.type !== "junk" : info.folder.type === "junk")) {
+        noteRemoved(info);
         await messenger.messages.move([msg.id], target);
       }
       clearCaches();

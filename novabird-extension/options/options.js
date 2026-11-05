@@ -109,7 +109,6 @@ const TEXTS = {
     updFailed: "$1: $2",
     updSelf: "NovaBird-Extension wird jetzt aktualisiert, diese Seite schließt sich. Danach Thunderbird neu starten.",
     updNothing: "Alles aktuell.",
-    updThemeNote: "Fehlende Themes werden nur installiert, wenn „Verwalten“ angehakt ist; das gerade aktive Theme bleibt eingeschaltet.",
     statsTitle: "Postfachanalyse",
     statsRefresh: "Aktualisieren",
     statsUpdated: "Stand: $1",
@@ -407,7 +406,6 @@ const TEXTS = {
     updFailed: "$1: $2",
     updSelf: "NovaBird-Extension is being updated now, this page will close. Restart Thunderbird afterwards.",
     updNothing: "Everything is up to date.",
-    updThemeNote: "Missing themes are only installed when “Manage” is ticked; the theme in use stays active.",
     statsTitle: "Mailbox analysis",
     statsRefresh: "Refresh",
     statsUpdated: "As of: $1",
@@ -705,7 +703,6 @@ const TEXTS = {
     updFailed: "$1 : $2",
     updSelf: "NovaBird-Extension est mis à jour maintenant, cette page va se fermer. Redémarrez ensuite Thunderbird.",
     updNothing: "Tout est à jour.",
-    updThemeNote: "Les thèmes manquants ne sont installés que si « Gérer » est coché ; le thème utilisé reste actif.",
     statsTitle: "Analyse de la boîte mail",
     statsRefresh: "Actualiser",
     statsUpdated: "État : $1",
@@ -1003,7 +1000,6 @@ const TEXTS = {
     updFailed: "$1: $2",
     updSelf: "NovaBird-Extension se está actualizando, esta página se cerrará. Después reinicie Thunderbird.",
     updNothing: "Todo está al día.",
-    updThemeNote: "Los temas que faltan solo se instalan si «Gestionar» está marcado; el tema en uso sigue activo.",
     statsTitle: "Análisis del buzón",
     statsRefresh: "Actualizar",
     statsUpdated: "Estado: $1",
@@ -1318,24 +1314,21 @@ function showTab(id) {
   }
 }
 // Im Hub Ansichten derselben Seite: ein einzelner Reiter (view=list|attach|… ohne Reiterleiste und Titel)
-// oder „general“ (alles außer KI; Stand vor den Themen-Gruppen, bleibt für alte Verweise)
 const VIEW = new URLSearchParams(location.search).get("view");
 const VIEW_TABS = {
   list: "listTab", attach: "calendar", colors: "colorsTab", stats: "statsTab", updates: "updatesTab",
   screen: "screenTab", rules: "rulesTab", pilot: "pilotTab", ai: "aiTab", aiview: "aiViewTab",
 };
 const VIEW_TAB = VIEW_TABS[VIEW] || null;
-if (VIEW_TAB || VIEW === "general") {
+if (VIEW_TAB) {
   for (const b of document.querySelectorAll("nav button")) {
-    if (VIEW_TAB ? b.dataset.tab !== VIEW_TAB : b.dataset.tab === "aiTab") {
+    if (b.dataset.tab !== VIEW_TAB) {
       document.getElementById(b.dataset.tab).hidden = true;
       b.remove();
     }
   }
-  if (VIEW_TAB) {
-    document.querySelector("nav").hidden = true;
-    document.getElementById("title").hidden = true;
-  }
+  document.querySelector("nav").hidden = true;
+  document.getElementById("title").hidden = true;
 }
 for (const b of document.querySelectorAll("nav button")) {
   b.addEventListener("click", () => showTab(b.dataset.tab));
@@ -1501,7 +1494,11 @@ const save = patch => messenger.storage.local.set(patch);
       const name = document.createElement("span");
       name.textContent = a.name;
       row.append(input, name);
-      input.addEventListener("input", () => { stored[a.id] = input.value; save({ listAcctColors: { ...stored } }); });
+      input.addEventListener("input", async () => {
+        stored[a.id] = input.value;
+        const { listAcctColors: cur } = await messenger.storage.local.get({ listAcctColors: {} }); // frisch: andere offene Ansicht
+        save({ listAcctColors: { ...(cur || {}), [a.id]: input.value } });
+      });
       box.append(row);
     });
   } catch (e) { /* ohne Kontoliste */ }
@@ -1530,7 +1527,13 @@ const save = patch => messenger.storage.local.set(patch);
       const box = document.createElement("input");
       box.type = "checkbox";
       box.checked = !hide.has(a.id);
-      box.addEventListener("change", () => { box.checked ? hide.delete(a.id) : hide.add(a.id); save({ folderInboxesHide: [...hide] }); });
+      box.addEventListener("change", async () => {
+        box.checked ? hide.delete(a.id) : hide.add(a.id);
+        const { folderInboxesHide: cur } = await messenger.storage.local.get({ folderInboxesHide: [] }); // frisch
+        const next = new Set(Array.isArray(cur) ? cur : []);
+        box.checked ? next.delete(a.id) : next.add(a.id);
+        save({ folderInboxesHide: [...next] });
+      });
       label.append(box, " ", a.name);
       fiBox.append(label);
     }
@@ -1840,7 +1843,7 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
     // (sonst „permissions.request may only be called from a user input handler“)
     let asked = null;
     try {
-      if (/^https?:/i.test(c.aiUrl) && !nbAI.isLocal(c.aiUrl)) {
+      if (/^https?:/i.test(c.aiUrl) && nbAI.needsPermission(c.aiUrl)) {
         asked = messenger.permissions.request({ origins: [nbAI.origin(c.aiUrl)] }).catch(() => false);
       }
     } catch {
@@ -1913,7 +1916,7 @@ document.getElementById("statsRefresh").addEventListener("click", loadStats);
     // Erlaubnis für Adressen außerhalb des eigenen Rechners: direkt im Klick erfragen (wie im Reiter „KI-Assistent“)
     let asked = null;
     try {
-      if (/^https?:/i.test(conf.aiUrl) && !nbAI.isLocal(conf.aiUrl)) {
+      if (/^https?:/i.test(conf.aiUrl) && nbAI.needsPermission(conf.aiUrl)) {
         asked = messenger.permissions.request({ origins: [nbAI.origin(conf.aiUrl)] }).catch(() => false);
       }
     } catch { /* ungültige Adresse: listModels meldet es */ }

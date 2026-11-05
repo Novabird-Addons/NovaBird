@@ -740,13 +740,33 @@ function scan(win, tries = 0) {
   if ((missing || !threePanes(win).length) && tries < 30) win.setTimeout(() => scan(win, tries + 1), 500);
 }
 
+// Einträge geschlossener Tabs/Fenster aus den Zuständen entfernen (Schlüssel sind about:3pane-Fenster; ohne Aufräumen hielten
+// wins, hdrObservers und newsObservers jedes je geöffnete 3-Pane-Dokument bis zum Abschalten fest)
+function pruneClosed() {
+  const dead = cw => {
+    try {
+      return cw.closed || !cw.document;
+    } catch (e) {
+      return true; // totes Objekt
+    }
+  };
+  for (const map of [wins, hdrObservers, newsObservers]) {
+    for (const [cw, v] of [...map]) {
+      if (!dead(cw)) continue;
+      try { v?.disconnect?.(); } catch (e) { /* schon weg */ }
+      map.delete(cw);
+    }
+  }
+}
+
 function hookWindow(win) {
   const tm = win.document.getElementById("tabmail");
   if (!tm || win._nbxMl) return;
-  const onTab = () => win.setTimeout(() => scan(win), 300);
+  const onTab = () => win.setTimeout(() => { pruneClosed(); scan(win); }, 300);
   win._nbxMl = { onTab, tm };
   tm.tabContainer.addEventListener("TabOpen", onTab);
   tm.tabContainer.addEventListener("TabSelect", onTab);
+  tm.tabContainer.addEventListener("TabClose", win._nbxMl.onClose = () => win.setTimeout(pruneClosed, 500));
   scan(win);
 }
 
@@ -755,6 +775,7 @@ function unhookWindow(win) {
   if (!h) return;
   h.tm.tabContainer.removeEventListener("TabOpen", h.onTab);
   h.tm.tabContainer.removeEventListener("TabSelect", h.onTab);
+  if (h.onClose) h.tm.tabContainer.removeEventListener("TabClose", h.onClose);
   delete win._nbxMl;
   for (const cw of [...wins.keys()]) { try { undoWindow(cw); } catch (e) { wins.delete(cw); } }
 }
@@ -765,6 +786,7 @@ function startAll() {
   ExtensionSupport.registerWindowListener(LISTENER, {
     chromeURLs: [MAIN_URL],
     onLoadWindow(win) { try { hookWindow(win); } catch (e) { console.error("Nachrichtenliste:", e); } },
+    onUnloadWindow() { setTimeoutCompat(pruneClosed, 1000); }, // geschlossenes Hauptfenster: seine 3-Pane-Einträge freigeben
   });
 }
 

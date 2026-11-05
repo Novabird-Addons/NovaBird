@@ -806,17 +806,6 @@
         "type": "function",
         "description": "Der Nutzer hat „Verlauf löschen“ gewählt.",
         "parameters": []
-      },
-      {
-        "name": "onStateChanged",
-        "type": "function",
-        "description": "Der Nutzer hat Bereich oder Optionen geändert (zum Speichern).",
-        "parameters": [
-          {
-            "name": "state",
-            "$ref": "State"
-          }
-        ]
       }
     ]
   }

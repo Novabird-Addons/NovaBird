@@ -34,6 +34,15 @@ const nbAI = (() => {
     }
   };
   const origin = url => new URL(url).origin + "/*";
+  // Braucht diese Adresse eine Erlaubnis? Nur localhost und 127.0.0.1 stehen im Manifest (auch [::1] nicht).
+  const needsPermission = url => {
+    try {
+      const h = new URL(url).hostname;
+      return h !== "localhost" && h !== "127.0.0.1";
+    } catch (e) {
+      return true;
+    }
+  };
 
   function headers(c) {
     const h = { "Content-Type": "application/json" };
@@ -51,7 +60,9 @@ const nbAI = (() => {
     if (!/^https?:\/\//i.test(url)) {
       throw new Error("url");
     }
-    if (isLocal(url)) {
+    // localhost/127.0.0.1 stehen im Manifest; IPv6-Loopback ([::1]) gilt zwar als lokal (kein Hinweis „fremder Server“),
+    // braucht aber wie jede andere Adresse die Erlaubnis – sonst scheiterte die Anfrage still
+    if (!needsPermission(url)) {
       return;
     }
     if (!(await messenger.permissions.contains({ origins: [origin(url)] }))) {
@@ -1222,7 +1233,7 @@ const nbAI = (() => {
   }
 
   return {
-    DEFAULTS, FEATURES, SPEECH_RATES, CONFIG_ERRORS, isConfigError, feature, isLocal, origin, listModels, chat, helperHello, speak, sentences, quickStart, guessLang, mailText, threadText, prompt, promptTemplate, suspicious, base, stats: () => lastStats,
+    DEFAULTS, FEATURES, SPEECH_RATES, CONFIG_ERRORS, isConfigError, feature, isLocal, needsPermission, origin, listModels, chat, helperHello, speak, sentences, quickStart, guessLang, mailText, threadText, prompt, promptTemplate, suspicious, base, stats: () => lastStats,
     TRANSLATE_LANGS, languageName, translatePrompt, eventsPrompt, parseItems, newMails, stripQuotedText, overview,
     writePrompt, digestPrompt, parseDigest, digestOverviewText, PHISH_VARIANT, phishPrompt, parsePhish, sortPrompt, parseSort, privateHost, phishLocal, textHash, shareId, mailKey, seal, unseal, shareGet, sharePut, shareRelease,
   };

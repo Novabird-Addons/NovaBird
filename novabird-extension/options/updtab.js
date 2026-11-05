@@ -67,10 +67,11 @@
       box.type = "checkbox";
       box.checked = row.managed;
       box.disabled = !enable.checked;
-      box.addEventListener("change", () => {
+      box.addEventListener("change", async () => {
         choice[row.id] = box.checked;
         row.managed = box.checked;
-        save({ updatesManaged: { ...choice } });
+        const { updatesManaged: cur } = await messenger.storage.local.get({ updatesManaged: {} }); // frisch: andere offene Ansicht
+        save({ updatesManaged: { ...(cur || {}), [row.id]: box.checked } });
         syncButtons();
       });
       const tdBox = el("td", undefined, "c");

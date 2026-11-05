@@ -392,7 +392,8 @@ function setupWindow(win) {
 function teardownWindow(win) {
   const st = states.get(win);
   if (!st) return;
-  hide(st);
+  states.delete(win); // zuerst: auch wenn unten etwas am toten Fenster scheitert, bleibt kein Eintrag hängen
+  try { hide(st); } catch (e) { /* Fenster schon geschlossen */ }
   for (const fn of st.cleanups) {
     try { fn(); } catch (e) { /* Fenster schon geschlossen */ }
   }
@@ -401,9 +402,12 @@ function teardownWindow(win) {
     try { fn(); } catch (e) { /* Dokument schon weg */ }
   }
   st.docCleanups.clear();
-  st.box?.remove();
-  win.document.getElementById(STYLE_ID)?.remove();
-  states.delete(win);
+  try {
+    st.box?.remove();
+    win.document.getElementById(STYLE_ID)?.remove();
+  } catch (e) {
+    /* Fenster schon geschlossen */
+  }
 }
 
 function startAll() {
@@ -411,6 +415,10 @@ function startAll() {
     chromeURLs: [MAIN_URL],
     onLoadWindow(win) {
       try { setupWindow(win); } catch (e) { console.error("NovaBird-Extension: Vorschau", e); }
+    },
+    // geschlossenes Hauptfenster: Zustand freigeben (sonst hielte states Fenster samt DOM bis zum Abschalten)
+    onUnloadWindow(win) {
+      teardownWindow(win);
     },
   });
 }

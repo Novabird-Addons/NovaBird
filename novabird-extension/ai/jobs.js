@@ -112,8 +112,12 @@
     publish(j);
     // fertig, während niemand zusieht: Häkchen am KI-Knopf des Tabs
     if (j.status === "done" && j.ports.size === 0 && j.tabId != null) {
-      messenger.messageDisplayAction.setBadgeText({ tabId: j.tabId, text: "✓" }).catch(() => {});
-      messenger.messageDisplayAction.setBadgeBackgroundColor({ tabId: j.tabId, color: "#1e8e5a" }).catch(() => {});
+      // nur, wenn der Tab noch diese Mail (bzw. eine des Fadens) zeigt – sonst stünde das Häkchen an der falschen Mail
+      const shown = await messenger.messageDisplay.getDisplayedMessage(j.tabId).catch(() => null);
+      if (shown && (shown.id === r.messageId || r.ids?.includes(shown.id))) {
+        messenger.messageDisplayAction.setBadgeText({ tabId: j.tabId, text: "✓" }).catch(() => {});
+        messenger.messageDisplayAction.setBadgeBackgroundColor({ tabId: j.tabId, color: "#1e8e5a" }).catch(() => {});
+      }
     }
     if (deadlinesFor) await addDeadlines(j, conf, r, deadlinesFor);
   }

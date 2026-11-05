@@ -393,7 +393,6 @@ async function handleBroken(reason, detail) {
   if (answer === "ok") {
     await rebuildSafely();
   } else {
-    await messenger.storage.local.set({ rebuildDeclinedAt: Date.now() });
     await ui.showDialog(t("rebuildDeclinedTitle"), t("rebuildDeclinedText"), [{ id: "ok", label: t("rebuildDeclinedOk") }]);
   }
 }

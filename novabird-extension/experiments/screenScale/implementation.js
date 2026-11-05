@@ -154,6 +154,9 @@ function followLayout(wins) {
 
 function evaluate(win) {
   if (!cfg.enabled) return;
+  // Die Skalierung ist eine globale Einstellung: bei mehreren Hauptfenstern bestimmt nur das erste (sonst wechselte sie bei jedem
+  // Fokuswechsel zwischen Fenstern auf verschiedenen Bildschirmen hin und her, und alle Fenster bauten sich neu auf)
+  if (windows.size > 1 && windows.keys().next().value !== win) return;
   const { width } = measure(win);
   const pct = Number(cfg[profileOf(width)]);
   if (!(pct >= 50 && pct <= 400)) return;

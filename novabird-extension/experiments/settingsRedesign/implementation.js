@@ -1502,7 +1502,10 @@ const themeObserver = {
 function teardown() {
   try {
     dropMainSheet();
-    Services.obs.removeObserver(themeObserver, "lightweight-theme-styling-update");
+    if (themeObserver.added) {
+      themeObserver.added = false;
+      Services.obs.removeObserver(themeObserver, "lightweight-theme-styling-update");
+    }
   } catch (e) {}
   try {
     setAiButtonVisible(true);
@@ -1541,10 +1544,15 @@ return class extends ExtensionCommon.ExtensionAPI {
 
   getAPI(context) {
     hubIcon = context.extension.getURL("icons/icon-48.png");
-    try {
-      Services.obs.addObserver(themeObserver, "lightweight-theme-styling-update");
-    } catch (e) {
-      console.error("NovaBird: Theme-Beobachter", e);
+    // getAPI läuft je Kontext (Hintergrund, jede Einstellungsseite): den Beobachter nur einmal anmelden, teardown meldet ihn
+    // einmal ab
+    if (!themeObserver.added) {
+      try {
+        Services.obs.addObserver(themeObserver, "lightweight-theme-styling-update");
+        themeObserver.added = true;
+      } catch (e) {
+        console.error("NovaBird: Theme-Beobachter", e);
+      }
     }
     if (!nb.nbIsDark) {
       try {

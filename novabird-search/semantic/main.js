@@ -1291,17 +1291,6 @@ messenger.runtime.onMessage.addListener((msg, sender) => {
         kick();
         return { imported: n };
       }
-      case "semantic:helperConnect": {
-        disconnectHelper();
-        const info = await connectHelper();
-        return { info, error: helperError };
-      }
-      case "semantic:helperPrepare": {
-        await connectHelper();
-        const res = await helperRequest({ type: "prepare", model: modelSpec(model()) }, 60 * 60_000);
-        disconnectHelper();
-        return { info: await connectHelper(), prepared: res };
-      }
       case "semantic:ollama":
         return ollamaOp(msg.op);
       case "semantic:serverCheck": {

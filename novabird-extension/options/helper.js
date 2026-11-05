@@ -269,7 +269,7 @@
     let asked = null;
     try {
       // Erlaubnis für Adressen außerhalb dieses PCs direkt im Klick erfragen (vor dem ersten await)
-      if (!nbAI.isLocal(url)) asked = messenger.permissions.request({ origins: [nbAI.origin(url)] }).catch(() => false);
+      if (nbAI.needsPermission(url)) asked = messenger.permissions.request({ origins: [nbAI.origin(url)] }).catch(() => false);
     } catch {
       $("connStatus").textContent = t.calErr.url;
       return;
@@ -320,7 +320,7 @@
       btn.addEventListener("click", () => {
         const url = `http://${h.address.includes(":") ? `[${h.address}]` : h.address}:${h.port}`;
         // Erlaubnis für Adressen außerhalb dieses PCs direkt im Klick erfragen (vor dem ersten await)
-        const asked = nbAI.isLocal(url) ? Promise.resolve(true) : messenger.permissions.request({ origins: [nbAI.origin(url)] }).catch(() => false);
+        const asked = !nbAI.needsPermission(url) ? Promise.resolve(true) : messenger.permissions.request({ origins: [nbAI.origin(url)] }).catch(() => false);
         asked.then(ok => (ok ? pair(url) : showPair("bad", fill(t.fail, t.errPerm))));
       });
       li.append(name, btn);

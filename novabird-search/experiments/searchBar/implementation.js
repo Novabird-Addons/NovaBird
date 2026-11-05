@@ -1081,7 +1081,6 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
         else if (key === "scope-folder") state.scope = "folder";
         else state[key] = !state[key];
         refresh(root); // nur diese Leiste: der Zustand gilt je Fenster/Tab
-        emitter.emit("stateChanged", { ...state });
         emitQuery(root);
       };
       rangeRow.addEventListener("click", e => {
@@ -1552,6 +1551,24 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
       }
       cw._nbsBest = count ? { view, count } : null;
       if (count && best.note) note = best.note.replace("{n}", String(count)) + (note ? " " + note : "");
+      // Auswahl merken: die Bedeutungssuche baut die Liste wenige Sekunden später mit Zusatztreffern neu auf – wer inzwischen
+      // einen Treffer angeklickt hat, verlor sonst Auswahl und Vorschau
+      let keepSel = null;
+      try {
+        if (cw.gViewWrapper?.isSynthetic) keepSel = cw.gDBView?.hdrForFirstSelectedMessage ?? null;
+      } catch (e) {
+        keepSel = null; // nichts ausgewählt
+      }
+      if (keepSel && !hdrs.includes(keepSel)) keepSel = null;
+      const reselect = () => {
+        if (!keepSel || cw.gViewWrapper?._syntheticView !== view) return;
+        try {
+          const i = cw.gDBView.findIndexOfMsgHdr(keepSel, true);
+          if (i >= 0 && cw.threadTree && cw.threadTree.selectedIndex !== i) cw.threadTree.selectedIndex = i;
+        } catch (e) {
+          dbg("reselect failed", String(e));
+        }
+      };
       cw.restoreState({ syntheticView: view, folderPaneVisible: true, title });
       // eigene Reihenfolge: nach der Rang-Spalte sortieren (gleich und nach dem Laden noch einmal, falls Thunderbird
       // inzwischen wieder nach Datum sortiert hat; eine Sortierung des Nutzers bleibt)
@@ -1570,7 +1587,8 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
         }
       };
       applyRankSort(false);
-      win.setTimeout(() => applyRankSort(true), 400);
+      reselect();
+      win.setTimeout(() => (applyRankSort(true), reselect()), 400);
       // Die Kopfzeile zählt sonst die Nachrichten des zuletzt gewählten Ordners (hier: der alte Suchordner)
       const setCount = () => {
         try {
@@ -2424,7 +2442,6 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           return context.extension.folderManager.convert(wrapper.virtualFolder).id;
         },
         onQuery: makeEvent(context, emitter, "onQuery", "query"),
-        onStateChanged: makeEvent(context, emitter, "onStateChanged", "stateChanged"),
         onEnter: makeEvent(context, emitter, "onEnter", "enter"),
         onHistoryAdd: makeEvent(context, emitter, "onHistoryAdd", "historyAdd"),
         onHistoryRemove: makeEvent(context, emitter, "onHistoryRemove", "historyRemove"),

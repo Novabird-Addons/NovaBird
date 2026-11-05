@@ -238,7 +238,7 @@ messenger.webRequest.onBeforeSendHeaders.addListener(
     }
     return { requestHeaders: details.requestHeaders.filter(h => h.name.toLowerCase() !== "origin") };
   },
-  { urls: ["http://localhost/*", "http://127.0.0.1/*"] },
+  { urls: ["http://localhost/*", "http://127.0.0.1/*", "http://[::1]/*"] }, // [::1] nur mit erteilter Erlaubnis
   ["blocking", "requestHeaders"]
 );
 

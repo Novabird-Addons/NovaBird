@@ -103,17 +103,24 @@
       const input = el("input");
       input.type = "color";
       input.setAttribute("aria-label", name);
-      input.addEventListener("input", () => {
+      input.addEventListener("input", async () => {
+        // sofort speichern (Vorschau beim Ziehen im Farbwähler); frisch gelesen, nur diese Farbe ändern
         if (kind === "dialog") {
           dialog[key] = input.value;
-          save({ colors: { ...dialog } }); // sofort speichern: Vorschau beim Ziehen im Farbwähler
+          const { colors: cur } = await messenger.storage.local.get({ colors: {} });
+          save({ colors: { ...DEFAULTS.colors, ...(cur || {}), [key]: input.value } });
         } else {
-          if (input.value.toLowerCase() === base(key)) {
+          const same = input.value.toLowerCase() === base(key);
+          if (same) {
             delete mainColors[mode][key]; // wie das Theme: nicht speichern, folgt weiter dem Theme
           } else {
             mainColors[mode][key] = input.value.toLowerCase();
           }
-          save({ mainColors: { light: { ...mainColors.light }, dark: { ...mainColors.dark } } });
+          const { mainColors: cur } = await messenger.storage.local.get({ mainColors: {} });
+          const next = { light: { ...(cur?.light || {}) }, dark: { ...(cur?.dark || {}) } };
+          if (same) delete next[mode][key];
+          else next[mode][key] = input.value.toLowerCase();
+          save({ mainColors: next });
         }
         sync();
       });
