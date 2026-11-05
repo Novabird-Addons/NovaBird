@@ -322,6 +322,39 @@ export async function headersOnlyByFolder(db, limit = 50) {
   );
 }
 
+/** Ordner mit Mails ohne Volltext (nur Kopfdaten): Map folderId -> Anzahl. */
+export async function headersOnlyCounts(db) {
+  const rows = await db.select(
+    "SELECT folder_id, COUNT(*) FROM messages WHERE body_hash = ? GROUP BY folder_id",
+    [HEADERS_ONLY],
+    ["folder_id", "n"],
+  );
+  return new Map(rows.map((r) => [r.folder_id, r.n]));
+}
+
+/** Seite der Mails ohne Volltext eines Ordners (nach id, ab afterId): [{id, header_msg_id}]. */
+export async function headersOnlyPage(db, folderId, afterId = 0, limit = 1000) {
+  return db.select(
+    "SELECT id, header_msg_id FROM messages WHERE folder_id = ? AND body_hash = ? AND id > ? ORDER BY id LIMIT ?",
+    [folderId, HEADERS_ONLY, afterId, limit],
+    ["id", "header_msg_id"],
+  );
+}
+
+/** Größe des Offline-Speichers je Ordner bei der letzten Prüfung ({folderId: Bytes}); wächst er, hat Thunderbird Texte geholt. */
+export async function loadFolderSizes(db) {
+  const rows = await db.select("SELECT value FROM meta WHERE key = 'folder_sizes'", [], ["value"]);
+  try {
+    return rows.length ? JSON.parse(rows[0].value) : {};
+  } catch {
+    return {};
+  }
+}
+
+export async function saveFolderSizes(db, sizes) {
+  await db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES ('folder_sizes', ?)", [JSON.stringify(sizes)]);
+}
+
 /** Datum (ms) der neuesten indizierten Mail eines Kontos oder null. */
 export async function newestDate(db, accountId) {
   const [r] = await db.select("SELECT MAX(date) AS d FROM messages WHERE account_id = ?", [accountId], ["d"]);

@@ -298,7 +298,14 @@ var novabirdDb = class extends ExtensionCommon.ExtensionAPI {
                 const virtual = Boolean(folder.flags & 0x20);
                 // Lokale Ordner haben das Flag nicht, ihre Mails liegen aber immer lokal vor.
                 const offline = Boolean(folder.flags & 0x08000000) || (Boolean(type) && type !== "imap" && type !== "nntp");
-                return { virtual, offline };
+                // Größe des lokalen Speichers: wächst, wenn Thunderbird Mailtexte herunterlädt (Prüfanlass fürs Nachholen der Texte)
+                let size = null;
+                try {
+                  size = Number(folder.sizeOnDisk);
+                } catch {
+                  /* nicht verfügbar */
+                }
+                return { virtual, offline, size: Number.isFinite(size) ? size : null };
               } catch {
                 return null;
               }

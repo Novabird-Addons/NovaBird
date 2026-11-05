@@ -462,10 +462,11 @@ async function catchUpNow() {
   dlog.info(L("[novabird-db] Nachholen und Abgleich starten", "[novabird-db] Starting catch-up and comparison"));
   const r = await indexer.catchUp();
   const rec = await indexer.reconcile(); // rückwirkend einsortierte Mails: Ordner mit abweichender Mailzahl neu durchgehen
+  const bodies = await indexer.fillBodies(); // Mailtexte, die Betterbird inzwischen lokal hat (statt Ordner neu durchzublättern)
   // Der wöchentliche Tiefenabgleich läuft getrennt im Leerlauf (deepTick)
-  lastCatchUp = { at: Date.now(), ...r, reconcile: rec };
+  lastCatchUp = { at: Date.now(), ...r, reconcile: rec, bodies };
   if (r.added || rec.added || rec.rescanned) console.info("[novabird-db] Nachgeholt:", lastCatchUp);
-  if (r.added || rec.added || rec.rescanned) refreshVocab("Nachholen").catch(() => {});
+  if (r.added || rec.added || rec.rescanned || bodies.filled) refreshVocab("Nachholen").catch(() => {});
   return lastCatchUp;
 }
 

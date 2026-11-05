@@ -364,6 +364,117 @@ describe("Ordner ohne Offline-Speicher und virtuelle Ordner", () => {
   });
 });
 
+describe("Fehlende Mailtexte gezielt nachholen statt Ordner neu durchzublättern (Meldung 1,8 Mio. Mails)", () => {
+  // IMAP-Offline-Ordner, Thunderbird hat nicht alle Texte lokal (Sync „nur letzte X Tage“): früher blieb der Ordner
+  // „nicht fertig“ und jeder Start blätterte ihn komplett durch
+  const withBodies = (fake) => {
+    const local = new Set();
+    const size = { "/INBOX": 1000, "/Sent": 10, "/Trash": 10 };
+
+    const byKey = new Map();
+    const resolved = [];
+    fake.api.novabirdDb = {
+      folderInfo: async (fs) => fs.map((f) => ({ virtual: false, offline: true, size: size[f.path] ?? 0 })),
+      offlineFlags: async (ids) => ids.map((id) => local.has(id)),
+      resolveMessages: async (items) => items.map(({ headerMessageId, folderId }) => {
+        resolved.push(headerMessageId);
+        const h = byKey.get(`${folderId}|${headerMessageId}`);
+        return h ? { id: h.id, offline: local.has(h.id) } : null;
+      }),
+    };
+    fake.api.messages.get = async (id) => [...byKey.values()].find((h) => h.id === id) ?? null;
+    const listed = [];
+    const orig = fake.api.messages.list;
+    fake.api.messages.list = async (id) => {
+      listed.push(id);
+      return orig(id);
+    };
+    const add = (key, msg) => {
+      const h = fake.addMessage(key, msg);
+      byKey.set(`${h.folder.id}|${h.headerMessageId}`, h);
+      return h;
+    };
+    return { local, size, listed, resolved, add };
+  };
+
+  it("Ordner ist nach einem Durchgang fertig; der nächste Start blättert ihn nicht durch", async () => {
+    const { fake, indexer, db, caps } = await setup();
+    const t = withBodies(fake);
+    const a = t.add("inbox", { subject: "Lokal", body: "Wartungsfenster" });
+    t.add("inbox", { subject: "Server", body: "Wartungsfenster" });
+    t.local.add(a.id);
+    await indexer.fullRun();
+    expect((await search(db, caps, "Wartungsfenster")).rows.map((r) => r.subject)).toEqual(["Lokal"]);
+    const [st] = await db.select("SELECT done FROM index_state WHERE folder_id = ?", ["account1://INBOX"], ["done"]);
+    expect(st.done).toBe(1);
+    t.listed.length = 0;
+    await indexer.fullRun();
+    expect(t.listed).toEqual([]); // nichts durchgeblättert
+  });
+
+  it("fillBodies: ohne Download (Größe gleich) keine Prüfung; nach Download nur die Kopfdaten-Einträge auflösen und Text holen", async () => {
+    const { fake, indexer, db, caps } = await setup();
+    const t = withBodies(fake);
+    const a = t.add("inbox", { subject: "Lokal", body: "Wartungsfenster" });
+    const b = t.add("inbox", { subject: "Server", body: "Wartungsfenster" });
+    t.local.add(a.id);
+    await indexer.fullRun();
+    expect(await indexer.fillBodies()).toEqual({ checked: 0, filled: 0 }); // Größe seit dem Durchgang unverändert
+    expect(t.resolved).toEqual([]);
+
+    t.local.add(b.id); // Thunderbird lädt den Text herunter, der Speicher wächst
+    t.size["/INBOX"] = 2000;
+    t.listed.length = 0;
+    expect(await indexer.fillBodies()).toEqual({ checked: 1, filled: 1 });
+    expect(t.resolved).toEqual([b.headerMessageId]); // nur der Eintrag ohne Text, nicht der ganze Ordner
+    expect(t.listed).toEqual([]);
+    expect((await search(db, caps, "Wartungsfenster")).rows.length).toBe(2);
+    expect(await indexer.fillBodies()).toEqual({ checked: 0, filled: 0 }); // nichts mehr offen
+  });
+
+  it("gewachsener Ordner, Texte weiter nicht lokal: geprüft, nichts gelesen, danach erst beim nächsten Wachsen wieder", async () => {
+    const { fake, indexer } = await setup();
+    const t = withBodies(fake);
+    t.add("inbox", { subject: "Server", body: "x" });
+    await indexer.fullRun();
+    t.size["/INBOX"] = 5000;
+    const reads = fake.calls.listInlineTextParts;
+    expect(await indexer.fillBodies()).toEqual({ checked: 1, filled: 0 });
+    expect(fake.calls.listInlineTextParts).toBe(reads);
+    expect(await indexer.fillBodies()).toEqual({ checked: 0, filled: 0 });
+  });
+
+  it("Umstieg: Ordner, der früher wegen fehlender Texte offen blieb, wird nicht mehr durchgeblättert", async () => {
+    const { fake, indexer, db } = await setup();
+    const t = withBodies(fake);
+    t.add("inbox", { subject: "Server", body: "x" });
+    await indexer.fullRun();
+    // Zustand aus der alten Version nachstellen: Ordner offen, Mailzahl gemerkt
+    await db.execute("UPDATE index_state SET done = 0 WHERE folder_id = ?", ["account1://INBOX"]);
+    t.listed.length = 0;
+    await indexer.fullRun();
+    expect(t.listed).toEqual([]);
+    // nie vollständig gelesener Ordner (keine Mailzahl gemerkt) wird dagegen gelesen
+    await db.execute("DELETE FROM meta WHERE key = 'folder_totals'");
+    await indexer.fullRun();
+    expect(t.listed).toContain("account1://INBOX");
+  });
+
+  it("Durchblättern bekannter Mails fragt Offline-Flags und Verweise nicht mehr ab", async () => {
+    const { fake, indexer } = await setup();
+    const t = withBodies(fake);
+    for (let i = 0; i < 5; i++) t.local.add(t.add("inbox", { subject: `M${i}`, body: "x" }).id);
+    let asked = 0;
+    const flags = fake.api.novabirdDb.offlineFlags;
+    fake.api.novabirdDb.offlineFlags = async (ids) => ((asked += ids.length), flags(ids));
+    await indexer.fullRun();
+    expect(asked).toBe(5);
+    asked = 0;
+    await indexer.fullRun({ force: true });
+    expect(asked).toBe(0);
+  });
+});
+
 describe("Hänger: Zeitgrenzen und Wächter", () => {
   const capture = () => {
     const lines = [];

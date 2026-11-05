@@ -296,7 +296,16 @@ export class Indexer {
       if (info) flags[fid] = info.offline;
     }
     if (this.folderInfo?.size) await repo.saveFolderOffline(this.db, flags);
-    const todo = folders.filter((f) => force || changed.has(folderIdOf(f)) || !states.get(folderIdOf(f))?.done);
+    // Ordner, die früher nur wegen fehlender Mailtexte „nicht fertig“ blieben, aber schon vollständig durchgegangen wurden
+    // (Mailzahl gemerkt): nicht erneut durchblättern – die Texte holt fillBodies() gezielt nach (Meldung: 1,8 Mio. Mails, jeder
+    // Start blätterte alle Ordner ~30 min durch)
+    const totals = this.canFillBodies() ? await repo.loadFolderTotals(this.db) : {};
+    const todo = folders.filter((f) => {
+      const fid = folderIdOf(f);
+      if (force || changed.has(fid)) return true;
+      if (states.get(fid)?.done) return false;
+      return !(fid in totals);
+    });
     this.progress = { done: 0, total: await this.countMessages(todo) };
     this.log.info(L(`[novabird-db] Erstlauf: ${todo.length} von ${folders.length} Ordnern, ${this.progress.total ?? "?"} Mails zu lesen`, `[novabird-db] First run: ${todo.length} of ${folders.length} folders, ${this.progress.total ?? "?"} mails to read`));
     for (const folder of todo) {
@@ -373,19 +382,15 @@ export class Indexer {
       this.mark(L(`Seite mit ${headers.length} Mails prüfen`, `checking page of ${headers.length} mails`));
       const tPage = Date.now();
       const known = await this.withTimeout(repo.knownState(this.db, fid, ids), this.limits.step, "Index abfragen");
-      const offline = await this.withTimeout(this.offlineMap(headers), this.limits.step, "Offline-Flags lesen");
-      const refs = await this.withTimeout(this.refsMap(headers), this.limits.step, "Verweise lesen");
-      const work = [];
-      for (const h of headers) {
-        const isOffline = offline.get(h.id) ?? true;
-        const hasBody = known.get(h.headerMessageId);
-        // überspringen: schon vollständig drin, oder nur Kopfdaten drin und weiter nicht lokal
-        if (!h.headerMessageId || (known.has(h.headerMessageId) && (hasBody || !isOffline))) {
-          skipped++;
-          continue;
-        }
-        work.push({ h, isOffline, refs: refs.get(h.id) });
-      }
+      // Vollständig bekannte Mails sofort überspringen; Offline-Flags und Verweise nur für den Rest holen (bei großen,
+      // längst indizierten Ordnern ist das fast nichts – das Durchblättern wird deutlich billiger)
+      const rest = headers.filter((h) => h.headerMessageId && known.get(h.headerMessageId) !== true);
+      skipped += headers.length - rest.length;
+      const offline = await this.withTimeout(this.offlineMap(rest), this.limits.step, "Offline-Flags lesen");
+      const pending = rest.filter((h) => !known.has(h.headerMessageId) || (offline.get(h.id) ?? true));
+      skipped += rest.length - pending.length; // nur Kopfdaten drin und weiter nicht lokal
+      const refs = await this.withTimeout(this.refsMap(pending), this.limits.step, "Verweise lesen");
+      const work = pending.map((h) => ({ h, isOffline: offline.get(h.id) ?? true, refs: refs.get(h.id) }));
       // Mails parallel lesen (Reihenfolge bleibt erhalten); zwischen den Gruppen auf Anhalten prüfen
       for (let i = 0; i < work.length; i += this.concurrency) {
         if (this.stopped) {
@@ -426,10 +431,84 @@ export class Indexer {
     }
     // Ordner ohne Offline-Speicher sind mit den Kopfdaten fertig. Sonst gelten Ordner mit Kopfdaten-Einträgen nicht als fertig:
     // der nächste Lauf holt den Text nach, sobald er lokal ist
-    await repo.setFolderDone(this.db, fid, this.onlineOnly(fid) || (noBody === 0 && !(await repo.hasHeadersOnly(this.db, fid))));
+    // Mit fillBodies() ist ein Ordner nach dem Durchgang fertig: Texte, die Thunderbird später herunterlädt, holt das gezielt nach.
+    // Ohne (Experiment-Funktion fehlt) wie bisher: Ordner mit Kopfdaten-Einträgen bleiben offen und werden erneut gelesen
+    const complete = this.onlineOnly(fid) || this.canFillBodies() || (noBody === 0 && !(await repo.hasHeadersOnly(this.db, fid)));
+    await repo.setFolderDone(this.db, fid, complete);
     await this.noteTotal(folder);
+    await this.noteSize(folder);
     this.log.info(L(`[novabird-db] Ordner „${folder.name ?? fid}“ fertig: ${read} Mails gesehen, ${indexed} neu, ${skipped} übersprungen, ${stale.length} entfernt, ${((Date.now() - t0) / 1000).toFixed(1)} s`,
       `[novabird-db] Folder "${folder.name ?? fid}" done: ${read} mails seen, ${indexed} new, ${skipped} skipped, ${stale.length} removed, ${((Date.now() - t0) / 1000).toFixed(1)} s`));
+  }
+
+  /** Kann fehlende Mailtexte gezielt nachholen (Message-ID → Nachricht auflösen, ohne den Ordner durchzublättern)? */
+  canFillBodies() {
+    return Boolean(this.api.novabirdDb?.resolveMessages && this.api.novabirdDb?.folderInfo && this.api.messages?.get);
+  }
+
+  /** Aktuelle Größe des lokalen Speichers eines Ordners (Bytes) oder null. */
+  async folderSize(folder) {
+    try {
+      const [info] = await this.api.novabirdDb.folderInfo([{ accountId: folder.accountId, path: folder.path }]);
+      return typeof info?.size === "number" ? info.size : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Nach einem vollständigen Durchgang: Größe merken, damit fillBodies() den Ordner erst nach einem Download prüft. */
+  async noteSize(folder) {
+    if (!this.canFillBodies() || this.onlineOnly(folderIdOf(folder))) return;
+    const size = await this.folderSize(folder);
+    if (size == null) return;
+    const sizes = await repo.loadFolderSizes(this.db);
+    sizes[folderIdOf(folder)] = size;
+    await repo.saveFolderSizes(this.db, sizes);
+  }
+
+  /**
+   * Mailtexte nachholen, die Thunderbird inzwischen lokal hat (IMAP-Offline-Ordner: Sync „nur die letzten X Tage“,
+   * Größengrenze, Download später). Statt den Ordner durchzublättern, nur die Einträge ohne Text über ihre Message-ID
+   * auflösen – und nur in Ordnern, deren lokaler Speicher seit der letzten Prüfung gewachsen ist. Still, ohne Overlay.
+   */
+  async fillBodies() {
+    if (!this.canFillBodies()) return { checked: 0, filled: 0 };
+    const counts = await repo.headersOnlyCounts(this.db);
+    if (!counts.size) return { checked: 0, filled: 0 };
+    await this.loadTagNames();
+    const folders = (await this.listFolders()).filter((f) => counts.has(folderIdOf(f)));
+    const sizes = await repo.loadFolderSizes(this.db);
+    let checked = 0;
+    let filled = 0;
+    for (const folder of folders) {
+      if (this.stopped) break;
+      const fid = folderIdOf(folder);
+      if (this.onlineOnly(fid)) continue;
+      const size = this.folderInfo?.get(fid)?.size;
+      if (typeof size === "number" && sizes[fid] === size) continue; // nichts heruntergeladen seit der letzten Prüfung
+      checked++;
+      let after = 0;
+      let complete = true;
+      for (;;) {
+        if (this.stopped) {
+          complete = false;
+          break;
+        }
+        const page = await repo.headersOnlyPage(this.db, fid, after, 1000);
+        if (!page.length) break;
+        after = page[page.length - 1].id;
+        const found = await this.api.novabirdDb.resolveMessages(page.map((r) => ({ headerMessageId: r.header_msg_id, folderId: fid })));
+        const ids = (found ?? []).filter((r) => r?.offline).map((r) => r.id);
+        if (!ids.length) continue;
+        const headers = (await Promise.all(ids.map((id) => this.api.messages.get(id).catch(() => null)))).filter(Boolean);
+        await this.enqueue(() => this.processHeaders(headers));
+        filled += headers.length;
+      }
+      if (complete && typeof size === "number") sizes[fid] = size;
+    }
+    await repo.saveFolderSizes(this.db, sizes);
+    if (checked) this.log.info(L(`[novabird-db] Texte nachholen: ${checked} Ordner geprüft, ${filled} Mailtexte ergänzt`, `[novabird-db] Fetching texts: ${checked} folders checked, ${filled} mail texts added`));
+    return { checked, filled };
   }
 
   /** Mailzahl des Ordners nach vollständigem Durchgang merken (dauerhaft in meta), Grundlage für reconcile(). */
