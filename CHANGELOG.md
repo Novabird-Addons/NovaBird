@@ -9,6 +9,9 @@ NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the opti
 - The PCs page of the web interface shows the group of each PC in its own column.
 - After an error on the graphics card the helper stayed on the CPU until someone measured the devices again, and nothing showed why. The Status page now says which card failed, when and with what message, and the helper tries the card again on the next start.
 
+### Conversation: reply buttons stay visible
+- Attached images pushed Reply, Reply all, More and Delete far down, out of view. The buttons now stay at the bottom edge of the visible area while an open message reaches beyond it. A single message uses the full height instead of 60 % with an empty area below.
+
 ### Conversation: attached images under the text
 - The Conversation view replaced the mail and showed attached images only as buttons, so they flashed up and disappeared. They now stand under the text, as in the normal view, if View → Display Attachments Inline is on. A click opens the attachment; the buttons stay. In a conversation they count towards the height limit of the newest mail, "Show all" shows them all. Images over 5 MB and types other than PNG, JPEG, GIF and WebP stay buttons only.
 

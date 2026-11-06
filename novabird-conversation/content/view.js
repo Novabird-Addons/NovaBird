@@ -63,7 +63,8 @@
   const els = new Map();      // id → { card, body }
   const newestFirst = settings.order === "newest";
   const ordered = newestFirst ? asc.slice().reverse() : asc;
-  const pinnedMsg = newestFirst && settings.pin ? ordered[0] : null;
+  // Eine einzelne Nachricht braucht keinen Verlauf darunter und bekommt die ganze Höhe
+  const pinnedMsg = newestFirst && settings.pin && ordered.length > 1 ? ordered[0] : null;
   const relative = new Intl.RelativeTimeFormat(lang, { numeric: "auto" });
   const timeFmt = new Intl.DateTimeFormat(lang, { hour: "2-digit", minute: "2-digit" });
   const dateFmt = new Intl.DateTimeFormat(lang, { day: "2-digit", month: "2-digit", year: "numeric" });
