@@ -519,8 +519,9 @@ setInterval(() => refreshVocab("Leerlauf", { needIdle: true }).catch(() => {}), 
 // auf langsamen Platten Minuten, Suchen warteten so lange), sondern einmalig im Leerlauf, seriell mit dem Schreiben des
 // Indexers. Bis dahin sucht von:Name wie bisher über die Tabelle.
 let authorIndexBusy = false;
+let authorIndexFailed = false; // einmal gescheitert (Platte voll, nur lesbar …): in dieser Sitzung nicht alle 10 Min erneut
 async function buildAuthorIndex() {
-  if (!caps || caps.authorIndex || !indexer || brokenInfo || !initialDone || authorIndexBusy) return false;
+  if (!caps || caps.authorIndex || !indexer || brokenInfo || !initialDone || authorIndexBusy || authorIndexFailed) return false;
   if (status.phase === "folder" || status.phase === "stopped") return false;
   let idle = null;
   try {
@@ -534,6 +535,7 @@ async function buildAuthorIndex() {
     const t0 = performance.now();
     const ok = await indexer.enqueue(() => createAuthorIndex(db));
     if (ok) caps.authorIndex = true;
+    else authorIndexFailed = true;
     dlog.info(L(`[novabird-db] Absender-Index ${ok ? "angelegt" : "nicht angelegt"} in ${Math.round(performance.now() - t0)} ms`, `[novabird-db] Sender index ${ok ? "created" : "not created"} in ${Math.round(performance.now() - t0)} ms`));
     return ok;
   } finally {

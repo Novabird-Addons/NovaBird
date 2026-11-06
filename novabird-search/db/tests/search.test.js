@@ -295,6 +295,11 @@ describe("Tempo im großen Postfach: Kopien nach dem Sortieren, Absender-Index, 
     expect(r.rows.map((x) => x.header_msg_id).slice(0, 3)).toEqual(["n0", "n1", "n2"]);
     expect(db.calls).toBe(2); // erste Seite (300 Zeilen) ergibt 100, die zweite reicht
     expect(r.cut).toBe(false);
+    // Seitengrenze mitten in einer Nachricht: want 101 → Seite 202 = 67 Nachrichten + 1 Kopie von n67; deren Posteingang-Kopie
+    // liegt auf der zweiten Seite und muss die erste Stelle übernehmen
+    const r2 = await selectUnique({ async select(sql, [n, offset]) { return data.slice(offset, offset + n); } }, build, 101);
+    expect(r2.rows).toHaveLength(101);
+    expect(r2.rows[67]).toMatchObject({ header_msg_id: "n67", folder_type: "inbox" });
   });
 
   it("lauter Kopien: nach 5 Seiten Schluss, Liste gilt als gekürzt", async () => {
@@ -346,19 +351,26 @@ describe("Tempo im großen Postfach: Kopien nach dem Sortieren, Absender-Index, 
   });
 
   it("„Beste zuerst“ ohne Suchwort: keine zweite Abfrage, mit Suchwort schon", async () => {
+    let selects = 0;
     let ranked = 0;
-    const db = { ...ctx.db, async select(sql, ...a) { if (sql.includes("WITH ranked")) ranked++; return ctx.db.select(sql, ...a); } };
+    const db = { ...ctx.db, async select(sql, ...a) { selects++; if (sql.includes("WITH ranked")) ranked++; return ctx.db.select(sql, ...a); } };
+    await search(db, ctx.caps, "von Jonas", { now: NOW, myEmails: ME, sort: "date" });
+    const dateSelects = selects;
+    selects = 0;
     const plain = await search(db, ctx.caps, "von Jonas", { now: NOW, myEmails: ME, sort: "best" });
     expect(plain.rows.length).toBeGreaterThan(0);
     expect(plain.relevant).toEqual([]);
-    expect(ranked).toBe(0);
+    expect(selects).toBe(dateSelects); // genauso viele Abfragen wie nach Datum: keine zweite
     await search(db, ctx.caps, "speiseplan", { now: NOW, myEmails: ME, sort: "best" });
     expect(ranked).toBe(1);
   });
 
   it("offset überspringt erst nach dem Entfernen der Kopien", async () => {
     const all = await run(ctx, "speiseplan");
-    const rest = await run(ctx, "speiseplan", { offset: 1 });
-    expect(rest.rows.map((x) => x.header_msg_id)).toEqual(all.rows.slice(1).map((x) => x.header_msg_id));
+    for (const offset of [1, 2]) {
+      const rest = await run(ctx, "speiseplan", { offset });
+      expect(rest.rows.map((x) => x.header_msg_id), `offset ${offset}`).toEqual(all.rows.slice(offset).map((x) => x.header_msg_id));
+    }
+    expect(all.rows.length).toBeGreaterThan(2);
   });
 });

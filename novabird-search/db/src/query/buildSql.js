@@ -186,14 +186,16 @@ export function buildSearchSql(q, caps, options = {}) {
     params.push(excl.join(" OR "));
   }
 
-  // Personen
-  const fromC = personsCondition(q.from, "from", myEmails, params, caps);
+  // Personen. Mit onlyIds (Bedeutungs-Kandidaten, je 500 per Message-ID) LIKE direkt auf diesen Zeilen: die Unterabfrage
+  // über den Absender-Index läse sonst je Stapel den ganzen Index
+  const pcaps = Array.isArray(onlyIds) ? { ...caps, authorIndex: false } : caps;
+  const fromC = personsCondition(q.from, "from", myEmails, params, pcaps);
   if (fromC) where.push(fromC);
-  const toC = personsCondition(q.to, "to", myEmails, params, caps);
+  const toC = personsCondition(q.to, "to", myEmails, params, pcaps);
   if (toC) where.push(toC);
   if (q.involves.length) {
-    const a = personsCondition(q.involves, "from", myEmails, params, caps);
-    const b = personsCondition(q.involves, "to", myEmails, params, caps);
+    const a = personsCondition(q.involves, "from", myEmails, params, pcaps);
+    const b = personsCondition(q.involves, "to", myEmails, params, pcaps);
     where.push(`(${a} OR ${b})`);
   }
 
@@ -265,8 +267,8 @@ export function buildSearchSql(q, caps, options = {}) {
     "m.attachment_types, m.tags, m.is_read, m.is_flagged";
   const order =
     sort === "relevance" && scoreParams.length
-      ? "ORDER BY score IS NULL, score, date DESC"
-      : "ORDER BY date DESC";
+      ? "ORDER BY score IS NULL, score, date DESC, id DESC"
+      : "ORDER BY date DESC, id DESC"; // id: eindeutig bei gleichem Datum (Seiten in selectUnique); nutzt weiter idx_messages_date
 
   let sql;
   if (dedupe) {

@@ -14,20 +14,26 @@
 // übernommen und der Begriff entfernt.
 
 import { escapeLike, norm } from "../util/normalize.js";
+import { AUTHOR_INDEX } from "../db/schema.js";
 
 async function indexCandidates(db, name, field, authorIndex) {
   const like = `%${escapeLike(norm(name))}%`;
   if (field === "from" || field === "involves") {
     // Mit dem schmalen Absender-Index (createAuthorIndex) ihn ausdrücklich nehmen: sonst wählt SQLite für GROUP BY den Index
     // der Adressen und liest jede Zeile der Tabelle (1,2 Mio. Mails: 6,7 s → 0,07 s). INDEXED BY scheitert ohne den Index,
-    // daher nur mit authorIndex.
-    return db.select(
-      `SELECT author_name, author_email, COUNT(*) AS c FROM messages${authorIndex ? " INDEXED BY idx_messages_author_norm" : ""}
+    // daher nur mit authorIndex; fehlt er trotzdem (Datei ersetzt o. ä.), ohne ihn weiter statt die Suche scheitern zu lassen.
+    const sql = (hint) => `SELECT author_name, author_email, COUNT(*) AS c FROM messages${hint}
        WHERE author_norm LIKE ? ESCAPE '\\' AND author_email != ''
-       GROUP BY author_email ORDER BY c DESC LIMIT 10`,
-      [like],
-      ["name", "email", "count"],
-    );
+       GROUP BY author_email ORDER BY c DESC LIMIT 10`;
+    const cols = ["name", "email", "count"];
+    if (authorIndex) {
+      try {
+        return await db.select(sql(` INDEXED BY ${AUTHOR_INDEX}`), [like], cols);
+      } catch {
+        /* Index fehlt: ohne */
+      }
+    }
+    return db.select(sql(""), [like], cols);
   }
   return []; // Empfänger: nur über Adressbuch (Empfängerlisten sind unstrukturiert)
 }
