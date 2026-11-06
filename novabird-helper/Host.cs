@@ -23,6 +23,7 @@ sealed class Host
     public int Run()
     {
         Log.Write($"Start {Program.Version} (Host)");
+        Engine.RetryGpu();
         while (true)
         {
             var msg = ReadMessage();

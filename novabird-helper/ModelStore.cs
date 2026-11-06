@@ -75,7 +75,7 @@ static class ModelStore
         {
             ["device"] = r.Device, ["name"] = r.Name, ["mailsPerSec"] = r.MailsPerSec, ["error"] = r.Error,
         }).ToArray());
-        s.Remove("fallbackFrom");
+        Engine.ClearFallback(s);
         // Netz-Modus: darf die CPU neben der Grafikkarte mitrechnen? Nur wenn beide dieselben Vektoren liefern
         s.Remove("cpuAgree");
         if (best.Device.StartsWith("dml:"))

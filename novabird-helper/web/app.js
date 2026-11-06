@@ -335,7 +335,9 @@ async function showStatus() {
   $("sRate").textContent = s.rateCpu > 0 ? t("rateSplit", s.rate, s.rateGpu, s.rateCpu) : t("rateFmt", s.rate);
   $("sQueue").textContent = t("queueFmt", s.queue);
   $("sPcs").textContent = p.pcs.filter(x => Date.now() - Date.parse(x.lastSeen) < 864e5).length;
-  $("sDevice").textContent = (s.deviceName || "–") + (s.measured ? t("measured", Math.round(s.measured)) : "");
+  $("sDevice").textContent = (s.deviceName || "–") + (s.measured && !s.fallback ? t("measured", Math.round(s.measured)) : "");
+  $("sFallback").hidden = !s.fallback;
+  if (s.fallback) $("sFallback").textContent = t("fallbackNote", s.fallback.name, new Date(s.fallback.time).toLocaleString(locale()), s.fallback.error);
   $("sModel").textContent = s.model.ready ? t("modelReady") : s.model.complete ? t("modelNotMeasured") : t("modelMissing");
   $("sCpu").textContent = s.cpuBlocked ? t("cpuBlocked", s.cpuBlocked) : s.cpu ? t("cpuOn", s.cpuThreads) : t("off");
   $("sMode").textContent = s.mode === "service" ? t("modeService") : t("modeUser");
@@ -383,7 +385,7 @@ async function showPcs() {
     }
     const seen = new Date(pc.lastSeen);
     const today = seen.toDateString() === new Date().toDateString();
-    const cells = [pc.label, idx, { text: N(pc.total), cls: "num" }, { text: N(pc.today), cls: "num" },
+    const cells = [pc.label, pc.group || "–", idx, { text: N(pc.total), cls: "num" }, { text: N(pc.today), cls: "num" },
       today ? t("todayAt", seen.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" })) : seen.toLocaleString(locale())];
     if (isAdmin()) {
       cells.push(button(t("remove"), "link danger", async () => {

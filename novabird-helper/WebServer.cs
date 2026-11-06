@@ -801,6 +801,10 @@ sealed partial class WebServer
                 ["id"] = core.Model.Id, ["revision"] = core.Model.Revision, ["complete"] = core.Model.Complete, ["ready"] = ModelStore.Ready(core.Model),
             },
             ["devices"] = s["devices"]?.DeepClone(),
+            ["fallback"] = s["fallbackFrom"] == null ? null : new JsonObject
+            {
+                ["name"] = (string)s["fallbackName"], ["time"] = (string)s["fallbackTime"], ["error"] = (string)s["fallbackError"],
+            },
             ["vectors"] = new JsonObject
             {
                 ["enabled"] = VectorStore.Enabled, ["count"] = vecs.Sum(v => v.Count), ["bytes"] = vecs.Sum(v => v.Bytes),

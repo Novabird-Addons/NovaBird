@@ -3,6 +3,7 @@
 // Grafikkarten gemessen; das schnellste Gerät wird gemerkt. Fällt die Grafikkarte aus, wird auf die CPU gewechselt.
 // Ergebnis wie im Add-on: Mean-Pooling über die Token, dann auf Länge 1 normiert (gleiche Vektoren, ≥ 0,9998 gemessen).
 using System.Diagnostics;
+using System.Text.Json.Nodes;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 
@@ -92,6 +93,27 @@ static class Engine
         return outv;
     }
 
+    /// <summary>Angaben zum Wechsel auf die CPU entfernen (neu gemessen oder Grafikkarte wieder gewählt).</summary>
+    public static void ClearFallback(JsonObject s)
+    {
+        foreach (var key in new[] { "fallbackFrom", "fallbackName", "fallbackTime", "fallbackError" }) s.Remove(key);
+    }
+
+    /// <summary>
+    /// Beim Start die Grafikkarte wieder wählen, falls sie im letzten Lauf ausgefallen ist: der Fehler kann vorübergehend gewesen
+    /// sein (Treiber, Speicher). Scheitert sie erneut, wechselt Embed wie gewohnt auf die CPU, es geht nichts verloren.
+    /// </summary>
+    public static void RetryGpu()
+    {
+        var s = Settings.Load();
+        if ((string)s["fallbackFrom"] is not string device) return;
+        s["device"] = device;
+        s["deviceName"] = DeviceName(device);
+        ClearFallback(s);
+        Settings.Save(s);
+        Log.Write($"Grafikkarte {device} wird nach dem Wechsel auf die CPU wieder versucht");
+    }
+
     /// <summary>
     /// Vektoren für Token-ID-Folgen (Pakete zu höchstens 16, nach Länge sortiert, damit wenig aufgefüllt wird; Ergebnis in der
     /// ursprünglichen Reihenfolge). Bei einem Fehler der Grafikkarte: CPU.
@@ -115,6 +137,9 @@ static class Engine
                 FellBack = true;
                 var s = Settings.Load();
                 s["fallbackFrom"] = device;
+                s["fallbackName"] = DeviceName(device);
+                s["fallbackTime"] = DateTime.Now.ToString("o");
+                s["fallbackError"] = e.Message.Length > 300 ? e.Message[..300] : e.Message;
                 s["device"] = "cpu";
                 s["deviceName"] = DeviceName("cpu");
                 Settings.Save(s);

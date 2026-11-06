@@ -40,6 +40,7 @@ sealed class Core
 
     public void Start()
     {
+        Engine.RetryGpu();
         Server.Start();
         Ollama.Start(); // nur, wenn eingerichtet und eingeschaltet
         try { Web.Start(); }
