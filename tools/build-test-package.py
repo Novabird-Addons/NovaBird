@@ -17,6 +17,7 @@ import glob
 import importlib.util
 import json
 import os
+import re
 import shutil
 import string
 import sys
@@ -60,7 +61,9 @@ def main():
     now = datetime.datetime.now()
     build = stamp(now)
     day = now.strftime("%Y-%m-%d")
-    letter = next(c for c in string.ascii_lowercase if not glob.glob(os.path.join(DEST, f"NovaBird-2.0-Test-{day}{c}*")) and not glob.glob(os.path.join(DEST, "*", f"NovaBird-2.0-XPIs-{day}{c}.zip")))
+    # nach dem höchsten Buchstaben des Tages, auch wenn ältere Pakete schon gelöscht sind (sonst käme 06a nach 06d noch einmal)
+    used = [m.group(1) for p in glob.glob(os.path.join(DEST, f"*{day}*")) if (m := re.search(rf"{re.escape(day)}([a-z])", os.path.basename(p)))]
+    letter = string.ascii_lowercase[string.ascii_lowercase.index(max(used)) + 1] if used else "a"
     name = f"{day}{letter}"
     previous = sorted((d for d in glob.glob(os.path.join(DEST, "NovaBird-2.0-Test-*")) if os.path.isdir(d)), key=os.path.getmtime)
     out_dir = os.path.join(DEST, f"NovaBird-2.0-Test-{name}")
