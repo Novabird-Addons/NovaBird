@@ -5,6 +5,17 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.6 · Helper 0.5.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### Helper: group in the PC list, graphics card after a failure
+- The PCs page of the web interface shows the group of each PC in its own column.
+- After an error on the graphics card the helper stayed on the CPU until someone measured the devices again, and nothing showed why. The Status page now says which card failed, when and with what message, and the helper tries the card again on the next start.
+
+### Conversation: attached images under the text
+- The Conversation view replaced the mail and showed attached images only as buttons, so they flashed up and disappeared. They now stand under the text, as in the normal view, if View → Display Attachments Inline is on. A click opens the attachment; the buttons stay. In a conversation they count towards the height limit of the newest mail, "Show all" shows them all. Images over 5 MB and types other than PNG, JPEG, GIF and WebP stay buttons only.
+
+### Team calendars: correct messages when adding them in Thunderbird
+- "No calendar is shared with this user" also appeared when the helper had blocked the login after failed attempts, and when it could not be reached, because Thunderbird's calendar detection reports neither. The add-on now signs in once itself before the detection and shows "too many failed attempts" or "helper not reachable" (four languages). On HTTPS, an unreachable helper no longer shows up as a certificate problem.
+- A wrong password now counts as one failed attempt. The detection signs in several times, so about three wrong tries used to trigger the helper's 10-minute block.
+
 ### Search without the own index (Gloda): filters miss fewer mails
 - Gloda knows nothing of the filters unread / with attachment / time window / flagged / from / to / subject; they are checked after the query, which stops at the maximum (newest first). With such a filter the query now fetches five times as many (at most 20,000) and keeps the newest matching ones up to the maximum, so older matching mails are no longer cut off silently. Only relevant without the own search index (e.g. while it is being built for the first time).
 
