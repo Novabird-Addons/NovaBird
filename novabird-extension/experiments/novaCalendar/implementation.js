@@ -84,6 +84,22 @@ const helperPrefix = davUrl => {
   return Services.io.newURI(davUrl).prePath + "/dav/";
 };
 
+const helperWindow = () => Services.wm.getMostRecentWindow("mail:3pane") || Services.appShell.hiddenDOMWindow;
+
+/** Anfrage an den Helper ohne Rückfragen und ohne gemerkte Anmeldungen; liefert die fertige Anfrage (status 0: keine Antwort). */
+const helperRequest = (method, url, headers = {}) => new Promise(resolve => {
+  const xhr = new (helperWindow().XMLHttpRequest)({ mozAnon: true });
+  xhr.mozBackgroundRequest = true; // keine Rückfragen
+  xhr.open(method, url);
+  xhr.channel.loadFlags |= Ci.nsIRequest.LOAD_BYPASS_CACHE | Ci.nsIRequest.INHIBIT_CACHING;
+  for (const [name, value] of Object.entries(headers)) {
+    xhr.setRequestHeader(name, value);
+  }
+  xhr.timeout = 10000;
+  xhr.onloadend = () => resolve(xhr);
+  xhr.send();
+});
+
 /**
  * Selbst erzeugtes Zertifikat des Helpers erlauben, aber nur, wenn sein SHA-256-Fingerabdruck dem entspricht, den der Helper
  * über die mit dem Kopplungscode verschlüsselte Verbindung gemeldet hat. Sonst Fehler „cert“ (nichts wird erlaubt).
@@ -93,23 +109,34 @@ async function trustHelperCert(uri, fingerprint, ExtensionError) {
   if (want.length != 64) {
     throw new ExtensionError("cert");
   }
-  const cert = await new Promise(resolve => {
-    const win = Services.wm.getMostRecentWindow("mail:3pane") || Services.appShell.hiddenDOMWindow;
-    const xhr = new win.XMLHttpRequest();
-    xhr.mozBackgroundRequest = true; // keine Rückfragen
-    xhr.open("HEAD", uri.prePath + "/dav/");
-    xhr.channel.loadFlags |= Ci.nsIRequest.LOAD_BYPASS_CACHE | Ci.nsIRequest.INHIBIT_CACHING;
-    xhr.timeout = 10000;
-    const done = () => resolve(xhr.channel?.securityInfo?.serverCert || null);
-    xhr.onloadend = done;
-    xhr.send();
-  });
-  const got = String(cert?.sha256Fingerprint || "").replace(/[^0-9a-f]/gi, "").toUpperCase();
-  if (!cert || got != want) {
+  const xhr = await helperRequest("HEAD", uri.prePath + "/dav/");
+  const cert = xhr.channel?.securityInfo?.serverCert || null;
+  if (!cert) {
+    throw new ExtensionError("unreachable"); // ohne Antwort gibt es auch kein Zertifikat zu prüfen
+  }
+  const got = String(cert.sha256Fingerprint || "").replace(/[^0-9a-f]/gi, "").toUpperCase();
+  if (got != want) {
     throw new ExtensionError("cert");
   }
   const overrides = Cc["@mozilla.org/security/certoverride;1"].getService(Ci.nsICertOverrideService);
   overrides.rememberValidityOverride(uri.asciiHost, uri.port == -1 ? 443 : uri.port, {}, cert, false);
+}
+
+/**
+ * Einmal selbst anmelden, bevor Thunderbird die Kalender sucht. Seine Erkennung meldet weder die Sperre des Helpers nach
+ * Fehlversuchen (429) noch einen Netzfehler; beides käme sonst als „kein Kalender freigegeben“ an. Außerdem meldet sie sich
+ * mehrmals an, ein falsches Passwort würde also mehrfach zählen (nach 10 Fehlversuchen sperrt der Helper 10 Minuten).
+ * Andere Antworten bleiben Sache der Erkennung.
+ */
+async function checkHelperLogin(uri, user, password, ExtensionError) {
+  const win = helperWindow();
+  const bytes = new win.TextEncoder().encode(`${user}:${password}`); // der Helper liest UTF-8
+  const authorization = `Basic ${win.btoa(String.fromCharCode(...bytes))}`;
+  const { status } = await helperRequest("GET", uri.prePath + "/dav/", { Authorization: authorization });
+  const problem = { 0: "unreachable", 401: "auth", 429: "blocked" }[status];
+  if (problem) {
+    throw new ExtensionError(problem);
+  }
 }
 
 function themeColors(dialogWin) {
@@ -1037,6 +1064,7 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
           if (uri.scheme == "https") {
             await trustHelperCert(uri, fingerprint, ExtensionError);
           }
+          await checkHelperLogin(uri, user, password, ExtensionError);
           let found;
           try {
             found = await cal.provider.detection.detect(user, password, davUrl, true, [], {});
