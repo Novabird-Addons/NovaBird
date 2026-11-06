@@ -21,6 +21,7 @@ async function refresh() {
     [t("optRowCatchUp"), s.lastCatchUp ? t("optCatchUpFmt", [new Date(s.lastCatchUp.at).toLocaleString(lang), String(s.lastCatchUp.added), String(s.lastCatchUp.checked)]) : t("optNotYet")],
     [t("optRowPhase"), s.status?.phase === "folder" ? t("optPhaseFolder", [s.status.folder]) : (s.status?.phase ?? "–")],
   ];
+  if (s.failedFolders?.length) rows.push([t("optRowFailedFolders"), s.failedFolders.join(", ")]);
   $("status").replaceChildren(
     ...rows.flatMap(([k, v]) => {
       const dt = document.createElement("dt");

@@ -672,6 +672,7 @@ async function fullStatus() {
     logSearches,
     debugLog,
     lastCatchUp,
+    failedFolders: [...(indexer?.failedFolders.values() ?? [])].map((f) => f.name),
     paused: status.phase === "stopped",
     status,
   };

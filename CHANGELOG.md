@@ -9,6 +9,11 @@ NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the opti
 - The PCs page of the web interface shows the group of each PC in its own column.
 - After an error on the graphics card the helper stayed on the CPU until someone measured the devices again, and nothing showed why. The Status page now says which card failed, when and with what message, and the helper tries the card again on the next start.
 
+### Search: mails and folders that could not be read are tried again
+- A folder that failed no longer disappears silently: Search → Index lists it, and the next comparison reads it again (at most 3 times per session). Before, a small difference in the mail count could close it for good.
+- A new mail that cannot be read now stays findable with its headers and is tried again at the next catch-up, instead of missing from the index until the weekly comparison. A text already in the index is kept.
+- Meaning search: a mail that cannot be read no longer gets a vector from its subject alone, which then counted as finished. It stays open, is tried again after 15 minutes (3 times per session), and the status shows how many are waiting.
+
 ### Conversation: reply buttons stay visible
 - Attached images pushed Reply, Reply all, More and Delete far down, out of view. The buttons now stay at the bottom edge of the visible area while an open message reaches beyond it. A single message uses the full height instead of 60 % with an empty area below.
 

@@ -476,6 +476,9 @@
   "optCatchUpFmt": {
     "message": "$1 ($2 new of $3 checked)"
   },
+  "optRowFailedFolders": {
+    "message": "Folders not read (will try again)"
+  },
   "optRowPhase": {
     "message": "Status now"
   },
@@ -694,6 +697,9 @@
   },
   "semStateHeading": {
     "message": "Status"
+  },
+  "semUnreadable": {
+    "message": "$1 mails not readable, will try again"
   },
   "semRowPhase": {
     "message": "State"

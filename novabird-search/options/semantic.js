@@ -147,7 +147,7 @@
   function renderState(s) {
     const pct = s.total ? Math.min(100, Math.round((s.vectors / s.total) * 100)) : 0;
     const rows = [
-      [t("semRowPhase"), t(PHASE[s.phase] || "semPhaseOff") + (s.error ? ` (${s.error})` : "")],
+      [t("semRowPhase"), t(PHASE[s.phase] || "semPhaseOff") + (s.error ? ` (${s.error})` : "") + (s.unreadable ? ` · ${t("semUnreadable", [String(s.unreadable)])}` : "")],
       [t("semRowProgress"), s.total ? t("semProgressFmt", [s.vectors.toLocaleString(lang), s.total.toLocaleString(lang), String(pct)]) : s.vectors.toLocaleString(lang)],
       [t("semRowEngine"), engineText(s)],
       [t("semRowCheck"), checkText(s.checks?.[s.engine])],

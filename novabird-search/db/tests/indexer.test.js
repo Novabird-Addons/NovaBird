@@ -148,7 +148,78 @@ describe("Indexer (mit nachgebauter messenger-API)", () => {
         return orig(id);
       };
       await indexer.fullRun();
+      // die nicht lesbare Mail bleibt mit Kopfdaten auffindbar
+      expect(await count()).toBe(2);
+      expect(await count("body_hash = 'headers-only'")).toBe(1);
+    });
+
+    it("nicht lesbare Mail: ein vorhandener Text wird beim Neu-Einlesen nicht überschrieben", async () => {
+      const { fake, indexer, count } = await setup();
+      const m = fake.addMessage("inbox", { subject: "Bericht", body: "Wartungsfenster" });
+      await indexer.fullRun();
+      fake.api.messages.listInlineTextParts = async (id) => {
+        if (id === m.id) throw new Error("Lesefehler");
+        return [];
+      };
+      await indexer.fullRun({ force: true, reread: true });
+      expect(await count("body_hash = 'headers-only'")).toBe(0);
+    });
+
+    it("nicht lesbare Mail: fillBodies versucht sie beim nächsten Nachholen, auch ohne neue Größe", async () => {
+      const { fake, indexer, count } = await setup();
+      const bad = fake.addMessage("inbox", { subject: "kaputt", body: "Wartungsfenster" });
+      fake.api.novabirdDb = {
+        offlineFlags: async (ids) => ids.map(() => true),
+        folderInfo: async (list) => list.map(() => ({ size: 100, offline: true })),
+        resolveMessages: async (items) => items.map(() => ({ id: bad.id, offline: true })),
+      };
+      fake.api.messages.get = async () => bad;
+      const orig = fake.api.messages.listInlineTextParts;
+      fake.api.messages.listInlineTextParts = async () => { throw new Error("Lesefehler"); };
+      await indexer.fullRun();
+      expect(await count("body_hash = 'headers-only'")).toBe(1);
+      fake.api.messages.listInlineTextParts = orig;
+      expect((await indexer.fillBodies()).filled).toBe(1);
+      expect(await count("body_hash = 'headers-only'")).toBe(0);
+    });
+  });
+
+  describe("gescheiterter Ordner", () => {
+    const breakFolder = (fake, folderId) => {
+      const orig = fake.api.messages.list;
+      fake.api.messages.list = async (id) => {
+        if (id === folderId) throw new Error("Ordner nicht lesbar");
+        return orig(id);
+      };
+      return () => { fake.api.messages.list = orig; };
+    };
+
+    it("der Lauf endet, der Ordner bleibt gemeldet, der Abgleich holt ihn nach", async () => {
+      const events = [];
+      const { fake, indexer, count } = await setup({ onProgress: (e) => events.push(e) });
+      const m = fake.addMessage("inbox", { subject: "gut" });
+      const repair = breakFolder(fake, m.folder.id);
+      await indexer.fullRun();
+      expect(events.at(-1).phase).toBe("done");
+      expect([...indexer.failedFolders.keys()]).toHaveLength(1);
+      expect(await count()).toBe(0);
+      repair();
+      expect(await indexer.reconcile()).toMatchObject({ rescanned: 1 });
+      expect(indexer.failedFolders.size).toBe(0);
       expect(await count()).toBe(1);
+    });
+
+    it("kleine Abweichung wird nicht als Basiswert gemerkt, nach drei Versuchen ist Schluss", async () => {
+      const { fake, indexer } = await setup();
+      const m = fake.addMessage("inbox", { subject: "gut" });
+      breakFolder(fake, m.folder.id);
+      await indexer.fullRun();
+      const calls = [];
+      const list = fake.api.messages.list;
+      fake.api.messages.list = async (id) => { calls.push(id); return list(id); };
+      for (let i = 0; i < 5; i++) await indexer.reconcile();
+      expect(calls.filter((id) => id === m.folder.id)).toHaveLength(3);
+      expect(indexer.failedFolders.size).toBe(1);
     });
   });
 });

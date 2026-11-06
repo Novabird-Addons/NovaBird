@@ -476,6 +476,9 @@
   "optCatchUpFmt": {
     "message": "$1 ($2 nuevos de $3 comprobados)"
   },
+  "optRowFailedFolders": {
+    "message": "Carpetas no leídas (se volverá a intentar)"
+  },
   "optRowPhase": {
     "message": "Situación"
   },
@@ -694,6 +697,9 @@
   },
   "semStateHeading": {
     "message": "Estado"
+  },
+  "semUnreadable": {
+    "message": "$1 mensajes no legibles, se volverá a intentar"
   },
   "semRowPhase": {
     "message": "Estado"

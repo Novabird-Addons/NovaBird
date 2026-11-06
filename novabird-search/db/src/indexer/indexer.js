@@ -20,6 +20,7 @@ import { termsDeFor } from "./terms.js";
 import { L } from "../util/logtext.js";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const MAX_FOLDER_RETRIES = 3; // so oft versucht der Abgleich je Sitzung einen gescheiterten Ordner erneut
 const REPAIR_HINT = () =>
   L("Tipp: Zuerst den Ordner reparieren (Rechtsklick auf den Ordner → Eigenschaften → Ordner reparieren), dann den Index neu prüfen lassen.",
     "Tip: repair the folder first (right-click the folder → Properties → Repair Folder), then let the index check again.");
@@ -44,6 +45,8 @@ export class Indexer {
     this.debug = debug; // ausführliches Protokoll (Seiten, langsame Mails)
     this.cur = null; // aktueller Schritt für den Wächter
     this.timeoutsInRow = 0;
+    this.readFailed = 0; // Mails, deren Text nicht lesbar war (zählt nur hoch; indexFolder vergleicht vorher/nachher)
+    this.failedFolders = new Map(); // Ordner-ID -> { name, tries }: Durchgang gescheitert, reconcile() versucht es erneut
     this.queue = Promise.resolve();
     this.progress = { done: 0, total: null };
     this.stopped = false;
@@ -256,7 +259,8 @@ export class Indexer {
     return map;
   }
 
-  async buildRecord(header, offline = true, refs = undefined) {
+  /** headersOnError: nicht lesbare Mail nur mit Kopfdaten aufnehmen (nur für Mails ohne Eintrag, ein vorhandener Text bliebe sonst nicht erhalten). */
+  async buildRecord(header, offline = true, refs = undefined, { headersOnError = false } = {}) {
     const vocab = this.termsVocab?.();
     if (!offline) {
       // Nur Kopfdaten: Betreff, Absender, Datum usw. sind trotzdem durchsuchbar
@@ -271,7 +275,15 @@ export class Indexer {
       this.timeoutsInRow = 0;
       if (Date.now() - t0 > 1000) this.dbg(`langsame Mail (${Date.now() - t0} ms): „${String(header.subject ?? "").slice(0, 60)}“`);
     } catch (e) {
-      if (!e.timeout) throw e;
+      this.readFailed++;
+      if (!e.timeout) {
+        if (!headersOnError) throw e;
+        // Nicht lesbar: mit Kopfdaten auffindbar halten; Kopfdaten-Einträge werden später erneut versucht
+        this.log.warn(L("[novabird-db] Mail nicht lesbar (nur Kopfdaten)", "[novabird-db] mail not readable (headers only)"), header.subject, e);
+        const rec = { ...toRecord(header, { tagNames: this.tagNames, refs }), bodyHash: repo.HEADERS_ONLY };
+        if (vocab) rec.termsDe = termsDeFor(rec, vocab);
+        return rec;
+      }
       // Mail hängt: nur Kopfdaten übernehmen, damit der Lauf weitergeht
       this.timeoutsInRow++;
       this.log.warn(L(`[novabird-db] Mail nach ${this.limits.mail} ms übersprungen (nur Kopfdaten): „${String(header.subject ?? "").slice(0, 60)}“ (${header.headerMessageId ?? header.id})`,
@@ -328,9 +340,12 @@ export class Indexer {
     this.log.info(L(`[novabird-db] Erstlauf: ${todo.length} von ${folders.length} Ordnern, ${this.progress.total ?? "?"} Mails zu lesen`, `[novabird-db] First run: ${todo.length} of ${folders.length} folders, ${this.progress.total ?? "?"} mails to read`));
     for (const folder of todo) {
       if (this.stopped) break;
+      const fid = folderIdOf(folder);
       try {
         await this.enqueue(() => this.indexFolder(folder));
+        this.failedFolders.delete(fid);
       } catch (e) {
+        this.failedFolders.set(fid, { name: folder.name ?? fid, tries: 0 });
         this.log.error(L("[novabird-db] Ordner fehlgeschlagen", "[novabird-db] folder failed"), folder.name, e, e?.timeout ? REPAIR_HINT() : ""); // nächster Ordner
       }
     }
@@ -376,6 +391,7 @@ export class Indexer {
     let indexed = 0;
     let skipped = 0;
     let noBody = 0; // Nachrichten, die (noch) nicht lokal vorliegen
+    const failedBefore = this.readFailed;
     let batch = [];
     const flush = async () => {
       if (!batch.length) return;
@@ -413,7 +429,7 @@ export class Indexer {
       const pending = rest.filter((h) => !known.has(h.headerMessageId) || (offline.get(h.id) ?? true));
       skipped += rest.length - pending.length; // nur Kopfdaten drin und weiter nicht lokal
       const refs = await this.withTimeout(this.refsMap(pending), this.limits.step, "Verweise lesen");
-      const work = pending.map((h) => ({ h, isOffline: offline.get(h.id) ?? true, refs: refs.get(h.id) }));
+      const work = pending.map((h) => ({ h, isOffline: offline.get(h.id) ?? true, refs: refs.get(h.id), fresh: !known.has(h.headerMessageId) }));
       // Mails parallel lesen (Reihenfolge bleibt erhalten); zwischen den Gruppen auf Anhalten prüfen
       for (let i = 0; i < work.length; i += this.concurrency) {
         if (this.stopped) {
@@ -422,9 +438,9 @@ export class Indexer {
         }
         const group = work.slice(i, i + this.concurrency);
         const records = await Promise.all(
-          group.map(async ({ h, isOffline, refs: refList }) => {
+          group.map(async ({ h, isOffline, refs: refList, fresh }) => {
             try {
-              return await this.buildRecord(h, isOffline, refList);
+              return await this.buildRecord(h, isOffline, refList, { headersOnError: fresh });
             } catch (e) {
               this.log.warn(L("[novabird-db] Nachricht übersprungen", "[novabird-db] message skipped"), h.subject, e);
               return null;
@@ -459,7 +475,8 @@ export class Indexer {
     const complete = this.onlineOnly(fid) || this.canFillBodies() || (noBody === 0 && !(await repo.hasHeadersOnly(this.db, fid)));
     await repo.setFolderDone(this.db, fid, complete);
     await this.noteTotal(folder);
-    await this.noteSize(folder, sizeBefore);
+    // Nicht lesbare Mails: Größe vergessen, damit fillBodies() sie beim nächsten Nachholen noch einmal versucht
+    await this.noteSize(folder, sizeBefore, { retry: this.readFailed > failedBefore });
     this.log.info(L(`[novabird-db] Ordner „${folder.name ?? fid}“ fertig: ${read} Mails gesehen, ${indexed} neu, ${skipped} übersprungen, ${stale.length} entfernt, ${((Date.now() - t0) / 1000).toFixed(1)} s`,
       `[novabird-db] Folder "${folder.name ?? fid}" done: ${read} mails seen, ${indexed} new, ${skipped} skipped, ${stale.length} removed, ${((Date.now() - t0) / 1000).toFixed(1)} s`));
   }
@@ -480,11 +497,12 @@ export class Indexer {
   }
 
   /** Nach einem vollständigen Durchgang: Größe (vom Beginn des Durchgangs) merken, damit fillBodies() erst nach einem Download prüft. */
-  async noteSize(folder, size) {
+  async noteSize(folder, size, { retry = false } = {}) {
     if (!this.canFillBodies() || this.onlineOnly(folderIdOf(folder))) return;
-    if (size == null) return;
+    if (size == null && !retry) return;
     const sizes = await repo.loadFolderSizes(this.db);
-    sizes[folderIdOf(folder)] = size;
+    if (retry) delete sizes[folderIdOf(folder)];
+    else sizes[folderIdOf(folder)] = size;
     await repo.saveFolderSizes(this.db, sizes);
   }
 
@@ -631,17 +649,21 @@ export class Indexer {
       if (typeof total !== "number") continue;
       checked++;
       const have = counts.get(fid) ?? 0;
+      // Ordner, dessen Durchgang scheiterte: unabhängig von den Mailzahlen neu lesen, aber nicht endlos
+      const failed = this.failedFolders.get(fid);
+      if (failed?.tries >= MAX_FOLDER_RETRIES && !deep) continue;
+      const retry = Boolean(failed);
       // Index und Betterbird stimmen überein (die Ereignisse haben ihn aktuell gehalten): nichts zu lesen, nur die Zahl merken.
       // Sonst blätterte jeder Start jeden aktiven Ordner (Posteingang, Gesendet …) komplett durch, weil sich seine Zahl seit
       // dem letzten vollständigen Durchgang geändert hat
-      if (!deep && fid in totals && total === have) {
+      if (!retry && !deep && fid in totals && total === have) {
         if (totals[fid] !== total) baseline[fid] = total;
         continue;
       }
       // bekannter Ordner: nur neu lesen, wenn sich die Mailzahl seit dem letzten Durchgang geändert hat;
       // unbekannter Ordner: wenn Index und Betterbird abweichen
-      if (!deep && (fid in totals ? totals[fid] === total : total === have)) continue;
-      if (!deep && !(fid in totals) && Math.abs(total - have) <= Math.max(5, total * 0.01)) {
+      if (!retry && !deep && (fid in totals ? totals[fid] === total : total === have)) continue;
+      if (!retry && !deep && !(fid in totals) && Math.abs(total - have) <= Math.max(5, total * 0.01)) {
         // erster Abgleich für diesen Ordner und nur kleine Abweichung (doppelte Message-IDs u. ä.): als Basiswert merken statt den ganzen Ordner zu lesen
         baseline[fid] = total;
         this.log.info(L(`[novabird-db] Abgleich: „${folder.name ?? fid}“ Basiswert ${total} (Index ${have}) gemerkt`, `[novabird-db] Comparison: "${folder.name ?? fid}" base value ${total} (index ${have}) stored`));
@@ -652,8 +674,10 @@ export class Indexer {
       const before = have;
       try {
         await this.enqueue(() => this.indexFolder(folder, { quiet: true }));
+        this.failedFolders.delete(fid);
       } catch (e) {
         this.log.error(L("[novabird-db] Abgleich fehlgeschlagen", "[novabird-db] comparison failed"), folder.name, e);
+        this.failedFolders.set(fid, { name: folder.name ?? fid, tries: (failed?.tries ?? 0) + 1 });
         continue;
       }
       rescanned++;

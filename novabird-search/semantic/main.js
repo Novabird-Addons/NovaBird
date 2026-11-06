@@ -13,6 +13,7 @@ import { MODELS, DEFAULT_MODEL, modelBytes } from "./models.js";
 import { PROBES, checkProbe } from "./probe.js";
 import * as server from "./server.js";
 import * as store from "./store.js";
+import { ReadFailures, splitReadable } from "./readfail.js";
 import { textFromParts } from "../db/src/indexer/record.js";
 import { cleanBody } from "../db/src/text/clean.js";
 
@@ -763,6 +764,8 @@ async function countTotal() {
   return Number(r?.n) || 0;
 }
 
+const readFails = new ReadFailures(); // Mails, deren Text gerade nicht lesbar ist: kein Vektor, später noch einmal
+
 // Nächste Mails ohne Vektor (neueste zuerst). skip: schon unterwegs (im Voraus gelesen, noch nicht gespeichert)
 async function nextBatch(have, size, skip) {
   const out = [];
@@ -779,7 +782,7 @@ async function nextBatch(have, size, skip) {
     }
     for (const r of rows) {
       offset++;
-      if (!have.has(r.header_msg_id) && !skip.has(r.header_msg_id) && !out.some(x => x.header_msg_id === r.header_msg_id)) {
+      if (!have.has(r.header_msg_id) && !skip.has(r.header_msg_id) && !readFails.blocked(r.header_msg_id) && !out.some(x => x.header_msg_id === r.header_msg_id)) {
         out.push(r);
         if (out.length >= size) {
           break;
@@ -801,7 +804,8 @@ function clip(text) {
 }
 
 // Text einer Mail: Betreff + bereinigter Text. Liegt die Mail nicht lokal vor (IMAP ohne Offline-Kopie), nur der Betreff,
-// sonst würde Thunderbird jede Mail einzeln vom Server laden.
+// sonst würde Thunderbird jede Mail einzeln vom Server laden. null: gerade nicht lesbar (ein Vektor nur aus dem Betreff
+// bliebe sonst für immer als fertig stehen).
 async function textOf(row) {
   const head = clip(`${row.subject || ""}\n`);
   try {
@@ -813,7 +817,7 @@ async function textOf(row) {
     }
     const msg = list?.messages?.[0];
     if (!msg) {
-      return head;
+      return null;
     }
     const offline = await messenger.novabirdDb.offlineFlags([msg.id]).catch(() => null);
     if (offline && offline[msg.id] === false) {
@@ -822,11 +826,11 @@ async function textOf(row) {
     const body = cleanBody(textFromParts(await messenger.messages.getFull(msg.id)));
     return clip(head + body);
   } catch {
-    return head;
+    return null;
   }
 }
 
-// Text einer schon aufgelösten Mail ({id, offline}); nicht lokal: nur der Betreff (wie textOf)
+// Text einer schon aufgelösten Mail ({id, offline}); nicht lokal: nur der Betreff, nicht lesbar: null (wie textOf)
 async function bodyOf(row, ref) {
   const head = clip(`${row.subject || ""}\n`);
   if (!ref.offline) {
@@ -836,7 +840,7 @@ async function bodyOf(row, ref) {
     const body = cleanBody(textFromParts(await messenger.messages.getFull(ref.id)));
     return clip(head + body);
   } catch {
-    return head;
+    return null;
   }
 }
 
@@ -972,10 +976,16 @@ async function indexLoop() {
       while (inflight.length < (remote ? IN_FLIGHT : 1) && ahead.length) {
         const a = ahead.shift();
         const t0 = Date.now();
-        const texts = await a.texts;
-        const entry = { batch: a.batch, texts, sent: Date.now(), waitMs: Date.now() - t0 };
-        entry.result = indexEmbed(a.batch, texts).then(vecs => ({ vecs }), error => ({ error }));
-        inflight.push(entry);
+        const { batch, texts, unreadable } = splitReadable(a.batch, await a.texts);
+        for (const r of unreadable) {
+          readFails.note(r.header_msg_id);
+        }
+        state.unreadable = readFails.size;
+        if (batch.length) {
+          const entry = { batch, texts, sent: Date.now(), waitMs: Date.now() - t0 };
+          entry.result = indexEmbed(batch, texts).then(vecs => ({ vecs }), error => ({ error }));
+          inflight.push(entry);
+        }
         await fillAhead(size);
       }
       if (doneIds !== ids) {
@@ -1007,11 +1017,13 @@ async function indexLoop() {
       await store.putMany(cfg.model, items);
       for (const it of items) {
         ids.add(it.id);
+        readFails.clear(it.id);
         if (vectors?.model === cfg.model) {
           vectors.extra.push({ id: it.id, ...store.quantize(it.vec) });
         }
       }
       state.done = ids.size;
+      state.unreadable = readFails.size;
       // Geschwindigkeit über die letzten 30 s; letztes Paket: Warten auf die Texte, Zeit bis zum Ergebnis
       const now = Date.now();
       rateWindow.push({ from: cur.sent, at: now, n: cur.batch.length });

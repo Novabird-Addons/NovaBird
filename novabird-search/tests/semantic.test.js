@@ -144,3 +144,24 @@ test("Helper-Netzprotokoll (shared/nbnet.js): Anfrage wie der Helper entschlüss
   await assert.rejects(server.netCall({ ...c, clientId: "x" }, "hello"), /client/);
   assert.equal(await server.textHash("Hallo Welt – Grüße"), "3cbe33e6423c385d"); // gleich der Prüfsumme der Extension
 });
+
+test("Nicht lesbare Mails: kein Vektor, spaeter erneut, je Sitzung begrenzt", async () => {
+  const { ReadFailures, splitReadable, MAX_READ_TRIES, READ_RETRY_MS } = await import("../semantic/readfail.js");
+  const rows = [{ header_msg_id: "a" }, { header_msg_id: "b" }, { header_msg_id: "c" }];
+  const parts = splitReadable(rows, ["text a", null, ""]);
+  assert.deepEqual(parts.batch.map(r => r.header_msg_id), ["a", "c"]); // leerer Text ist lesbar
+  assert.deepEqual(parts.texts, ["text a", ""]);
+  assert.deepEqual(parts.unreadable.map(r => r.header_msg_id), ["b"]);
+
+  const fails = new ReadFailures();
+  assert.equal(fails.blocked("b", 0), false);
+  fails.note("b", 0);
+  assert.equal(fails.blocked("b", 1), true);
+  assert.equal(fails.blocked("b", READ_RETRY_MS), false);
+  for (let i = 1; i < MAX_READ_TRIES; i++) fails.note("b", 0);
+  assert.equal(fails.blocked("b", READ_RETRY_MS * 100), true);
+  assert.equal(fails.size, 1);
+  fails.clear("b");
+  assert.equal(fails.size, 0);
+  assert.equal(fails.blocked("b", 0), false);
+});

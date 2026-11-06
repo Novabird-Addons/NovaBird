@@ -476,6 +476,9 @@
   "optCatchUpFmt": {
     "message": "$1 ($2 nouveaux sur $3 vérifiés)"
   },
+  "optRowFailedFolders": {
+    "message": "Dossiers non lus (nouvel essai à venir)"
+  },
   "optRowPhase": {
     "message": "Situation"
   },
@@ -694,6 +697,9 @@
   },
   "semStateHeading": {
     "message": "État"
+  },
+  "semUnreadable": {
+    "message": "$1 messages illisibles, nouvel essai à venir"
   },
   "semRowPhase": {
     "message": "État"
