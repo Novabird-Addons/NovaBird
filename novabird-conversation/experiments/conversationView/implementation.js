@@ -458,7 +458,7 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
             try {
               const res = await win.fetch(url, { credentials: "omit", referrerPolicy: "no-referrer", cache: "no-store", redirect: "follow", signal: ctl.signal });
               const type = (res.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
-              if (!res.ok || !/^image\/(png|jpe?g|gif|webp)$/.test(type)) {
+              if (!res.ok || !/^image\/(png|jpe?g|gif|webp)$/.test(type) || Number(res.headers.get("content-length")) > 5 * 1024 * 1024) {
                 return null;
               }
               const bytes = new Uint8Array(await res.arrayBuffer());

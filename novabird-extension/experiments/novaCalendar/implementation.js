@@ -1104,8 +1104,9 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
           const selected = Services.wm.getMostRecentWindow("mail:3pane")?.getSelectedCalendar?.();
           const chosen = calendarId && calendars.find(c => c.id == calendarId);
           const target = chosen || (selected && calendars.includes(selected) ? selected : calendars[0]);
-          let count = 0;
-          for (const it of items) {
+          const done = []; // Stellen der angelegten Aufgaben: scheitert eine mittendrin, bleiben die anderen angelegt
+          let lastError = null;
+          for (const [index, it] of items.entries()) {
             const todo = new CalTodo();
             todo.title = String(it.title || "").slice(0, 300);
             if (it.description) {
@@ -1116,10 +1117,18 @@ var novaCalendar = class extends ExtensionCommon.ExtensionAPI {
             due.isDate = true; // fällig heute (ganzer Tag)
             todo.dueDate = due;
             todo.calendar = target;
-            await target.addItem(todo);
-            count++;
+            try {
+              await target.addItem(todo);
+              done.push(index);
+            } catch (e) {
+              lastError = e;
+              console.error("NovaBird-Extension: Aufgabe anlegen", e);
+            }
           }
-          return { count, calendar: target.name };
+          if (!done.length && lastError) {
+            throw new ExtensionError(String(lastError?.message ?? lastError));
+          }
+          return { count: done.length, done, failed: items.length - done.length, calendar: target.name };
         },
         async mailItems(keys) {
           const { cal } = ChromeUtils.importESModule("resource:///modules/calendar/calUtils.sys.mjs");

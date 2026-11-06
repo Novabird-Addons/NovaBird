@@ -60,6 +60,12 @@
   "remoteBlocked": {
     "message": "To protect your privacy, remote content in this message has been blocked."
   },
+  "cutOff": {
+    "message": "This mail is very long and cut off here. To read all of it, use the original view."
+  },
+  "encryptedHint": {
+    "message": "This mail is encrypted. To read it, use the original view."
+  },
   "noText": {
     "message": "(No text)"
   },

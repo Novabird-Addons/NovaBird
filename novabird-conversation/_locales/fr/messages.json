@@ -60,6 +60,12 @@
   "remoteBlocked": {
     "message": "Pour protéger votre vie privée, le contenu distant de ce message a été bloqué."
   },
+  "cutOff": {
+    "message": "Ce message est très long et coupé ici. Pour tout lire, utilisez la vue d'origine."
+  },
+  "encryptedHint": {
+    "message": "Ce message est chiffré. Pour le lire, utilisez la vue d'origine."
+  },
   "noText": {
     "message": "(Aucun texte)"
   },

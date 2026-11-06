@@ -141,6 +141,7 @@
     return wrap;
   }
 
+  const MAX_HTML = 1500000; // längere Mails zeigt die Ansicht nur bis hierhin, mit Hinweis auf die Originalansicht
   const DROP = new Set(["script", "style", "head", "title", "meta", "link", "iframe", "frame", "frameset", "object", "embed",
     "form", "input", "button", "textarea", "select", "svg", "math", "base", "noscript", "template", "audio", "video", "canvas", "map"]);
   const KEEP = new Set(["a", "abbr", "b", "blockquote", "br", "center", "cite", "code", "dd", "div", "dl", "dt", "em", "font",
@@ -265,7 +266,7 @@
   }
 
   function renderHtml(html, id, body) {
-    const doc = new DOMParser().parseFromString(html.slice(0, 1500000), "text/html");
+    const doc = new DOMParser().parseFromString(html.slice(0, MAX_HTML), "text/html");
     const state = { blocked: false };
     const out = el("div");
 
@@ -342,6 +343,7 @@
       }
     };
     copy(doc.body ?? doc.documentElement, out, false, false);
+    if (html.length > MAX_HTML) out.append(el("p", "nbc-blocked", t("cutOff")));
     // Tabellen ohne Text und Bild zeigen bei uns nichts (Farben/Größen sind weg), kosten aber Platz: weglassen
     for (const table of [...out.querySelectorAll("table")].reverse()) {
       if (!/\S/.test(table.textContent) && !table.querySelector("img, hr")) table.remove();
@@ -579,7 +581,7 @@
     body.id = msg.id;
     const attNode = attachmentsNode(body);
     if (attNode && settings.attachments === "top") e.slot.append(attNode);
-    const content = body.html ? renderHtml(body.html, msg.id, body) : body.text ? renderPlain(body.text) : el("p", null, t("noText"));
+    const content = body.encrypted ? el("p", "nbc-blocked", t("encryptedHint")) : body.html ? renderHtml(body.html, msg.id, body) : body.text ? renderPlain(body.text) : el("p", null, t("noText"));
     const bodyBox = el("div", "nbc-body");
     const rbar = content.querySelector?.(":scope > .nbc-rbar");
     if (rbar) e.slot.append(rbar);
@@ -587,7 +589,7 @@
     const images = attachedImagesNode(body);
     if (images) bodyBox.append(images);
     e.slot.append(bodyBox);
-    if (settings.autoOriginal && asc.length === 1 && msg.id === data.selectedId && !autoChecked && looksUnreadable(body, bodyBox)) {
+    if (settings.autoOriginal && asc.length === 1 && msg.id === data.selectedId && !autoChecked && (body.encrypted || looksUnreadable(body, bodyBox))) {
       autoChecked = true;
       showOriginal();
       return;
@@ -673,7 +675,7 @@
     if (body.text) {
       source = body.text.replace(/\s+/g, " ").trim().length;
     } else if (body.html) {
-      const doc = new DOMParser().parseFromString(body.html.slice(0, 1500000), "text/html");
+      const doc = new DOMParser().parseFromString(body.html.slice(0, MAX_HTML), "text/html");
       for (const node of doc.querySelectorAll("style, script, head, title")) node.remove();
       source = (doc.body?.textContent ?? "").replace(/[\s\u200b-\u200f\u00ad\u034f\ufeff]+/g, " ").trim().length;
     }

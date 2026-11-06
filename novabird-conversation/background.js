@@ -7,7 +7,7 @@ const MAX_MESSAGES = 120;
 const STRING_KEYS = [
   "messagesCount", "toNames", "newBadge", "reply", "replyAll", "more", "forward", "forwardAsAttachment",
   "editAsNew", "expandAll", "collapseAll", "showFull", "showLess", "quoteToggle", "remoteBlocked", "remoteShow", "remoteThis", "remoteAll", "remoteAsk", "remoteSender",
-  "aiSummary", "attOpen", "attSave", "noText", "loading", "loadFailed", "history", "notDownloaded", "delete", "deleteTip", "originalBtn", "originalTip", "backToConversation", "spam", "spamTip", "notSpam", "notSpamTip", "copyAddress",
+  "aiSummary", "attOpen", "attSave", "noText", "cutOff", "encryptedHint", "loading", "loadFailed", "history", "notDownloaded", "delete", "deleteTip", "originalBtn", "originalTip", "backToConversation", "spam", "spamTip", "notSpam", "notSpamTip", "copyAddress",
 ];
 
 let settings = sanitizeSettings(null);
@@ -355,6 +355,12 @@ async function fetchBody(key) {
   const id = await resolveId(key);
   const full = await messenger.messages.getFull(id);
   const { html, text } = collectParts(full, {});
+  let encrypted = full?.decryptionStatus === "fail";
+  if (!encrypted && !html?.trim() && !text?.trim()) {
+    // Inline-PGP ohne Schlüssel: die Schnittstelle meldet Erfolg und liefert leeren Text
+    const raw = await messenger.messages.getFull(id, { decrypt: false }).catch(() => null);
+    encrypted = /-----BEGIN PGP MESSAGE-----/.test(collectParts(raw, {}).text ?? "");
+  }
   let attachments = [];
   try {
     // Bilder, auf die der HTML-Text per cid: verweist, zeigt die Ansicht im Text (nicht als Anhang-Chip)
@@ -368,7 +374,8 @@ async function fetchBody(key) {
   } catch (e) {
     // ohne Anhangsliste weiter
   }
-  return { html: html ?? null, text: text ?? null, attachments };
+  // Verschlüsselte Mail, die die Schnittstelle nicht entschlüsseln konnte: die Ansicht sagt das, statt „kein Text“ zu zeigen
+  return { html: html ?? null, text: text ?? null, attachments, encrypted };
 }
 
 // Konversation einer Nachricht suchen (mit Zwischenspeicher); laufende Suchen werden geteilt, damit das Vorabholen und `hello` nicht doppelt rechnen

@@ -60,6 +60,12 @@
   "remoteBlocked": {
     "message": "Zum Schutz der Privatsphäre wurden externe Inhalte in dieser Nachricht blockiert."
   },
+  "cutOff": {
+    "message": "Diese Mail ist sehr lang und hier gekürzt. Ganz lesen: Originalansicht."
+  },
+  "encryptedHint": {
+    "message": "Diese Mail ist verschlüsselt. Lesen: Originalansicht."
+  },
   "noText": {
     "message": "(Kein Text)"
   },

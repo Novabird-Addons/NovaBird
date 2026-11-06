@@ -9,6 +9,13 @@ NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the opti
 - The PCs page of the web interface shows the group of each PC in its own column.
 - After an error on the graphics card the helper stayed on the CPU until someone measured the devices again, and nothing showed why. The Status page now says which card failed, when and with what message, and the helper tries the card again on the next start.
 
+### Contacts, tasks, long mails: failures no longer pass as success
+- Nova-Contact: restoring deleted contacts removed the restore point even if contacts could not be created, and those contacts were lost. The point now stays for them, a double click no longer creates them twice, and a removed address book falls back to the selected one.
+- Nova-Contact: if deleting fails for some contacts, they stay in the list and out of the restore point (they would have come back twice). Merging now keeps a restore point of the contacts it deletes.
+- "What's new?": if creating tasks fails halfway, only the created lines are ticked and the note says how many failed. Before, the created ones could be created again.
+- Conversation: an encrypted mail that the add-on interface cannot decrypt showed "(No text)" or nothing. The view now says it is encrypted, and a single mail goes straight to the original view.
+- Conversation: HTML mails beyond 1.5 million characters were cut off without a word; the view now says so and points to the original view. An oversized remote image is refused before it is downloaded completely.
+
 ### Search: mails and folders that could not be read are tried again
 - A folder that failed no longer disappears silently: Search → Index lists it, and the next comparison reads it again (at most 3 times per session). Before, a small difference in the mail count could close it for good.
 - A new mail that cannot be read now stays findable with its headers and is tried again at the next catch-up, instead of missing from the index until the weekly comparison. A text already in the index is kept.

@@ -117,23 +117,38 @@
 
   /* ---------- Löschen mit Wiederherstellung ---------- */
   const chosen = () => C.contacts.filter(c => C.sel.has(c.id) && !c.readOnly);
+  // Wiederherstellungspunkte: [{ bookId, bookName, vcards }]; auch das Zusammenführen legt hier ab, was es löscht
+  async function remember(entries) {
+    const old = (await api.storage.local.get("cpRestore")).cpRestore || [];
+    old.unshift(...entries.map(e => ({ ts: Date.now(), ...e })));
+    await api.storage.local.set({ cpRestore: old.slice(0, RESTORE_KEEP) });
+  }
   async function remove() {
     const list = chosen();
     if (!list.length || !confirm(t("c_confirm", list.length))) return;
     const bookId = $("#cBook").value, bookName = C.books.find(b => b.id === bookId)?.name || "";
+    let saved = true;
     try {
-      const old = (await api.storage.local.get("cpRestore")).cpRestore || [];
-      old.unshift({ ts: Date.now(), bookId, bookName, vcards: list.map(c => c.vCard) });
-      await api.storage.local.set({ cpRestore: old.slice(0, RESTORE_KEEP) });
+      await remember([{ bookId, bookName, vcards: list.map(c => c.vCard) }]);
     } catch (e) {
       if (!confirm(t("c_noRestore"))) return;
+      saved = false;
     }
-    let n = 0;
-    for (const c of list) { try { await CP_API.contacts.delete(c.id); n++; } catch (e) { console.error(e); } }
-    CPLog.add(`Aufräumen: ${n} Kontakte gelöscht (Wiederherstellungspunkt gespeichert)`);
-    C.contacts = C.contacts.filter(c => !(C.sel.has(c.id) && !c.readOnly));
-    C.sel.clear();
-    $("#cMsg").replaceChildren(h("div", { class: "result" }, t("c_deleted", n)));
+    const gone = new Set();
+    for (const c of list) { try { await CP_API.contacts.delete(c.id); gone.add(c.id); } catch (e) { console.error(e); } }
+    const failed = list.length - gone.size;
+    // Nicht gelöschte Kontakte gehören nicht in den Wiederherstellungspunkt, sonst kämen sie doppelt zurück
+    if (saved && failed) {
+      const items = (await api.storage.local.get("cpRestore")).cpRestore || [];
+      const vcards = list.filter(c => gone.has(c.id)).map(c => c.vCard);
+      if (vcards.length) items[0].vcards = vcards;
+      else items.shift();
+      await api.storage.local.set({ cpRestore: items });
+    }
+    CPLog.add(`Aufräumen: ${gone.size} Kontakte gelöscht, ${failed} fehlgeschlagen${saved ? " (Wiederherstellungspunkt gespeichert)" : ""}`);
+    C.contacts = C.contacts.filter(c => !gone.has(c.id));
+    for (const id of gone) C.sel.delete(id);
+    $("#cMsg").replaceChildren(h("div", { class: "result" }, failed ? t("c_deletePartial", gone.size, failed) : t("c_deleted", gone.size)));
     refilter(); renderRestore();
   }
   function saveFile() {
@@ -151,17 +166,29 @@
       h("span", null, t("c_restoreItem", it.vcards.length, it.bookName, new Date(it.ts).toLocaleString(I18N.locale(), { dateStyle: "short", timeStyle: "short" }))),
       h("button", { type: "button", onclick: () => restore(i) }, t("c_restore")))));
   }
+  let restoring = false;
   async function restore(i) {
-    const items = (await api.storage.local.get("cpRestore")).cpRestore || [];
-    const it = items[i];
-    if (!it) return;
-    let n = 0;
-    for (const v of it.vcards) { try { await CP_API.contacts.create(it.bookId, v); n++; } catch (e) { console.error(e); } }
-    CPLog.add(`Aufräumen: ${n} Kontakte wiederhergestellt`);
-    items.splice(i, 1);
-    await api.storage.local.set({ cpRestore: items });
-    $("#cMsg").replaceChildren(h("div", { class: "result" }, t("c_restored", n)));
-    renderRestore();
+    if (restoring) return; // Doppelklick legte sonst alle Kontakte zweimal an
+    restoring = true;
+    try {
+      const items = (await api.storage.local.get("cpRestore")).cpRestore || [];
+      const it = items[i];
+      if (!it) return;
+      // Adressbuch inzwischen entfernt: ins gewählte Buch
+      const bookId = !C.books.length || C.books.some(b => b.id === it.bookId) ? it.bookId : $("#cBook").value;
+      const failed = [];
+      for (const v of it.vcards) { try { await CP_API.contacts.create(bookId, v); } catch (e) { console.error(e); failed.push(v); } }
+      const n = it.vcards.length - failed.length;
+      CPLog.add(`Aufräumen: ${n} Kontakte wiederhergestellt, ${failed.length} fehlgeschlagen`);
+      // Der Punkt verschwindet erst, wenn alles zurück ist: sonst wären die übrigen Kontakte endgültig weg
+      if (failed.length) it.vcards = failed;
+      else items.splice(i, 1);
+      await api.storage.local.set({ cpRestore: items });
+      $("#cMsg").replaceChildren(h("div", { class: "result" }, failed.length ? t("c_restorePartial", n, failed.length) : t("c_restored", n)));
+      renderRestore();
+    } finally {
+      restoring = false;
+    }
   }
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -179,5 +206,5 @@
     $("#cSave").addEventListener("click", saveFile);
     I18N.onChange(() => { if (C.analysed) render(); renderRestore(); });
   });
-  globalThis.KSClean = { activate };
+  globalThis.KSClean = { activate, remember };
 })();

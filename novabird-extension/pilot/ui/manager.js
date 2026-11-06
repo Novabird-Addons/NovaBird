@@ -360,6 +360,19 @@
     if (toDelete.length && !confirm(t("confirmDel", toDelete.length))) return;
     try {
       const v = buildFinal();
+      if (toDelete.length) {
+        // Gelöschte Kontakte lassen sich unter „Aufräumen“ wiederherstellen
+        const byBook = new Map();
+        for (const c of toDelete) {
+          if (!byBook.has(c.book)) byBook.set(c.book, { bookId: c.book, bookName: c.bookName, vcards: [] });
+          byBook.get(c.book).vcards.push(c.vCard);
+        }
+        try {
+          await KSClean.remember([...byBook.values()]);
+        } catch (e) {
+          if (!confirm(t("c_noRestore"))) return;
+        }
+      }
       let newId = null;
       if (keep) await C().update(keep.id, v);
       else newId = await C().create(g.target, v);
