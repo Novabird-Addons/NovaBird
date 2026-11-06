@@ -22,6 +22,12 @@ function parseIds(values) {
   return out;
 }
 
+// Bilder, die die Ansicht selbst zeigt (eingebettet oder angehängt): gängige Typen bis 5 MB, kein SVG
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+function isShownImage(type, size) {
+  return /^image\/(png|jpe?g|gif|webp)$/i.test(type ?? "") && (size ?? 0) <= MAX_IMAGE_BYTES;
+}
+
 const SKIP_FOLDER_TYPES = ["trash", "junk"];
 
 /*
@@ -184,5 +190,5 @@ function selectIn(entry, shownId, keyOf = () => null) {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { dedupeByMid, normalizeSubject, parseIds, addressesOf, groupConversation, pickExpanded, rowKey, splitKey, dedupeRows, recipientNames, rowToView, selectIn };
+  module.exports = { dedupeByMid, normalizeSubject, parseIds, addressesOf, groupConversation, pickExpanded, rowKey, splitKey, dedupeRows, recipientNames, rowToView, selectIn, isShownImage };
 }

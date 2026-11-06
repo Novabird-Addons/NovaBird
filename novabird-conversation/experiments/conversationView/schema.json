@@ -110,6 +110,13 @@
         ]
       },
       {
+        "name": "getInlineAttachments",
+        "type": "function",
+        "async": true,
+        "description": "Einstellung „Ansicht → Anhänge eingebettet anzeigen“.",
+        "parameters": []
+      },
+      {
         "name": "getDisplayedMessage",
         "type": "function",
         "async": true,

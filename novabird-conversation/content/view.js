@@ -414,6 +414,23 @@
     return box;
   }
 
+  // Angehängte Bilder unter dem Text wie in der normalen Ansicht; Klick öffnet den Anhang
+  function attachedImagesNode(body) {
+    const list = (body.attachments ?? []).filter(a => a.attachedImage);
+    if (!data.inlineAttachments || !list.length) return null;
+    const box = el("div", "nbc-images");
+    for (const a of list) {
+      const img = el("img", "nbc-cid");
+      img.dataset.nbcCid = a.partName;
+      img.nbcMsgId = body.id;
+      img.alt = img.title = a.name;
+      img.addEventListener("click", () => send({ type: "action", action: "openAttachment", id: body.id, partName: a.partName }));
+      box.append(img);
+    }
+    loadRemoteImages(box);
+    return box;
+  }
+
   function actionsNode(msg) {
     const row = el("div", "nbc-act");
     const btn = (key, action) => {
@@ -566,6 +583,8 @@
     const rbar = content.querySelector?.(":scope > .nbc-rbar");
     if (rbar) e.slot.append(rbar);
     bodyBox.append(content);
+    const images = attachedImagesNode(body);
+    if (images) bodyBox.append(images);
     e.slot.append(bodyBox);
     if (settings.autoOriginal && asc.length === 1 && msg.id === data.selectedId && !autoChecked && looksUnreadable(body, bodyBox)) {
       autoChecked = true;
@@ -598,7 +617,11 @@
       };
       more.hidden = true;
       requestAnimationFrame(check);
-      if (window.ResizeObserver) new ResizeObserver(check).observe(content);
+      if (window.ResizeObserver) {
+        const watch = new ResizeObserver(check);
+        watch.observe(content);
+        if (images) watch.observe(images);
+      }
     }
     if (attNode && settings.attachments === "bottom") e.slot.append(attachmentsNode(body));
     e.slot.append(actionsNode(msg));

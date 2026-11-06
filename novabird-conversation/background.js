@@ -329,7 +329,7 @@ function collectParts(part, acc) {
 async function loadCidImage(key, partName) {
   const id = await resolveId(key);
   const file = await messenger.messages.getAttachmentFile(id, partName);
-  if (!file || !/^image\/(png|jpe?g|gif|webp)$/i.test(file.type) || file.size > 5 * 1024 * 1024) return null;
+  if (!file || !isShownImage(file.type, file.size)) return null;
   return new Promise(resolve => {
     const reader = new FileReader();
     reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : null);
@@ -361,8 +361,9 @@ async function fetchBody(key) {
     const referenced = new Set([...String(html ?? "").matchAll(/cid:([^"'\s>)]+)/gi)].map(m => { try { return decodeURIComponent(m[1]).toLowerCase(); } catch (e) { return m[1].toLowerCase(); } }));
     attachments = (await messenger.messages.listAttachments(id)).map(a => {
       const cid = String(a.contentId ?? "").replace(/^<|>$/g, "").toLowerCase();
-      const inline = !!cid && referenced.has(cid) && /^image\/(png|jpe?g|gif|webp)$/i.test(a.contentType ?? "") && (a.size ?? 0) <= 5 * 1024 * 1024;
-      return { name: a.name, partName: a.partName, size: a.size, contentType: a.contentType, cid: inline ? cid : undefined, inline };
+      const image = isShownImage(a.contentType, a.size);
+      const inline = image && !!cid && referenced.has(cid);
+      return { name: a.name, partName: a.partName, size: a.size, contentType: a.contentType, cid: inline ? cid : undefined, inline, attachedImage: image && !inline };
     });
   } catch (e) {
     // ohne Anhangsliste weiter
@@ -466,8 +467,10 @@ async function hello(tabId) {
   }, 0);
   if (settings.debugTiming) console.info("NovaBird-Conversation: Zeiten (ms)", JSON.stringify(timing));
   const ai = await aiAvailable();
+  const inlineAttachments = await messenger.conversationView.getInlineAttachments().catch(() => true);
   return {
     ai,
+    inlineAttachments,
     settings,
     timing,
     theme,

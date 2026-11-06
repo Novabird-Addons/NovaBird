@@ -3,10 +3,19 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { dedupeByMid, normalizeSubject, parseIds, addressesOf, groupConversation, pickExpanded, rowKey, splitKey, dedupeRows, recipientNames, rowToView, selectIn } = require("../conversation.js");
+const { isShownImage, dedupeByMid, normalizeSubject, parseIds, addressesOf, groupConversation, pickExpanded, rowKey, splitKey, dedupeRows, recipientNames, rowToView, selectIn } = require("../conversation.js");
 const { sanitizeSettings, SETTINGS_DEFAULTS } = require("../settings.js");
 
 const msg = (id, mid, refs, date, extra = {}) => ({ id, mid, refs, subjectKey: "angebot", date, folderType: "inbox", ...extra });
+
+test("Bilder in der Ansicht: gängige Typen bis 5 MB, kein SVG", () => {
+  assert.equal(isShownImage("image/jpeg", 750000), true);
+  assert.equal(isShownImage("IMAGE/PNG", 5 * 1024 * 1024), true);
+  assert.equal(isShownImage("image/jpeg", 5 * 1024 * 1024 + 1), false);
+  assert.equal(isShownImage("image/svg+xml", 100), false);
+  assert.equal(isShownImage("application/pdf", 100), false);
+  assert.equal(isShownImage(undefined, undefined), false);
+});
 
 test("Betreff: Präfixe und Groß-/Kleinschreibung werden ignoriert", () => {
   assert.equal(normalizeSubject("Re: AW: Fwd: Angebot  2027"), "angebot 2027");

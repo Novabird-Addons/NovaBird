@@ -377,6 +377,10 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
             return null;
           }
         },
+        // Einstellung „Ansicht → Anhänge eingebettet anzeigen“
+        async getInlineAttachments() {
+          return Services.prefs.getBoolPref("mail.inline_attachments", true);
+        },
         // Anhang speichern wie die Anhangleiste von Thunderbird (Dateiauswahl, Name und Typ des Anhangs). Rechtsklick auf einen
         // Anhang in der Konversation bot sonst nur „Seite speichern“ (die ganze Mail als .eml).
         async saveAttachment(messageId, partName, name, contentType) {

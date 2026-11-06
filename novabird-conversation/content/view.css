@@ -35,6 +35,8 @@ body.nbc-on { overflow: hidden; font: message-box; font-size: 0.765rem; line-hei
 .nbc-card:not(.open) .nbc-date { margin-left: 0; }
 
 .nbc-att { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px 52px; }
+.nbc-images { display: flex; flex-direction: column; gap: 0.47rem; margin-top: 0.47rem; }
+.nbc-images img { display: block; cursor: pointer; }
 .nbc-chip { font: inherit; font-size: 0.706rem; display: inline-flex; gap: 6px; padding: 2px 8px; border: 1px solid color-mix(in srgb, CanvasText 28%, transparent); border-radius: 8px; background: transparent; color: inherit; cursor: pointer; }
 .nbc-chip:hover { background: color-mix(in srgb, CanvasText 8%, transparent); }
 .nbc-chip small { color: GrayText; }
