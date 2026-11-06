@@ -1,90 +1,93 @@
 <p align="center"><img src="docs/images/logo.png" alt="NovaBird" width="96"></p>
 
-<h1 align="center">NovaBird</h1>
+<h1 align="center">NovaBird 2.0</h1>
 
 <p align="center"><b>A modern face and a much improved featureset for Thunderbird/Betterbird.</b><br>
-A redesigned interface, one unified search bar on top of an upgraded database,<br>
-a real conversation view, undo-send and a calmer calendar and address book.</p>
+New in 2.0: AI assistant, search by meaning, team calendars.</p>
 
 <p align="center">
-<a href="HANDBOOK.md">Handbook</a> ·
+<a href="#new-in-20">New in 2.0</a> ·
 <a href="#install">Install</a> ·
-<a href="#uninstall">Uninstall</a> ·
 <a href="#the-add-ons">Add-ons</a> ·
+<a href="#privacy">Privacy</a> ·
 <a href="#disclaimer">Disclaimer</a> ·
+<a href="HANDBOOK.md">Handbook</a> ·
 <a href="README.de.md">Deutsch</a>
 </p>
 
 ![NovaBird main window: card message list, conversation view, agenda and attachments](docs/images/hero-light.png)
 
-NovaBird is a family of add-ons for [Betterbird](https://www.betterbird.eu/) (and Thunderbird ESR) where all addons work together. Everything runs locally; nothing leaves your computer. The one optional exception is the AI summary in NovaBird-Extension: it is off until you switch it on and enter a server address, and only when you click its button the text of that one message goes to that address (with Ollama on your own computer it stays on your computer). The second optional exception is "Online updates" in NovaBird-Extension: off by default; when on, it asks the update repository on GitHub for new versions of the NovaBird packages (no data from Thunderbird is sent).
+## New in 2.0
 
-## What you get
+Everything new is optional. Details are in the [changelog](CHANGELOG.md).
 
-### A fresh look, almost everywhere
-Folder pane, card-style message list, mail tab, settings, accounts and the add-ons manager follow one consistent design language. Three hand-tuned themes, each in light and dark, and the colors carry through to dialogs and the compose window.
+### AI assistant
+Off until you switch it on. Runs with Ollama, an OpenAI-compatible server or the NovaBird Helper. Every function can be switched off on its own.
 
-![The same window in the dark variant](docs/images/hero-dark.png)
+- **Summary, translation, dates** for any mail. Nothing goes into the calendar until you save it.
+- **"What's new?"** New mail at a glance: to do, for information, advertising. On a schedule if you like.
+- **Write:** draft a reply, correct, change the tone or translate in the compose window.
+- **Deadlines** from your mail, with a reminder.
+- **Sorting (beta):** describe a folder in your own words, the AI moves new mail there. Start with suggestions, undo at any time.
+- **Read aloud** in a natural voice (with the Helper).
+- **Nothing twice in the calendar,** also across PCs and shared calendars.
 
-![Sand, Cobalt and Springlight](docs/images/themes.png)
+### Search
+- **Search by meaning (beta):** "parents meeting" finds the "parent-teacher evening". Computed in the add-on, or much faster with the Helper or Ollama.
+- **Best matches first,** then by date.
+- **Very large mailboxes:** with 1.2 million mails, a `from:` search takes 0.2 s instead of 25 s.
+- **Better word forms** in French, Spanish and English.
 
-### One search bar, not two
-Global search and quick filter become **one field** at the top of the message list. Results appear while you type, strictly newest first. Powered by its own SQLite/FTS5 index that replaces\* Gloda for search results: it finds mail across all accounts and folders in a fraction of a second, even in a mailbox of 75,000 messages, and it understands sentences:
+### NovaBird Helper (optional, Windows)
+A small program for the PC with the graphics card. [More about the Helper](novabird-helper/README.md)
 
-> `invoices from Northwind last 2 weeks` · `unread mail with pdf since March` · `what did Maya send me`
+- **Uses the graphics card** for search, language model and reading aloud.
+- **One PC computes for several,** encrypted, in your own network.
+- **Shared results:** a new PC with the same mailbox is indexed in minutes.
+- **Pairing without typing a code:** compare a 6-digit number, done.
+- **Team calendars** with read and write rights per user, no cloud needed.
+- **Web interface** with its own users and groups, optional Windows service, encrypted backup.
 
-…in **English, German, French and Spanish**. Plus operators (`from:` `to:` `subject:` `since:`), "Did you mean…?", search history and an analysis page with timeline and filters.
+### Simpler
+- **Four add-ons instead of eight.** The index is part of Search, the themes are part of the Extension.
+- **Updating from 1.x** keeps settings, search history, index and theme.
+- **Setup assistant** on first start. Every step can be skipped.
+- **Settings sorted by topic.**
+- **Attached images** now show in the conversation view.
 
-\*Thunderbird's own database (Gloda) keeps running and is not uninstalled or replaced as a whole.
+## What NovaBird is
+
+Add-ons for [Betterbird](https://www.betterbird.eu/) and Thunderbird ESR that work together.
+
+- **A fresh look:** three themes, each light and dark.
+- **One search bar** that understands sentences in English, German, French and Spanish: `invoices from Northwind last 2 weeks`
+- **Real conversations:** the whole thread in the reading pane, across all folders.
+- **Undo send:** a countdown of 3–60 s after pressing Send.
+- **Right pane:** agenda, tasks and attachments with instant preview.
+- **Nova-Contact:** tag filters, bulk editing, merging duplicates, with a restore point.
+- **One home for all settings:** Settings → NovaBird.
 
 ![Unified search: natural language query and results](docs/images/search.png)
 
-**Semantic search (beta):** optionally finds messages by meaning as well ("parents meeting" finds the "parent-teacher evening"), computed locally in the add-on or, much faster, on the graphics card with the optional [NovaBird Helper](novabird-helper/README.md) for Windows.
-
-### Conversations that read like conversations
-Open any message and the whole thread is there: the newest message pinned on top, older ones as one-line cards, unread ones expanded. Across all folders, including Sent. Reply, forward, delete and mark as spam right in the thread. Three styles, mail styles never leak in, and external images load only on your click.
-
 ![Conversation view](docs/images/conversation.png)
-
-### Undo send
-Press Send and a small countdown appears (3–60 s). **Undo** brings the compose window back exactly as it was, **Send now** skips the wait, and several messages queue up. Quit while messages wait and they are saved as drafts.
-
-![Undo send overlay at the bottom of the main window](docs/images/undo-send.png)
-
-### A smarter right-hand pane
-Agenda, tasks and an **attachments panel** for the selected message or the whole thread. Hover over a PDF or an image for an instant, scrollable preview.
-
-![Attachment preview](docs/images/attachment-preview.png)
-
-### Calendar and address book
-Calendar dialogs and views pick up your theme. **Nova-Contact** adds tag filters, bulk editing with undo, and a helper that collects addresses from your mail, merges duplicates and cleans up the address book safely (with a restore point).
-
-![Calendar](docs/images/calendar.png) ![Nova-Contact](docs/images/nova-contact.png)
-
-### One home for all settings
-**Settings → NovaBird** collects the options of every installed NovaBird add-on in tabs. Every option is explained, many with a small sketch.
-
-![Settings → NovaBird](docs/images/settings-conversation.png)
 
 ## The add-ons
 
-| Add-on | What it does |
-|---|---|
-| **[NovaBird-Search](novabird-search/README.md)** | The unified search bar, history, analysis, shared folders, plus the fast full-text index and the sentence parser (DE, EN, FR, ES) |
-| **[NovaBird-Conversation](novabird-conversation/README.md)** | Whole threads in the reading pane |
-| **[NovaBird-Send](novabird-send/README.md)** | Undo send with queue |
-| **[NovaBird-Extension](novabird-extension/README.md)** | Message list (Soft, Clear, Thread; three densities and per-account colours), right pane, attachment preview, Nova-Contact, rule assistant (beta, opt-in), the three designs Sand, Cobalt and Springlight, colors and fonts, AI summary (opt-in), mailbox overview, new-style settings, the NovaBird settings page |
+| Add-on | Version | What it does |
+|---|---|---|
+| **[NovaBird-Search](novabird-search/README.md)** | 2.0.0 | Search bar, index, search by meaning |
+| **[NovaBird-Conversation](novabird-conversation/README.md)** | 0.15.6 | Whole threads in the reading pane |
+| **[NovaBird-Send](novabird-send/README.md)** | 1.0.4 | Undo send with queue |
+| **[NovaBird-Extension](novabird-extension/README.md)** | 2.0.0 | Message list, right pane, themes, Nova-Contact, AI assistant, settings |
+| **[NovaBird Helper](novabird-helper/README.md)** | 0.5.0 | Optional Windows program: graphics card, network, team calendars |
 
-They cooperate loosely: Conversation uses the search index of NovaBird-Search if it is installed (and falls back to Betterbird's own index if not). None of them requires another.
-
-Since 2.0 there are four add-ons instead of eight: the index (formerly NovaBird-DB) is part of NovaBird-Search, and the themes are part of the Extension (*Colors and fonts → Design*). When you install 2.0 over an older set, the old Search add-on and the old themes are taken over and removed automatically; settings, search history, the index and the chosen theme are kept.
+Every add-on works on its own. Together they do more.
 
 ## Install
 
 1. **Requirements:** Betterbird or Thunderbird **ESR** 128 or newer. The add-ons use experiment APIs, which do not run in the monthly Thunderbird release.
-2. Download the `.xpi` files from the [latest release](../../releases/latest).
-3. In the add-ons manager choose the gear → **Install Add-on From File…** for each file. Suggested order: Search, Conversation, Send, Extension. Tip: you can select all files at once (Ctrl+A in the file dialog) or drag them onto the add-ons manager. Restart Betterbird.
-4. On the first start NovaBird-Search builds its index once (about 6 minutes for 75,000 messages, with a progress indicator). Betterbird stays usable meanwhile.
+2. Add-ons manager → gear → **Install Add-on From File…**, select all `.xpi` files, restart.
+3. On the first start the setup assistant opens and NovaBird-Search builds its index once (about 6 minutes for 75,000 messages). You can keep working meanwhile.
 
 > **Please read the [disclaimer](#disclaimer) first:** unofficial, experimental, use at your own risk, back up your profile.
 >
@@ -92,17 +95,22 @@ Since 2.0 there are four add-ons instead of eight: the index (formerly NovaBird-
 
 ## Uninstall
 
-Since NovaBird is just based on add-ons, you can simply remove NovaBird and go back to Thunderbird any time you want.
+Remove the add-ons in the add-ons manager and you are back on plain Thunderbird.
 
 ## Privacy
 
-Everything is local. The network is only used where you switch it on yourself: the AI summary, online updates, and the one-time model download of the semantic search (from Hugging Face, checked against fixed checksums). The search index contains the text of your mail in plain form inside your profile folder, just like Betterbird's own index does; protect your disk accordingly. You can delete the index at any time in the NovaBird-Search settings (*Index* tab).
+NovaBird runs on your computer. The network is only used where you switch it on:
 
-## Status and roadmap
+- **AI assistant:** the mail text goes to the server you choose. With Ollama on your PC or the Helper it stays with you.
+- **Search by meaning:** one model download from Hugging Face, checked against fixed checksums. If you use your own server, the mail text goes there.
+- **NovaBird Helper:** talks to your paired PCs, mail text and vectors encrypted. It downloads models and tools only on request.
+- **Online updates:** off by default. Asks GitHub for new versions and sends no data from Thunderbird.
 
-NovaBird is young and under active development; it is used daily but not battle-tested on every setup. French and Spanish texts are written with care but not yet reviewed by native speakers. Bug reports and ideas are very welcome (issues).
+The search index holds the text of your mail in plain form inside your profile folder, just like Betterbird's own index. You can delete it at any time in the search settings.
 
-Planned: more screenshots and docs, synonyms and abbreviations for search, further languages for the sentence parser.
+## Status
+
+Young and under active development, used daily but not tested on every setup. French and Spanish texts are not yet reviewed by native speakers. Bug reports and ideas are very welcome (issues).
 
 ## Building from source
 
