@@ -116,6 +116,8 @@ test("Index-Zeilen: Schlüssel, Dubletten, Empfänger, Ansicht", () => {
   assert.equal(rowToView(rows[0]).local, true);
   // NovaBird-Search ab 2.0 meldet local selbst: leeres Snippet (nur Zitat) ist trotzdem lokal, Snippet ohne local=false nicht
   assert.equal(rowToView({ ...rows[2], local: true }).local, true);
+  assert.equal(rowToView({ ...rows[2], local: true }).snippet, undefined); // Ansicht holt die Vorschau selbst
+  assert.equal(rowToView(rows[0]).snippet, "Hallo");
   assert.equal(rowToView({ ...rows[0], local: false }).local, false);
 });
 

@@ -227,10 +227,11 @@ function dbFilters(state, criteria = {}) {
   };
 }
 
-// Kopfzeilen-Hinweis, wenn die Liste an der Höchstzahl gekürzt ist (der Index meldet more)
-function moreNote(res) {
+// Kopfzeilen-Hinweis, wenn die Liste an der Höchstzahl gekürzt ist (der Index meldet more). „Relevanz“ zeigt die passendsten
+// N, nicht die neuesten (der Index holt dort die besten nach Bewertung)
+function moreNote(res, sort) {
   if (!res?.more) return "";
-  return messenger.i18n.getMessage("headerMore", [shownLimit(res)]);
+  return messenger.i18n.getMessage(sort === "relevance" ? "headerMoreRel" : "headerMore", [shownLimit(res)]);
 }
 // „neueste N“: die Höchstzahl (bei „Beste zuerst“ kommen die besten oben dazu, die zählen hier nicht mit)
 function shownLimit(res) {
@@ -273,6 +274,7 @@ async function novabirdDbSearch(ctl, text, criteria, state, gen, folderId) {
   if (!(await novabirdDbStatus())) {
     return null;
   }
+  const sort = sortOf(state); // einmal je Suche: Wort- und Bedeutungstreffer mit derselben Reihenfolge
   try {
     const res = await withTimeout(
       dbCall({
@@ -283,7 +285,7 @@ async function novabirdDbSearch(ctl, text, criteria, state, gen, folderId) {
         folderId: folderId || undefined, // „Aktueller Ordner“: nur dieser Ordner
         fields: ["from", "to", "subject", "body"].filter(k => state[k]), // Haken des Optionsmenüs: wo gesucht wird
         filters: dbFilters(state, criteria), // ungelesen, Anhang, Zeitraum: vor der Höchstzahl
-        sort: sortOf(state), // best (Standard): beste oben, danach nach Datum (bestIds) | date | relevance
+        sort, // best (Standard): beste oben, danach nach Datum (bestIds) | date | relevance
       }),
       DB_SEARCH_MS
     );
@@ -295,13 +297,13 @@ async function novabirdDbSearch(ctl, text, criteria, state, gen, folderId) {
     }
     ctl.sb.setSuggestion(res.rows.length ? "" : res.suggest?.text ?? "").catch(() => {});
     // Aktueller Ordner: auch im Papierkorb/Spam-Ordner selbst anzeigen
-    const showState = folderId ? { ...state, trash: true, spam: true } : state;
-    const best = sortOf(state) === "best";
-    const count = await ctl.sb.idSearch(res.rows, criteria, { ...showState, group: settings.group }, sortOf(state) !== "date",
-      moreNote(res), best ? res.bestIds || [] : [], messenger.i18n.getMessage("headerBest", ["{n}"]));
+    const showState = { ...(folderId ? { ...state, trash: true, spam: true } : state), sort };
+    const best = sort === "best";
+    const count = await ctl.sb.idSearch(res.rows, criteria, { ...showState, group: settings.group }, sort !== "date",
+      moreNote(res, sort), best ? res.bestIds || [] : [], messenger.i18n.getMessage("headerBest", ["{n}"]));
     if (count >= 0 && res.more && gen === ctl.generation) {
       // gekürzt: sagen, dass es mehr gibt und wie man an die älteren kommt (statt still weniger Treffer zu zeigen)
-      showNote(ctl, messenger.i18n.getMessage("noteMore", [shownLimit(res)]), messenger.i18n.getMessage("noteMoreTip"), "info");
+      showNote(ctl, messenger.i18n.getMessage(sort === "relevance" ? "noteMoreRel" : "noteMore", [shownLimit(res)]), messenger.i18n.getMessage("noteMoreTip"), "info");
     }
     if (count >= 0) {
       semanticAugment(ctl, text, criteria, showState, gen, folderId, res); // nicht abwarten: Worttreffer stehen schon
@@ -356,7 +358,7 @@ async function semanticAugment(ctl, text, criteria, showState, gen, folderId, le
     }
     // Option (Suche → Semantik, Standard an): in der Kopfzeile zeigen, wie viele Treffer aus der Bedeutungssuche kommen
     const { semantic: semCfg } = await messenger.storage.local.get({ semantic: {} });
-    const note = [moreNote(lexRes), semCfg?.headerCount === false ? "" : messenger.i18n.getMessage("headerSimilar", [String(extra.length)])].filter(Boolean).join(" ");
+    const note = [moreNote(lexRes, sort), semCfg?.headerCount === false ? "" : messenger.i18n.getMessage("headerSimilar", [String(extra.length)])].filter(Boolean).join(" ");
     const count = await ctl.sb.idSearch(rows, criteria, { ...showState, group: settings.group }, sort !== "date", note,
       bestIds, messenger.i18n.getMessage("headerBest", ["{n}"]));
     if (count >= 0 && gen === ctl.generation) {

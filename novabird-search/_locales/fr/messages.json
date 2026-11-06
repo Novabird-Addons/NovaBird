@@ -965,6 +965,14 @@
   "noteMore": {
     "message": "Plus de $1 résultats – les plus récents sont affichés."
   },
+  "headerMoreRel": {
+    "message": "· les $1 plus pertinents – il y en a d’autres",
+    "description": "Kopfzeile der Trefferliste bei Sortierung Relevanz, wenn gekürzt; $1 = Anzahl"
+  },
+  "noteMoreRel": {
+    "message": "Plus de $1 résultats – les plus pertinents sont affichés.",
+    "description": "Hinweis unter dem Suchfeld bei Sortierung Relevanz, wenn gekürzt; $1 = Anzahl"
+  },
   "noteMoreTip": {
     "message": "Résultats plus anciens : affinez la recherche (période, autres mots, non lus/pièce jointe) ou augmentez le maximum (Paramètres → Recherche)."
   },

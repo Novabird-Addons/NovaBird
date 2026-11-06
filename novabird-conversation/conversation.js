@@ -166,7 +166,7 @@ function rowToView(row) {
     local: typeof row.local === "boolean" ? row.local : !!row.snippet,
     mine: row.folderType === "sent",
     folderType: row.folderType ?? "",
-    snippet: row.snippet ?? "",
+    snippet: row.snippet || undefined, // leer (nur Zitat/Bild/Anhang): die Ansicht holt die Vorschau selbst, wie bei Gloda
   };
 }
 

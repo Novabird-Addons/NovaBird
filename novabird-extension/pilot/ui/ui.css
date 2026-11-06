@@ -272,7 +272,7 @@ button, input[type=text], input[type=number], input[type=search], select, textar
 .logo svg { filter: none; }
 /* Hauptreiter mit Unterstreichung */
 .mainnav { gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1.0588rem; }
-.mainnav button, .mainnav button.active { border: none; border-bottom: 2px solid transparent; border-radius: 0; background: none; box-shadow: none; padding: 0.5882rem 0.9412rem; color: var(--muted); font-weight: 500; margin-bottom: -0.0588rem; }
+.mainnav button, .mainnav button.active { border: none; border-bottom: 2px solid transparent; border-radius: 0; background: none; box-shadow: none; padding: 0.5882rem 0.9412rem; color: var(--muted); font-weight: 500; margin-bottom: -1px; } /* = Rahmenbreite der Leiste: bleibt px */
 .mainnav button:hover { color: var(--text); background: none; }
 .mainnav button.active { color: var(--accent); border-bottom-color: var(--accent); background: none; }
 /* Abschnittsüberschriften klein und ruhig */

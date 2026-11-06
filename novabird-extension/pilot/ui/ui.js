@@ -109,7 +109,7 @@ async function loadFolders() {
     const walk = (list, depth) => {
       for (const f of list || []) {
         const use = folderUse(f);
-        const li = document.createElement("li"); li.style.paddingInlineStart = depth * 16 + "px";
+        const li = document.createElement("li"); li.style.paddingInlineStart = depth * 0.9412 + "rem"; // 16 px bei 17 px Wurzel, wächst mit der Schrift
         const lab = document.createElement("label");
         const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = DEFAULT_ON.has(use);
         const fi = h("span", { class: "fic" }, I(FOLDER_IC[use] || "folder"));

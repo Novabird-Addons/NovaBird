@@ -2024,12 +2024,20 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           refreshLabels();
         },
         async setSortDefault(mode) {
-          sortDefault = SORT_MODES.includes(mode) ? mode : "best";
+          const next = SORT_MODES.includes(mode) ? mode : "best";
+          if (next === sortDefault) return; // unverändert (eine andere Einstellung wurde geändert)
+          sortDefault = next;
+          const rerun = [];
           for (const root of roots()) {
             const st = stateOf(root);
-            if (st.sort === sortDefault) st.sort = ""; // gewählte Reihenfolge ist jetzt der Standard
+            if (st.sort === sortDefault) {
+              st.sort = ""; // gewählte Reihenfolge ist jetzt der Standard: Liste passt schon
+            } else if (!st.sort && !root.hasAttribute("data-refine") && root.querySelector("input")?.value.trim()) {
+              rerun.push(root); // Suche läuft mit dem Standard: neu sortieren, sonst passen Häkchen und Liste nicht zusammen
+            }
           }
           refreshAll();
+          rerun.forEach(emitQuery);
         },
         async highlight(barId, word) {
           const b = barOf(barId);
@@ -2151,7 +2159,8 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
             return true;
           };
           const merged = new Map();
-          for (const hdr of [...headerHits, ...glodaHits.filter(keep)]) {
+          // Gloda breiter geholt (Filter): nach dem Filtern wieder auf die Höchstzahl, neueste zuerst (Gloda liefert -date)
+          for (const hdr of [...headerHits, ...glodaHits.filter(keep).slice(0, limit)]) {
             merged.set(`${hdr.folder.URI}#${hdr.messageKey}`, hdr);
           }
           const hdrs = [...merged.values()].sort((a, b) => b.date - a.date);

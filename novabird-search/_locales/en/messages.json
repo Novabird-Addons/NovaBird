@@ -965,6 +965,14 @@
   "noteMore": {
     "message": "More than $1 hits – the newest are shown."
   },
+  "headerMoreRel": {
+    "message": "· best-matching $1 – there are more",
+    "description": "Kopfzeile der Trefferliste bei Sortierung Relevanz, wenn gekürzt; $1 = Anzahl"
+  },
+  "noteMoreRel": {
+    "message": "More than $1 hits – the best-matching are shown.",
+    "description": "Hinweis unter dem Suchfeld bei Sortierung Relevanz, wenn gekürzt; $1 = Anzahl"
+  },
   "noteMoreTip": {
     "message": "Older hits: narrow the search (time range, more words, unread/attachment) or raise the maximum (Settings → Search)."
   },

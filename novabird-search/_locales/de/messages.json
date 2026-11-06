@@ -1049,6 +1049,14 @@
   "noteMore": {
     "message": "Mehr als $1 Treffer – angezeigt werden die neuesten."
   },
+  "headerMoreRel": {
+    "message": "· passendste $1 – es gibt mehr",
+    "description": "Kopfzeile der Trefferliste bei Sortierung Relevanz, wenn gekürzt; $1 = Anzahl"
+  },
+  "noteMoreRel": {
+    "message": "Mehr als $1 Treffer – angezeigt werden die passendsten.",
+    "description": "Hinweis unter dem Suchfeld bei Sortierung Relevanz, wenn gekürzt; $1 = Anzahl"
+  },
   "noteMoreTip": {
     "message": "Ältere Treffer: Suche eingrenzen (Zeitraum, weitere Begriffe, ungelesen/Anhang) oder die Höchstzahl erhöhen (Einstellungen → Suche)."
   },
