@@ -1560,7 +1560,7 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
     };
 
     // best: { ids: Set der besten Message-IDs, note: Text mit $1 } – die führenden Treffer daraus werden markiert
-    const showHeaders = (b, hdrs, title, group, keepOrder = false, keepName = false, note = "", best = null) => {
+    const showHeaders = (b, hdrs, title, group, keepOrder = false, keepName = false, note = "", best = null, sameSearch = false) => {
       const win = b?.win;
       const cw = b?.cw;
       if (!cw?.restoreState) {
@@ -1579,11 +1579,22 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
       // einen Treffer angeklickt hat, verlor sonst Auswahl und Vorschau
       let keepSel = null;
       try {
-        if (cw.gViewWrapper?.isSynthetic) keepSel = cw.gDBView?.hdrForFirstSelectedMessage ?? null;
+        // nur eine echte Auswahl: ohne Auswahl liefert hdrForFirstSelectedMessage die Zeile an currentIndex (restoreState setzt
+        // ihn auf 0) – die oberste Zeile der alten Liste wurde dann in der neuen ausgewählt und die Liste sprang zu ihr
+        const sel = cw.gViewWrapper?.isSynthetic ? cw.threadTree?.selectedIndices ?? [] : [];
+        if (sel.length) keepSel = cw.gDBView?.getMsgHdrAt(sel[0]) ?? null;
       } catch (e) {
         keepSel = null; // nichts ausgewählt
       }
       if (keepSel && !hdrs.includes(keepSel)) keepSel = null;
+      // Scrollstand: dieselbe Suche kommt mit Bedeutungstreffern ein zweites Mal – wer dazwischen gescrollt hat, bleibt dort
+      // (scrollDetected setzt Thunderbird selbst bei einem Scrollen des Nutzers); sonst beginnt die Liste oben
+      let keepScroll = null;
+      try {
+        if (sameSearch && cw.gViewWrapper?.isSynthetic && cw.threadPane?.scrollDetected) keepScroll = cw.threadTree?.scrollTop ?? null;
+      } catch (e) {
+        keepScroll = null;
+      }
       const reselect = () => {
         if (!keepSel || cw.gViewWrapper?._syntheticView !== view) return;
         try {
@@ -1603,16 +1614,37 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           if (!keepOrder || !dbv || wrapper?._syntheticView !== view) return;
           if (onlyIfDefault && !(dbv.sortType === Ci.nsMsgViewSortType.byDate && dbv.sortOrder === Ci.nsMsgViewSortOrder.ascending)) return;
           dbv.curCustomColumn = RANK_COL;
-          dbv.sort(Ci.nsMsgViewSortType.byCustom, Ci.nsMsgViewSortOrder.ascending);
+          // erst die Sortierung im Wrapper eintragen, dann sortieren: Thunderbird scrollt beim Neuaufbau ohne Auswahl ans Ende,
+          // solange der Wrapper „nach Datum aufsteigend“ meldet (scrollToLatestRowIfNoSelection) – die besten Treffer lagen
+          // dann außer Sicht
           wrapper._sort = [[Ci.nsMsgViewSortType.byCustom, Ci.nsMsgViewSortOrder.ascending, RANK_COL]];
+          // Ohne Auswahl steht der Cursor auf Zeile 0 (restoreState) – nach Datum aufsteigend die älteste Mail. Das Sortieren
+          // behält diese „aktuelle“ Mail, wählt sie aus und scrollt zu ihr: in der Rang-Liste meist weit unten. Also vorher lösen.
+          const hadSel = (cw.threadTree?.selectedIndices?.length ?? 0) > 0;
+          if (!hadSel) {
+            try { dbv.selection.currentIndex = -1; } catch (e) { dbg("cursor", String(e)); }
+          }
+          dbv.sort(Ci.nsMsgViewSortType.byCustom, Ci.nsMsgViewSortOrder.ascending);
+          if (!hadSel && !keepSel && dbv.selection?.count > 0) dbv.selection.clearSelection();
           cw.threadTree?.invalidate();
         } catch (e) {
           dbg("rank sort failed", String(e));
         }
       };
+      // Rang-Reihenfolge: an den Anfang (dort stehen die besten Treffer), außer es ist etwas ausgewählt oder der Nutzer hat
+      // in dieser Suche schon gescrollt. Nach Datum sortiert entscheidet Thunderbird selbst (neueste sichtbar).
+      const scrollStart = () => {
+        try {
+          if (keepSel || cw.gViewWrapper?._syntheticView !== view || cw.gDBView?.selection?.count > 0) return;
+          if (keepScroll != null) cw.threadTree.scrollTop = keepScroll;
+          else if (cw.gDBView?.sortType === Ci.nsMsgViewSortType.byCustom && cw.gDBView.curCustomColumn === RANK_COL) cw.threadTree.scrollToIndex(0, true);
+        } catch (e) {
+          dbg("scroll failed", String(e));
+        }
+      };
       applyRankSort(false);
       reselect();
-      win.setTimeout(() => (applyRankSort(true), reselect()), 400);
+      win.setTimeout(() => (applyRankSort(true), reselect(), scrollStart()), 400);
       // Die Kopfzeile zählt sonst die Nachrichten des zuletzt gewählten Ordners (hier: der alte Suchordner)
       const setCount = () => {
         try {
@@ -1656,6 +1688,7 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
       } catch (e) {
         dbg("view mode failed", String(e));
       }
+      scrollStart(); // nach dem Umschalten der Ansicht (baut die Liste neu auf)
       return true;
     };
 
@@ -2188,7 +2221,12 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           dbg("id search", { rows: rows.length, shown: hdrs.length });
           Services.console.logStringMessage(`NovaBird-Search: NovaBird-DB lieferte ${rows.length} Treffer, angezeigt ${hdrs.length} (Ordner unbekannt ${lost.unknownFolder}, Papierkorb/Spam ${lost.trashSpam}, Kopfzeile fehlt ${lost.noHeader}, durch Filter ${lost.filtered})` + (unknownIds.size ? `; unbekannte Ordner: ${[...unknownIds].slice(0, 5).join(" | ")}` : ""));
           const best = Array.isArray(bestIds) && bestIds.length ? { ids: new Set(bestIds), note: bestNote || "" } : null;
-          const shown = showHeaders(bar, hdrs, SEARCH_FOLDER_NAME, criteriaState?.group === true, Boolean(keepOrder), criteriaState?.scope === "folder", headerNote || "", best);
+          // dieselbe Suche noch einmal (mit Bedeutungstreffern ergänzt): Scrollstand des Nutzers behalten
+          let key = "";
+          try { key = JSON.stringify([criteria, criteriaState]); } catch (e) { key = String(run); }
+          const sameSearch = bar.root._nbsSearchKey === key;
+          bar.root._nbsSearchKey = key;
+          const shown = showHeaders(bar, hdrs, SEARCH_FOLDER_NAME, criteriaState?.group === true, Boolean(keepOrder), criteriaState?.scope === "folder", headerNote || "", best, sameSearch);
           return shown ? hdrs.length : -2;
         },
         // „In den Treffern suchen“ im Treffer-Tab: zeigt nur die Treffer der Ausgangsmenge, die auch zu den NovaBird-DB-Zeilen passen.

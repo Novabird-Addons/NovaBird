@@ -5,6 +5,9 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.6 · Helper 0.5.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### Search: the hit list starts at the top again
+- After a search with "Best first" or "Relevance" the list often showed its middle or end, with a message selected that nobody had clicked. After loading, Thunderbird holds the oldest hit as its "current" message; sorting by rank kept it, selected it and scrolled to it. Since older mail counts less, it is usually far down. The list now starts at the top with nothing selected; a message the user selected stays selected when the meaning hits are added.
+
 ### Search: older mail no longer tops "Best first" and "Relevance"
 - With meaning search, mails 15 years old could come out as the best hits. Older mail now counts less in both word and meaning hits (weight 1 for today, about half after 3 years, never below 40 %; "Strong": never below 20 %). A much better old hit still makes it to the top. Age also decides whether a meaning-only hit enters the top block at all (only the similarity above the noise level of about 0.3 is weighted: today 0.5 is enough, after 3 years about 0.66, after 15 years 0.8). Based on the email search studies of Carmel et al. (CIKM 2015, WWW 2017) and the usual decay functions of search engines.
 - No downgrade when the search names a time itself ("10 years ago", "2012", the time window of the bar) or says "long ago": new in all four languages, e.g. "vor langer Zeit", "damals", "long ago", "back then", "il y a longtemps", "autrefois", "hace mucho tiempo", "antiguamente". It shows as the chip "Older mail" and can be removed there.
