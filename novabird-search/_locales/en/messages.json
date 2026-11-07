@@ -198,6 +198,21 @@
   "optSortHint": {
     "message": "Default: up to 10 hits that fit especially well come first (the word exactly as typed in subject or text, with meaning search also the sense) – slightly highlighted, with a line below. All other hits follow by date. “Relevance” orders the whole list by how well it fits – good for a targeted search. For a single search, the order can be changed in the options menu of the search bar (⚙). Only applies when the own search index is used; Gloda hits and the quick header search stay sorted by date."
   },
+  "optAge": {
+    "message": "Prefer newer mail"
+  },
+  "optAgeNormal": {
+    "message": "Normal"
+  },
+  "optAgeStrong": {
+    "message": "Strong"
+  },
+  "optAgeOff": {
+    "message": "Off"
+  },
+  "optAgeHint": {
+    "message": "With “Best first” and “Relevance”, older mail counts less: a mail from 15 years ago must fit clearly better than one from today to rank higher (Normal: about half after 3 years, never below 40 %; Strong: never below 20 %). No downgrade when the search names a time itself (“10 years ago”, “2012”, the time window of the bar) or says “long ago”, “back then”."
+  },
   "suggest": {
     "message": "Did you mean: {text}?"
   },

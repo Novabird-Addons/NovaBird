@@ -75,6 +75,7 @@ export default {
         lastN: `${B}(?:(?:en|durante|dentro\\s+de)\\s+)?(?:(?:los|las)\\s+)?${LAST}\\s+(${NUM})\\s+(${UNIT})${E}`,
         sinceN: `${B}desde\\s+hace\\s+(${NUM})\\s+(${UNIT})${E}`,
         agoN: `${B}hace\\s+(${NUM})\\s+(${UNIT})${E}`,
+        past: `${B}(?:hace\\s+(?:mucho(?:\\s+tiempo)?|muchos\\s+años|muchos\\s+anos|años|anos|tiempo)|antiguamente|en\\s+aquel(?:la)?\\s+(?:época|epoca|entonces|tiempo)|(?:correos?|mensajes?|e-?mails?)\\s+antiguos?|antiguos?\\s+(?:correos?|mensajes?|e-?mails?))${E}`,
         lastUnit: `${B}(?:(?:en|durante)\\s+)?(?:(?:los|las|el|la)\\s+)?${LAST}\\s+(${UNIT})${E}|${B}(?:(?:en|durante)\\s+)?(?:(?:el|la)\\s+)?(${UNIT})\\s+(?:pasad[oa]|anterior)${E}`,
         thisUnit: `${B}(?:en\\s+)?(?:esta|este)\\s+(${UNIT})${E}`,
         relDay: `${B}(?:desde\\s+|de\\s+)?(hoy|anteayer|antier|ayer)${E}`,

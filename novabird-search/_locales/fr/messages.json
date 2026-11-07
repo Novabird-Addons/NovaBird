@@ -198,6 +198,21 @@
   "optSortHint": {
     "message": "Par défaut : jusqu’à 10 résultats particulièrement pertinents en tête (le mot tel que saisi dans l’objet ou le texte, avec la recherche par le sens aussi le sens) – légèrement surlignés, avec une ligne en dessous. Ensuite tous les résultats par date. « Pertinence » trie toute la liste selon la correspondance – utile pour une recherche ciblée. Pour une seule recherche, l’ordre se change dans le menu d’options de la barre de recherche (⚙). S’applique uniquement avec l’index de recherche propre ; les résultats Gloda et la recherche rapide dans les en-têtes restent triés par date."
   },
+  "optAge": {
+    "message": "Préférer les messages récents"
+  },
+  "optAgeNormal": {
+    "message": "Normal"
+  },
+  "optAgeStrong": {
+    "message": "Fort"
+  },
+  "optAgeOff": {
+    "message": "Désactivé"
+  },
+  "optAgeHint": {
+    "message": "Avec « Meilleurs d’abord » et « Pertinence », les messages anciens comptent moins : un message d’il y a 15 ans doit correspondre nettement mieux qu’un message d’aujourd’hui pour être placé plus haut (Normal : environ la moitié après 3 ans, jamais moins de 40 % ; Fort : jamais moins de 20 %). Aucune dévalorisation si la recherche indique une date (« il y a 10 ans », « 2012 », plage de dates de la barre) ou « il y a longtemps », « autrefois »."
+  },
   "suggest": {
     "message": "Vouliez-vous dire : {text} ?"
   },

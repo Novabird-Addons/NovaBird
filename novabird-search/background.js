@@ -286,6 +286,7 @@ async function novabirdDbSearch(ctl, text, criteria, state, gen, folderId) {
         fields: ["from", "to", "subject", "body"].filter(k => state[k]), // Haken des Optionsmenüs: wo gesucht wird
         filters: dbFilters(state, criteria), // ungelesen, Anhang, Zeitraum: vor der Höchstzahl
         sort, // best (Standard): beste oben, danach nach Datum (bestIds) | date | relevance
+        ageLevel: settings.ageLevel, // ältere Mails abwerten (off | normal | strong); Zeitangaben in der Suche heben es auf
       }),
       DB_SEARCH_MS
     );
@@ -351,10 +352,12 @@ async function semanticAugment(ctl, text, criteria, showState, gen, folderId, le
     const relevance = sort === "relevance";
     // „Beste zuerst“: Wort- und Bedeutungstreffer gemeinsam bewerten (Kern: fuseBest), Rest nach Datum
     const core = globalThis.novabirdDbInternal;
-    let rows = relevance ? fuseRanks(lexRows, res.rows) : [...lexRows, ...extra];
+    // Bedeutungstreffer mit derselben Abwertung älterer Mails wie die Worttreffer (lexRes.age: Stufe, Zeitbezug der Anfrage)
+    const age = lexRes.age || {};
+    let rows = relevance ? fuseRanks(lexRows, core?.sortSemByAge ? core.sortSemByAge(res.rows, { age }) : res.rows) : [...lexRows, ...extra];
     let bestIds = [];
     if (sort === "best" && core?.fuseBest) {
-      ({ rows, bestIds } = core.bestThenDate(core.fuseBest(lexRes.relevant || [], res.rows), [...lexRows, ...extra]));
+      ({ rows, bestIds } = core.bestThenDate(core.fuseBest(lexRes.relevant || [], res.rows, { age }), [...lexRows, ...extra]));
     }
     // Option (Suche → Semantik, Standard an): in der Kopfzeile zeigen, wie viele Treffer aus der Bedeutungssuche kommen
     const { semantic: semCfg } = await messenger.storage.local.get({ semantic: {} });

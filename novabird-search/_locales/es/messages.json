@@ -198,6 +198,21 @@
   "optSortHint": {
     "message": "Por defecto: hasta 10 resultados que encajan especialmente bien van primero (la palabra tal como se escribió en el asunto o el texto; con la búsqueda por significado, también el sentido) – ligeramente resaltados, con una línea debajo. Después, todos los resultados por fecha. «Relevancia» ordena toda la lista según lo bien que encaja – útil para una búsqueda concreta. Para una sola búsqueda, el orden se cambia en el menú de opciones de la barra de búsqueda (⚙). Solo se aplica con el índice de búsqueda propio; los resultados de Gloda y la búsqueda rápida en encabezados siguen ordenados por fecha."
   },
+  "optAge": {
+    "message": "Preferir correos recientes"
+  },
+  "optAgeNormal": {
+    "message": "Normal"
+  },
+  "optAgeStrong": {
+    "message": "Fuerte"
+  },
+  "optAgeOff": {
+    "message": "Desactivado"
+  },
+  "optAgeHint": {
+    "message": "Con «Mejores primero» y «Relevancia», los correos antiguos cuentan menos: un correo de hace 15 años debe encajar claramente mejor que uno de hoy para quedar más arriba (Normal: aprox. la mitad tras 3 años, nunca menos del 40 %; Fuerte: nunca menos del 20 %). Sin rebaja si la búsqueda indica una fecha («hace 10 años», «2012», intervalo de la barra) o dice «hace mucho tiempo», «antiguamente»."
+  },
   "suggest": {
     "message": "¿Quiso decir: {text}?"
   },

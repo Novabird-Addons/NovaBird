@@ -78,6 +78,7 @@ export default {
         ],
         sinceN: `${B}depuis\\s+(${NUM})\\s+(${UNIT})${E}`,
         agoN: `${B}il\\s+y\\s+a\\s+(${NUM})\\s+(${UNIT})${E}`,
+        past: `${B}(?:il\\s+y\\s+a\\s+(?:(?:très|tres|bien)\\s+)?longtemps|il\\s+y\\s+a\\s+(?:des|plusieurs|de\\s+nombreuses)\\s+(?:années|annees|ans)|autrefois|jadis|à\\s+l['’]époque|a\\s+l['’]epoque|(?:vieux|anciens?)\\s+(?:e-?mails?|mails?|messages?|courriels?)|(?:e-?mails?|mails?|messages?|courriels?)\\s+anciens?)${E}`,
         lastUnit: `${B}(?:(?:ces|les|la|le|l['’])\\s*)?${LAST}s?\\s+(${UNIT})${E}|${B}${ART}(${UNIT})\\s+(?:dernier|dernière|passé|passée|précédent|précédente)${E}`,
         thisUnit: `${B}(?:cette|ce|cet)\\s+(${UNIT})${E}`,
         relDay: `${B}(?:depuis\\s+|de\\s+)?(aujourd['’]hui|avant-hier|hier)${E}`,

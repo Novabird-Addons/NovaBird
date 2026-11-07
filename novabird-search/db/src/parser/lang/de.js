@@ -48,6 +48,8 @@ export default {
         lastN: `${B}${PRE}${LAST}\\s+(${NUM})\\s+(${UNIT})${E}`,
         sinceN: `${B}seit\\s+(${NUM})\\s+(${UNIT})${E}`,
         agoN: `${B}vor\\s+(${NUM})\\s+(${UNIT})${E}`,
+        // „lange her“ ohne Zeitraum: kein Filter, ältere Mails nur nicht abwerten (query/rank.js)
+        past: `${B}(?:vor\\s+(?:langer\\s+zeit|längerer\\s+zeit|laengerer\\s+zeit|langem|längerem|laengerem|vielen\\s+jahren|jahren|ewigkeiten|ewigen\\s+zeiten)|damals|von\\s+früher|von\\s+frueher|alte(?:n|r)?\\s+(?:e-?mails?|mails?|nachrichten|nachricht))${E}`,
         lastUnit: `${B}${PRE}${LAST}\\s+(${UNIT})${E}`,
         thisUnit: `${B}(?:(?:in|aus|von)\\s+)?${THIS}\\s+(${UNIT})${E}`,
         relDay: `${B}(?:von\\s+|seit\\s+)?(heute|gestern|vorgestern)${E}`,

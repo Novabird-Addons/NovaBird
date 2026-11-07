@@ -8,25 +8,25 @@ const TEXTS = {
     types: { pdf: "PDF", excel: "Excel", word: "Word", image: "Bild", powerpoint: "PowerPoint", archive: "ZIP" },
     folders: { inbox: "Posteingang", sent: "Gesendet", archives: "Archiv", drafts: "Entwürfe", trash: "Papierkorb", junk: "Spam", templates: "Vorlagen" },
     from: "Von", to: "An", involves: "Mit", me: "mir", meTo: "mich", on: "Am", since: "Seit", until: "Bis", attachment: "Anhang", noAttachment: "Ohne Anhang",
-    unread: "Ungelesen", read: "Gelesen", flagged: "Markiert", tag: "Schlagwort", folder: "Ordner", subject: "Betreff", or: "oder", without: "Ohne",
+    past: "Ältere Mails", unread: "Ungelesen", read: "Gelesen", flagged: "Markiert", tag: "Schlagwort", folder: "Ordner", subject: "Betreff", or: "oder", without: "Ohne",
   },
   en: {
     types: { pdf: "PDF", excel: "Excel", word: "Word", image: "Image", powerpoint: "PowerPoint", archive: "ZIP" },
     folders: { inbox: "Inbox", sent: "Sent", archives: "Archive", drafts: "Drafts", trash: "Trash", junk: "Spam", templates: "Templates" },
     from: "From", to: "To", involves: "With", me: "me", meTo: "me", on: "On", since: "Since", until: "Until", attachment: "Attachment", noAttachment: "No attachment",
-    unread: "Unread", read: "Read", flagged: "Flagged", tag: "Tag", folder: "Folder", subject: "Subject", or: "or", without: "Without",
+    past: "Older mail", unread: "Unread", read: "Read", flagged: "Flagged", tag: "Tag", folder: "Folder", subject: "Subject", or: "or", without: "Without",
   },
   fr: {
     types: { pdf: "PDF", excel: "Excel", word: "Word", image: "Image", powerpoint: "PowerPoint", archive: "ZIP" },
     folders: { inbox: "Réception", sent: "Envoyés", archives: "Archives", drafts: "Brouillons", trash: "Corbeille", junk: "Spam", templates: "Modèles" },
     from: "De", to: "À", involves: "Avec", me: "moi", meTo: "moi", on: "Le", since: "Depuis", until: "Jusqu’au", attachment: "Pièce jointe", noAttachment: "Sans pièce jointe",
-    unread: "Non lu", read: "Lu", flagged: "Marqué", tag: "Étiquette", folder: "Dossier", subject: "Objet", or: "ou", without: "Sans",
+    past: "Anciens messages", unread: "Non lu", read: "Lu", flagged: "Marqué", tag: "Étiquette", folder: "Dossier", subject: "Objet", or: "ou", without: "Sans",
   },
   es: {
     types: { pdf: "PDF", excel: "Excel", word: "Word", image: "Imagen", powerpoint: "PowerPoint", archive: "ZIP" },
     folders: { inbox: "Entrada", sent: "Enviados", archives: "Archivo", drafts: "Borradores", trash: "Papelera", junk: "Spam", templates: "Plantillas" },
     from: "De", to: "Para", involves: "Con", me: "mí", meTo: "mí", on: "El", since: "Desde", until: "Hasta", attachment: "Adjunto", noAttachment: "Sin adjunto",
-    unread: "No leído", read: "Leído", flagged: "Marcado", tag: "Etiqueta", folder: "Carpeta", subject: "Asunto", or: "o", without: "Sin",
+    past: "Correos antiguos", unread: "No leído", read: "Leído", flagged: "Marcado", tag: "Etiqueta", folder: "Carpeta", subject: "Asunto", or: "o", without: "Sin",
   },
 };
 
@@ -55,6 +55,8 @@ export function toChips(q, lang = "de") {
   q.involves.forEach((p, i) => chips.push({ id: `involves:${i}`, kind: "involves", label: `${t.involves}: ${personLabel(p, t.me)}`, ambiguous: amb(p) }));
   if (q.dateFrom != null || q.dateTo != null) {
     chips.push({ id: "date", kind: "date", label: dateLabel(q.dateFrom, q.dateTo, t) });
+  } else if (q.timeHint === "past") {
+    chips.push({ id: "past", kind: "date", label: t.past }); // ältere Mails werden nicht abgewertet
   }
   if (q.attachmentTypes.length) {
     q.attachmentTypes.forEach((ty) => chips.push({ id: `attType:${ty}`, kind: "attachment", label: `📎 ${t.types[ty] ?? ty}` }));
@@ -88,6 +90,7 @@ export function removeChip(q, id) {
     case "to": dropIndex(next.to); break;
     case "involves": dropIndex(next.involves); break;
     case "date": next.dateFrom = null; next.dateTo = null; break;
+    case "past": next.timeHint = null; break;
     case "attType":
       next.attachmentTypes = next.attachmentTypes.filter((t) => t !== arg);
       if (!next.attachmentTypes.length) next.hasAttachment = null;

@@ -5,7 +5,7 @@ import { parseQuery, isEmptyQuery } from "./parser/parseQuery.js";
 import { toChips } from "./parser/chips.js";
 import { resolvePeople } from "./query/resolvePeople.js";
 import { buildSearchSql } from "./query/buildSql.js";
-import { rerank, splitBest, bestThenDate } from "./query/rank.js";
+import { rerank, splitBest, bestThenDate, ageOptions } from "./query/rank.js";
 import { suggestForQuery } from "./query/suggest.js";
 import { expandCompounds } from "./query/compounds.js";
 
@@ -14,7 +14,8 @@ import { expandCompounds } from "./query/compounds.js";
  * @param caps    Ergebnis von migrate()
  * @param input   Freitext aus der Suchleiste ODER bereits geparste Anfrage
  *                (z. B. nach removeChip)
- * @param options { now, myEmails, sort, limit, offset, lookupContacts, includeTrash, langs, dateOrder, filters }
+ * @param options { now, myEmails, sort, limit, offset, lookupContacts, includeTrash, langs, dateOrder, filters, ageLevel }
+ *                ageLevel: Abwertung älterer Mails bei Relevanz ("off" | "normal" | "strong", Standard normal; query/rank.js)
  *                langs: Sprachen des Parsers (Standard ["de"]); dateOrder: "dmy" | "mdy" für 3/4/2026
  *                filters: { unread, attachment, dateFrom, dateTo } aus der Oberfläche (Haken, Zeitfenster) – wirken in der
  *                Abfrage selbst, also vor der Höchstzahl (wie getippte Angaben „ungelesen“, „anh:ja“, „seit:“)
@@ -44,7 +45,9 @@ export async function search(db, caps, input, options = {}) {
   const got = await selectUnique(db, (n, offset) => buildSearchSql(sqlQuery, caps, { ...mainOpts, limit: n, offset }), skip + (relevance ? Math.max(limit * 3, 600) : limit + 1), copies);
   let rows = got.rows.slice(skip);
   const more = rows.length > limit || got.cut;
-  rows = relevance ? rerank(rows, options.now ? +options.now : Date.now()).slice(0, limit) : rows.slice(0, limit);
+  // Zeitraum in der Anfrage oder in der Leiste, „vor langer Zeit“: ältere Mails nicht abwerten
+  const age = ageOptions(sqlQuery, options.ageLevel);
+  rows = relevance ? rerank(rows, options.now ? +options.now : Date.now(), age).slice(0, limit) : rows.slice(0, limit);
   // „Beste zuerst“: die Liste nach Datum wie sonst, dazu eine kleine Relevanz-Abfrage über alle Treffer; deren starke
   // Treffer stehen oben. relevant (die besten 100 nach Relevanz) brauchen die Aufrufer, um Bedeutungstreffer einzumischen.
   let bestIds = [];
@@ -54,8 +57,8 @@ export async function search(db, caps, input, options = {}) {
   const relBuild = (n, offset) => buildSearchSql(sqlQuery, caps, { ...options, sort: "relevance", termsIndex, dedupe: false, limit: n, offset });
   if (options.sort === "best" && caps.ftsMode !== "fts4" && rows.length && relBuild(1, 0).ranked) {
     const now = options.now ? +options.now : Date.now();
-    relevant = rerank((await selectUnique(db, relBuild, 300, copies)).rows, now).slice(0, 100);
-    ({ rows, bestIds } = bestThenDate(splitBest(relevant, { now }), rows));
+    relevant = rerank((await selectUnique(db, relBuild, 300, copies)).rows, now, age).slice(0, 100);
+    ({ rows, bestIds } = bestThenDate(splitBest(relevant, { now, age }), rows));
   }
   // Keine Treffer: Tippfehler-Vorschlag aus der Wortliste (nur FTS5)
   let suggest = null;
@@ -66,7 +69,7 @@ export async function search(db, caps, input, options = {}) {
       suggest = null; // Wortliste fehlt (alter Index) -> kein Vorschlag
     }
   }
-  return { query, chips, rows, bestIds, relevant, more, empty: isEmptyQuery(query), suggest };
+  return { query, chips, rows, bestIds, relevant, more, empty: isEmptyQuery(query), suggest, age };
 }
 
 // Kopien derselben Nachricht (gleiche Message-ID in mehreren Ordnern): bevorzugt Posteingang > Archiv > Gesendet > Rest >
@@ -147,7 +150,7 @@ export async function filterIds(db, caps, input, ids, options = {}) {
 export { parseQuery } from "./parser/parseQuery.js";
 export { toChips, removeChip } from "./parser/chips.js";
 export { buildSearchSql } from "./query/buildSql.js";
-export { rerank, recencyWeight, splitBest, fuseBest, bestThenDate, BEST_MAX } from "./query/rank.js";
+export { rerank, recencyWeight, ageWeight, ageOptions, sortSemByAge, AGE_LEVELS, splitBest, fuseBest, bestThenDate, BEST_MAX } from "./query/rank.js";
 export { suggestForQuery, editDistance, similarWords } from "./query/suggest.js";
 export { compoundsOf, expandCompounds, clearCompoundCache, refreshVocabWords, vocabWordsBuiltAt, VOCAB_TABLE, VOCAB_VIEW } from "./query/compounds.js";
 export { resolvePeople } from "./query/resolvePeople.js";

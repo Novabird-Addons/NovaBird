@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { rerank, recencyWeight } from "../src/query/rank.js";
+import { rerank, recencyWeight, ageWeight, ageOptions, sortSemByAge } from "../src/query/rank.js";
+import { parseQuery } from "../src/parser/parseQuery.js";
+import { toChips, removeChip } from "../src/parser/chips.js";
 import { createNodeAdapter } from "./helpers/node-adapter.js";
 import { migrate, repository, search } from "../src/search.js";
 
@@ -19,9 +21,73 @@ describe("Relevanz-Neuordnung", () => {
     const rows = [{ id: 1, score: null, date: day(5) }, { id: 2, score: null, date: day(1) }, { id: 3, score: -1, date: day(800) }];
     expect(rerank(rows, NOW).map((r) => r.id)).toEqual([3, 2, 1]);
   });
-  it("Gewicht fällt mit dem Alter (Halbwertszeit ein Jahr)", () => {
-    expect(recencyWeight(NOW, NOW)).toBeCloseTo(1.5, 5);
-    expect(recencyWeight(day(365), NOW)).toBeCloseTo(1.25, 5);
+  it("Gewicht fällt mit dem Alter bis zum Boden (normal: 1½ Jahre Halbwertszeit, Boden 0,4)", () => {
+    expect(ageWeight(NOW, NOW)).toBeCloseTo(1, 5);
+    expect(ageWeight(day(548), NOW)).toBeCloseTo(0.7, 5);
+    expect(ageWeight(day(15 * 365), NOW)).toBeCloseTo(0.4, 2);
+    expect(ageWeight(day(15 * 365), NOW, { level: "strong" })).toBeCloseTo(0.2, 2);
+    expect(ageWeight(day(15 * 365), NOW, { level: "off" })).toBe(1);
+    expect(recencyWeight).toBe(ageWeight); // früherer Name bleibt (Android-Kern)
+  });
+  it("keine Abwertung bei Zeitraum oder „vor langer Zeit“", () => {
+    expect(ageOptions({ dateFrom: 1 }, "strong")).toEqual({ level: "strong", neutral: true });
+    expect(ageOptions({ timeHint: "past" })).toEqual({ level: "normal", neutral: true });
+    expect(ageOptions({}, "quatsch")).toEqual({ level: "normal", neutral: false });
+    expect(ageWeight(day(15 * 365), NOW, ageOptions({ timeHint: "past" }))).toBe(1);
+  });
+  it("15 Jahre alte Mail mit etwas besserem bm25 verliert gegen neue; mit „vor langer Zeit“ nicht", () => {
+    const rows = [{ id: "alt", score: -8, date: day(15 * 365) }, { id: "neu", score: -6, date: day(30) }];
+    expect(rerank(rows, NOW).map((r) => r.id)).toEqual(["neu", "alt"]);
+    expect(rerank(rows, NOW, { neutral: true }).map((r) => r.id)).toEqual(["alt", "neu"]);
+    expect(rerank(rows, NOW, { level: "off" }).map((r) => r.id)).toEqual(["alt", "neu"]);
+  });
+  it("Bedeutungstreffer: Schwelle für den oberen Block steigt mit dem Alter (nur der Teil über dem Grundrauschen zählt)", async () => {
+    const { fuseBest } = await import("../src/query/rank.js");
+    const sem = (age, score) => [{ header_msg_id: "s", score, date: day(age) }];
+    const top = (age, score, opts = {}) => fuseBest([], sem(age, score), { now: NOW, ...opts }).length === 1;
+    expect(top(0, 0.5)).toBe(true); // heute: 0,5 reicht
+    expect(top(0, 0.49)).toBe(false);
+    expect(top(365, 0.54)).toBe(false); // 1 Jahr: braucht ~0,56
+    expect(top(365, 0.57)).toBe(true);
+    expect(top(3 * 365, 0.64)).toBe(false); // 3 Jahre: braucht ~0,66
+    expect(top(3 * 365, 0.68)).toBe(true);
+    expect(top(15 * 365, 0.78)).toBe(false); // 15 Jahre: braucht 0,8
+    expect(top(15 * 365, 0.82)).toBe(true);
+    expect(top(15 * 365, 0.82, { age: { level: "strong" } })).toBe(false); // stark: alte nur über Worttreffer
+    expect(top(15 * 365, 0.55, { age: { neutral: true } })).toBe(true); // „vor langer Zeit“: Schwelle wie heute
+  });
+  it("Bedeutungstreffer: alter mit etwas höherem Kosinus nach dem neuen", () => {
+    const sem = [{ header_msg_id: "alt", score: 0.7, date: day(15 * 365) }, { header_msg_id: "neu", score: 0.6, date: day(10) }];
+    expect(sortSemByAge(sem, { now: NOW }).map((r) => r.header_msg_id)).toEqual(["neu", "alt"]);
+    expect(sortSemByAge(sem, { now: NOW, age: { neutral: true } }).map((r) => r.header_msg_id)).toEqual(["alt", "neu"]);
+  });
+});
+
+describe("„vor langer Zeit“ in vier Sprachen", () => {
+  const cases = [
+    ["de", "rechnung vor langer zeit"], ["de", "elternabend damals"], ["de", "vor jahren urlaub"], ["de", "alte mails rechnung"],
+    ["en", "invoice long ago"], ["en", "invoice a long time ago"], ["en", "invoice years ago"], ["en", "invoice back then"],
+    ["fr", "facture il y a longtemps"], ["fr", "facture autrefois"], ["fr", "facture il y a des années"],
+    ["es", "factura hace mucho tiempo"], ["es", "factura hace años"], ["es", "factura antiguamente"],
+  ];
+  for (const [lang, text] of cases) {
+    it(`${lang}: ${text}`, () => {
+      const q = parseQuery(text, { langs: [lang], now: NOW });
+      expect(q.timeHint).toBe("past");
+      expect(q.dateFrom).toBeNull();
+      expect(q.terms.length).toBe(1); // nur das Suchwort bleibt
+    });
+  }
+  it("feste Zeitangabe bleibt ein Zeitraum (vor 10 Jahren, 2012)", () => {
+    expect(parseQuery("rechnung vor 10 jahren", { langs: ["de"], now: NOW }).dateFrom).not.toBeNull();
+    expect(parseQuery("invoice 2012", { langs: ["en"], now: NOW }).dateTo).not.toBeNull();
+    expect(parseQuery("rechnung", { langs: ["de"], now: NOW }).timeHint).toBeNull();
+  });
+  it("Chip „Ältere Mails“ lässt sich entfernen", () => {
+    const q = parseQuery("rechnung damals", { langs: ["de"], now: NOW });
+    const chip = toChips(q, "de").find((c) => c.id === "past");
+    expect(chip.label).toBe("Ältere Mails");
+    expect(removeChip(q, "past").timeHint).toBeNull();
   });
 });
 

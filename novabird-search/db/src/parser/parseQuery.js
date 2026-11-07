@@ -32,6 +32,7 @@ export function emptyQuery(raw = "") {
     involves: [],
     dateFrom: null, // ms, inklusiv
     dateTo: null, // ms, exklusiv
+    timeHint: null, // "past": „vor langer Zeit“, „damals“ … ohne Zeitraum – ältere Mails nicht abwerten (query/rank.js)
     hasAttachment: null,
     attachmentTypes: [],
     unread: null,
@@ -358,6 +359,9 @@ function extractDates(rest, q, ctx, entry) {
       if (n == null || !u || n === 0.5) return false;
       mergeDate(q, subtractUnits(today, u, n + 1), subtractUnits(today, u, Math.max(n - 1, 0)));
       if (n - 1 <= 0) mergeDate(q, null, addDays(today, 1));
+    }],
+    [d.past, () => { // vor langer Zeit / damals / long ago / il y a longtemps / hace mucho: kein Filter, nur keine Abwertung
+      q.timeHint = "past";
     }],
     [d.lastUnit, (u1, u2) => { // letzte Woche / letzten Monat / letztes Jahr (Kalenderperiode); Plural -> Standardfenster
       const unit = u1 ?? u2;

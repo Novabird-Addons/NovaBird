@@ -72,6 +72,7 @@ export default {
         lastN: `${B}${PRE}${LAST}\\s+(${NUM})\\s+(${UNIT})${E}`,
         sinceN: `${B}since\\s+(${NUM})\\s+(${UNIT})(?:\\s+ago)?${E}`,
         agoN: `${B}(${NUM})\\s+(${UNIT})\\s+ago${E}`,
+        past: `${B}(?:(?:a\\s+)?(?:very\\s+)?long\\s+(?:time\\s+)?ago|(?:many\\s+)?years\\s+ago|ages\\s+ago|back\\s+then|in\\s+the\\s+old\\s+days|old\\s+(?:e-?mails?|mails?|messages?))${E}`,
         lastUnit: `${B}${PRE}${LAST}\\s+(${UNIT})${E}`,
         thisUnit: `${B}(?:(?:in|during|from|of)\\s+)?${THIS}\\s+(${UNIT})${E}`,
         relDay: `${B}(?:from\\s+|since\\s+)?(today|yesterday)${E}`,

@@ -242,6 +242,21 @@
   "optSortHint": {
     "message": "Standard: Oben stehen bis zu 10 Treffer, die besonders gut passen (das Wort genau so in Betreff oder Text, mit Bedeutungssuche auch der Sinn) – leicht hinterlegt, mit einer Linie darunter. Danach folgen alle Treffer nach Datum. „Relevanz“ ordnet die ganze Liste nach Passung – gut für eine gezielte Suche. Für eine einzelne Suche lässt sich die Reihenfolge im Optionsmenü der Suchleiste (⚙) umstellen. Gilt nur, wenn der eigene Suchindex genutzt wird; Gloda-Treffer und die schnelle Kopfzeilen-Suche bleiben nach Datum sortiert."
   },
+  "optAge": {
+    "message": "Neuere Mails bevorzugen"
+  },
+  "optAgeNormal": {
+    "message": "Normal"
+  },
+  "optAgeStrong": {
+    "message": "Stark"
+  },
+  "optAgeOff": {
+    "message": "Aus"
+  },
+  "optAgeHint": {
+    "message": "Bei „Beste zuerst“ und „Relevanz“ zählen ältere Mails weniger: Eine Mail von vor 15 Jahren muss deutlich besser passen als eine von heute, um weiter oben zu stehen (Normal: nach 3 Jahren gut die Hälfte, nie unter 40 %; Stark: nie unter 20 %). Keine Abwertung, wenn die Suche selbst eine Zeit nennt („vor 10 Jahren“, „2012“, Zeitfenster der Leiste) oder „vor langer Zeit“, „damals“."
+  },
   "suggest": {
     "message": "Meinten Sie: {text}?"
   },
