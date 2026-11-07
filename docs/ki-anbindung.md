@@ -37,7 +37,7 @@ soll es auch nicht: Zugriff nur über Nachrichten an die Extension (siehe 4).
 - Wichtige ops:
   - `hello` → Version, Gerät, Gruppe, `chatModel`, `chatChoices`, `speech`, `aiCache`, `web`.
   - `chat` `{messages, maxNew, model?}` → `{id}`; dann `chatPoll` `{id}` bis `done` (Text kommt stückweise), `chatCancel`.
-  - `embed` / `vlookup` – Vektoren (Bedeutungssuche), mit Teilen über Message-ID + Prüfsumme.
+  - `embed` / `vlookup` – Vektoren (Bedeutungssuche), mit Teilen über Message-ID + Prüfsumme. Optional `space: "phone"`: eigener Speicher für Handys (anderer Text, andere Prüfsumme); `hello` meldet `vecSpaces: ["phone"]`.
   - `aiget` `{ids, claim}` / `aiput` `{id, data}` / `airelease` `{id}` – geteilte KI-Ergebnisse.
 - Client-Kennung: **eine je Thunderbird**, die von NovaBird-Search (`helper:clientId`); `label` = Name des PCs.
 - Referenz-Implementierung: `nbAI.netCall` in `ai/ai.js`, `semantic/server.js` in Search.

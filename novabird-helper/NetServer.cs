@@ -13,7 +13,7 @@
 //  - op "hello" {label, model:{id, revision}} -> Info (mit Gruppe und web: Port, im Netz, SHA-256 des HTTPS-Zertifikats – so
 //    kann Thunderbird den Team-Kalender ohne Zertifikatsdialog einbinden: der Fingerabdruck kommt über den gekoppelten Weg); op "embed" {model, texts, prio:"query"|"index"} -> {vectors}
 //  - op "vlookup" {model, items:[{id, h}]} -> {found:[Index], vectors}: schon gerechnete Vektoren anderer PCs (VectorStore.cs);
-//    op "embed" mit keys:[{id, h}] (je Text) merkt die Vektoren dafür
+//    op "embed" mit keys:[{id, h}] (je Text) merkt die Vektoren dafür; space:"phone" (Handys) nutzt bei beiden einen eigenen Speicher
 //  - op "chat" {messages, maxNew, meta?} -> {id} (meta: Zielsprache und Markierungen für eine eigene Anweisung, Chat.cs); op "chatPoll" {id} -> {text (neu seit dem letzten Abholen), done, stats};
 //    op "chatCancel" {id}: KI-Zusammenfassung mit dem im Helper gewählten Sprachmodell (Chat.cs)
 //  - op "aiget" {ids, claim} -> {items: {id: {data}|{pending}|{claimed}|{}}}, "aiput" {id, data}, "airelease" {id}: KI-Ergebnisse
@@ -48,7 +48,7 @@ sealed class NetServer
     public readonly Chat Chat = new();
     public Speech Speech; // vom Kern gesetzt
     readonly object storesGate = new();
-    Dictionary<string, (byte[] Key, VectorStore Vectors)> groups = new(); // Gruppen-Kennung -> Schlüssel, Vektorspeicher
+    Dictionary<string, (byte[] Key, VectorStore Vectors, VectorStore Phone)> groups = new(); // Gruppen-Kennung -> Schlüssel, Vektorspeicher der PCs und der Handys (erst bei Bedarf)
     readonly Dictionary<string, string> codes = new(); // Gruppe -> Code, aus dem der Schlüssel stammt
     readonly ConcurrentDictionary<string, string> clientGroup = new(); // PC -> zuletzt passende Gruppe
     readonly ConcurrentDictionary<string, AiCache> aiCaches = new(); // Gruppe -> geteilte KI-Ergebnisse
@@ -83,7 +83,7 @@ sealed class NetServer
         lock (storesGate)
         {
             var old = groups;
-            var next = new Dictionary<string, (byte[], VectorStore)>();
+            var next = new Dictionary<string, (byte[], VectorStore, VectorStore)>();
             foreach (var g in Groups.List())
             {
                 old.TryGetValue(g.Id, out var o);
@@ -91,17 +91,31 @@ sealed class NetServer
                 var key = o.Key != null && codes.GetValueOrDefault(g.Id) == g.Code ? o.Key : DeriveKey(g.Code);
                 codes[g.Id] = g.Code;
                 var store = o.Vectors ?? new VectorStore(model, g.Id, g.Salt);
-                next[g.Id] = (key, store);
+                var phone = o.Phone ?? (VectorStore.HasPhone(g.Id) ? new VectorStore(model, g.Id, g.Salt, VectorStore.Phone) : null);
+                next[g.Id] = (key, store, phone);
             }
             foreach (var (id, o) in old)
-                if (!next.ContainsKey(id)) { o.Vectors.Dispose(); codes.Remove(id); }
+                if (!next.ContainsKey(id)) { o.Vectors.Dispose(); o.Phone?.Dispose(); codes.Remove(id); }
             groups = next;
         }
     }
 
-    public VectorStore Vectors(string groupId)
+    /// <summary>Vektorspeicher einer Gruppe: der PCs (space "") oder der Handys (space "phone", wird beim ersten Mal angelegt).</summary>
+    public VectorStore Vectors(string groupId, string space = "")
     {
-        lock (storesGate) return groupId != null && groups.TryGetValue(groupId, out var g) ? g.Vectors : null;
+        lock (storesGate)
+        {
+            if (groupId == null || !groups.TryGetValue(groupId, out var g)) return null;
+            if (space != VectorStore.Phone) return g.Vectors;
+            if (g.Phone == null)
+            {
+                var salt = Groups.Get(groupId)?.Salt;
+                if (salt == null) return null;
+                g.Phone = new VectorStore(model, groupId, salt, VectorStore.Phone);
+                groups[groupId] = g;
+            }
+            return g.Phone;
+        }
     }
 
     AiCache Ai(string groupId) => groupId == null ? null : aiCaches.GetOrAdd(groupId, id => new AiCache(id));
@@ -110,7 +124,7 @@ sealed class NetServer
 
     public List<VectorStore> AllVectors()
     {
-        lock (storesGate) return groups.Values.Select(g => g.Vectors).ToList();
+        lock (storesGate) return groups.Values.SelectMany(g => g.Phone == null ? new[] { g.Vectors } : new[] { g.Vectors, g.Phone }).ToList();
     }
 
     /// <summary>Neuer Code für eine Gruppe (ohne Angabe: die erste): deren PCs müssen den neuen eintragen.</summary>
@@ -145,7 +159,7 @@ sealed class NetServer
     {
         lock (storesGate)
         {
-            foreach (var g in groups.Values) g.Vectors.Dispose();
+            foreach (var g in groups.Values) { g.Vectors.Dispose(); g.Phone?.Dispose(); }
             foreach (var ai in aiCaches.Values) ai.Dispose();
             aiCaches.Clear();
             groups = new();
@@ -173,7 +187,7 @@ sealed class NetServer
         try { listener.Stop(); } catch { /* schon zu */ }
         Pairing.Stop();
         Scheduler.Stop();
-        lock (storesGate) foreach (var g in groups.Values) g.Vectors.Dispose();
+        lock (storesGate) foreach (var g in groups.Values) { g.Vectors.Dispose(); g.Phone?.Dispose(); }
         foreach (var ai in aiCaches.Values) ai.Dispose();
     }
 
@@ -372,7 +386,7 @@ sealed class NetServer
                 if (texts == null || texts.Count == 0 || texts.Count > MaxTexts) throw new InvalidOperationException("Anzahl der Texte");
                 Scheduler.Touch(client, (string)msg["label"], msg["stats"], group);
                 var vecs = await Scheduler.Embed(client, (string)msg["label"], msg["stats"], texts, (string)msg["prio"] == "query");
-                Vectors(group)?.Put(msg["keys"] as JsonArray, vecs); // für andere PCs merken (Message-ID + Prüfsumme je Text)
+                Vectors(group, VectorStore.SpaceOf(msg))?.Put(msg["keys"] as JsonArray, vecs); // für andere Geräte merken (Message-ID + Prüfsumme je Text; Handys getrennt)
                 return new JsonObject { ["vectors"] = Engine.ToBase64(vecs, model.Dims) };
             }
             // Vektoren teilen: schon gerechnete Vektoren zu {id: Message-ID, h: Prüfsumme des Textes}
@@ -382,7 +396,7 @@ sealed class NetServer
                 var items = msg["items"]?.AsArray().Select(i => ((string)i?["id"] ?? "", (string)i?["h"] ?? "")).ToList();
                 if (items == null || items.Count > MaxLookup) throw new InvalidOperationException("Anzahl der Einträge");
                 Scheduler.Touch(client, (string)msg["label"], msg["stats"], group);
-                var (found, vecs) = Vectors(group)?.Lookup(items) ?? (new List<int>(), Array.Empty<float[]>());
+                var (found, vecs) = Vectors(group, VectorStore.SpaceOf(msg))?.Lookup(items) ?? (new List<int>(), Array.Empty<float[]>());
                 return new JsonObject
                 {
                     ["found"] = new JsonArray(found.Select(i => (JsonNode)i).ToArray()),
@@ -449,6 +463,7 @@ sealed class NetServer
             ["group"] = Groups.Get(group)?.Name,
             ["web"] = WebInfo?.Invoke(),
             ["vecShare"] = VectorStore.Enabled,
+            ["vecSpaces"] = new JsonArray(VectorStore.Phone), // eigener Speicher für Handys (Feld space bei embed/vlookup)
             ["chatModel"] = Chat.Selected,
             ["chatModels"] = new JsonArray(Chat.Available().Select(m => (JsonNode)m.Name).ToArray()),
             ["speech"] = Speech?.Info(),

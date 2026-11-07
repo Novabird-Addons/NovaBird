@@ -809,6 +809,7 @@ sealed partial class WebServer
             {
                 ["enabled"] = VectorStore.Enabled, ["count"] = vecs.Sum(v => v.Count), ["bytes"] = vecs.Sum(v => v.Bytes),
                 ["hits"] = vecs.Sum(v => v.Hits), ["misses"] = vecs.Sum(v => v.Misses), ["stored"] = vecs.Sum(v => v.Stored),
+                ["phone"] = vecs.Where(v => v.Space == VectorStore.Phone).Sum(v => v.Count), // davon von Handys (eigener Speicher)
                 ["aiResults"] = core.Server.AiCount,
             },
             ["chat"] = new JsonObject { ["selected"] = Chat.Selected, ["loaded"] = core.Server.Chat.Loaded, ["busy"] = core.Server.Chat.Busy, ["ollama"] = core.Ollama.Status },
@@ -961,10 +962,11 @@ sealed partial class WebServer
             ["groups"] = new JsonArray(Groups.List().Select(g =>
             {
                 var v = core.Server.Vectors(g.Id);
+                var p = VectorStore.HasPhone(g.Id) ? core.Server.Vectors(g.Id, VectorStore.Phone) : null;
                 return (JsonNode)new JsonObject
                 {
                     ["id"] = g.Id, ["name"] = g.Name, ["code"] = g.Code, ["created"] = g.Created,
-                    ["pcs"] = pcs.Count(c => (c.Group ?? "g1") == g.Id), ["vectors"] = v?.Count ?? 0, ["bytes"] = v?.Bytes ?? 0,
+                    ["pcs"] = pcs.Count(c => (c.Group ?? "g1") == g.Id), ["vectors"] = (v?.Count ?? 0) + (p?.Count ?? 0), ["bytes"] = (v?.Bytes ?? 0) + (p?.Bytes ?? 0),
                 };
             }).ToArray()),
         };

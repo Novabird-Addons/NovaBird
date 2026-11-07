@@ -10,6 +10,9 @@
 //  - Je Gruppe, Modell und Revision eine Datei vectors\<gruppe>\<modell>_<revision>.nbv: Kopf "NBV2" + Dimension, dann Sätze
 //    (16 Byte Schlüssel, 12 Byte Nonce, Vektor als float16 verschlüsselt, 16 Byte Prüfwert). Neuere Sätze zum selben Schlüssel
 //    gelten. Dateien des alten Formats (NBV1, unverschlüsselt) werden beim Start gelöscht.
+//  - Handys (NovaBird Mail für Android) bilden den Text anders als NovaBird-Search, ihre Prüfsummen passen also nie zu denen der
+//    PCs. Damit sie sich nicht gegenseitig die Sätze verdrängen, hat jede Gruppe einen zweiten Speicher nur für Handys:
+//    vectors\<gruppe>\phone\<modell>_<revision>.nbv (Feld space:"phone" bei embed/vlookup; ohne Feld: Speicher der PCs).
 //  - Abschaltbar (Einstellung vecShare, Standard an); „Vektoren löschen“ in der Web-Oberfläche.
 using System.Security.Cryptography;
 using System.Text;
@@ -26,21 +29,35 @@ sealed class VectorStore
     readonly Dictionary<UInt128, long> index = new(); // Schlüssel -> Position des neuesten Satzes
     FileStream file;
     public readonly string GroupId;
+    public readonly string Space; // "" = PCs, "phone" = Handys
     public long Hits { get; private set; }
     public long Misses { get; private set; }
     public long Stored { get; private set; } // seit dem Start neu gespeichert
 
-    public VectorStore(ModelSpec model, string groupId, byte[] salt)
+    public VectorStore(ModelSpec model, string groupId, byte[] salt, string space = "")
     {
         this.model = model;
         this.salt = salt;
         GroupId = groupId;
+        Space = space == Phone ? Phone : "";
         Load();
     }
 
+    public const string Phone = "phone";
+
+    /// <summary>Speicher aus dem Feld space einer Anfrage: nur "phone" ist bekannt, alles andere gilt als PC.</summary>
+    public static string SpaceOf(System.Text.Json.Nodes.JsonNode msg) =>
+        msg?["space"] is JsonValue v && v.TryGetValue<string>(out var s) && s == Phone ? Phone : "";
+
+    string Name => Space == "" ? GroupId : $"{GroupId}/{Space}";
+
+    /// <summary>Gibt es schon einen Speicher für Handys in dieser Gruppe (dann beim Start mit öffnen, für Anzeige und Löschen)?</summary>
+    public static bool HasPhone(string groupId) => Directory.Exists(Path.Combine(FolderOf(groupId), Phone));
+
     public static string Root => Path.Combine(Settings.Dir, "vectors");
     public static string FolderOf(string groupId) => Path.Combine(Root, groupId);
-    string FilePath => Path.Combine(FolderOf(GroupId), $"{model.Id.Replace('/', '_')}_{model.Revision[..Math.Min(12, model.Revision.Length)]}.nbv");
+    string Folder => Space == "" ? FolderOf(GroupId) : Path.Combine(FolderOf(GroupId), Space);
+    string FilePath => Path.Combine(Folder, $"{model.Id.Replace('/', '_')}_{model.Revision[..Math.Min(12, model.Revision.Length)]}.nbv");
     int VecBytes => model.Dims * 2;
     int RecordBytes => KeyBytes + NonceBytes + VecBytes + TagBytes;
 
@@ -97,7 +114,7 @@ sealed class VectorStore
         {
             try
             {
-                Directory.CreateDirectory(FolderOf(GroupId));
+                Directory.CreateDirectory(Folder);
                 file = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
                 var head = new byte[HeaderBytes];
                 if (file.Length < HeaderBytes || file.Read(head) != HeaderBytes || Encoding.ASCII.GetString(head, 0, 4) != "NBV2" || BitConverter.ToInt32(head, 4) != model.Dims)
@@ -116,11 +133,11 @@ sealed class VectorStore
                 }
                 // abgeschnittenen letzten Satz (Absturz beim Schreiben) entfernen
                 file.SetLength(HeaderBytes + count * RecordBytes);
-                if (index.Count > 0) Log.Write($"Vektorspeicher {GroupId}: {index.Count} Vektoren");
+                if (index.Count > 0) Log.Write($"Vektorspeicher {Name}: {index.Count} Vektoren");
             }
             catch (Exception e)
             {
-                Log.Write($"Vektorspeicher {GroupId} nicht lesbar: " + e.Message);
+                Log.Write($"Vektorspeicher {Name} nicht lesbar: " + e.Message);
                 file?.Dispose();
                 file = null;
             }
@@ -144,7 +161,7 @@ sealed class VectorStore
             Reset();
             Hits = Misses = Stored = 0;
         }
-        Log.Write($"Vektorspeicher {GroupId} geleert");
+        Log.Write($"Vektorspeicher {Name} geleert");
     }
 
     /// <summary>Entschlüsselt den Satz an off mit dem Schlüssel aus Message-ID und Prüfsumme; null, wenn sie nicht passen.</summary>

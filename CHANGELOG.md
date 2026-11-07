@@ -5,6 +5,9 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.6 · Helper 0.5.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### Helper: separate vector store for phones
+- NovaBird Mail for Android builds the mail text differently, so its checksums never match those of the PCs. With a phone in the same group, phone and PCs kept pushing each other's vectors out, and sharing between the PCs mostly stopped working. Phones now send `space: "phone"` with `embed` and `vlookup` and get their own store per group (`vectors\<group>\phone\`); `hello` reports `vecSpaces`. Without the field nothing changes. The status page counts phone vectors separately; "Delete vectors", backup and removing a group include them.
+
 ### Setup assistant: Helper download also for pre-releases
 - The button "Download" in the Helper step opened the latest final release on GitHub, which skips pre-releases such as a beta and so had no Helper. It now opens the list of releases.
 

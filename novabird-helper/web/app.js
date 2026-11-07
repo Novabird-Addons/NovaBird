@@ -343,7 +343,7 @@ async function showStatus() {
   $("sMode").textContent = s.mode === "service" ? t("modeService") : t("modeUser");
   $("sStarted").textContent = new Date(s.started).toLocaleString(locale());
   const v = s.vectors;
-  $("sVec").textContent = !v.enabled ? t("off") : t("vecFmt", N(v.count), GB(v.bytes)) + (v.hits + v.misses > 0 ? t("vecSince", N(v.hits), N(v.stored)) : "");
+  $("sVec").textContent = !v.enabled ? t("off") : t("vecFmt", N(v.count), GB(v.bytes)) + (v.phone ? t("vecPhone", N(v.phone)) : "") + (v.hits + v.misses > 0 ? t("vecSince", N(v.hits), N(v.stored)) : "");
   $("sChat").textContent = !s.chat.selected ? t("chatNone")
     : `${s.chat.selected.replace(/^ollama:/, "")}${s.chat.loaded === s.chat.selected ? t("chatLoaded") : ""}${s.chat.busy ? t("chatBusy") : ""}`;
   progress("sProg", s.preparing, s.preparingPct);
