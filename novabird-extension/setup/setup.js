@@ -7,7 +7,7 @@
 // Grafikkarte und Sprachmodell kennt nur der NovaBird Helper – hier steht nur, was er meldet.
 (() => {
   const SEARCH_ID = "novabird-db@novabird";
-  const HELPER_URL = "https://github.com/Novabird-Addons/NovaBird/releases/latest";
+  const HELPER_URL = "https://github.com/Novabird-Addons/NovaBird/releases"; // nicht /latest: das überspringt Vorabversionen
   const GPU_MINUTES = 30; // ab dieser geschätzten Rechenzeit die Grafikkarte (Helper) empfehlen
   const MEASURE_MAILS = 64; // wie NovaBird-Search semantic/main.js
   const T = {

@@ -39,6 +39,18 @@ Aus, bis du ihn einschaltest. Läuft mit Ollama, einem OpenAI-kompatiblen Server
 - **Sehr große Postfächer:** Bei 1,2 Mio. Mails dauert eine `from:`-Suche 0,2 s statt 25 s.
 - **Bessere Wortformen** auf Französisch, Spanisch und Englisch.
 
+### NovaBird Mail für Android (Beta)
+Ein Fork von Thunderbird für Android, der NovaBird aufs Handy bringt. [Zum Repository](https://github.com/Novabird-Addons/NovaBird-Android)
+
+- **Suche in Alltagssprache:** „von Petra im März mit PDF“ wird zu Filtern. Der Index liegt auf dem Handy.
+- **Suche nach Bedeutung,** wie am PC.
+- **Phishing-Schutz:** prüft Absender, Links, Anhänge und QR-Codes; riskante Links fragen vorher.
+- **KI mit dem Helper:** Zusammenfassung, „Was gibt's Neues?“, Vorlesen.
+- **Große Postfächer:** lädt alle Mails am Stück im WLAN, getestet mit 100.000 Mails pro Konto.
+- **Mit dem Helper:** Kopplung ohne Abtippen, Such-Vektoren von der Grafikkarte des PCs für alle Handys. Alles bleibt im eigenen Netz.
+
+Android 14 oder neuer, 64 Bit.
+
 ### NovaBird Helper (optional, Windows)
 Ein kleines Programm für den PC mit der Grafikkarte. [Mehr zum Helper](novabird-helper/README.md)
 

@@ -5,6 +5,9 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.6 · Helper 0.5.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### Setup assistant: Helper download also for pre-releases
+- The button "Download" in the Helper step opened the latest final release on GitHub, which skips pre-releases such as a beta and so had no Helper. It now opens the list of releases.
+
 ### Helper: group in the PC list, graphics card after a failure
 - The PCs page of the web interface shows the group of each PC in its own column.
 - After an error on the graphics card the helper stayed on the CPU until someone measured the devices again, and nothing showed why. The Status page now says which card failed, when and with what message, and the helper tries the card again on the next start.
