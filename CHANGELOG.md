@@ -9,6 +9,9 @@ NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the opti
 - The PCs page of the web interface shows the group of each PC in its own column.
 - After an error on the graphics card the helper stayed on the CPU until someone measured the devices again, and nothing showed why. The Status page now says which card failed, when and with what message, and the helper tries the card again on the next start.
 
+### Search: progress window of the first indexing also with folders that give no count
+- The window "Building search index" needs the number of mails. If a single folder gave none (e.g. an IMAP folder never opened), the whole number was missing and the window did not appear for the entire run. Such folders are now left out of the count.
+
 ### Contacts, tasks, long mails: failures no longer pass as success
 - Nova-Contact: restoring deleted contacts removed the restore point even if contacts could not be created, and those contacts were lost. The point now stays for them, a double click no longer creates them twice, and a removed address book falls back to the selected one.
 - Nova-Contact: if deleting fails for some contacts, they stay in the list and out of the restore point (they would have come back twice). Merging now keeps a restore point of the contacts it deletes.

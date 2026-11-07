@@ -358,15 +358,19 @@ export class Indexer {
   async countMessages(folders) {
     const f = this.api.folders;
     if (!f?.getFolderInfo) return null;
+    // Ein Ordner ohne Angabe (z. B. IMAP, noch nie geöffnet) zählt nicht mit; sonst fehlte die Gesamtzahl
+    // und mit ihr das Fortschritts-Fenster für den ganzen Lauf
     let total = 0;
+    let known = 0;
     for (const folder of folders) {
       try {
         total += (await f.getFolderInfo(folder.id ?? folder)).totalMessageCount ?? 0;
+        known++;
       } catch {
-        return null;
+        /* weiter mit den anderen */
       }
     }
-    return total;
+    return known || !folders.length ? total : null;
   }
 
   async indexFolder(folder, { quiet = false } = {}) {

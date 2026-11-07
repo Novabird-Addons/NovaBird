@@ -184,6 +184,20 @@ describe("Indexer (mit nachgebauter messenger-API)", () => {
     });
   });
 
+  it("Gesamtzahl für die Fortschrittsanzeige auch, wenn ein Ordner keine Angabe liefert", async () => {
+    const events = [];
+    const { fake, indexer } = await setup({ onProgress: (e) => events.push(e) });
+    for (let i = 0; i < 3; i++) fake.addMessage("inbox", { subject: `A ${i}` });
+    const m = fake.addMessage("projekt", { subject: "B" });
+    const info = fake.api.folders.getFolderInfo;
+    fake.api.folders.getFolderInfo = async (id) => {
+      if (id === m.folder.id) throw new Error("nicht geöffnet");
+      return info(id);
+    };
+    await indexer.fullRun();
+    expect(events.find((e) => e.phase === "folder")?.total).toBe(3);
+  });
+
   describe("gescheiterter Ordner", () => {
     const breakFolder = (fake, folderId) => {
       const orig = fake.api.messages.list;
