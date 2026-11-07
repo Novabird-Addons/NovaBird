@@ -40,7 +40,7 @@ Off until you switch it on. Runs with Ollama, an OpenAI-compatible server or the
 - **Better word forms** in French, Spanish and English.
 
 ### NovaBird Mail for Android (beta)
-A fork of Thunderbird for Android that brings NovaBird to the phone. [To the repository](https://github.com/Novabird-Addons/NovaBird-Android)
+A fork of Thunderbird for Android that brings NovaBird to the phone. [Download (APK)](https://github.com/Novabird-Addons/NovaBird-Android/releases) · [Repository](https://github.com/Novabird-Addons/NovaBird-Android)
 
 - **Everyday-language search:** "from Petra in March with PDF" becomes filters. The index lives on the phone.
 - **Search by meaning,** like on the PC.
