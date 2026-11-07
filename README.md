@@ -7,6 +7,7 @@ New in 2.0: AI assistant, search by meaning, team calendars.</p>
 
 <p align="center">
 <a href="#new-in-20">New in 2.0</a> ·
+<a href="#bigger-fixes">Fixes</a> ·
 <a href="#install">Install</a> ·
 <a href="#the-add-ons">Add-ons</a> ·
 <a href="#privacy">Privacy</a> ·
@@ -53,7 +54,19 @@ A small program for the PC with the graphics card. [More about the Helper](novab
 - **Updating from 1.x** keeps settings, search history, index and theme.
 - **Setup assistant** on first start. Every step can be skipped.
 - **Settings sorted by topic.**
-- **Attached images** now show in the conversation view.
+
+## Bigger fixes
+
+- **Very large mailboxes:** Search no longer reads through every folder at each start (with 1.8 million mails that took about 30 minutes).
+- **Conversations:** switching within a thread shows the selected mail; attached images show under the text; the reply buttons stay visible; encrypted mails say so instead of looking empty.
+- **Contacts:** restoring deleted contacts can no longer lose them, and merging keeps a restore point.
+- **Search index:** folders and mails that could not be read are tried again instead of staying missing until the weekly check.
+- **Team calendars:** clear messages when the Helper blocks a login or cannot be reached, instead of "no calendar shared".
+- **Security:** a security test of the Helper with 89 attacks closed two holes (injected header lines, connections that never ended). Subject and sender of a mail can no longer slip instructions to the AI.
+
+> 2.0 went through two code reviews, a security test of the Helper, tests with about 650 deliberately broken and hostile mails, crash tests while indexing, two PCs on the same mailbox, and automatic tests on macOS.
+>
+> **Plus about 80 smaller fixes**, all listed in the [changelog](CHANGELOG.md).
 
 ## What NovaBird is
 

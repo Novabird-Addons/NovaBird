@@ -7,6 +7,7 @@ Neu in 2.0: KI-Assistent, Suche nach Bedeutung, Team-Kalender.</p>
 
 <p align="center">
 <a href="#neu-in-20">Neu in 2.0</a> ·
+<a href="#größere-fehlerbehebungen">Fehlerbehebungen</a> ·
 <a href="#installieren">Installieren</a> ·
 <a href="#die-add-ons">Add-ons</a> ·
 <a href="#datenschutz">Datenschutz</a> ·
@@ -53,7 +54,19 @@ Ein kleines Programm für den PC mit der Grafikkarte. [Mehr zum Helper](novabird
 - **Update von 1.x** behält Einstellungen, Suchverlauf, Index und Design.
 - **Einrichtungs-Assistent** beim ersten Start. Jeden Schritt kannst du überspringen.
 - **Einstellungen nach Themen geordnet.**
-- **Angehängte Bilder** erscheinen jetzt in der Konversation.
+
+## Größere Fehlerbehebungen
+
+- **Sehr große Postfächer:** Die Suche liest nicht mehr bei jedem Start alle Ordner durch (bei 1,8 Mio. Mails dauerte das rund 30 Minuten).
+- **Konversationen:** Der Wechsel innerhalb einer Unterhaltung zeigt die gewählte Mail; angehängte Bilder stehen unter dem Text; die Antworten-Knöpfe bleiben sichtbar; verschlüsselte Mails sagen das, statt leer auszusehen.
+- **Kontakte:** Beim Wiederherstellen gelöschter Kontakte geht nichts mehr verloren, und das Zusammenführen legt einen Wiederherstellungspunkt an.
+- **Suchindex:** Ordner und Mails, die nicht lesbar waren, werden erneut versucht, statt bis zum wöchentlichen Abgleich zu fehlen.
+- **Team-Kalender:** klare Meldungen, wenn der Helper eine Anmeldung sperrt oder nicht erreichbar ist, statt „kein Kalender freigegeben“.
+- **Sicherheit:** Ein Sicherheitstest des Helpers mit 89 Angriffen hat zwei Lücken geschlossen (eingeschleuste Kopfzeilen, Verbindungen, die nie endeten). Betreff und Absender einer Mail können der KI keine Anweisungen mehr unterschieben.
+
+> 2.0 hat zwei Code-Reviews durchlaufen, einen Sicherheitstest des Helpers, Tests mit rund 650 absichtlich kaputten und feindlichen Mails, Absturztests beim Indizieren, zwei PCs am selben Postfach und automatische Tests auf macOS.
+>
+> **Dazu rund 80 kleinere Fehlerbehebungen**, alle im [Changelog](CHANGELOG.md).
 
 ## Was NovaBird ist
 
