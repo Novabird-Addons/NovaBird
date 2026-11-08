@@ -1,6 +1,7 @@
 // NovaBird Helper – Einstieg.
 //  - Von Thunderbird gestartet (Native Messaging: erstes Argument ist der Pfad der Manifest-Datei): Host-Schleife (Host.cs).
-//  - Doppelklick ohne Argumente: Installieren bzw. Entfernen anbieten (Installer.cs).
+//  - Doppelklick ohne Argumente: Einrichten (neu), Aktualisieren (andere Datei) oder Starten (installierte Datei: Netz-Modus
+//    bzw. als Dienst nur das Symbol, Tray.Auto) – Installer.cs. Entfernen über „Installierte Apps“.
 //  - nbhelper.exe --install | --uninstall [--quiet]: dasselbe ohne Rückfrage (für Skripte).
 //  - nbhelper.exe --bench <Modellordner>: Geräte messen und Ergebnis ausgeben (Test).
 //  - nbhelper.exe --server: Netz-Modus im Benutzerkonto mit Symbol im Infobereich und Web-Oberfläche (Tray.cs, Core.cs).

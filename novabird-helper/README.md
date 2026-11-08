@@ -1,5 +1,7 @@
 # NovaBird Helper (Windows)
 
+**Kurzanleitung** (installieren, Thunderbird verbinden, Dienst): [docs/helper-anleitung.md](../docs/helper-anleitung.md) · English: [docs/helper-guide.md](../docs/helper-guide.md)
+
 Rechnet für die **semantische Suche** von [NovaBird-Search](../novabird-search/README.md) und ab 0.4 für die **KI-Zusammenfassung** der NovaBird-Extension auf der Grafikkarte: **Windows ML** (ONNX Runtime mit **DirectML**; AMD, NVIDIA, Intel, auch integrierte Grafik; Sprachmodelle mit ONNX Runtime GenAI). Gemessen mit `jina-embeddings-v2-base-de` (fp16) auf Ryzen 9 9950X / RX 6900 XT mit realistischen Mails (Betreff + 1.200 Zeichen Text, 80–512 Token): etwa 60–65 Mails pro Sekunde statt etwa 5 im Add-on, 70.000 Mails in rund 20 Minuten (NovaBird-Search hält dafür zwei Pakete gleichzeitig beim Helper, die Karte rechnet durchgehend). Kurze Mails gehen schneller (200 Token: etwa 140 pro Sekunde). Der Helper sortiert jedes Paket nach Länge und rundet auf Stufen von 64 Token (weniger Auffüllen, wenige Formen für DirectML). Die Vektoren passen zu denen des Add-ons (Kosinus ≥ 0,9997); NovaBird-Search prüft das vor jedem Einsatz mit Probetexten.
 
 Betriebsarten:
@@ -11,7 +13,7 @@ Betriebsarten:
 `NovaBird-Helper-<Version>.exe` doppelklicken → „installieren?“ → Ja. Installiert wird nur für den angemeldeten Windows-Benutzer, **ohne Adminrechte**:
 - Programm: `%LOCALAPPDATA%\Programs\NovaBird Helper\nbhelper.exe`
 - Native-Messaging-Eintrag: `HKCU\Software\Mozilla\NativeMessagingHosts\novabird_helper` (nur NovaBird-Search, ID `novabird-db@novabird`, darf ihn starten)
-- Startmenü: „NovaBird Helper (Netz)“ (startet den Netz-Modus)
+- Startmenü: „NovaBird Helper (Netz)“ – startet den Netz-Modus, beim Windows-Dienst nur das Symbol (erkennt der Helper selbst, ab 0.5.1); läuft er schon, öffnet sich die Web-Oberfläche. Ein Doppelklick auf die installierte `nbhelper.exe` macht dasselbe.
 - **Aktualisieren:** die neue `nbhelper.exe` doppelklicken → „ersetzen?“ → Ja. Modelle, Einstellungen, Kopplungscode, PC-Liste und Benutzer der Web-Oberfläche bleiben; ältere Einstellungen werden beim Start umgestellt (Schema-Version). Ein laufender Netz-Modus startet danach neu; ist der Dienst eingerichtet, wird er mit aktualisiert (Windows fragt nach Adminrechten).
 - Eintrag unter „Installierte Apps“ zum Entfernen (fragt, ob Modelle und Einstellungen mit gelöscht werden sollen; beendet einen laufenden Netz-Modus, entfernt Verknüpfung, Autostart und einen eingerichteten Dienst)
 
@@ -42,7 +44,7 @@ Web-Oberfläche (an diesem PC) → Einstellungen → **„Als Windows-Dienst ein
 - Konto `NT SERVICE\NovaBirdHelper` (virtuelles Dienstkonto), Programm in `%ProgramFiles%\NovaBird Helper`, Daten in `%ProgramData%\NovaBird\Helper` (nur SYSTEM, Administratoren und das Dienstkonto), Schlüssel mit DPAPI für den Rechner geschützt.
 - Übernommen werden Einstellungen, Gruppen mit Kopplungscodes (die PCs müssen nichts ändern), geteilte Vektoren, PC-Liste, Benutzer der Web-Oberfläche, Schlüssel externer Programme, Team-Kalender und Modelle.
 - Firewall-Regeln für beide Ports und den UDP-Port zum Koppeln, wie im Installations-Assistenten gewählt: lokales Netz (eigenes Subnetz) in allen Netzwerkprofilen oder nur private Netzwerke. Neustart nach einem Absturz.
-- Das Symbol im Infobereich (`--tray`, startet mit der Anmeldung) zeigt den Zustand und öffnet die Web-Oberfläche; **„Zurück zum Programm im Benutzerkonto …“** entfernt den Dienst wieder.
+- Das Symbol im Infobereich (startet mit der Anmeldung; von Hand über das Startmenü, ab 0.5.1 ohne `--tray`) zeigt den Zustand und öffnet die Web-Oberfläche; **„Zurück zum Programm im Benutzerkonto …“** entfernt den Dienst wieder.
 
 ## Sprachmodell (KI-Zusammenfassung)
 Der Helper fasst Mails für die NovaBird-Extension zusammen (am einfachsten: Einstellungen → NovaBird → **NovaBird Helper**, einmal verbinden, Häkchen bei KI-Assistent und Suche; sonst Einstellungen → NovaBird → KI-Assistent → Schnittstelle **„NovaBird Helper“**, Adresse und Kopplungscode wie bei der Suche). Mailtext und Antwort gehen verschlüsselt durchs Netz, die Antwort kommt stückweise. Das Modell wählst du in der Web-Oberfläche unter *Sprachmodell*; eine Antwort zur Zeit. Vergleich der Modelle: [docs/llm-test](../docs/llm-test/TEST-LLM.md).

@@ -4,7 +4,7 @@
 //    sucht dort; nur NovaBird-Search darf den Helper starten)
 //  - Eintrag unter „Installierte Apps“ (HKCU …\Uninstall\NovaBirdHelper) mit Deinstallation
 //  - Startmenü: „NovaBird Helper (Netz)“ startet den Netz-Modus (nbhelper.exe --server, Symbol im Infobereich)
-// Doppelklick auf nbhelper.exe fragt, ob installiert bzw. entfernt werden soll.
+// Doppelklick auf nbhelper.exe: einrichten, aktualisieren oder (installierte Datei) starten; entfernen über „Installierte Apps“.
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
@@ -47,7 +47,10 @@ static class Installer
 
     public static int Interactive()
     {
-        if (IsInstalled() && !string.Equals(Path.GetFullPath(Environment.ProcessPath), Path.GetFullPath(InstalledExe), StringComparison.OrdinalIgnoreCase))
+        var self = Path.GetFullPath(Environment.ProcessPath);
+        bool installedCopy = string.Equals(self, Path.GetFullPath(InstalledExe), StringComparison.OrdinalIgnoreCase)
+            || string.Equals(self, Path.GetFullPath(Service.ServiceExePath), StringComparison.OrdinalIgnoreCase);
+        if (IsInstalled() && !installedCopy)
         {
             // Andere Datei als die installierte gestartet: aktualisieren (ein laufender Netz-Modus wird dafür beendet)
             bool service = Service.IsInstalled();
@@ -64,12 +67,9 @@ static class Installer
             if (wasRunning && !service) System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(InstalledExe, "--server") { UseShellExecute = false });
             return 0;
         }
-        if (IsInstalled())
-        {
-            if (!Ask(L.T($"NovaBird Helper {Program.Version} ist installiert.\n\nJetzt entfernen?", $"NovaBird Helper {Program.Version} is installed.\n\nRemove it now?"))) return 0;
-            bool all = Ask(L.T("Auch die geladenen Modelle und Einstellungen löschen?\n\n(Nein: bleiben für eine spätere Installation erhalten.)", "Also delete the downloaded models and settings?\n\n(No: they are kept for a later installation.)"));
-            return Uninstall(false, all) ? 0 : 1;
-        }
+        // Die installierte Datei (oder die des Dienstes) selbst: starten – Netz-Modus bzw. nur das Symbol, je nach Betriebsart.
+        // Entfernen geht über „Installierte Apps“ (--uninstall).
+        if (IsInstalled()) return Tray.Auto();
         // Neuinstallation: Assistent mit Admin der Web-Oberfläche, danach Web-Oberfläche mit Einrichtung (SetupWizard.cs)
         return SetupWizard.Run();
     }

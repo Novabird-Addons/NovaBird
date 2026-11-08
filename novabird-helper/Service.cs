@@ -19,6 +19,7 @@ sealed class Service : ServiceBase
     const string DisplayName = "NovaBird Helper";
     static string ProgramDir => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "NovaBird Helper");
     static string ServiceExe => Path.Combine(ProgramDir, "nbhelper.exe");
+    public static string ServiceExePath => ServiceExe;
     static readonly string[] FirewallRules = { "NovaBird Helper (PCs)", "NovaBird Helper (Web)", "NovaBird Helper (Suche)" };
 
     Core core;

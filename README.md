@@ -52,7 +52,7 @@ A fork of Thunderbird for Android that brings NovaBird to the phone. [Download (
 Android 14 or newer, 64-bit.
 
 ### NovaBird Helper (optional, Windows)
-A small program for the PC with the graphics card. [More about the Helper](novabird-helper/README.md)
+A small program for the PC with the graphics card. [Quick guide: install and connect](docs/helper-guide.md) · [More about the Helper](novabird-helper/README.md)
 
 - **Uses the graphics card** for search, language model and reading aloud.
 - **One PC computes for several,** encrypted, in your own network.
@@ -104,7 +104,7 @@ Add-ons for [Betterbird](https://www.betterbird.eu/) and Thunderbird ESR that wo
 | **[NovaBird-Conversation](novabird-conversation/README.md)** | 0.15.6 | Whole threads in the reading pane |
 | **[NovaBird-Send](novabird-send/README.md)** | 1.0.4 | Undo send with queue |
 | **[NovaBird-Extension](novabird-extension/README.md)** | 2.0.0 | Message list, right pane, themes, Nova-Contact, AI assistant, settings |
-| **[NovaBird Helper](novabird-helper/README.md)** | 0.5.0 | Optional Windows program: graphics card, network, team calendars |
+| **[NovaBird Helper](novabird-helper/README.md)** | 0.5.1 | Optional Windows program: graphics card, network, team calendars |
 
 Every add-on works on its own. Together they do more.
 

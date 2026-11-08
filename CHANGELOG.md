@@ -3,7 +3,12 @@
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
 ## Unreleased (branch `novabird-2.0`)
-NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.6 · Helper 0.5.0 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
+NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.6 · Helper 0.5.1 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
+
+### Helper 0.5.1: the icon starts by itself
+- With the helper set up as a Windows service, the Start menu entry "NovaBird Helper (Netz)" only showed a message that the icon starts with `nbhelper.exe --tray`. Start menu, double-click on the installed `nbhelper.exe` and `--server` now detect the mode themselves: network mode in the user account, or only the icon when the service runs. If it already runs, the web interface opens instead of a message.
+- Double-clicking the installed `nbhelper.exe` (or the copy of the service in `%ProgramFiles%`) used to offer to remove the helper; the copy of the service even offered to "update" itself. It now starts the helper. Removing stays under "Installed apps".
+- New quick guide for installing the helper and connecting Thunderbird, with four screenshots: [docs/helper-guide.md](docs/helper-guide.md) (English), [docs/helper-anleitung.md](docs/helper-anleitung.md) (German).
 
 ### Search: the hit list starts at the top again
 - After a search with "Best first" or "Relevance" the list often showed its middle or end, with a message selected that nobody had clicked. After loading, Thunderbird holds the oldest hit as its "current" message; sorting by rank kept it, selected it and scrolled to it. Since older mail counts less, it is usually far down. The list now starts at the top with nothing selected; a message the user selected stays selected when the meaning hits are added.

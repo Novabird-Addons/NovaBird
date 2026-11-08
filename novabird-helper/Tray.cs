@@ -3,6 +3,8 @@
 //    (WebServer.cs); das Kontextmenü hat nur das Nötigste. Läuft nur einmal je Benutzer.
 //  - nbhelper.exe --tray: nur das Symbol, wenn der Kern als Windows-Dienst läuft (Service.cs); fragt den Dienst über
 //    http://localhost/api/ping nach dem Zustand.
+//  - ohne Schalter (installierte Datei, Auto) und --server erkennen die Betriebsart selbst: Netz-Modus oder nur Symbol;
+//    läuft es schon, öffnet sich die Web-Oberfläche.
 //  - nbhelper.exe --server-console: Kern ohne Oberfläche (Tests; Ausgabe als JSON-Zeilen, Befehle auf stdin, Ende mit EOF).
 using System.Diagnostics;
 using System.Text.Json.Nodes;
@@ -103,18 +105,18 @@ static class Tray
         Application.SetCompatibleTextRenderingDefault(false);
     }
 
+    /// <summary>Start ohne Schalter (Doppelklick auf die installierte Datei): erkennt selbst, ob der Netz-Modus hier läuft oder
+    /// als Windows-Dienst, und startet den Netz-Modus bzw. nur das Symbol; läuft es schon, öffnet sich die Web-Oberfläche.</summary>
+    public static int Auto() => Service.IsInstalled() ? RunTray(openIfRunning: true) : Run();
+
     public static int Run()
     {
+        // Als Dienst eingerichtet (Startmenü „NovaBird Helper (Netz)“, alter Autostart-Eintrag): nur das Symbol
+        if (Service.IsInstalled()) return RunTray(openIfRunning: true);
         using var single = new Mutex(true, @"Local\NovaBird.Helper.Net", out bool first);
         if (!first)
         {
-            MessageBox.Show(L.T("Der Netz-Modus des NovaBird Helpers läuft schon (Symbol im Infobereich).", "The network mode of the NovaBird Helper is already running (icon in the notification area)."), Title, MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return 0;
-        }
-        if (Service.IsInstalled())
-        {
-            MessageBox.Show(L.T("Der NovaBird Helper ist als Windows-Dienst eingerichtet; der Netz-Modus läuft dort. Das Symbol startet mit „nbhelper.exe --tray“.", "The NovaBird Helper is set up as a Windows service; the network mode runs there. The icon starts with \"nbhelper.exe --tray\"."),
-                Title, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            OpenWeb(Core.WebPortSetting); // läuft schon: Bedienung öffnen statt Hinweisfenster
             return 0;
         }
         InitUi();
@@ -229,10 +231,14 @@ static class Tray
     }
 
     // ---- nur Symbol (Dienstbetrieb) ---------------------------------------------------------------------------------------
-    public static int RunTray()
+    public static int RunTray(bool openIfRunning = false)
     {
         using var single = new Mutex(true, @"Local\NovaBird.Helper.Tray", out bool first);
-        if (!first) return 0;
+        if (!first)
+        {
+            if (openIfRunning) OpenWeb(Core.WebPortSetting);
+            return 0;
+        }
         InitUi();
         Application.Run(new ServiceTray());
         return 0;
