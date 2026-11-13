@@ -545,6 +545,8 @@ async function runAction(raw, tabId) {
     case "notJunk": {
       const junk = msg.action === "junk";
       const info = await messenger.messages.get(msg.id);
+      // erst lernen (liest die Mail noch am alten Ort), dann bewerten und verschieben; ohne Training wird der Filter nie besser
+      await messenger.conversationView.trainJunk(msg.id, junk).catch(e => console.warn("NovaBird: Spam-Training", e));
       await messenger.messages.update(msg.id, { junk });
       const account = info.folder?.accountId ? await messenger.accounts.get(info.folder.accountId, true) : null;
       const find = (folders, type) => {

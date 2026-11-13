@@ -98,6 +98,22 @@
         ]
       },
       {
+        "name": "trainJunk",
+        "type": "function",
+        "async": true,
+        "description": "Trainiert den Spam-Filter von Thunderbird mit einer Mail (wie dessen Spam-Knopf): true = Spam, false = kein Spam. Liefert true, wenn der Filter die Mail gelernt hat.",
+        "parameters": [
+          {
+            "name": "messageId",
+            "type": "integer"
+          },
+          {
+            "name": "junk",
+            "type": "boolean"
+          }
+        ]
+      },
+      {
         "name": "fetchImage",
         "type": "function",
         "async": true,

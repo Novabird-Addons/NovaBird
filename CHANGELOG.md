@@ -3,7 +3,10 @@
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
 ## Unreleased (branch `novabird-2.0`)
-NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.6 · Helper 0.5.1 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
+NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.7 · Helper 0.5.1 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
+
+### NovaBird-Conversation 0.15.7: the spam button teaches Thunderbird's junk filter
+- "Spam" and "Not spam" in the conversation view marked the message and moved it, but Thunderbird's junk filter learned nothing from it (`messages.update({ junk })` only sets the score). Marking spam there never made the filter better, so new spam waves kept landing in the inbox. The buttons now train the filter like Thunderbird's own junk button: "Not spam" takes back an earlier "Spam", a second click learns nothing twice, and the message is only moved once the filter has read it.
 
 ### Helper 0.5.1: the icon starts by itself
 - With the helper set up as a Windows service, the Start menu entry "NovaBird Helper (Netz)" only showed a message that the icon starts with `nbhelper.exe --tray`. Start menu, double-click on the installed `nbhelper.exe` and `--server` now detect the mode themselves: network mode in the user account, or only the icon when the service runs. If it already runs, the web interface opens instead of a message.

@@ -7,6 +7,7 @@ var { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/Ext
 var { setTimeout, clearTimeout } = ChromeUtils.importESModule("resource://gre/modules/Timer.sys.mjs");
 
 var { ExtensionSupport } = ChromeUtils.importESModule("resource:///modules/ExtensionSupport.sys.mjs");
+var { MailServices } = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
 
 const HTML_NS = "http://www.w3.org/1999/xhtml";
 
@@ -400,6 +401,42 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
           });
           const win = Services.wm.getMostRecentWindow("mail:3pane");
           return Boolean(await info.save(win.browsingContext));
+        },
+        // Spam-Filter von Thunderbird trainieren wie dessen eigener Spam-Knopf (nsMsgDBView::SetAsJunkByIndex): messages.update
+        // setzt nur die Spam-Bewertung, lernt aber nichts – mit dem Knopf der Konversation wurde der Filter also nie besser.
+        // Wartet, bis der Filter die Mail gelesen hat (danach darf sie verschoben werden), höchstens 15 s.
+        async trainJunk(messageId, junk) {
+          const hdr = context.extension.messageManager.get(messageId);
+          if (!hdr?.folder) {
+            return false;
+          }
+          const plugin = Ci.nsIJunkMailPlugin;
+          const origin = hdr.getStringProperty("junkscoreorigin");
+          const score = hdr.getStringProperty("junkscore");
+          // nur eine frühere Entscheidung des Nutzers wird zurückgenommen, eine automatische Bewertung wurde nie gelernt
+          const old = origin !== "user" || !score ? plugin.UNCLASSIFIED : Number(score) === plugin.IS_SPAM_SCORE ? plugin.JUNK : plugin.GOOD;
+          const next = junk ? plugin.JUNK : plugin.GOOD;
+          if (old === next) {
+            return true;
+          }
+          const uri = hdr.folder.getUriForMsg(hdr);
+          const msgWindow = Services.wm.getMostRecentWindow("mail:3pane")?.msgWindow ?? null;
+          return new Promise(resolve => {
+            const timer = setTimeout(() => resolve(false), 15000);
+            try {
+              MailServices.junk.setMessageClassification(uri, old, next, msgWindow, {
+                QueryInterface: ChromeUtils.generateQI(["nsIJunkMailClassificationListener"]),
+                onMessageClassified() {
+                  clearTimeout(timer);
+                  resolve(true);
+                },
+              });
+            } catch (e) {
+              console.error("NovaBird: Spam-Filter nicht trainiert", e);
+              clearTimeout(timer);
+              resolve(false);
+            }
+          });
         },
         async getMessageId(headerMessageId, accountId, path) {
           try {
