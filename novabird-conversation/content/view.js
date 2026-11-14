@@ -265,6 +265,56 @@
     if (w != null && w > 0 && h != null && h > 60) img.style.height = "auto";
   }
 
+  // Aufbau von Tabellen (Signaturen, Layout-Mails) behalten: Breiten, kein Umbruch, Ausrichtung. Farben, Schriften und
+  // sonstige Stile bleiben draußen. Ohne Breiten verteilte der Browser die Spalten selbst; Signaturen fielen auseinander.
+  const LAYOUT = new Set(["table", "tr", "td", "th", "div", "p", "center", "h1", "h2", "h3", "h4", "h5", "h6"]);
+  const ALIGN = /^(left|center|right|justify)$/i;
+  const VALIGN = /^(top|middle|bottom|baseline)$/i;
+  const cssValue = (style, prop) => {
+    const m = String(style ?? "").match(new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([a-z-]+)`, "i"));
+    return m ? m[1].toLowerCase() : null;
+  };
+  function keepLayout(source, node, tag) {
+    const style = source.getAttribute("style");
+    if (tag === "table" || tag === "td" || tag === "th") {
+      const attr = String(source.getAttribute("width") ?? "").trim();
+      const px = cssPx(style, "width") ?? (/^\d{1,4}$/.test(attr) ? Number(attr) : null);
+      if (px != null && px > 0 && px <= 2000) node.style.width = `${px}px`;
+      else if (/^\d{1,3}%$/.test(attr) && parseInt(attr, 10) <= 100) node.style.width = attr;
+    }
+    if (tag === "td" || tag === "th") {
+      if (source.hasAttribute("nowrap") || cssValue(style, "white-space") === "nowrap") node.style.whiteSpace = "nowrap";
+      const v = source.getAttribute("valign") ?? cssValue(style, "vertical-align");
+      if (VALIGN.test(v ?? "")) node.style.verticalAlign = v.toLowerCase();
+    }
+    const a = source.getAttribute("align") ?? cssValue(style, "text-align");
+    if (tag === "table") {
+      // align="left/right" ließe die Tabelle umfließen; nur Zentrieren übernehmen
+      if (/^center$/i.test(a ?? "")) node.style.marginInline = "auto";
+    } else if (ALIGN.test(a ?? "")) {
+      node.style.textAlign = a.toLowerCase();
+    }
+  }
+
+  // Sehr lange „Wörter“ (Links, Prüfsummen) bekommen alle 20 Zeichen eine Umbruchstelle (<wbr>, ändert kopierten Text nicht).
+  // Tabellenzellen brechen sonst nur an Wortgrenzen um, und ein langer Link machte die ganze Tabelle breit.
+  function appendText(into, text) {
+    if (!/\S{31}/.test(text)) {
+      into.append(document.createTextNode(text));
+      return;
+    }
+    for (const part of text.split(/(\S{31,})/)) {
+      if (!/^\S{31,}$/.test(part)) {
+        if (part) into.append(document.createTextNode(part));
+        continue;
+      }
+      for (let i = 0; i < part.length; i += 20) {
+        if (i) into.append(document.createElement("wbr"));
+        into.append(document.createTextNode(part.slice(i, i + 20)));
+      }
+    }
+  }
+
   function renderHtml(html, id, body) {
     const doc = new DOMParser().parseFromString(html.slice(0, MAX_HTML), "text/html");
     const state = { blocked: false };
@@ -274,7 +324,7 @@
       for (const child of src.childNodes) {
         if (child.nodeType === 3) {
           if (zero && !/\S/.test(child.nodeValue)) continue;
-          into.append(document.createTextNode(child.nodeValue));
+          appendText(into, child.nodeValue);
         } else if (child.nodeType === 1) {
           const tag = child.localName;
           if (DROP.has(tag) || isHidden(child)) continue;
@@ -332,6 +382,7 @@
           for (const attr of ["colspan", "rowspan"]) {
             if (/^\d{1,3}$/.test(child.getAttribute(attr) ?? "")) node.setAttribute(attr, child.getAttribute(attr));
           }
+          if (LAYOUT.has(tag)) keepLayout(child, node, tag);
           if (tag === "blockquote" && settings.collapseQuotes && !inQuote) {
             copy(child, node, true, childZero);
             into.append(quoteBox(node));
@@ -347,6 +398,13 @@
     // Tabellen ohne Text und Bild zeigen bei uns nichts (Farben/Größen sind weg), kosten aber Platz: weglassen
     for (const table of [...out.querySelectorAll("table")].reverse()) {
       if (!/\S/.test(table.textContent) && !table.querySelector("img, hr")) table.remove();
+    }
+    // Zu breite Tabellen scrollen für sich, statt Wörter zu zerreißen oder über den Rand zu ragen
+    for (const table of out.querySelectorAll("table")) {
+      if (table.parentElement?.closest("table")) continue;
+      const box = el("div", "nbc-tw");
+      table.replaceWith(box);
+      box.append(table);
     }
     if (state.blocked) out.prepend(remoteNotice(id));
     loadRemoteImages(out);

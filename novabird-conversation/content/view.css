@@ -151,8 +151,11 @@ html:not(.nbc-shown) body:not(.nbc-on) { opacity: 0; animation: nbc-reveal 1ms 1
 .nbc-body { min-width: 0; }
 .nbc-body pre, .nbc-body pre.nbc-text { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; box-sizing: border-box; }
 .nbc-body hr { max-width: 100%; box-sizing: border-box; }
+/* Tabellen: Wörter nur im Notfall umbrechen (anywhere ließ Spalten so schmal werden, dass Wörter mittendrin brachen);
+   was dann noch zu breit ist, scrollt im eigenen Kasten */
+.nbc-body .nbc-tw { max-width: 100%; overflow-x: auto; }
 .nbc-body table { max-width: 100%; }
-.nbc-body td, .nbc-body th { overflow-wrap: anywhere; }
+.nbc-body td, .nbc-body th { overflow-wrap: break-word; }
 .nbc-body.limited { overflow-x: hidden; }
 .nbc-body:not(.limited) { overflow-x: auto; }
 

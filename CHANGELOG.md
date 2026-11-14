@@ -3,7 +3,10 @@
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
 ## Unreleased (branch `novabird-2.0`)
-NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.7 · Helper 0.5.1 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
+NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.8 · Helper 0.5.1 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
+
+### NovaBird-Conversation 0.15.8: signatures and table layouts stay intact
+- HTML signatures built as tables (logo, name, contact block side by side) fell apart in the conversation view: words broke in the middle ("Offic e", "Ber lin"), links split over two lines, blocks slipped. The view takes no styles from mails, so all widths were lost, and cells were allowed to break anywhere. It now keeps the table layout only: widths of tables and cells (numbers or percent, at most 2000 px), "no wrap" and alignment; a whole table is only ever centered. Colors and fonts still come from the theme. Cells break only between words; a table that is still too wide scrolls sideways in its own box. Very long links in tables get invisible break points, copying them gives the unchanged text.
 
 ### NovaBird-Conversation 0.15.7: the spam button teaches Thunderbird's junk filter
 - "Spam" and "Not spam" in the conversation view marked the message and moved it, but Thunderbird's junk filter learned nothing from it (`messages.update({ junk })` only sets the score). Marking spam there never made the filter better, so new spam waves kept landing in the inbox. The buttons now train the filter like Thunderbird's own junk button: "Not spam" takes back an earlier "Spam", a second click learns nothing twice, and the message is only moved once the filter has read it.
