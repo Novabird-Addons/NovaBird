@@ -227,12 +227,13 @@ sealed class NetServer
                 }
                 closeOnLimit.Dispose();
                 if (Blocked(ip)) { await Send(stream, 429, "{\"error\":\"blocked\"}"); return; }
-                if (method == "OPTIONS") { await Send(stream, 204, ""); return; }
+                // Kopplung ohne CORS-Freigabe: eine Webseite im Browser eines PCs im Netz soll keine Anfrage stellen und lesen können
+                if (method == "OPTIONS") { await Send(stream, 204, "", cors: path != Pairing.Path); return; }
                 if (path == Pairing.Path && method == "POST")
                 {
                     var (st, js, fail) = Pairing.Handle(body, ip);
                     if (fail) Fail(ip);
-                    await Send(stream, st, js);
+                    await Send(stream, st, js, cors: false);
                     return;
                 }
                 if (path != Path) { await Send(stream, 404, "{\"error\":\"path\"}"); return; }
@@ -243,7 +244,11 @@ sealed class NetServer
             }
             catch (Exception e)
             {
-                Log.Write($"Netz {ip}: {e.Message}");
+                if (!staleLogged.TryGetValue("x|" + ip, out var lastLog) || DateTime.UtcNow - lastLog > TimeSpan.FromMinutes(1))
+                {
+                    staleLogged["x|" + ip] = DateTime.UtcNow;
+                    Log.Write($"Netz {ip}: {e.Message}");
+                }
             }
         }
     }
@@ -268,15 +273,17 @@ sealed class NetServer
         return (first[0], first[1].Split('?')[0], length);
     }
 
-    static async Task Send(NetworkStream s, int status, string json)
+    static async Task Send(NetworkStream s, int status, string json, bool cors = true)
     {
         var body = Encoding.UTF8.GetBytes(json);
         var reason = status switch { 200 => "OK", 204 => "No Content", 400 => "Bad Request", 403 => "Forbidden", 404 => "Not Found", 429 => "Too Many Requests", _ => "Error" };
         var head = $"HTTP/1.1 {status} {reason}\r\nContent-Type: application/json\r\nContent-Length: {body.Length}\r\nConnection: close\r\n" +
-                   "Access-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: GET, POST, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type\r\n\r\n";
+                   (cors ? "Access-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: GET, POST, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type\r\n" : "") + "\r\n";
         await s.WriteAsync(Encoding.ASCII.GetBytes(head));
         if (body.Length > 0) await s.WriteAsync(body);
     }
+
+    readonly ConcurrentDictionary<string, DateTime> staleLogged = new();
 
     bool Blocked(string ip) => failures.TryGetValue(ip, out var f) && f.Count >= 20 && DateTime.UtcNow - f.Since < TimeSpan.FromMinutes(1);
 
@@ -335,7 +342,14 @@ sealed class NetServer
         {
             // now: Uhrzeit des Helpers (ms), damit das Gerät eine abweichende Uhr erkennt und klar melden kann
             reply = new JsonObject { ["ok"] = false, ["error"] = "Anfrage abgelaufen oder wiederholt (Uhrzeit der PCs prüfen)", ["clock"] = true, ["now"] = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() };
-            Log.Write($"Netz {ip}: Anfrage abgelaufen oder wiederholt (Zeitunterschied {(DateTime.UtcNow - ts).TotalSeconds:0} s)");
+            // höchstens einmal je Adresse und Minute ins Protokoll: wiederholte Anfragen könnten es sonst fluten und so leeren
+            if (staleLogged.TryGetValue(ip, out var lastLog) && DateTime.UtcNow - lastLog < TimeSpan.FromMinutes(1)) { }
+            else
+            {
+                staleLogged[ip] = DateTime.UtcNow;
+                if (staleLogged.Count > 1000) staleLogged.Clear();
+                Log.Write($"Netz {ip}: Anfrage abgelaufen oder wiederholt (Zeitunterschied {(DateTime.UtcNow - ts).TotalSeconds:0} s)");
+            }
         }
         else
         {

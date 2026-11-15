@@ -615,6 +615,12 @@ export function parseQuery(input, options = {}) {
       }
     }
   }
+  // Nur ein Zeithinweis („damals“, „alte Mails“, „long ago“) ohne jede Bedingung: sonst zeigte die Suche einfach alle Mails.
+  // Dann sind die getippten Wörter doch die Suchbegriffe.
+  if (q.timeHint === "past" && isEmptyQuery(q)) {
+    q.timeHint = null;
+    extractTerms(` ${q.raw.replace(/\s+/g, " ")} `, q, ctx);
+  }
   delete q.fillerWords;
   return q;
 }

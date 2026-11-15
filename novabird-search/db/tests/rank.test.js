@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { rerank, recencyWeight, ageWeight, ageOptions, sortSemByAge } from "../src/query/rank.js";
-import { parseQuery } from "../src/parser/parseQuery.js";
+import { parseQuery, isEmptyQuery } from "../src/parser/parseQuery.js";
 import { toChips, removeChip } from "../src/parser/chips.js";
 import { createNodeAdapter } from "./helpers/node-adapter.js";
 import { migrate, repository, search } from "../src/search.js";
@@ -82,6 +82,13 @@ describe("„vor langer Zeit“ in vier Sprachen", () => {
     expect(parseQuery("rechnung vor 10 jahren", { langs: ["de"], now: NOW }).dateFrom).not.toBeNull();
     expect(parseQuery("invoice 2012", { langs: ["en"], now: NOW }).dateTo).not.toBeNull();
     expect(parseQuery("rechnung", { langs: ["de"], now: NOW }).timeHint).toBeNull();
+  });
+  it("nur ein Zeithinweis ohne Bedingung: die Wörter sind doch der Suchbegriff (sonst kämen alle Mails)", () => {
+    for (const [lang, text] of [["de", "damals"], ["de", "alte mails"], ["en", "back then"], ["fr", "autrefois"], ["es", "antiguamente"]]) {
+      const q = parseQuery(text, { langs: [lang], now: NOW });
+      expect(isEmptyQuery(q), text).toBe(false);
+      expect(q.timeHint, text).toBeNull();
+    }
   });
   it("Chip „Ältere Mails“ lässt sich entfernen", () => {
     const q = parseQuery("rechnung damals", { langs: ["de"], now: NOW });

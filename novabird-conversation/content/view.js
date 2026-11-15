@@ -7,6 +7,18 @@
 
   // Ursprüngliches Dokument der Mail (für „Original anzeigen“); wird beim ersten Übernehmen gesichert
   let original = null;
+  // Mail wieder so zeigen, wie Betterbird sie geladen hat (Stilblätter, Attribute, Inhalt)
+  const restoreOriginal = () => {
+    if (!original) return;
+    document.getElementById("nbc-root")?.remove();
+    document.body.className = "";
+    for (const attr of [...document.body.attributes]) document.body.removeAttribute(attr.name);
+    for (const [name, value] of original.bodyAttrs) if (name !== "class") document.body.setAttribute(name, value);
+    for (const [name, value] of original.htmlAttrs) document.documentElement.setAttribute(name, value);
+    for (const sheet of original.sheets) sheet.disabled = false;
+    document.body.replaceChildren(...original.nodes);
+    document.body.style.overflow = "";
+  };
 
   // Die ganze Ansicht ist eine Funktion, damit sie nach dem Löschen einer Nachricht neu aufgebaut werden kann
   async function run() {
@@ -40,11 +52,14 @@
     mark("hello");
     if (data?.timing) document.documentElement.dataset.nbcBg = JSON.stringify(data.timing);
   } catch (e) {
+    hint.remove();
+    restoreOriginal(); // Neuaufbau nach Löschen/Spam gescheitert: nicht leer stehen lassen
     unpend();
     return;
   }
   hint.remove();
   if (!data) {
+    restoreOriginal(); // z. B. nach Löschen nur noch eine Nachricht: wieder die Mail selbst zeigen
     unpend();
     return;
   }
@@ -235,7 +250,8 @@
   const HIDDEN_ANY = /(?<![\w-])(?:display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|mso-hide\s*:\s*all|color\s*:\s*transparent)|(?<![\w-])max-height\s*:\s*0[a-z%]*\s*[;!]?[^"]*overflow\s*:\s*hidden|overflow\s*:\s*hidden[^"]*(?<![\w-])max-height\s*:\s*0[a-z%]*\s*(?:;|!|$)/i;
   const HIDDEN_LEAF = /(?<![\w-])(?:font-size|max-height)\s*:\s*0[a-z%]*\s*(?:;|!|$)/i;
   const isHidden = node => {
-    const style = node.getAttribute("style");
+    // nur der Anfang: die Muster laufen bei riesigen Stil-Angaben quadratisch (Mail könnte die Ansicht sonst minutenlang einfrieren)
+    const style = node.getAttribute("style")?.slice(0, 2000);
     if (!style) return false;
     return HIDDEN_ANY.test(style) || (node.childElementCount === 0 && HIDDEN_LEAF.test(style));
   };
@@ -412,7 +428,12 @@
   }
 
   function previewOf(body) {
-    const raw = body.text ?? (body.html ? new DOMParser().parseFromString(body.html.slice(0, 200000), "text/html").body?.textContent ?? "" : "");
+    let raw = body.text ?? "";
+    if (body.text == null && body.html) {
+      const b = new DOMParser().parseFromString(body.html.slice(0, 200000), "text/html").body;
+      b?.querySelectorAll("style, script, template").forEach(n => n.remove()); // CSS-/Skript-Text gehört nicht in die Vorschau
+      raw = b?.textContent ?? "";
+    }
     const lines = raw.split(/\r?\n/).filter(l => l.trim() && !/^\s*>/.test(l));
     return lines.join(" ").replace(/\s+/g, " ").trim().slice(0, 400);
   }
@@ -523,7 +544,7 @@
   function toLine(msg) {
     if (!msg.recipients.length) return "";
     const names = msg.recipients.slice(0, 2).join(", ") + (msg.recipients.length > 2 ? ` (+${msg.recipients.length - 2})` : "");
-    return t("toNamesTemplate").replace("%NAMES%", names);
+    return t("toNamesTemplate").replace("%NAMES%", () => names); // Funktion: „$&“ im Namen bleibt Text
   }
 
   // Rechtsklick auf den Absendernamen: eigenes kleines Menü „Mailadresse kopieren“
@@ -632,7 +653,7 @@
         e.hd.insertBefore(e.foldPv, e.hd.querySelector(".nbc-date") ?? null);
       }
     }
-    if (remember) send({ type: "pinFold", id: msg.id, folded }).catch(() => {});
+    if (remember) send({ type: "pinFold", id: msg.mid || msg.id, folded }).catch(() => {});
   }
 
   async function fill(msg, animate = false) {
@@ -738,14 +759,7 @@
   // Originalansicht von Betterbird (Mail mit eigenem HTML/CSS) wiederherstellen; oben ein schmaler Rückweg zur Konversationsansicht
   function showOriginal() {
     if (!original) return;
-    document.getElementById("nbc-root")?.remove();
-    document.body.className = "";
-    for (const attr of [...document.body.attributes]) document.body.removeAttribute(attr.name);
-    for (const [name, value] of original.bodyAttrs) if (name !== "class") document.body.setAttribute(name, value);
-    for (const [name, value] of original.htmlAttrs) document.documentElement.setAttribute(name, value);
-    for (const sheet of original.sheets) sheet.disabled = false;
-    document.body.replaceChildren(...original.nodes);
-    document.body.style.overflow = "";
+    restoreOriginal();
     const bar = el("div");
     bar.id = "nbc-back";
     const back = el("button", "nbc-btn", `← ${t("backToConversation")}`);
@@ -958,7 +972,8 @@
     if (ordered.length > 1) history.append(el("div", "nbc-label", t("history")));
     for (const m of ordered) if (m !== pinnedMsg) history.append(cards.get(m.id));
     root.append(pinned, sep(), history);
-    setFold(pinnedMsg, data.folded?.includes(pinnedMsg.id) === true, false);
+    // gewählte neueste Nachricht selbst: ganz zeigen (eingeklappt bleibt sie nur beim Lesen älterer Mails)
+    setFold(pinnedMsg, pinnedMsg.id !== data.selectedId && data.folded?.includes(pinnedMsg.id) === true, false);
     fitPinned(root, pinned);
   } else {
     const list = el("div", "nbc-list");

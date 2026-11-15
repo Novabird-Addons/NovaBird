@@ -160,6 +160,7 @@ function authorName(row) {
 function rowToView(row) {
   return {
     id: rowKey(row),
+    mid: row.headerMessageId ?? "", // fester Schlüssel über alle Quellen (Index, Gloda, Suche)
     author: authorName(row),
     email: String(row.authorEmail ?? "").trim().toLowerCase(),
     recipients: recipientNames(row.recipients),

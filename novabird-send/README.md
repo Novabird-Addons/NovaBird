@@ -1,6 +1,6 @@
 # NovaBird-Send
 
-Verzögertes Senden mit Rückgängig-Overlay für **Betterbird** / Thunderbird ESR (ab 128). Version 1.0.2 · Deutsch, English, Français, Español · passt sich dem Theme an.
+Verzögertes Senden mit Rückgängig-Overlay für **Betterbird** / Thunderbird ESR (ab 128). Version 1.0.5 · Deutsch, English, Français, Español · passt sich dem Theme an.
 
 ![Overlay hell](docs/overlay-hell.svg)
 

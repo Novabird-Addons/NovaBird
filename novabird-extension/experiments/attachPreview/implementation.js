@@ -99,6 +99,11 @@ function offsetToMain(docWin) {
   return { x, y };
 }
 
+// Nur Anhänge aus Mails (lokal, IMAP, News) bzw. abgetrennte Anhänge als Datei; nie Adressen im Netz
+// ews/graph: Exchange ab TB 160. file: nur lokal (file:///Pfad), nie mit Rechnername (file://host/…, file:////host): das wäre
+// eine Netzwerkverbindung beim Überfahren (unter Windows samt Anmeldung)
+const SAFE_URL = /^(?:(?:mailbox|mailbox-message|imap|imap-message|news|news-message|snews|ews|ews-message|graph|graph-message):|file:\/\/\/(?![\/\\]))/i;
+
 // Was liegt unter dem Zeiger? -> { el, url, name, type } oder null (je nach Dokumentart)
 function resolveTarget(doc, target, win) {
   if (!target?.closest) return null;
@@ -109,8 +114,10 @@ function resolveTarget(doc, target, win) {
     const sender = chip.closest(".nbc-card")?.querySelector(".nbc-name")?.textContent?.trim() || "";
     return { el: chip, name, type: "", lazy: () => findChipAttachment(win, name, sender) };
   }
-  const row = target.closest(".sa-row");
-  if (row?.dataset?.pvUrl) {
+  // Zeilen der Anhangleiste (novaCalendar) nur aus Thunderbirds eigener Oberfläche: eine Mail kann dieselben Klassen und
+  // data-Attribute mitbringen und sonst beim Überfahren eine beliebige Adresse laden lassen (Lesebestätigung an den Absender)
+  const row = doc.nodePrincipal?.isSystemPrincipal ? target.closest(".sa-row") : null;
+  if (row?.dataset?.pvUrl && SAFE_URL.test(row.dataset.pvUrl)) {
     return { el: row, url: row.dataset.pvUrl, name: row.dataset.pvName || "", type: row.dataset.pvType || "" };
   }
   const item = target.closest("#attachmentList > richlistitem");
@@ -295,7 +302,7 @@ function hookDocument(st, doc) {
   const onOver = e => {
     if (!enabled) return;
     const t = resolveTarget(doc, e.target, win);
-    if (!t) return;
+    if (!t || (t.url && !SAFE_URL.test(t.url))) return; // auch externe Anhänge (Link im Kopf der Mail) nicht laden
     win.clearTimeout(st.hideTimer);
     if (t.url && st.current && st.current.url === t.url && !st.box.hidden) return;
     win.clearTimeout(st.showTimer);
@@ -307,6 +314,7 @@ function hookDocument(st, doc) {
       let target = t;
       if (t.lazy) {
         try { target = await t.lazy(); } catch (err) { target = null; }
+        if (target?.url && !SAFE_URL.test(target.url)) target = null;
         if (!target || st.hoverEl !== t.el) return;
       }
       show(st, target, rect, pointer);

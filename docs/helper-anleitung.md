@@ -2,7 +2,7 @@
 
 Der Helper ist ein kleines Windows-Programm für den PC mit der Grafikkarte. Er rechnet für NovaBird die Suche nach Bedeutung,
 den KI-Assistenten und das Vorlesen – für diesen PC und auf Wunsch für weitere PCs und Handys im eigenen Netz. Er ist
-optional: Ohne Helper funktioniert alles, nur langsamer. Stand: Helper 0.5.1. [English version](helper-guide.md)
+optional: Ohne Helper funktioniert alles, nur langsamer. Stand: Helper 0.5.2. [English version](helper-guide.md)
 
 ## 1. Installieren (auf dem PC mit Grafikkarte)
 
@@ -30,7 +30,8 @@ Startmenü **„NovaBird Helper (Netz)“** – läuft er schon, öffnet sich di
 
    ![Thunderbird: Zahl beim Koppeln](images/helper-tb-koppeln.png)
 
-4. **Am Helper** steht dieselbe Zahl. Nur wenn sie gleich ist: **„Zulassen“**.
+4. **Am Helper** steht dieselbe Zahl. Nur wenn sie gleich ist: dort **„Zulassen“** und in Thunderbird **„Zahl stimmt“**
+   (ab Helper 0.5.2; Thunderbird verbindet sich erst nach diesem Klick).
 
    ![Web-Oberfläche des Helpers: Anfrage zulassen](images/helper-web-zulassen.png)
 

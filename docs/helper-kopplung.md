@@ -11,9 +11,11 @@ Code: `novabird-helper/Pairing.cs` (Helper), `novabird-extension/options/helper.
 
 1. Am Helper: Web-Oberfläche → PCs → „Gerät über Kopplung hinzufügen“ → **Kopplungsmodus** (5 Minuten, für eine Gruppe).
 2. Gerät: **Suche** per UDP-Multicast (nur im Kopplungsmodus antwortet der Helper).
-3. Gerät: **Schlüsseltausch** (ECDH P-256), beide Seiten zeigen dieselbe **6-stellige Zahl**.
+3. Gerät: **Schlüsseltausch** (ECDH P-256, Verfahren 2 mit Festlegung), beide Seiten zeigen dieselbe **6-stellige Zahl**.
 4. Am Helper: Zahl vergleichen, **„Zulassen“** (Web-Oberfläche, PCs).
-5. Gerät: holt den Code verschlüsselt ab (einmalig), speichert Adresse + Code + eigenen Namen.
+5. Gerät: Nutzer bestätigt **„Zahl stimmt“** (ohne diese Bestätigung nie verbinden: sonst könnte sich ein falscher Helper im
+   Netz, der auf die Suche antwortet, selbst „zulassen“).
+6. Gerät: holt den Code verschlüsselt ab (einmalig), speichert Adresse + Code + eigenen Namen.
 
 ## 1. Suche (UDP)
 
@@ -28,13 +30,25 @@ Code: `novabird-helper/Pairing.cs` (Helper), `novabird-extension/options/helper.
 
 ## 2. Schlüsseltausch: `POST http://<adresse>:<port>/nbhelper/pair`
 
-Unverschlüsseltes JSON; der Schutz kommt aus ECDH + Vergleichszahl.
+Unverschlüsseltes JSON; der Schutz kommt aus ECDH + Festlegung + Vergleichszahl. Keine CORS-Freigabe (Browser-Seiten
+können die Kopplung nicht nutzen).
 
-**start** – `{"op":"start","pub":"<Base64>","label":"<Name des Geräts, ≤ 40 Zeichen>"}`
-- `pub` = eigener öffentlicher Schlüssel P-256, **roh** (65 Byte `04 || X || Y`), Base64 (Standard, mit `=`).
-- Antwort 200: `{"req":"<Kennung>","pub":"<Base64, Helper, 65 Byte roh>","name":"<PC-Name>"}`
+**Verfahren 2 (ab Helper 0.5.2, Pflicht):** Das Gerät legt sich zuerst auf seinen Schlüssel fest und zeigt ihn erst, wenn es
+den des Helpers kennt. Ohne diese Festlegung (Verfahren 1 bis 0.5.1) konnte ein Dritter in der Mitte nach dem Schlüssel des
+Geräts seinen eigenen so lange wählen, bis beide Seiten dieselbe Zahl zeigen (rund 1 Million Versuche, Sekunden). Verfahren 1
+(`start` mit `pub`, ohne `commit`) beantwortet der Helper mit 400 `{"error":"update"}`.
+
+**start** – `{"op":"start","v":2,"commit":"<Base64>","label":"<Name des Geräts, ≤ 40 Zeichen>"}`
+- `commit` = SHA-256 des eigenen öffentlichen Schlüssels P-256 **roh** (65 Byte `04 || X || Y`), Base64 (Standard, mit `=`).
+- Antwort 200: `{"req":"<Kennung>","pub":"<Base64, Helper, 65 Byte roh>","name":"<PC-Name>","v":2}`
 - 403 `{"error":"pairing-off"}`: Helper nicht im Kopplungsmodus; 403 `network`: keine private Adresse; 429 `busy`: 8 offene Anfragen;
-  400 `pub`: Schlüssel ungültig.
+  400 `commit`: Festlegung ungültig; 400 `update`: altes Verfahren. Ohne `reveal` verfällt die Anfrage nach 1 Minute.
+- Steuerzeichen im Namen ersetzt der Helper durch Leerzeichen.
+
+**reveal** – `{"op":"reveal","req":"<Kennung>","pub":"<Base64, eigener Schlüssel roh>"}` (von derselben Adresse wie `start`)
+- 200 `{"state":"pending"}`: erst jetzt sieht der Admin die Anfrage mit Zahl.
+- 400 `commit`: Schlüssel passt nicht zur Festlegung (Anfrage verworfen); 400 `pub`: kein Punkt auf der Kurve; 404: unbekannt.
+- Gerät zeigt die Zahl und einen Knopf **„Zahl stimmt“**; erst nach diesem Klick und `ok` verbinden.
 
 **Ableitung** (beide Seiten gleich):
 - `shared` = ECDH-Geheimnis, 32 Byte (X-Koordinate; WebCrypto `deriveBits(…, 256)`, .NET `DeriveRawSecretAgreement`, Java
@@ -73,4 +87,5 @@ Antwort `{"ok":false,"error":"…","clock":true,"now":<Zeit des Helpers in ms>}`
 ## Zum Testen ohne Bedienung des Helpers
 
 Testkonsole: `nbhelper.exe --server-console` mit `NOVABIRD_HELPER_DIR=<eigener Ordner>`, `NOVABIRD_TEST_NOMODEL=1`;
-Befehle auf stdin: `pair-start`, `pair-list`, `pair-allow <req>`, `pair-deny <req>`. `NOVABIRD_NET_LOOPBACK=1` = nur dieser PC.
+Befehle auf stdin: `pair-start`, `pair-list`, `pair-allow <req>`, `pair-deny <req>`, `pair-stop`. „Beenden“ (`pair-stop`,
+Web-Oberfläche) nimmt auch zugelassene, noch nicht abgeholte Anfragen zurück. `NOVABIRD_NET_LOOPBACK=1` = nur dieser PC.

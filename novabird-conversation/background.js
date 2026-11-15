@@ -163,6 +163,7 @@ function emailOf(raw) {
 function toView(message, folderName, local) {
   return {
     id: message.id,
+    mid: message.headerMessageId ?? "", // fester Schlüssel über alle Quellen (Index, Gloda, Suche)
     author: personName(message.author),
     email: emailOf(message.author),
     recipients: (message.recipients ?? []).map(personName),
@@ -490,7 +491,7 @@ async function hello(tabId) {
     strings,
     lang: messenger.i18n.getUILanguage(),
     selectedId: selectedKey,
-    folded: messages.filter(m => pinFolded.has(m.id)).map(m => m.id),
+    folded: messages.filter(m => pinFolded.has(m.mid || m.id)).map(m => m.id), // gemerkt je Message-ID (die Quelle wechselt)
     subject: shown.subject ?? "",
     messages,
     expanded,

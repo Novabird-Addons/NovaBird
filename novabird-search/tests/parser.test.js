@@ -104,3 +104,9 @@ test("Kurzschreibweise auch auf Französisch, Spanisch, Englisch", () => {
   assert.equal(new Date(c.fromDate).getMonth(), 2);
   assert.equal(new Date(c.fromDate).getDate(), 15);
 });
+
+test("Wörter wie „constructor“ oder „__proto__“ sind normaler Suchtext (keine Objekt-Schlüssel)", () => {
+  assert.equal(parseQuery("java constructor error").freeText, "java constructor error");
+  assert.equal(parseQuery("__proto__").freeText, "__proto__");
+  assert.doesNotThrow(() => parseQuery("constructor:x toString"));
+});

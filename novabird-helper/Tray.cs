@@ -53,6 +53,7 @@ static class Tray
                 // Kopplung (Pairing.cs): Modus an, offene Anfragen mit Zahl, zulassen bzw. ablehnen
                 "pair-start" => Pair(server, () => server.Pairing.Start()),
                 "pair-list" => Pair(server, () => { }),
+                "pair-stop" => Pair(server, () => server.Pairing.Stop()),
                 var t when t.StartsWith("pair-allow ") => Pair(server, () => server.Pairing.Decide(t[11..].Trim(), true)),
                 var t when t.StartsWith("pair-deny ") => Pair(server, () => server.Pairing.Decide(t[10..].Trim(), false)),
                 _ => new JsonObject { ["error"] = "unbekannt" },

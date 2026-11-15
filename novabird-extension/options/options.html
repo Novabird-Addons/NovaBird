@@ -86,6 +86,7 @@
     .cf-seg button.on { background: color-mix(in srgb, #2F6BD8 22%, transparent); font-weight: 600; }
     .cf-theme { display: flex; align-items: center; gap: .5em; flex-wrap: wrap; margin: 0 0 .2em; }
     .cf-theme label { font-weight: 600; }
+    .cf-theme select { min-width: 0; max-width: 100%; } /* lange Theme-Namen (ES) im schmalen Fenster */
     /* Skizze des Hauptfensters (Farben aus den Variablen --c-*) */
     #cfPrev { display: grid; grid-template-columns: 2.2em 8em 1fr 1fr; grid-template-rows: 2em 1fr; height: 10.5em; max-width: 34em; margin: 8px 0 4px;
       border: 1px solid var(--c-border); border-radius: .5em; overflow: hidden; background: var(--c-list); }

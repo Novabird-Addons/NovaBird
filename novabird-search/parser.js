@@ -44,11 +44,11 @@ function parseQuery(text) {
     const value = m[2] ?? m[4];
     const word = m[5] ?? m[6];
 
-    if (key && TOKEN_KEYS[key]) {
+    if (key && Object.hasOwn(TOKEN_KEYS, key)) { // hasOwn: „constructor“, „__proto__“ sind keine Schlüssel
       applyToken(criteria, TOKEN_KEYS[key], value);
       continue;
     }
-    if (word !== undefined && FLAG_WORDS[word.toLowerCase()]) {
+    if (word !== undefined && Object.hasOwn(FLAG_WORDS, word.toLowerCase())) {
       const [prop, val] = FLAG_WORDS[word.toLowerCase()];
       criteria[prop] = val;
       continue;

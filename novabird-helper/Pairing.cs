@@ -2,14 +2,18 @@
 //  - Ein Admin startet ihn in der Web-Oberfläche (PCs → „Gerät über Kopplung hinzufügen“) für eine Gruppe; er läuft 5 Minuten.
 //  - Finden: Thunderbird schickt "NBHELPER?1" an die Multicast-Gruppe 239.255.77.31, UDP-Port 47531; nur im Kopplungsmodus
 //    antwortet der Helper (an den Absender) mit {service, name, port, version, local}. Sonst bleibt er stumm.
-//  - POST /nbhelper/pair (unverschlüsselt, der Schutz kommt aus dem Schlüsseltausch):
-//      {op:"start", pub, label} -> {req, pub, name}: ECDH P-256, öffentliche Schlüssel roh (65 Byte 04||X||Y, Base64).
+//  - POST /nbhelper/pair (unverschlüsselt, der Schutz kommt aus dem Schlüsseltausch), Verfahren 2 (ab Helper 0.5.2):
+//      {op:"start", v:2, commit, label} -> {req, pub, name, v:2}: der PC legt sich zuerst fest (commit = SHA-256 seines
+//        öffentlichen Schlüssels, Base64), erst dann schickt der Helper seinen (ECDH P-256, roh 65 Byte 04||X||Y, Base64).
+//      {op:"reveal", req, pub} -> {state:"pending"}: der PC zeigt seinen Schlüssel; passt er nicht zum commit, ist die Anfrage weg.
 //        Beide Seiten zeigen dieselbe 6-stellige Zahl: HKDF-SHA256(Geheimnis, info "nbh-pair-sas|<Helper-pub>|<PC-pub>"),
-//        erste 4 Byte (big endian) mod 1.000.000. Ein Dritter im Netz hätte mit jeder Seite ein anderes Geheimnis und damit
-//        eine andere Zahl – darum vergleicht der Admin die Zahl, bevor er „Zulassen“ klickt.
+//        erste 4 Byte (big endian) mod 1.000.000. Wegen der Festlegung kann ein Dritter in der Mitte die Zahl nicht passend
+//        ausrechnen (Treffer nur 1 zu 1 Million); der Admin vergleicht sie vor „Zulassen“, am PC bestätigt man „Zahl stimmt“.
 //      {op:"poll", req} -> {state:"pending"|"denied"|"expired"} oder {state:"ok", n, d}: d = AES-256-GCM mit dem Schlüssel
 //        HKDF(Geheimnis, info "nbh-pair-key|<Helper-pub>|<PC-pub>"), AAD "nbh-pair|<req>", Inhalt {code, group}.
-//  - Höchstens 8 offene Anfragen; Anfragen gelten 10 Minuten; unbekannte Kennungen zählen als Fehlversuch (Sperre wie bei 403).
+//      Das alte Verfahren 1 ({op:"start", pub}, ohne Festlegung) lehnt der Helper ab: {error:"update"}.
+//  - Höchstens 8 offene Anfragen; festgelegte ohne „reveal“ verfallen nach 1 Minute, die übrigen nach 10 Minuten;
+//    unbekannte Kennungen und kaputte Anfragen zählen als Fehlversuch (Sperre wie bei 403). Keine CORS-Freigabe.
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -24,13 +28,14 @@ sealed class Pairing
     public const string Path = "/nbhelper/pair";
     public static readonly IPAddress Group = IPAddress.Parse("239.255.77.31");
     public static int DiscoveryPort => int.TryParse(Environment.GetEnvironmentVariable("NOVABIRD_DISCOVERY_PORT"), out var p) ? p : 47531;
-    static readonly TimeSpan Window = TimeSpan.FromMinutes(5), RequestLife = TimeSpan.FromMinutes(10);
+    static readonly TimeSpan Window = TimeSpan.FromMinutes(5), RequestLife = TimeSpan.FromMinutes(10), CommitLife = TimeSpan.FromMinutes(1);
     const int MaxPending = 8;
 
     public sealed class Request
     {
-        public string Id, Label, Ip, Sas, GroupId, State = "pending"; // pending | ok | denied
-        public byte[] Key;
+        public string Id, Label, Ip, Sas, GroupId, State = "committed"; // committed (vor reveal) | pending | ok | denied
+        public byte[] Key, Commit, HelperPub;
+        public ECParameters HelperKey; // privater Schlüssel des Helpers bis zum reveal
         public DateTime Created = DateTime.UtcNow;
     }
 
@@ -68,13 +73,14 @@ sealed class Pairing
             try { udp?.Dispose(); } catch { /* schon zu */ }
             udp = null;
         }
-        foreach (var r in requests.Values.Where(r => r.State == "pending")) r.State = "denied";
+        // auch zugelassene, noch nicht abgeholte: wer versehentlich zugelassen hat, nimmt es mit „Beenden“ zurück
+        foreach (var r in requests.Values.Where(r => r.State is "pending" or "committed" or "ok")) { r.State = "denied"; r.Key = null; }
     }
 
     public List<Request> List()
     {
         Prune();
-        return requests.Values.OrderBy(r => r.Created).ToList();
+        return requests.Values.Where(r => r.State != "committed").OrderBy(r => r.Created).ToList(); // ohne reveal noch keine Zahl
     }
 
     public bool Decide(string id, bool allow)
@@ -88,7 +94,7 @@ sealed class Pairing
     void Prune()
     {
         foreach (var (id, r) in requests)
-            if (DateTime.UtcNow - r.Created > RequestLife) requests.TryRemove(id, out _);
+            if (DateTime.UtcNow - r.Created > (r.State == "committed" ? CommitLife : RequestLife)) requests.TryRemove(id, out _);
         if (!Active && udp != null) lock (gate) { if (!Active) { try { udp?.Dispose(); } catch { } udp = null; } }
     }
 
@@ -162,47 +168,78 @@ sealed class Pairing
     public (int Status, string Json, bool Fail) Handle(byte[] body, string ip)
     {
         Prune();
+        try { return HandleCore(body, ip); }
+        catch { return (400, "{\"error\":\"request\"}", true); } // kaputte Anfrage (falsche Typen, kein Objekt …)
+    }
+
+    (int Status, string Json, bool Fail) HandleCore(byte[] body, string ip)
+    {
         JsonNode msg;
         try { msg = JsonNode.Parse(body); } catch { return (400, "{\"error\":\"request\"}", true); }
-        switch ((string)msg?["op"])
+        if (msg is not JsonObject) return (400, "{\"error\":\"request\"}", true);
+        switch ((string)msg["op"])
         {
             case "start":
             {
                 if (!Active) return (403, "{\"error\":\"pairing-off\"}", false);
                 if (server.LoopbackOnly ? ip != "127.0.0.1" && ip != "::1" : !IPAddress.TryParse(ip, out var a) || !IsPrivate(a))
                     return (403, "{\"error\":\"network\"}", true);
-                if (requests.Values.Count(r => r.State == "pending") >= MaxPending) return (429, "{\"error\":\"busy\"}", false);
+                if (msg["commit"] == null) return (400, "{\"error\":\"update\"}", false); // altes Verfahren ohne Festlegung
+                if (requests.Values.Count(r => r.State is "pending" or "committed") >= MaxPending) return (429, "{\"error\":\"busy\"}", false);
+                byte[] commit;
+                try { commit = Convert.FromBase64String((string)msg["commit"]); } catch { return (400, "{\"error\":\"commit\"}", true); }
+                if (commit.Length != 32) return (400, "{\"error\":\"commit\"}", true);
+                // Name des PCs: keine Steuerzeichen (Zeilenumbrüche würden Zeilen im Protokoll vortäuschen), höchstens 40 Zeichen
+                var label = System.Text.RegularExpressions.Regex.Replace((string)msg["label"] ?? "", @"\p{C}+", " ").Trim();
+                label = label.Length > 40 ? label[..40].Trim() : label;
+                using var ecdh = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256);
+                var key = ecdh.ExportParameters(true);
+                var helperPub = new byte[65];
+                helperPub[0] = 4;
+                key.Q.X.CopyTo(helperPub, 1);
+                key.Q.Y.CopyTo(helperPub, 33);
+                var req = new Request
+                {
+                    Id = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16)).TrimEnd('=').Replace('+', '-').Replace('/', '_'),
+                    Label = label.Length > 0 ? label : ip, Ip = ip, GroupId = GroupId, Commit = commit, HelperPub = helperPub, HelperKey = key,
+                };
+                requests[req.Id] = req;
+                return (200, new JsonObject { ["req"] = req.Id, ["pub"] = Convert.ToBase64String(helperPub), ["name"] = Environment.MachineName, ["v"] = 2 }.ToJsonString(), false);
+            }
+            case "reveal":
+            {
+                if (!requests.TryGetValue((string)msg["req"] ?? "", out var r) || r.State != "committed" || r.Ip != ip)
+                    return (404, "{\"state\":\"expired\"}", true);
                 byte[] clientPub;
                 try { clientPub = Convert.FromBase64String((string)msg["pub"]); } catch { return (400, "{\"error\":\"pub\"}", true); }
-                if (clientPub.Length != 65 || clientPub[0] != 4) return (400, "{\"error\":\"pub\"}", true);
-                var label = ((string)msg["label"] ?? "").Trim();
-                label = label.Length > 40 ? label[..40] : label;
-                using var ecdh = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256);
+                if (clientPub.Length != 65 || clientPub[0] != 4 || !CryptographicOperations.FixedTimeEquals(SHA256.HashData(clientPub), r.Commit))
+                {
+                    requests.TryRemove(r.Id, out _); // passt nicht zur Festlegung: Anfrage verworfen
+                    return (400, "{\"error\":\"commit\"}", true);
+                }
                 byte[] shared;
                 try
                 {
+                    using var mine = ECDiffieHellman.Create(r.HelperKey);
                     using var peer = ECDiffieHellman.Create(new ECParameters
                     {
                         Curve = ECCurve.NamedCurves.nistP256, Q = new ECPoint { X = clientPub[1..33], Y = clientPub[33..65] },
                     });
-                    shared = ecdh.DeriveRawSecretAgreement(peer.PublicKey);
+                    shared = mine.DeriveRawSecretAgreement(peer.PublicKey);
                 }
-                catch { return (400, "{\"error\":\"pub\"}", true); } // kein Punkt auf der Kurve
-                var q = ecdh.ExportParameters(false).Q;
-                var helperPub = new byte[65];
-                helperPub[0] = 4;
-                q.X.CopyTo(helperPub, 1);
-                q.Y.CopyTo(helperPub, 33);
-                var (sas, key) = Derive(shared, helperPub, clientPub);
-                var req = new Request
+                catch
                 {
-                    Id = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16)).TrimEnd('=').Replace('+', '-').Replace('/', '_'),
-                    Label = label.Length > 0 ? label : ip, Ip = ip, Sas = sas, Key = key, GroupId = GroupId,
-                };
-                requests[req.Id] = req;
-                Log.Write($"Kopplung: Anfrage von „{req.Label}“ ({ip}), Zahl {sas}");
-                OnRequest(req);
-                return (200, new JsonObject { ["req"] = req.Id, ["pub"] = Convert.ToBase64String(helperPub), ["name"] = Environment.MachineName }.ToJsonString(), false);
+                    requests.TryRemove(r.Id, out _);
+                    return (400, "{\"error\":\"pub\"}", true); // kein Punkt auf der Kurve
+                }
+                var (sas, k) = Derive(shared, r.HelperPub, clientPub);
+                r.Sas = sas;
+                r.Key = k;
+                r.HelperKey = default;
+                r.State = "pending";
+                Log.Write($"Kopplung: Anfrage von „{r.Label}“ ({ip}), Zahl {sas}");
+                OnRequest(r);
+                return (200, "{\"state\":\"pending\"}", false);
             }
             case "poll":
             {

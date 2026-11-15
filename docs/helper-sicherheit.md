@@ -62,10 +62,35 @@ die Funktionstests (`tests/grouptest.mjs`: Gruppen/Vektoren/Sicherung/CalDAV 56,
 - Gemerkte CalDAV-Anmeldungen (15 min) liegen nur im Speicher, als HMAC mit zufälligem Schlüssel.
 - Nicht geprüft: TLS-Konfiguration mit externem Scanner (Windows-Standard, nur TLS 1.2/1.3), Fuzzing in großem Umfang.
 
+## Nachtrag 15.11.2026: Review für RC1 (Helper 0.5.2)
+
+Code-Durchsicht der Änderungen seit dem 31.10. (Kopplung, Assistenten, Uhrzeit, Handy-Vektoren, Modus-Erkennung 0.5.1) und
+Angriffstest der Kopplung (`novabird-helper/tests/pairtest.mjs`, 19 Prüfungen) gegen einen Test-Helper nur auf diesem PC
+(`--loopback`, ohne UDP-Suche). `pentest.mjs` gegen 0.5.1 und 0.5.2: 89 von 89 abgewehrt. Dazu Ende-zu-Ende in Thunderbird
+153 und 160: Zahl gleich, ohne „Zahl stimmt“ keine Verbindung, danach der richtige Code.
+
+| # | Befund | Schwere | Behebung |
+|---|---|---|---|
+| 5 | **Falscher Helper:** Ein Gerät im lokalen Netz kann auf „Helper im Netz suchen“ antworten und sich selbst „zulassen“; Thunderbird verband sich ohne Bestätigung und schickte danach Mailtexte (KI, Suche) dorthin | hoch | Thunderbird verbindet erst nach „Zahl stimmt“ (Zahl muss mit der am echten Helper übereinstimmen) |
+| 6 | **Vergleichszahl ohne Festlegung:** Ein Dritter in der Mitte konnte nach dem Schlüssel des Geräts seinen eigenen so lange wählen, bis beide Zahlen gleich sind (~10⁶ Versuche, Sekunden) und so den Gruppencode bekommen | hoch | Verfahren 2: Gerät schickt erst SHA-256 seines Schlüssels, dann den Schlüssel (`reveal`); altes Verfahren abgelehnt |
+| 7 | Netz-Port mit `Access-Control-Allow-Origin: *` auch für die Kopplung: eine Webseite im Browser eines PCs im Netz konnte Anfragen stellen und die Antwort lesen | mittel | keine CORS-Freigabe für `/nbhelper/pair` (auch nicht im Preflight) |
+| 8 | Name des Geräts mit Zeilenumbruch schrieb vorgetäuschte Zeilen ins Protokoll; kaputte Anfragen (`1`, `[]`, falsche Typen) wurden nicht als Fehlversuch gezählt | niedrig | Steuerzeichen ersetzt; 400 + Fehlversuch |
+| 9 | Wiederholte/abgelaufene verschlüsselte Anfragen schrieben je eine Protokollzeile – Protokoll flutbar (es wird bei 1 MB geleert) | niedrig | höchstens eine Zeile je Adresse und Minute |
+| 10 | „Beenden“ nahm zugelassene, noch nicht abgeholte Anfragen nicht zurück | niedrig | auch diese werden abgelehnt |
+
+Bewusst so gelassen bzw. später:
+- Firewall-Voreinstellung „lokales Netz in allen Profilen“ (Entscheidung beim Installations-Assistenten): auch in öffentlichen
+  WLANs sind die Ports im selben Subnetz erreichbar; geschützt durch Verschlüsselung, Anmeldung und die Kopplungs-Bestätigung.
+- Ein vorab von einem anderen Windows-Benutzer angelegter Ordner `%ProgramData%\NovaBird\Helper` wird beim Einrichten des
+  Dienstes übernommen (Rechte neu gesetzt, Besitzer nicht); nicht getestet (Systemänderung), Prüfung für eine spätere Version.
+- Kleinere Logikpunkte (Firewall-Regeln mehrerer Windows-Konten, Wechsel zum Dienst beendet das Symbol, Port-Einstellung im
+  Dienstmodus, GPU-Diagnose nach Neustart) – keine Sicherheitslücke, später.
+
 ## Wiederholen
 
 ```
 node novabird-helper/tests/pentest.mjs <nbhelper.exe> <Testdatenordner> <Netzport> <Webport>
+node novabird-helper/tests/pairtest.mjs <nbhelper.exe> <leerer Testdatenordner> <Netzport> <Webport>
 node novabird-helper/tests/slowhold.mjs <nbhelper.exe> <Testdatenordner> <Netzport> <Webport>
 node novabird-helper/tests/grouptest.mjs <nbhelper.exe> <Testdatenordner> <Netzport> <Webport>
 ```
