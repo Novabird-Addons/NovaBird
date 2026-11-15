@@ -51,6 +51,9 @@ moz-page-nav-button, #sidebar moz-page-nav-button, moz-page-nav {
   --text-color-selected: var(--tbsr-accent-text);
 }
 moz-page-nav-button[selected] { border-radius: 9px; }
-.main-heading, .sticky-container, .main-search { background: transparent !important; }
+/* Kopfzeile (Suche + Überschrift) läuft beim Scrollen mit: deckend wie die Seite, sonst scheinen die Karten durch (Issue #8).
+   Canvas darunter, falls die Theme-Farbe halbdurchsichtig ist */
+.sticky-container { background: linear-gradient(var(--tbsr-bg), var(--tbsr-bg)), Canvas !important; }
+.main-heading, .main-search { background: transparent !important; }
 moz-page-nav-button { --page-nav-button-text-color: var(--tbsr-text); --page-nav-button-text-color-hover: var(--tbsr-text); --button-text-color-ghost: var(--tbsr-text); }
 moz-page-nav-button[selected], moz-page-nav-button:where([selected]) { --page-nav-button-text-color: var(--tbsr-accent-text); }

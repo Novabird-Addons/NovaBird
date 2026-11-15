@@ -5,6 +5,12 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.8 · Helper 0.5.1 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### Search: tab title of the hit list in the user's language (issue #7)
+- The header above the hit list was translated, but the tab showed the German "Suchergebnisse" in every language: the internal name of the fallback search folder was passed on as the tab title. The tab now shows the same translated text as the header ("Search results", "Résultats de la recherche", "Resultados de la búsqueda"). The fallback search folder under Local Folders (used while the index is not ready) keeps its internal name.
+
+### Extension: Add-ons Manager header no longer see-through (issue #8)
+- When scrolling the Add-ons Manager on Thunderbird/Betterbird 153 ESR, the add-on cards showed through the header with "Find more add-ons", search and "Manage Your Extensions": NovaBird-Extension made that sticky header transparent to show the theme color. It now has the page color of the theme (on an opaque base if the theme color is semi-transparent). On 160 the header does not stick; nothing changes there.
+
 ### NovaBird-Conversation 0.15.8: signatures and table layouts stay intact
 - HTML signatures built as tables (logo, name, contact block side by side) fell apart in the conversation view: words broke in the middle ("Offic e", "Ber lin"), links split over two lines, blocks slipped. The view takes no styles from mails, so all widths were lost, and cells were allowed to break anywhere. It now keeps the table layout only: widths of tables and cells (numbers or percent, at most 2000 px), "no wrap" and alignment; a whole table is only ever centered. Colors and fonts still come from the theme. Cells break only between words; a table that is still too wide scrolls sideways in its own box. Very long links in tables get invisible break points, copying them gives the unchanged text.
 

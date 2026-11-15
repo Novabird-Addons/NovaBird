@@ -70,6 +70,8 @@ const ROOT_ID = "novabird-search";
 const STYLE_ID = "novabird-search-style";
 const MAIN_STYLE_ID = "novabird-search-main-style";
 const MONITOR_NAME = "novabird-search-tabs";
+// interner Name des virtuellen Ausweich-Suchordners (wird über den Namen wiedergefunden, darum nicht übersetzt);
+// Tab-Titel der Trefferliste ist strings.resultsTitle (Issue #7)
 const SEARCH_FOLDER_NAME = "Suchergebnisse";
 
 // Bis setStrings kommt: englische Rückfallwerte.
@@ -2127,7 +2129,7 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           return openFacetSearch(barOf(barId), text, limit);
         },
         async openResultsInNewTab(barId, title) {
-          return openResultsInNewTab(barOf(barId), title || SEARCH_FOLDER_NAME);
+          return openResultsInNewTab(barOf(barId), title || strings.resultsTitle);
         },
         async setGroupMode(barId, on) {
           // Konversationsansicht: Datum der neuesten Nachricht und Hervorhebung nur während einer Suche (nur diese Leiste)
@@ -2203,7 +2205,7 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
             byFolder[hdr.folder.name] = (byFolder[hdr.folder.name] || 0) + 1;
           }
           dbg("gloda by folder", byFolder);
-          const shown = showHeaders(bar, hdrs, SEARCH_FOLDER_NAME, criteriaState?.group === true);
+          const shown = showHeaders(bar, hdrs, strings.resultsTitle, criteriaState?.group === true);
           return shown ? hdrs.length : -2;
         },
         async idSearch(barId, rows, criteria, criteriaState, keepOrder, headerNote, bestIds, bestNote) {
@@ -2226,7 +2228,7 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           try { key = JSON.stringify([criteria, criteriaState]); } catch (e) { key = String(run); }
           const sameSearch = bar.root._nbsSearchKey === key;
           bar.root._nbsSearchKey = key;
-          const shown = showHeaders(bar, hdrs, SEARCH_FOLDER_NAME, criteriaState?.group === true, Boolean(keepOrder), criteriaState?.scope === "folder", headerNote || "", best, sameSearch);
+          const shown = showHeaders(bar, hdrs, strings.resultsTitle, criteriaState?.group === true, Boolean(keepOrder), criteriaState?.scope === "folder", headerNote || "", best, sameSearch);
           return shown ? hdrs.length : -2;
         },
         // „In den Treffern suchen“ im Treffer-Tab: zeigt nur die Treffer der Ausgangsmenge, die auch zu den NovaBird-DB-Zeilen passen.
