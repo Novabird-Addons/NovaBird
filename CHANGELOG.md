@@ -2,6 +2,20 @@
 
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
+## 1.4.2 (2026-11-15)
+Security update. Extension 1.12.6 · Conversation 0.15.4.2 · unchanged: Search 1.2.10 · DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
+
+### Security: attachment preview no longer loads addresses from a mail (Extension 1.12.6)
+- The attachment preview (hover over an attachment) also listened inside the message itself and trusted markup there: a crafted mail could make Thunderbird load any web address while the mouse moved over it – also with remote content blocked, so the sender could see that and when the mail was read. The preview now takes rows only from Thunderbird’s own interface and loads only attachments of mails or local files, never web addresses or network shares. Real image and PDF attachments preview as before. Found in the review for NovaBird 2.0 RC1.
+
+### Conversation 0.15.4.2: a crafted mail can no longer freeze the view
+- The check for hidden text (anti-spam filler) ran in quadratic time on huge style attributes: one mail could freeze the reading pane for up to a minute. Only the first 2,000 characters of a style are checked now.
+
+### Conversation 0.15.4.1 (issue #6)
+
+- **Switching within a thread shows the selected message again.** Selecting another message of the same thread kept the conversation view on the message first looked up (going down a thread worked, going back up stayed on the last one). The conversation cache is shared by all messages of a thread and also stored which message was selected; on a cache hit that old selection was used. It happened on the Gloda/search paths, i.e. while NovaBird-DB did not know the message yet (index updating). Now a cache hit takes the selection from the message actually shown (`selectIn` in `conversation.js`).
+- Tested: unit test; Thunderbird 159 and 158 with a three-message thread clicked like in the report – before the fix the view stayed on the last message, now every step shows the selected one.
+
 ## 1.4.1 (2026-11-03)
 Extension 1.12.5 · unchanged: Search 1.2.10 · Conversation 0.15.4 · DB 1.2.5 · Send 1.0.4 · Sand 1.0.1 · Cobalt 1.0.3 · Springlight 1.7.3
 

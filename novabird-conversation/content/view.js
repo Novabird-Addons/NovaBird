@@ -233,7 +233,8 @@
   const HIDDEN_ANY = /(?<![\w-])(?:display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|mso-hide\s*:\s*all|color\s*:\s*transparent)|(?<![\w-])max-height\s*:\s*0[a-z%]*\s*[;!]?[^"]*overflow\s*:\s*hidden|overflow\s*:\s*hidden[^"]*(?<![\w-])max-height\s*:\s*0[a-z%]*\s*(?:;|!|$)/i;
   const HIDDEN_LEAF = /(?<![\w-])(?:font-size|max-height)\s*:\s*0[a-z%]*\s*(?:;|!|$)/i;
   const isHidden = node => {
-    const style = node.getAttribute("style");
+    // nur der Anfang: die Muster laufen bei riesigen Stil-Angaben quadratisch (Mail könnte die Ansicht sonst minutenlang einfrieren)
+    const style = node.getAttribute("style")?.slice(0, 2000);
     if (!style) return false;
     return HIDDEN_ANY.test(style) || (node.childElementCount === 0 && HIDDEN_LEAF.test(style));
   };
