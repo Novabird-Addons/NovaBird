@@ -395,5 +395,17 @@
   },
   "aiSummary": {
     "message": "Summarise (AI)"
+  },
+  "pinFold": {
+    "message": "Collapse"
+  },
+  "pinFoldTip": {
+    "message": "Collapse this message – more room for the history"
+  },
+  "pinUnfold": {
+    "message": "Expand"
+  },
+  "pinUnfoldTip": {
+    "message": "Show this message again"
   }
 }

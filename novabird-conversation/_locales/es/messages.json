@@ -395,5 +395,17 @@
   },
   "aiSummary": {
     "message": "Resumir (IA)"
+  },
+  "pinFold": {
+    "message": "Contraer"
+  },
+  "pinFoldTip": {
+    "message": "Contraer este mensaje: más espacio para el historial"
+  },
+  "pinUnfold": {
+    "message": "Expandir"
+  },
+  "pinUnfoldTip": {
+    "message": "Mostrar de nuevo este mensaje"
   }
 }

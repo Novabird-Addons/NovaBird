@@ -395,5 +395,17 @@
   },
   "aiSummary": {
     "message": "Résumer (IA)"
+  },
+  "pinFold": {
+    "message": "Réduire"
+  },
+  "pinFoldTip": {
+    "message": "Réduire ce message – plus de place pour l’historique"
+  },
+  "pinUnfold": {
+    "message": "Développer"
+  },
+  "pinUnfoldTip": {
+    "message": "Afficher à nouveau ce message"
   }
 }

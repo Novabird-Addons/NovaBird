@@ -395,5 +395,17 @@
   },
   "aiSummary": {
     "message": "Zusammenfassen (KI)"
+  },
+  "pinFold": {
+    "message": "Einklappen"
+  },
+  "pinFoldTip": {
+    "message": "Nachricht einklappen – mehr Platz für den Verlauf"
+  },
+  "pinUnfold": {
+    "message": "Aufklappen"
+  },
+  "pinUnfoldTip": {
+    "message": "Nachricht wieder ganz zeigen"
   }
 }

@@ -101,7 +101,7 @@ Add-ons für [Betterbird](https://www.betterbird.eu/) und Thunderbird ESR, die z
 | Add-on | Version | Aufgabe |
 |---|---|---|
 | **[NovaBird-Search](novabird-search/README.md)** | 2.0.0 | Suchleiste, Index, Suche nach Bedeutung |
-| **[NovaBird-Conversation](novabird-conversation/README.md)** | 0.15.8 | Ganze Konversationen im Lesebereich |
+| **[NovaBird-Conversation](novabird-conversation/README.md)** | 0.15.9 | Ganze Konversationen im Lesebereich |
 | **[NovaBird-Send](novabird-send/README.md)** | 1.0.4 | Senden rückgängig, mit Warteschlange |
 | **[NovaBird-Extension](novabird-extension/README.md)** | 2.0.0 | Nachrichtenliste, rechte Leiste, Designs, Nova-Contact, KI-Assistent, Einstellungen |
 | **[NovaBird Helper](novabird-helper/README.md)** | 0.5.1 | Optionales Windows-Programm: Grafikkarte, Netz, Team-Kalender |

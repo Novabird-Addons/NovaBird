@@ -3,7 +3,10 @@
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
 ## Unreleased (branch `novabird-2.0`)
-NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.8 · Helper 0.5.1 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
+NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.9 · Helper 0.5.1 (new) · unchanged: Send 1.0.4. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
+
+### NovaBird-Conversation 0.15.9: collapse the pinned message
+- The newest message of a conversation stays pinned at the top. With a long newest message there was little room left for reading or searching older mails below it. The pinned message now has a "Collapse" button in its header (next to the date); clicking the header works too. Collapsed, it shows one line with sender, preview and date, and the history gets the space. "Expand" or a click on the header shows it fully again. The state is kept while you click older mails of the same conversation, until Thunderbird restarts; a new reply shows up expanded.
 
 ### Search: tab title of the hit list in the user's language (issue #7)
 - The header above the hit list was translated, but the tab showed the German "Suchergebnisse" in every language: the internal name of the fallback search folder was passed on as the tab title. The tab now shows the same translated text as the header ("Search results", "Résultats de la recherche", "Resultados de la búsqueda"). The fallback search folder under Local Folders (used while the index is not ready) keeps its internal name.

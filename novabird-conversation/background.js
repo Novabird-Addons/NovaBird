@@ -8,6 +8,7 @@ const STRING_KEYS = [
   "messagesCount", "toNames", "newBadge", "reply", "replyAll", "more", "forward", "forwardAsAttachment",
   "editAsNew", "expandAll", "collapseAll", "showFull", "showLess", "quoteToggle", "remoteBlocked", "remoteShow", "remoteThis", "remoteAll", "remoteAsk", "remoteSender",
   "aiSummary", "attOpen", "attSave", "noText", "cutOff", "encryptedHint", "loading", "loadFailed", "history", "notDownloaded", "delete", "deleteTip", "originalBtn", "originalTip", "backToConversation", "spam", "spamTip", "notSpam", "notSpamTip", "copyAddress",
+  "pinFold", "pinFoldTip", "pinUnfold", "pinUnfoldTip",
 ];
 
 let settings = sanitizeSettings(null);
@@ -25,6 +26,10 @@ const glodaState = { pauseUntil: 0, failures: 0 };
 const BODY_CACHE_MAX = 40;
 const EXTENSION_ID = "novabird-extension@novabird";
 const aiState = { at: 0, available: false };
+// Fixierte (neueste) Nachrichten, die der Nutzer eingeklappt hat: bleiben eingeklappt, wenn er ältere Mails derselben Konversation
+// anklickt; nur bis zum Neustart, höchstens PIN_FOLD_MAX (älteste zuerst entfernt)
+const pinFolded = new Set();
+const PIN_FOLD_MAX = 200;
 
 // KI-Zusammenfassung gibt es nur, wenn die NovaBird-Extension installiert ist und die KI dort eingerichtet wurde (Opt-in).
 async function aiAvailable() {
@@ -485,6 +490,7 @@ async function hello(tabId) {
     strings,
     lang: messenger.i18n.getUILanguage(),
     selectedId: selectedKey,
+    folded: messages.filter(m => pinFolded.has(m.id)).map(m => m.id),
     subject: shown.subject ?? "",
     messages,
     expanded,
@@ -590,6 +596,14 @@ messenger.runtime.onMessage.addListener((msg, sender) => {
           .then(() => true, e => { console.error("NovaBird-Conversation: Zusammenfassung", e); return false; })
         : Promise.resolve(false);
     case "body": return loadBody(msg.id);
+    case "pinFold":
+      if (msg.id == null) return Promise.resolve(false);
+      pinFolded.delete(msg.id);
+      if (msg.folded) {
+        pinFolded.add(msg.id);
+        if (pinFolded.size > PIN_FOLD_MAX) pinFolded.delete(pinFolded.values().next().value);
+      }
+      return Promise.resolve(true);
     case "reveal": if (tabId != null) messenger.conversationView.reveal(tabId).catch(() => {}); return Promise.resolve(true);
     case "header": if (tabId != null) scheduleHeader(tabId, !!msg.hidden && settings.hideHeader); return Promise.resolve(true);
     case "copyText": return typeof msg.text === "string" ? messenger.conversationView.copyText(msg.text) : false;

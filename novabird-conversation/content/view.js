@@ -597,18 +597,48 @@
       hd.append(spam);
     }
     hd.append(el("div", "nbc-date", formatDate(msg.date)));
+    let fold = null;
+    // fixierte Nachricht einklappen: beim Lesen älterer Mails bekommt der Verlauf den Platz
+    if (isPinned) {
+      fold = el("button", "nbc-orig nbc-fold");
+      fold.type = "button";
+      fold.addEventListener("click", event => { event.stopPropagation(); setFold(msg, !els.get(msg.id).folded); });
+      hd.append(fold);
+    }
     card.append(hd);
     const slot = el("div");
     card.append(slot);
-    els.set(msg.id, { card, hd, slot, who, preview: null, isPinned, built: false });
+    els.set(msg.id, { card, hd, slot, who, preview: null, isPinned, built: false, fold, folded: false, foldPv: null });
     if (!isPinned) hd.addEventListener("click", () => toggle(msg.id));
+    else hd.addEventListener("click", event => { if (!event.target.closest("button, a")) setFold(msg, !els.get(msg.id).folded); });
     return card;
+  }
+
+  // Eingeklappt: nur der Kopf mit Vorschau wie bei den zugeklappten Zeilen; der Text bleibt geladen (kein neuer Abruf beim Aufklappen).
+  // remember=false beim Aufbau (Zustand kam vom Hintergrund)
+  function setFold(msg, folded, remember = true) {
+    const e = els.get(msg.id);
+    if (!e?.fold) return;
+    e.folded = folded;
+    e.card.classList.toggle("folded", folded);
+    e.card.classList.toggle("open", !folded);
+    e.fold.textContent = folded ? `▾ ${t("pinUnfold")}` : `▴ ${t("pinFold")}`;
+    e.fold.title = t(folded ? "pinUnfoldTip" : "pinFoldTip");
+    e.fold.setAttribute("aria-expanded", String(!folded));
+    if (folded && !e.foldPv) {
+      const text = msg.snippet || e.previewText || "";
+      if (text) {
+        e.foldPv = el("div", "nbc-pv nbc-fpv", text);
+        e.hd.insertBefore(e.foldPv, e.hd.querySelector(".nbc-date") ?? null);
+      }
+    }
+    if (remember) send({ type: "pinFold", id: msg.id, folded }).catch(() => {});
   }
 
   async function fill(msg, animate = false) {
     const e = els.get(msg.id);
     const open = isPinnedOrOpen(msg.id);
-    e.card.classList.toggle("open", open);
+    e.card.classList.toggle("open", open && !e.folded);
     e.slot.replaceChildren();
     if (open && e.preview) {
       e.preview.remove();
@@ -637,6 +667,10 @@
     if (!isPinnedOrOpen(msg.id)) return;
     e.slot.replaceChildren();
     body.id = msg.id;
+    if (e.isPinned && !msg.snippet) {
+      e.previewText = previewOf(body); // Vorschau für den eingeklappten Zustand
+      if (e.folded && !e.foldPv && e.previewText) setFold(msg, true, false);
+    }
     const attNode = attachmentsNode(body);
     if (attNode && settings.attachments === "top") e.slot.append(attNode);
     const content = body.encrypted ? el("p", "nbc-blocked", t("encryptedHint")) : body.html ? renderHtml(body.html, msg.id, body) : body.text ? renderPlain(body.text) : el("p", null, t("noText"));
@@ -802,6 +836,7 @@
       const pct = root.clientHeight < 700 ? Math.min(settings.maxHeight, 55) : settings.maxHeight;
       if (root.style.getPropertyValue("--nbc-pin") !== `${pct}%`) root.style.setProperty("--nbc-pin", `${pct}%`);
       const card = pinned.firstElementChild;
+      if (card?.classList.contains("folded")) return; // eingeklappt: nichts zu kürzen
       const body = card?.querySelector(".nbc-body.limited");
       if (!body || body.classList.contains("full")) return;
       const cs = getComputedStyle(body);
@@ -923,6 +958,7 @@
     if (ordered.length > 1) history.append(el("div", "nbc-label", t("history")));
     for (const m of ordered) if (m !== pinnedMsg) history.append(cards.get(m.id));
     root.append(pinned, sep(), history);
+    setFold(pinnedMsg, data.folded?.includes(pinnedMsg.id) === true, false);
     fitPinned(root, pinned);
   } else {
     const list = el("div", "nbc-list");
