@@ -44,7 +44,8 @@ Geräts seinen eigenen so lange wählen, bis beide Seiten dieselbe Zahl zeigen (
 - 403 `{"error":"pairing-off"}`: Helper nicht im Kopplungsmodus; 403 `network`: keine private Adresse; 429 `busy`: 8 offene Anfragen;
   400 `commit`: Festlegung ungültig; 400 `update`: altes Verfahren. Ohne `reveal` verfällt die Anfrage nach 1 Minute.
 - Je Adresse höchstens eine Festlegung ohne `reveal` (ein neuer `start` ersetzt sie). Festlegungen ohne Abschluss (ersetzt,
-  verfallen, falscher Schlüssel) höchstens 3 je Adresse in 10 Minuten, danach 429 `busy` für `start`. Ein Gerät sollte also
+  verfallen, falscher Schlüssel) höchstens 3 je Adresse in 10 Minuten, danach 429 `busy` für `start`. Über alle Adressen
+  beendet der Helper den Kopplungsmodus nach 5 solchen (oder abgewiesenen Starts) je Fenster; danach 403 `pairing-off`. Ein Gerät sollte also
   `reveal` immer direkt nach `start` schicken und bei Fehlern nicht in Schleife neu starten.
 - Steuerzeichen im Namen ersetzt der Helper durch Leerzeichen.
 

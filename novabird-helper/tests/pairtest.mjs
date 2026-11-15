@@ -122,9 +122,12 @@ try {
   // Q11: Festlegungen ohne Abschluss: höchstens 3 je Adresse in 10 Minuten, danach keine Starts mehr (gegen Durchprobieren der Zahl)
   const st = [];
   for (let i = 0; i < 10; i++) st.push((await post({ op: "start", v: 2, commit: (await newClient()).commit, label: "flood" + i })).status);
-  ok("Q11 abandonLimit", st.filter(s => s === 200).length <= 2 && st.slice(2).every(s => s === 429), st);
+  // je Adresse: nach 3 ohne Abschluss 429; je Kopplungsfenster (alle Adressen): nach 5 endet der Kopplungsmodus (dann pairing-off)
+  ok("Q11 abandonLimit", st[0] === 200 && st.slice(1).every(s => s === 429 || s === 403) && st.includes(429), st);
+  const lst = await cmd("pair-list");
+  ok("Q11c windowLimitStopsPairing", st.at(-1) === 403 && lst.active === false, { st, active: lst.active });
   const log2 = fs.readFileSync(path.join(dir, "helper.log"), "utf8");
-  ok("Q11b abandonLogged", /ohne Abschluss \(Schlüssel passt nicht zur Festlegung\)/.test(log2) && /ohne Abschluss \(neu gestartet\)/.test(log2), log2.split(/\r?\n/).filter(x => /ohne Abschluss/.test(x)).length);
+  ok("Q11b abandonLogged", /ohne Abschluss \(Schlüssel passt nicht zur Festlegung\)/.test(log2) && /ohne Abschluss \(neu gestartet\)/.test(log2) && /Kopplungsmodus beendet: 5 Anfragen ohne Abschluss/.test(log2), log2.split(/\r?\n/).filter(x => /ohne Abschluss/.test(x)).length);
   // Q12: Kennungen raten → Sperre, danach alles blockiert
   let last = 0;
   for (let i = 0; i < 25; i++) last = (await post({ op: "poll", req: Buffer.from(globalThis.crypto.getRandomValues(new Uint8Array(16))).toString("base64url") })).status;

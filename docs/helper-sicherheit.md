@@ -65,14 +65,14 @@ die Funktionstests (`tests/grouptest.mjs`: Gruppen/Vektoren/Sicherung/CalDAV 56,
 ## Nachtrag 15.11.2026: Review für RC1 (Helper 0.5.2)
 
 Code-Durchsicht der Änderungen seit dem 31.10. (Kopplung, Assistenten, Uhrzeit, Handy-Vektoren, Modus-Erkennung 0.5.1) und
-Angriffstest der Kopplung (`novabird-helper/tests/pairtest.mjs`, 21 Prüfungen) gegen einen Test-Helper nur auf diesem PC
+Angriffstest der Kopplung (`novabird-helper/tests/pairtest.mjs`, 22 Prüfungen) gegen einen Test-Helper nur auf diesem PC
 (`--loopback`, ohne UDP-Suche). `pentest.mjs` gegen 0.5.1 und 0.5.2: 89 von 89 abgewehrt. Dazu Ende-zu-Ende in Thunderbird
 153 und 160: Zahl gleich, ohne „Zahl stimmt“ keine Verbindung, danach der richtige Code.
 
 | # | Befund | Schwere | Behebung |
 |---|---|---|---|
 | 5 | **Falscher Helper:** Ein Gerät im lokalen Netz kann auf „Helper im Netz suchen“ antworten und sich selbst „zulassen“; Thunderbird verband sich ohne Bestätigung und schickte danach Mailtexte (KI, Suche) dorthin | hoch | Thunderbird verbindet erst nach „Zahl stimmt“ (Zahl muss mit der am echten Helper übereinstimmen) |
-| 6 | **Vergleichszahl ohne Festlegung:** Ein Dritter in der Mitte konnte nach dem Schlüssel des Geräts seinen eigenen so lange wählen, bis beide Zahlen gleich sind (~10⁶ Versuche, Sekunden) und so den Gruppencode bekommen | hoch | Verfahren 2: Gerät schickt erst SHA-256 seines Schlüssels, dann den Schlüssel (`reveal`); altes Verfahren abgelehnt. Restrisiko: Der Dritte kann beim Helper neu starten und auf eine passende Zahl hoffen – darum je Adresse höchstens eine offene Festlegung und höchstens 3 ohne Abschluss in 10 Minuten (danach 429, im Protokoll vermerkt): Treffer etwa 4 zu 1 Million je Kopplung und Adresse |
+| 6 | **Vergleichszahl ohne Festlegung:** Ein Dritter in der Mitte konnte nach dem Schlüssel des Geräts seinen eigenen so lange wählen, bis beide Zahlen gleich sind (~10⁶ Versuche, Sekunden) und so den Gruppencode bekommen | hoch | Verfahren 2: Gerät schickt erst SHA-256 seines Schlüssels, dann den Schlüssel (`reveal`); altes Verfahren abgelehnt. Restrisiko: Der Dritte kann beim Helper neu starten und auf eine passende Zahl hoffen – darum je Adresse höchstens eine offene Festlegung und höchstens 3 ohne Abschluss in 10 Minuten (danach 429), und je Kopplungsfenster über alle Adressen nach 5 ohne Abschluss oder abgewiesenen Starts Ende des Kopplungsmodus (im Protokoll vermerkt). Höchstens 8 offene + 5 = 13 Versuche je Fenster: Treffer etwa 1 zu 80.000 |
 | 7 | Netz-Port mit `Access-Control-Allow-Origin: *` auch für die Kopplung: eine Webseite im Browser eines PCs im Netz konnte Anfragen stellen und die Antwort lesen | mittel | keine CORS-Freigabe für `/nbhelper/pair` (auch nicht im Preflight) |
 | 8 | Name des Geräts mit Zeilenumbruch schrieb vorgetäuschte Zeilen ins Protokoll; kaputte Anfragen (`1`, `[]`, falsche Typen) wurden nicht als Fehlversuch gezählt | niedrig | Steuerzeichen ersetzt; 400 + Fehlversuch |
 | 9 | Wiederholte/abgelaufene verschlüsselte Anfragen schrieben je eine Protokollzeile – Protokoll flutbar (es wird bei 1 MB geleert) | niedrig | höchstens eine Zeile je Adresse und Minute |

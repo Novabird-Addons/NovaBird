@@ -13,7 +13,8 @@
 //        HKDF(Geheimnis, info "nbh-pair-key|<Helper-pub>|<PC-pub>"), AAD "nbh-pair|<req>", Inhalt {code, group}.
 //      Das alte Verfahren 1 ({op:"start", pub}, ohne Festlegung) lehnt der Helper ab: {error:"update"}.
 //  - Höchstens 8 offene Anfragen, je Adresse höchstens eine Festlegung ohne „reveal“; Festlegungen ohne Abschluss (verfallen nach
-//    1 Minute, ersetzt, falscher Schlüssel) höchstens 3 je Adresse in 10 Minuten, danach 429; die übrigen Anfragen gelten 10 Minuten;
+//    1 Minute, ersetzt, falscher Schlüssel) höchstens 3 je Adresse in 10 Minuten, danach 429; über alle Adressen nach 5 solchen
+//    (oder abgewiesenen Starts) je Kopplungsfenster endet der Kopplungsmodus; die übrigen Anfragen gelten 10 Minuten;
 //    unbekannte Kennungen und kaputte Anfragen zählen als Fehlversuch (Sperre wie bei 403). Keine CORS-Freigabe.
 using System.Collections.Concurrent;
 using System.Net;
@@ -37,10 +38,25 @@ sealed class Pairing
     static readonly TimeSpan AbandonWindow = TimeSpan.FromMinutes(10);
     readonly ConcurrentDictionary<string, (int Count, DateTime Since)> abandoned = new();
 
+    // Über alle Adressen je Kopplungsfenster (sonst hilft ein Wechsel der Adresse): nach 5 Anfragen ohne Abschluss oder
+    // abgewiesenen Starts endet der Kopplungsmodus; der Admin startet ihn bei Bedarf neu.
+    const int MaxWindowAbandoned = 5;
+    int windowAbandoned;
+
     void Abandon(string ip, string why)
     {
         var n = abandoned.AddOrUpdate(ip, _ => (1, DateTime.UtcNow), (_, a) => DateTime.UtcNow - a.Since > AbandonWindow ? (1, DateTime.UtcNow) : (a.Count + 1, a.Since));
         if (n.Count <= MaxAbandoned + 1) Log.Write($"Kopplung: Anfrage von {ip} ohne Abschluss ({why})");
+        CountWindow(why);
+    }
+
+    void CountWindow(string why)
+    {
+        if (Interlocked.Increment(ref windowAbandoned) == MaxWindowAbandoned && Active)
+        {
+            Log.Write($"Kopplungsmodus beendet: {MaxWindowAbandoned} Anfragen ohne Abschluss (zuletzt: {why}) – bei Bedarf neu starten");
+            Stop();
+        }
     }
 
     bool TooManyAbandoned(string ip) =>
@@ -75,6 +91,7 @@ sealed class Pairing
         {
             GroupId = groupId;
             ActiveUntil = DateTime.UtcNow + Window;
+            windowAbandoned = 0;
             if (udp == null) StartDiscovery();
         }
         Log.Write($"Kopplungsmodus an (Gruppe {groupId}, 5 Minuten)");
@@ -201,11 +218,12 @@ sealed class Pairing
                 if (server.LoopbackOnly ? ip != "127.0.0.1" && ip != "::1" : !IPAddress.TryParse(ip, out var a) || !IsPrivate(a))
                     return (403, "{\"error\":\"network\"}", true);
                 if (msg["commit"] == null) return (400, "{\"error\":\"update\"}", false); // altes Verfahren ohne Festlegung
-                if (TooManyAbandoned(ip)) return (429, "{\"error\":\"busy\"}", true);
+                if (TooManyAbandoned(ip)) { CountWindow("Adresse gesperrt"); return (429, "{\"error\":\"busy\"}", true); }
                 // höchstens eine offene Festlegung je Adresse: eine neue ersetzt die alte (zählt als ohne Abschluss)
                 foreach (var old in requests.Values.Where(x => x.State == "committed" && x.Ip == ip).ToList())
                     if (requests.TryRemove(old.Id, out _)) Abandon(ip, "neu gestartet");
                 if (TooManyAbandoned(ip)) return (429, "{\"error\":\"busy\"}", true);
+                if (!Active) return (403, "{\"error\":\"pairing-off\"}", false); // eben beendet (Grenze je Fenster)
                 if (requests.Values.Count(r => r.State is "pending" or "committed") >= MaxPending) return (429, "{\"error\":\"busy\"}", false);
                 byte[] commit;
                 try { commit = Convert.FromBase64String((string)msg["commit"]); } catch { return (400, "{\"error\":\"commit\"}", true); }
