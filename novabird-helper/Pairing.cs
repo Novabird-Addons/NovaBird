@@ -8,11 +8,12 @@
 //      {op:"reveal", req, pub} -> {state:"pending"}: der PC zeigt seinen Schlüssel; passt er nicht zum commit, ist die Anfrage weg.
 //        Beide Seiten zeigen dieselbe 6-stellige Zahl: HKDF-SHA256(Geheimnis, info "nbh-pair-sas|<Helper-pub>|<PC-pub>"),
 //        erste 4 Byte (big endian) mod 1.000.000. Wegen der Festlegung kann ein Dritter in der Mitte die Zahl nicht passend
-//        ausrechnen (Treffer nur 1 zu 1 Million); der Admin vergleicht sie vor „Zulassen“, am PC bestätigt man „Zahl stimmt“.
+//        ausrechnen, nur mit neuen Starts auf Glück hoffen (begrenzt, siehe unten); der Admin vergleicht sie vor „Zulassen“, am PC bestätigt man „Zahl stimmt“.
 //      {op:"poll", req} -> {state:"pending"|"denied"|"expired"} oder {state:"ok", n, d}: d = AES-256-GCM mit dem Schlüssel
 //        HKDF(Geheimnis, info "nbh-pair-key|<Helper-pub>|<PC-pub>"), AAD "nbh-pair|<req>", Inhalt {code, group}.
 //      Das alte Verfahren 1 ({op:"start", pub}, ohne Festlegung) lehnt der Helper ab: {error:"update"}.
-//  - Höchstens 8 offene Anfragen; festgelegte ohne „reveal“ verfallen nach 1 Minute, die übrigen nach 10 Minuten;
+//  - Höchstens 8 offene Anfragen, je Adresse höchstens eine Festlegung ohne „reveal“; Festlegungen ohne Abschluss (verfallen nach
+//    1 Minute, ersetzt, falscher Schlüssel) höchstens 3 je Adresse in 10 Minuten, danach 429; die übrigen Anfragen gelten 10 Minuten;
 //    unbekannte Kennungen und kaputte Anfragen zählen als Fehlversuch (Sperre wie bei 403). Keine CORS-Freigabe.
 using System.Collections.Concurrent;
 using System.Net;
@@ -30,6 +31,20 @@ sealed class Pairing
     public static int DiscoveryPort => int.TryParse(Environment.GetEnvironmentVariable("NOVABIRD_DISCOVERY_PORT"), out var p) ? p : 47531;
     static readonly TimeSpan Window = TimeSpan.FromMinutes(5), RequestLife = TimeSpan.FromMinutes(10), CommitLife = TimeSpan.FromMinutes(1);
     const int MaxPending = 8;
+    // Festlegungen ohne „reveal“ (verworfen, verfallen, falscher Schlüssel) je Adresse: ein Dritter in der Mitte müsste für jede neue
+    // Vergleichszahl am Helper neu starten. Höchstens 3 in 10 Minuten, danach nimmt der Helper von dieser Adresse keinen Start an.
+    const int MaxAbandoned = 3;
+    static readonly TimeSpan AbandonWindow = TimeSpan.FromMinutes(10);
+    readonly ConcurrentDictionary<string, (int Count, DateTime Since)> abandoned = new();
+
+    void Abandon(string ip, string why)
+    {
+        var n = abandoned.AddOrUpdate(ip, _ => (1, DateTime.UtcNow), (_, a) => DateTime.UtcNow - a.Since > AbandonWindow ? (1, DateTime.UtcNow) : (a.Count + 1, a.Since));
+        if (n.Count <= MaxAbandoned + 1) Log.Write($"Kopplung: Anfrage von {ip} ohne Abschluss ({why})");
+    }
+
+    bool TooManyAbandoned(string ip) =>
+        abandoned.TryGetValue(ip, out var a) && a.Count >= MaxAbandoned && DateTime.UtcNow - a.Since <= AbandonWindow;
 
     public sealed class Request
     {
@@ -94,7 +109,8 @@ sealed class Pairing
     void Prune()
     {
         foreach (var (id, r) in requests)
-            if (DateTime.UtcNow - r.Created > (r.State == "committed" ? CommitLife : RequestLife)) requests.TryRemove(id, out _);
+            if (DateTime.UtcNow - r.Created > (r.State == "committed" ? CommitLife : RequestLife) && requests.TryRemove(id, out _) && r.State == "committed")
+                Abandon(r.Ip, "verfallen");
         if (!Active && udp != null) lock (gate) { if (!Active) { try { udp?.Dispose(); } catch { } udp = null; } }
     }
 
@@ -185,6 +201,11 @@ sealed class Pairing
                 if (server.LoopbackOnly ? ip != "127.0.0.1" && ip != "::1" : !IPAddress.TryParse(ip, out var a) || !IsPrivate(a))
                     return (403, "{\"error\":\"network\"}", true);
                 if (msg["commit"] == null) return (400, "{\"error\":\"update\"}", false); // altes Verfahren ohne Festlegung
+                if (TooManyAbandoned(ip)) return (429, "{\"error\":\"busy\"}", true);
+                // höchstens eine offene Festlegung je Adresse: eine neue ersetzt die alte (zählt als ohne Abschluss)
+                foreach (var old in requests.Values.Where(x => x.State == "committed" && x.Ip == ip).ToList())
+                    if (requests.TryRemove(old.Id, out _)) Abandon(ip, "neu gestartet");
+                if (TooManyAbandoned(ip)) return (429, "{\"error\":\"busy\"}", true);
                 if (requests.Values.Count(r => r.State is "pending" or "committed") >= MaxPending) return (429, "{\"error\":\"busy\"}", false);
                 byte[] commit;
                 try { commit = Convert.FromBase64String((string)msg["commit"]); } catch { return (400, "{\"error\":\"commit\"}", true); }
@@ -215,6 +236,7 @@ sealed class Pairing
                 if (clientPub.Length != 65 || clientPub[0] != 4 || !CryptographicOperations.FixedTimeEquals(SHA256.HashData(clientPub), r.Commit))
                 {
                     requests.TryRemove(r.Id, out _); // passt nicht zur Festlegung: Anfrage verworfen
+                    Abandon(ip, "Schlüssel passt nicht zur Festlegung");
                     return (400, "{\"error\":\"commit\"}", true);
                 }
                 byte[] shared;

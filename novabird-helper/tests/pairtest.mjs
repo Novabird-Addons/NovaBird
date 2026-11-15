@@ -110,12 +110,21 @@ try {
   const bad = [];
   for (const raw of ["1", "[]", '{"op":"poll","req":5}', '{"op":"reveal","req":[1]}', '{"op":"start","v":2,"commit":7}']) bad.push((await post(null, raw)).status);
   ok("Q10 malformedBodies400", bad.every(s => s === 400), bad);
+  // Q10b: höchstens eine Festlegung je Adresse – eine neue ersetzt die alte
+  const x1 = await newClient(), x2 = await newClient();
+  const s1 = await post({ op: "start", v: 2, commit: x1.commit, label: "x1" });
+  const s2 = await post({ op: "start", v: 2, commit: x2.commit, label: "x2" });
+  const r1 = await post({ op: "reveal", req: s1.json.req, pub: b64(x1.pub) });
+  const r2 = await post({ op: "reveal", req: s2.json.req, pub: b64(x2.pub) });
+  ok("Q10b oneCommitPerAddress", s1.status === 200 && s2.status === 200 && r1.status === 404 && r2.status === 200, [s1.status, s2.status, r1.status, r2.status]);
   await cmd("pair-stop");
   await cmd("pair-start");
-  // Q11: höchstens 8 offene (festgelegt oder wartend)
+  // Q11: Festlegungen ohne Abschluss: höchstens 3 je Adresse in 10 Minuten, danach keine Starts mehr (gegen Durchprobieren der Zahl)
   const st = [];
   for (let i = 0; i < 10; i++) st.push((await post({ op: "start", v: 2, commit: (await newClient()).commit, label: "flood" + i })).status);
-  ok("Q11 maxPending", st.filter(s => s === 200).length <= 8 && st.includes(429), st);
+  ok("Q11 abandonLimit", st.filter(s => s === 200).length <= 2 && st.slice(2).every(s => s === 429), st);
+  const log2 = fs.readFileSync(path.join(dir, "helper.log"), "utf8");
+  ok("Q11b abandonLogged", /ohne Abschluss \(Schlüssel passt nicht zur Festlegung\)/.test(log2) && /ohne Abschluss \(neu gestartet\)/.test(log2), log2.split(/\r?\n/).filter(x => /ohne Abschluss/.test(x)).length);
   // Q12: Kennungen raten → Sperre, danach alles blockiert
   let last = 0;
   for (let i = 0; i < 25; i++) last = (await post({ op: "poll", req: Buffer.from(globalThis.crypto.getRandomValues(new Uint8Array(16))).toString("base64url") })).status;
