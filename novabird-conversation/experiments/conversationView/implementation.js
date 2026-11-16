@@ -416,27 +416,97 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
           // nur eine frühere Entscheidung des Nutzers wird zurückgenommen, eine automatische Bewertung wurde nie gelernt
           const old = origin !== "user" || !score ? plugin.UNCLASSIFIED : Number(score) === plugin.IS_SPAM_SCORE ? plugin.JUNK : plugin.GOOD;
           const next = junk ? plugin.JUNK : plugin.GOOD;
+          // Bewertung setzen: als Entscheidung des Nutzers nur, wenn der Filter sie gelernt hat – sonst nähme ein späteres
+          // „Kein Spam“ etwas zurück, das nie gelernt wurde (dann Herkunft "plugin", wie eine automatische Bewertung)
+          const mark = trained => {
+            try {
+              hdr.folder.setJunkScoreForMessages([hdr], junk ? String(plugin.IS_SPAM_SCORE) : String(plugin.IS_HAM_SCORE), trained ? "user" : "plugin", -1);
+            } catch (e) {
+              console.error("NovaBird: Spam-Bewertung", e);
+            }
+            return trained;
+          };
           if (old === next) {
-            return true;
+            return mark(true);
           }
           const uri = hdr.folder.getUriForMsg(hdr);
           const msgWindow = Services.wm.getMostRecentWindow("mail:3pane")?.msgWindow ?? null;
           return new Promise(resolve => {
-            const timer = setTimeout(() => resolve(false), 15000);
+            const timer = setTimeout(() => resolve(mark(false)), 15000);
             try {
               MailServices.junk.setMessageClassification(uri, old, next, msgWindow, {
                 QueryInterface: ChromeUtils.generateQI(["nsIJunkMailClassificationListener"]),
                 onMessageClassified() {
                   clearTimeout(timer);
-                  resolve(true);
+                  resolve(mark(true));
                 },
               });
             } catch (e) {
               console.error("NovaBird: Spam-Filter nicht trainiert", e);
               clearTimeout(timer);
-              resolve(false);
+              resolve(mark(false));
             }
           });
+        },
+        // Was mit einer als Spam / Kein Spam markierten Mail geschieht – nach den Spam-Einstellungen von Thunderbird:
+        // Spam: in den Spam-Ordner des Kontos (Kontoeinstellungen → Junk-Filter, auch „Lokale Ordner“) oder löschen, wenn
+        // „manuell markierte Nachrichten löschen“ gewählt ist; gelesen markieren nach mail.spam.markAsReadOnSpam.
+        // Kein Spam: aus einem Spam-Ordner in den Posteingang; ungelesen nach mail.spam.markAsNotJunkMarksUnRead.
+        async junkAction(messageId, junk) {
+          const hdr = context.extension.messageManager.get(messageId);
+          const folder = hdr?.folder;
+          if (!folder) {
+            return null;
+          }
+          const isJunkFolder = folder.getFlag(Ci.nsMsgFolderFlags.Junk);
+          const convert = f => {
+            try {
+              const account = MailServices.accounts.findAccountForServer(f.server);
+              return context.extension.folderManager.convert(f, account?.key);
+            } catch (e) {
+              return null;
+            }
+          };
+          const pref = (name, fallback) => {
+            try {
+              return Services.prefs.getBoolPref(name, fallback);
+            } catch (e) {
+              return fallback;
+            }
+          };
+          if (junk) {
+            const spam = folder.server?.spamSettings;
+            const manual = pref("mail.spam.manualMark", false);
+            const mode = Services.prefs.getIntPref("mail.spam.manualMarkMode", 0);
+            const markRead = pref("mail.spam.markAsReadOnSpam", false);
+            if (isJunkFolder) {
+              return { action: "none", markRead };
+            }
+            if (manual && mode === 1) {
+              return { action: "delete", markRead };
+            }
+            // Ziel aus den Kontoeinstellungen; fehlt es (Ordner gelöscht), den Spam-Ordner des Kontos
+            let target = null;
+            try {
+              const uri = spam?.spamFolderURI;
+              target = uri ? MailServices.folderLookup.getFolderForURL(uri) : null;
+            } catch (e) {
+              target = null;
+            }
+            if (!target) {
+              target = folder.server?.rootFolder?.getFolderWithFlags(Ci.nsMsgFolderFlags.Junk) ?? null;
+            }
+            if (!target || target === folder) {
+              return { action: "none", markRead };
+            }
+            return { action: "move", folder: convert(target), markRead };
+          }
+          const markUnread = pref("mail.spam.markAsNotJunkMarksUnRead", true);
+          if (!isJunkFolder) {
+            return { action: "none", markUnread };
+          }
+          const inbox = folder.server?.rootFolder?.getFolderWithFlags(Ci.nsMsgFolderFlags.Inbox) ?? null;
+          return inbox ? { action: "move", folder: convert(inbox), markUnread } : { action: "none", markUnread };
         },
         async getMessageId(headerMessageId, accountId, path) {
           try {

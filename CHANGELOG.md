@@ -3,7 +3,12 @@
 Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `testing`.
 
 ## Unreleased (branch `novabird-2.0`)
-NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.9 · Helper 0.5.2 (new) · Send 1.0.5. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
+NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.15.10 · Helper 0.5.2 (new) · Send 1.0.5. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
+
+### NovaBird-Conversation 0.15.10: the spam button follows Thunderbird's junk settings
+- "Spam" always moved the mail to the first junk folder of the same account. It now does what Thunderbird's own junk button does: the junk folder chosen in the account settings (Junk Settings, also one under Local Folders), or delete when "Delete manually marked junk" is set in Thunderbird's settings, and "mark as read" when that is set. "Not spam" moves a mail from a junk folder back to the inbox and marks it unread (Thunderbird's default `mail.spam.markAsNotJunkMarksUnRead`). Moving remains the default when nothing is set in Thunderbird.
+- If the junk filter could not learn the mail (e.g. it could not be read in time), the mark no longer counts as the user's decision; a later "Not spam" no longer takes back something that was never learned.
+- Tested on Thunderbird 153 and 160: learning, own junk folder, delete + mark as read, back to the inbox as unread, nothing learned twice (RC1 fails 4 of these 9 checks).
 
 ### Security: attachment preview no longer loads addresses from a mail
 - The attachment preview (hover over an attachment) also listened inside the message itself and trusted markup there: a mail with the same class and data attributes as the attachment pane of the calendar sidebar, or with an "external attachment" header, made Thunderbird load any web address while the mouse moved over it – also with remote content blocked, so the sender could see that and when the mail was read. The preview now takes rows only from Thunderbird's own interface and loads only attachments of mails (local, IMAP, News, Exchange) or local files, never web addresses or network shares. Found in the review for RC1, reproduced with a local test server; real image and PDF attachments preview as before (Thunderbird 153 and 160).

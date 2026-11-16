@@ -188,6 +188,22 @@
         ]
       },
       {
+        "name": "junkAction",
+        "type": "function",
+        "async": true,
+        "description": "Was nach Spam / Kein Spam mit der Mail geschieht (Spam-Einstellungen von Thunderbird): {action: move|delete|none, folder?, markRead?, markUnread?}.",
+        "parameters": [
+          {
+            "name": "messageId",
+            "type": "integer"
+          },
+          {
+            "name": "junk",
+            "type": "boolean"
+          }
+        ]
+      },
+      {
         "name": "getMessageId",
         "type": "function",
         "async": true,

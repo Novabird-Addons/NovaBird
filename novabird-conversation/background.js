@@ -552,22 +552,20 @@ async function runAction(raw, tabId) {
     case "notJunk": {
       const junk = msg.action === "junk";
       const info = await messenger.messages.get(msg.id);
-      // erst lernen (liest die Mail noch am alten Ort), dann bewerten und verschieben; ohne Training wird der Filter nie besser
-      await messenger.conversationView.trainJunk(msg.id, junk).catch(e => console.warn("NovaBird: Spam-Training", e));
-      await messenger.messages.update(msg.id, { junk });
-      const account = info.folder?.accountId ? await messenger.accounts.get(info.folder.accountId, true) : null;
-      const find = (folders, type) => {
-        for (const f of folders ?? []) {
-          if (f.type === type) return f;
-          const sub = find(f.subFolders, type);
-          if (sub) return sub;
-        }
-        return null;
-      };
-      const target = account ? find(account.folders, junk ? "junk" : "inbox") : null;
-      if (target && target.path !== info.folder.path && (junk ? info.folder.type !== "junk" : info.folder.type === "junk")) {
+      // erst lernen (liest die Mail noch am alten Ort) und bewerten – das Experiment setzt die Bewertung als Entscheidung des
+      // Nutzers nur, wenn der Filter sie gelernt hat; ohne Training wird der Filter nie besser
+      const trained = await messenger.conversationView.trainJunk(msg.id, junk).catch(e => { console.warn("NovaBird: Spam-Training", e); return null; });
+      if (trained === null) await messenger.messages.update(msg.id, { junk }); // Experiment nicht verfügbar: wenigstens markieren
+      // dann wie der Spam-Knopf von Thunderbird nach dessen Einstellungen: Spam-Ordner des Kontos oder löschen, gelesen/ungelesen
+      const todo = await messenger.conversationView.junkAction(msg.id, junk).catch(() => null);
+      if (todo?.markRead) await messenger.messages.update(msg.id, { read: true }).catch(() => {});
+      if (todo?.markUnread) await messenger.messages.update(msg.id, { read: false }).catch(() => {});
+      if (todo?.action === "move" && todo.folder) {
         noteRemoved(info);
-        await messenger.messages.move([msg.id], target);
+        await messenger.messages.move([msg.id], todo.folder);
+      } else if (todo?.action === "delete") {
+        noteRemoved(info);
+        await messenger.messages.delete([msg.id]);
       }
       clearCaches();
       return true;
