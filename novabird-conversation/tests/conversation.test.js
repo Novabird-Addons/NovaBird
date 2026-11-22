@@ -92,16 +92,50 @@ test("Betreff-Ersatz: Zeitfenster und gemeinsamer Beteiligter nötig", () => {
     msg(3, "c", [], 1020 * day, { people: ["fremd@z", "ich@w"] }),  // anderer Beteiligter
     msg(4, "d", [], 1100 * day, { people: ["anna@x", "ich@y"] }),   // zu weit weg
   ];
-  assert.deepEqual(groupConversation(1, list, { fallback: "smart" }).map(m => m.id), [1, 2]);
-  assert.deepEqual(groupConversation(1, list, { fallback: "subject" }).map(m => m.id), [1, 2, 3, 4]);   // üblich: nur Betreff
-  assert.deepEqual(groupConversation(1, list, { fallback: "smart", fallbackPeople: false }).map(m => m.id), [1, 2, 3]);
+  assert.deepEqual(groupConversation(1, list, { fallback: "smart", fallbackDays: 30 }).map(m => m.id), [1, 2]);
+  assert.deepEqual(groupConversation(1, list, { fallback: "subject" }).map(m => m.id), [1, 2, 3, 4]);   // alte Regel: nur Betreff
+  assert.deepEqual(groupConversation(1, list, { fallback: "smart", fallbackDays: 30, fallbackPeople: false }).map(m => m.id), [1, 2, 3]);
+  assert.deepEqual(groupConversation(1, list, { fallback: "smart" }).map(m => m.id), [1, 2, 4]);   // Standard 180 Tage
   assert.deepEqual(groupConversation(1, list, { fallback: "smart", fallbackDays: 200 }).map(m => m.id), [1, 2, 4]);
 });
 
 test("Einstellungen: alte Option subjectFallback und neue Regeln", () => {
   assert.equal(sanitizeSettings({ subjectFallback: false }).fallback, "off");
-  assert.equal(sanitizeSettings({}).fallback, "subject");
+  assert.equal(sanitizeSettings({}).fallback, "smart");
+  // vor 0.16 gespeichert: alte Standardwerte werden gehoben, bewusst gewählte bleiben
+  assert.deepEqual((({ fallback, fallbackDays }) => ({ fallback, fallbackDays }))(sanitizeSettings({ fallback: "subject", fallbackDays: 30 })), { fallback: "smart", fallbackDays: 180 });
+  assert.equal(sanitizeSettings({ fallback: "off", fallbackDays: 45 }).fallbackDays, 45);
+  assert.equal(sanitizeSettings({ fallback: "subject", rules: 2 }).fallback, "subject");
   assert.equal(sanitizeSettings({ fallback: "smart", fallbackDays: 9999 }).fallbackDays, 365);
+});
+
+test("smart: Antwort mit anderem Betreff abgetrennt, Personen transitiv, eigene Adresse zählt nicht", () => {
+  const day = 86400000;
+  const m = (id, mid, refs, d, subjectKey, people) => ({ id, mid, refs, subjectKey, date: d * day, folderType: "inbox", people });
+  const list = [
+    m(1, "g1", [], 0, "rechnung gartenbau", ["a@g", "b@g", "ich@x"]),
+    m(2, "g2", ["g1"], 3, "rechnung gartenbau", ["b@g", "a@g"]),
+    m(3, "srv", ["g1", "g2"], 5, "rechnung server", ["a@g", "ich@x"]),
+    m(4, "g3", ["g1"], 9, "rechnung gartenbau – nachtrag", ["a@g", "ich@x"]),
+    m(5, "g4", [], 40, "rechnung gartenbau", ["a@g", "d@g"]),
+    m(6, "g5", [], 60, "rechnung gartenbau", ["d@g", "ich@x"]),
+    m(7, "f1", [], 20, "rechnung gartenbau", ["fremd@h", "ich@x"]),
+    m(8, "alt", [], 300, "rechnung gartenbau", ["a@g", "ich@x"]),
+  ];
+  const ids = (id, o = {}) => groupConversation(id, list, { fallback: "smart", mine: ["ICH@x"], ...o }).map(c => c.id);
+  assert.deepEqual(ids(1), [1, 2, 4, 5, 6]);
+  assert.deepEqual(ids(3), [3]);
+  assert.deepEqual(groupConversation(1, list, { fallback: "off" }).map(c => c.id), [1, 2, 3, 4]);
+  assert.ok(ids(1, { mine: [] }).includes(7));
+  assert.ok(ids(1, { fallbackDays: 365 }).includes(8));
+});
+
+test("Betreffe gehören zusammen: gleich oder enthalten, sonst nicht", () => {
+  const { relatedSubject } = require("../conversation.js");
+  assert.equal(relatedSubject("rechnung gartenbau", "rechnung gartenbau – nachtrag"), true);
+  assert.equal(relatedSubject("rechnung gartenbau", "rechnung server"), false);
+  assert.equal(relatedSubject("", "x"), true);
+  assert.equal(relatedSubject("ab", "abc"), false); // zu kurz für „enthalten“
 });
 
 test("Adressen werden aus Anzeigenamen gelesen", () => {

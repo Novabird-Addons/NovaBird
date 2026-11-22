@@ -139,25 +139,25 @@
     "message": "Aún no descargado: se carga al abrirlo"
   },
   "optFallback": {
-    "message": "Cuando un mensaje no tiene cadena de respuestas"
+    "message": "Mensajes con el mismo asunto"
   },
   "optFallbackSubject": {
-    "message": "Agrupar por asunto idéntico (habitual)"
+    "message": "Solo sin cadena de respuestas: todos con el mismo asunto (regla antigua)"
   },
   "optFallbackSmart": {
-    "message": "Agrupar por asunto con reglas adicionales"
+    "message": "Añadirlos si comparten una persona y están dentro del período (recomendado)"
   },
   "optFallbackOff": {
-    "message": "No agrupar (solo cadenas de respuestas)"
+    "message": "No añadir (solo cadenas de respuestas)"
   },
   "optFallbackHint": {
-    "message": "Las cadenas de respuestas (Message-ID, References, In-Reply-To) se usan siempre primero. La alternativa solo se aplica a mensajes sin cadena."
+    "message": "Las cadenas de respuestas (Message-ID, References, In-Reply-To) unen los mensajes. Recomendado: las respuestas con un asunto totalmente distinto se separan («Factura servidor» no pertenece a «Factura jardín»), y los mensajes con el mismo asunto se añaden si están dentro del período y comparten una persona con la conversación; quien se une más tarde pertenece a ella desde entonces. Sus propias direcciones no cuentan."
   },
   "optFallbackDays": {
-    "message": "Reglas adicionales: distancia máxima en días"
+    "message": "Período: distancia máxima en días respecto al mensaje seleccionado"
   },
   "optFallbackPeople": {
-    "message": "Reglas adicionales: al menos un remitente o destinatario en común"
+    "message": "Solo con una persona en común (remitente o destinatario, sin sus propias direcciones)"
   },
   "optDebugTiming": {
     "message": "Escribir los tiempos en la consola de errores"

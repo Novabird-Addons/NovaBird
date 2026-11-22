@@ -31,10 +31,10 @@ function isShownImage(type, size) {
 const SKIP_FOLDER_TYPES = ["trash", "junk"];
 
 /*
- * candidates: [{ id, mid, refs: [mid…], subjectKey, date, folderType }]
+ * candidates: [{ id, mid, refs: [mid…], subjectKey, date, folderType, people }]
  * Liefert die Kandidaten der Konversation von `targetId`, ohne Duplikate (gleiche Message-ID in mehreren Ordnern).
  */
-const FALLBACK_DAYS = 30;
+const FALLBACK_DAYS = 180;
 
 // E-Mail-Adressen aus "Name <a@b>" oder "a@b" (klein geschrieben)
 function addressesOf(values) {
@@ -45,11 +45,22 @@ function addressesOf(values) {
   return out;
 }
 
+// Betreffe gehören zusammen: gleich, oder einer steckt im anderen („Rechnung Gartenbau“ / „Rechnung Gartenbau – Nachtrag“).
+// „Rechnung Server“ als Antwort auf „Rechnung Gartenbau“ dagegen nicht. Ohne Betreff: kein Urteil (gehört dazu).
+function relatedSubject(a, b) {
+  if (!a || !b || a === b) return true;
+  return (a.length >= 4 && b.includes(a)) || (b.length >= 4 && a.includes(b));
+}
+
 /*
- * fallback: off = nur Antwortketten, subject = ohne Kette alle mit gleichem Betreff (üblich),
- *           smart = wie subject, aber nur innerhalb von fallbackDays Tagen und (fallbackPeople) mit gemeinsamem Beteiligten.
+ * fallback: off     = nur Antwortketten
+ *           subject = ohne Kette alle mit gleichem Betreff (alte Regel)
+ *           smart   = Standard: Antwortkette, aber Antworten mit ganz anderem Betreff abgetrennt; dazu Mails mit gleichem Betreff
+ *                     innerhalb von fallbackDays Tagen um die gewählte, wenn sie (fallbackPeople) eine Person mit der Konversation
+ *                     teilen – transitiv: wer bei Mail 5 dazukommt, gehört ab da dazu. Die eigenen Adressen (mine) zählen nicht,
+ *                     sonst teilte jede Mail eine Person.
  */
-function groupConversation(targetId, candidates, { fallback = "subject", fallbackDays = FALLBACK_DAYS, fallbackPeople = true } = {}) {
+function groupConversation(targetId, candidates, { fallback = "smart", fallbackDays = FALLBACK_DAYS, fallbackPeople = true, mine = [] } = {}) {
   const target = candidates.find(c => c.id === targetId);
   if (!target) return [];
 
@@ -74,17 +85,30 @@ function groupConversation(targetId, candidates, { fallback = "subject", fallbac
   const root = find(target.mid);
   let group = candidates.filter(c => find(c.mid) === root);
 
-  if (fallback !== "off" && new Set(group.map(c => c.mid)).size < 2 && target.subjectKey) {
-    if (fallback === "smart") {
+  if (fallback === "smart") {
+    group = group.filter(c => c.id === targetId || relatedSubject(c.subjectKey, target.subjectKey));
+    if (target.subjectKey) {
+      const own = new Set([].concat(mine).map(a => String(a).toLowerCase()));
+      const peopleOf = c => (c.people ?? []).filter(a => !own.has(a));
       const limit = fallbackDays * 86400000;
-      const mine = new Set(target.people ?? []);
-      group = candidates.filter(c => c.id === targetId || (
-        c.subjectKey === target.subjectKey &&
-        Math.abs(c.date - target.date) <= limit &&
-        (!fallbackPeople || (c.people ?? []).some(a => mine.has(a)))));
-    } else {
-      group = candidates.filter(c => c.subjectKey === target.subjectKey);
+      const inGroup = new Set(group);
+      const known = new Set(group.flatMap(peopleOf));
+      const open = candidates.filter(c => !inGroup.has(c) && c.subjectKey === target.subjectKey && Math.abs(c.date - target.date) <= limit);
+      // so lange Mails aufnehmen, bis keine weitere eine bekannte Person teilt
+      for (let added = true; added && open.length;) {
+        added = false;
+        for (let i = open.length - 1; i >= 0; i--) {
+          const c = open[i];
+          if (fallbackPeople && !peopleOf(c).some(a => known.has(a))) continue;
+          group.push(c);
+          for (const a of peopleOf(c)) known.add(a);
+          open.splice(i, 1);
+          added = true;
+        }
+      }
     }
+  } else if (fallback === "subject" && new Set(group.map(c => c.mid)).size < 2 && target.subjectKey) {
+    group = candidates.filter(c => c.subjectKey === target.subjectKey);
   }
 
   const byMid = new Map();
@@ -191,5 +215,5 @@ function selectIn(entry, shownId, keyOf = () => null) {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { dedupeByMid, normalizeSubject, parseIds, addressesOf, groupConversation, pickExpanded, rowKey, splitKey, dedupeRows, recipientNames, rowToView, selectIn, isShownImage };
+  module.exports = { dedupeByMid, relatedSubject, normalizeSubject, parseIds, addressesOf, groupConversation, pickExpanded, rowKey, splitKey, dedupeRows, recipientNames, rowToView, selectIn, isShownImage };
 }

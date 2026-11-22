@@ -139,25 +139,25 @@
     "message": "Pas encore téléchargé – se charge à l'ouverture"
   },
   "optFallback": {
-    "message": "Lorsqu'un message n'a pas de chaîne de réponses"
+    "message": "Messages avec le même sujet"
   },
   "optFallbackSubject": {
-    "message": "Regrouper par sujet identique (habituel)"
+    "message": "Seulement sans chaîne de réponses : tous ceux avec le même sujet (ancienne règle)"
   },
   "optFallbackSmart": {
-    "message": "Regrouper par sujet avec des règles supplémentaires"
+    "message": "Les ajouter s'ils partagent une personne et se situent dans la période (recommandé)"
   },
   "optFallbackOff": {
-    "message": "Ne pas regrouper (chaînes de réponses uniquement)"
+    "message": "Ne pas ajouter (chaînes de réponses uniquement)"
   },
   "optFallbackHint": {
-    "message": "Les chaînes de réponses (Message-ID, References, In-Reply-To) sont toujours utilisées en premier. Le repli ne s'applique qu'aux messages sans chaîne."
+    "message": "Les chaînes de réponses (Message-ID, References, In-Reply-To) relient les messages. Recommandé : les réponses avec un sujet totalement différent sont séparées (« Facture serveur » n'appartient pas à « Facture jardin »), et les messages avec le même sujet sont ajoutés s'ils se situent dans la période et partagent une personne avec la conversation – une personne ajoutée plus tard en fait partie dès lors. Vos propres adresses ne comptent pas."
   },
   "optFallbackDays": {
-    "message": "Règles supplémentaires : écart maximal en jours"
+    "message": "Période : écart maximal en jours par rapport au message sélectionné"
   },
   "optFallbackPeople": {
-    "message": "Règles supplémentaires : au moins un expéditeur ou destinataire en commun"
+    "message": "Seulement avec une personne en commun (expéditeur ou destinataire, sans vos propres adresses)"
   },
   "optDebugTiming": {
     "message": "Écrire les durées dans la console d'erreurs"

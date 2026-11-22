@@ -2,7 +2,9 @@
 // ohne Betterbird-Aufruf. Regeln wie in novabird-conversation/conversation.js:
 //  1. Kette: Mails gehören zusammen, wenn sich Message-ID / References / In-Reply-To verbinden (transitiv; fehlende
 //     Elternmails verbinden Geschwister über den gemeinsamen Verweis).
-//  2. Betreff-Ersatz nur für Mails OHNE Kette (Komponente aus genau einer Message-ID): "off" | "subject" | "smart".
+//  2. "smart" (Standard): Antworten mit ganz anderem Betreff abgetrennt; dazu Mails mit gleichem Betreff im Zeitraum um die gewählte,
+//     die eine Person mit der Konversation teilen (transitiv, eigene Adressen `mine` zählen nicht).
+//     "subject" (alte Regel): nur für Mails OHNE Kette alle mit gleichem Betreff. "off": nur Ketten.
 //  3. Papierkorb und Spam raus, außer die Zielnachricht selbst. Dieselbe Message-ID in mehreren Ordnern: alle Zeilen.
 
 import { HEADERS_ONLY } from "../db/repository.js";
@@ -11,6 +13,13 @@ export const MAX_COMPONENT = 500; // höchstens so viele Message-IDs je Kette (S
 export const DEFAULT_LIMIT = 200; // Nachrichten, die geliefert werden (die neuesten)
 export const MAX_LIMIT = 5000;
 const MAX_CANDIDATES = 5000; // Betreff-Ersatz: höchstens so viele Kandidaten prüfen (neueste zuerst)
+export const DEFAULT_DAYS = 180; // smart: Zeitraum um die gewählte Nachricht
+
+/** Betreffe gehören zusammen: gleich oder einer steckt im anderen (wie novabird-conversation/conversation.js). */
+export function relatedSubject(a, b) {
+  if (!a || !b || a === b) return true;
+  return (a.length >= 4 && b.includes(a)) || (b.length >= 4 && a.includes(b));
+}
 
 const COLS = [
   "header_msg_id", "folder_id", "folder_name", "folder_type", "date", "author_name", "author_email", "recipients",
@@ -69,12 +78,12 @@ function toMessage(r) {
 }
 
 /**
- * @param opts { headerMessageId, folderId?, fallback: "off"|"subject"|"smart", fallbackDays, fallbackPeople, limit }
+ * @param opts { headerMessageId, folderId?, fallback: "off"|"subject"|"smart", fallbackDays, fallbackPeople, mine: [eigene Adressen], limit }
  * @returns { ok: true, indexedAt, truncated, messages: [...] } nach Datum aufsteigend (die neuesten `limit`)
  */
 export async function findConversation(db, opts) {
   const id = String(opts.headerMessageId ?? "");
-  const fallback = ["off", "subject", "smart"].includes(opts.fallback) ? opts.fallback : "subject";
+  const fallback = ["off", "subject", "smart"].includes(opts.fallback) ? opts.fallback : "smart";
   const limit = Math.max(1, Math.min(Number(opts.limit) || DEFAULT_LIMIT, MAX_LIMIT));
   if (!id) return { ok: true, indexedAt: 0, truncated: false, messages: [] };
 
@@ -89,32 +98,48 @@ export async function findConversation(db, opts) {
     rows.push(...(await db.select(`${SELECT} WHERE header_msg_id IN (${part.map(() => "?").join(",")})`, part, COLS)));
   }
 
-  // Betreff-Ersatz nur, wenn die Mail keine Kette hat: weniger als zwei verschiedene Nachrichten im Index
-  // (ein Verweis auf eine unbekannte Elternmail zählt nicht, wie im NovaBird-Conversation)
-  if (new Set(rows.map((r) => r.header_msg_id)).size < 2 && fallback !== "off" && target.subject_key) {
+  const have = new Set(rows.map((r) => `${r.header_msg_id}\u0000${r.folder_id}`));
+  const add = (c) => {
+    const key = `${c.header_msg_id}\u0000${c.folder_id}`;
+    if (!have.has(key)) { have.add(key); rows.push(c); }
+  };
+  if (fallback === "smart") {
+    rows = rows.filter((r) => r.header_msg_id === id || relatedSubject(r.subject_key, target.subject_key));
+    if (target.subject_key) {
+      const days = Number(opts.fallbackDays) > 0 ? Number(opts.fallbackDays) : DEFAULT_DAYS;
+      const span = days * 86_400_000;
+      const candidates = await db.select(
+        `${SELECT} WHERE subject_key = ? AND date BETWEEN ? AND ? ORDER BY date DESC LIMIT ${MAX_CANDIDATES}`,
+        [target.subject_key, target.date - span, target.date + span],
+        COLS,
+      );
+      const own = new Set((Array.isArray(opts.mine) ? opts.mine : []).map((a) => String(a).toLowerCase()));
+      const others = (r) => [...people(r)].filter((a) => !own.has(a));
+      const known = new Set(rows.flatMap(others));
+      const mids = new Set(rows.map((r) => r.header_msg_id));
+      let open = candidates.filter((c) => !mids.has(c.header_msg_id));
+      // so lange aufnehmen, bis keine weitere Mail eine bekannte Person teilt (wer bei Mail 5 dazukommt, gehört ab da dazu)
+      for (let added = true; added && open.length; ) {
+        added = false;
+        const rest = [];
+        for (const c of open) {
+          const ps = others(c);
+          if (opts.fallbackPeople !== false && !ps.some((a) => known.has(a))) { rest.push(c); continue; }
+          add(c);
+          for (const a of ps) known.add(a);
+          added = true;
+        }
+        open = rest;
+      }
+    }
+  } else if (fallback === "subject" && new Set(rows.map((r) => r.header_msg_id)).size < 2 && target.subject_key) {
+    // alte Regel: nur ohne Kette (ein Verweis auf eine unbekannte Elternmail zählt nicht)
     const candidates = await db.select(
       `${SELECT} WHERE subject_key = ? ORDER BY date DESC LIMIT ${MAX_CANDIDATES}`,
       [target.subject_key],
       COLS,
     );
-    let extra = candidates;
-    if (fallback === "smart") {
-      const days = Number(opts.fallbackDays) > 0 ? Number(opts.fallbackDays) : 30;
-      const span = days * 86_400_000;
-      const mine = people(target);
-      extra = candidates.filter((c) => {
-        if (c.header_msg_id === id) return true;
-        if (Math.abs(c.date - target.date) > span) return false;
-        if (opts.fallbackPeople === false) return true;
-        for (const p of people(c)) if (mine.has(p)) return true;
-        return false;
-      });
-    }
-    const have = new Set(rows.map((r) => `${r.header_msg_id}\u0000${r.folder_id}`));
-    for (const c of extra) {
-      const key = `${c.header_msg_id}\u0000${c.folder_id}`;
-      if (!have.has(key)) rows.push(c);
-    }
+    for (const c of candidates) add(c);
   }
 
   // Papierkorb/Spam ausschließen, außer die Zielnachricht selbst (ihre gewählte Kopie)

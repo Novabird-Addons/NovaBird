@@ -10,8 +10,8 @@ const SETTINGS_DEFAULTS = {
   attachments: "top",         // top = über dem Text, bottom = darunter
   collapseQuotes: true,       // zitierten Text hinter „…“ einklappen
   alwaysRender: false,        // auch einzelne Nachrichten in dieser Ansicht zeigen
-  fallback: "subject",        // Ersatz für Mails ohne Antwortkette: off | subject (gleicher Betreff, wie üblich) | smart (Betreff + Regeln unten)
-  fallbackDays: 30,           // smart: höchstens so viele Tage Abstand zur gewählten Nachricht (1–365)
+  fallback: "smart",          // gleicher Betreff: smart (Kette + gleicher Betreff mit gemeinsamer Person im Zeitraum, Standard) | subject (ohne Kette alle mit gleichem Betreff, alte Regel) | off (nur Antwortketten)
+  fallbackDays: 180,          // smart: höchstens so viele Tage Abstand zur gewählten Nachricht (1–365)
   fallbackPeople: true,       // smart: mindestens ein gemeinsamer Absender/Empfänger nötig
   engine: "auto",              // auto = NovaBird-DB → Gloda → Betterbird-Suche | db = NovaBird-DB → Suche | gloda = Gloda → Suche | query = immer Betterbird-Suche
   limit: 200,                 // Höchstzahl Nachrichten je Konversation aus dem Index (200 | 1000 | 3000 | 5000)
@@ -25,6 +25,7 @@ const SETTINGS_DEFAULTS = {
   openMs: 180,                // Dauer der Aufklapp-Animation in ms (0 = aus)
   fadeMs: 90,                 // Einblenden der Konversation beim Laden in ms (0 = aus)
   debugTiming: false,         // Zeiten in der Fehlerkonsole ausgeben (zur Fehlersuche)
+  rules: 2,                   // Stand der Gruppierungsregeln (2 = smart mit 180 Tagen als Standard, ab 0.16)
   hideHeader: true,           // Standard-Nachrichtenkopf und Anhangsleiste von Betterbird ausblenden
 };
 
@@ -36,8 +37,11 @@ function sanitizeSettings(raw) {
     return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
   };
   const d = SETTINGS_DEFAULTS;
-  const r = raw || {};
+  let r = raw || {};
+  // Gespeichert vor 0.16 (rules fehlt): die alten Standardwerte (subject, 30 Tage) auf die neuen heben; bewusst gewählte bleiben
+  if (raw && raw.rules !== 2) r = { ...r, fallback: r.fallback === "subject" ? "smart" : r.fallback, fallbackDays: r.fallbackDays === 30 ? 180 : r.fallbackDays };
   return {
+    rules: 2,
     style: oneOf(r.style, ["soft", "clear", "thread"], d.style),
     order: oneOf(r.order, ["newest", "oldest"], d.order),
     pin: bool(r.pin, d.pin),

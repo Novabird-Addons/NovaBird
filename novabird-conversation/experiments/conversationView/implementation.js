@@ -378,6 +378,23 @@ this.conversationView = class extends ExtensionCommon.ExtensionAPI {
             return null;
           }
         },
+        // Gezielt eine (ältere) Nachrichtenzeile gewählt oder nur einen zugeklappten Faden? Beim Faden zeigt Thunderbird dessen erste
+        // Mail; die Ansicht soll dann wie gewohnt die neueste groß zeigen, bei einer gezielt gewählten älteren dagegen diese.
+        async getSelectionKind(tabId) {
+          try {
+            const cw = context.extension.tabManager.get(tabId)?.nativeTab?.chromeBrowser?.contentWindow;
+            if (!cw?.location.href.startsWith("about:3pane") || !cw.gDBView || !cw.threadTree) return null;
+            const tree = cw.threadTree;
+            if (tree.selectedIndices.length !== 1) return "thread";
+            const idx = tree.selectedIndex;
+            if (idx < 0) return null;
+            const view = cw.gDBView;
+            if (view.getFlagsAt(idx) & MSG_VIEW_FLAG_DUMMY) return "thread";
+            return view.isContainer(idx) && !view.isContainerEmpty(idx) && !view.isContainerOpen(idx) ? "thread" : "message";
+          } catch (e) {
+            return null;
+          }
+        },
         // Einstellung „Ansicht → Anhänge eingebettet anzeigen“
         async getInlineAttachments() {
           return Services.prefs.getBoolPref("mail.inline_attachments", true);

@@ -972,8 +972,9 @@
     if (ordered.length > 1) history.append(el("div", "nbc-label", t("history")));
     for (const m of ordered) if (m !== pinnedMsg) history.append(cards.get(m.id));
     root.append(pinned, sep(), history);
-    // gewählte neueste Nachricht selbst: ganz zeigen (eingeklappt bleibt sie nur beim Lesen älterer Mails)
-    setFold(pinnedMsg, pinnedMsg.id !== data.selectedId && data.folded?.includes(pinnedMsg.id) === true, false);
+    // gewählte neueste Nachricht selbst: ganz zeigen (eingeklappt bleibt sie nur beim Lesen älterer Mails). Gezielt eine ältere
+    // gewählt (data.focus): einklappen, ohne es zu merken – die gewählte bekommt den Platz.
+    setFold(pinnedMsg, data.focus === true || (pinnedMsg.id !== data.selectedId && data.folded?.includes(pinnedMsg.id) === true), false);
     fitPinned(root, pinned);
   } else {
     const list = el("div", "nbc-list");
@@ -1010,6 +1011,12 @@
   // Vorschauzeilen aus dem Index sofort setzen (kein Textabruf)
   for (const m of ordered) if (!isPinnedOrOpen(m.id) && m.snippet) fill(m);
   mark("built");
+  // gezielt gewählte ältere Nachricht gleich nach oben holen (nicht erst nach allen Texten und Vorschauen)
+  const scrollToSelected = () => {
+    const sel = els.get(data.selectedId);
+    if (sel && !sel.isPinned) sel.card.scrollIntoView({ block: data.focus ? "start" : "nearest" });
+  };
+  if (data.focus) scrollToSelected();
 
   // Nur aufgeklappte Nachrichten laden (bei IMAP ein Abruf je Nachricht), höchstens 3 gleichzeitig
   const queue = ordered.filter(m => isPinnedOrOpen(m.id));
@@ -1025,6 +1032,7 @@
   };
   await Promise.all([worker(), worker(), worker()]);
   mark("bodies");
+  if (data.focus) scrollToSelected(); // Texte darüber geladen: Lage nachziehen
 
   // Vorschauzeilen: nur für lokal gespeicherte, zugeklappte Nachrichten, nacheinander und begrenzt
   let alive = true;
@@ -1047,8 +1055,7 @@
   }
   mark("previews");
   if (settings.debugTiming) console.info("NovaBird-Conversation: Anzeige (ms)", JSON.stringify(marks), "Hintergrund", JSON.stringify(data.timing));
-  const selected = els.get(data.selectedId);
-  if (selected && !selected.isPinned) selected.card.scrollIntoView({ block: "nearest" });
+  if (!data.focus) scrollToSelected();
   }
 
   await run();

@@ -1,10 +1,11 @@
 # NovaBird-Conversation
 
-Zeigt im Lesebereich von **Betterbird** / Thunderbird ESR (ab 128) **alle Nachrichten einer Konversation** – über alle Ordner, auch Gesendet und Archiv – übersichtlich untereinander. Version 0.15.10 · Deutsch, English, Français, Español.
+Zeigt im Lesebereich von **Betterbird** / Thunderbird ESR (ab 128) **alle Nachrichten einer Konversation** – über alle Ordner, auch Gesendet und Archiv – übersichtlich untereinander. Version 0.16.0 · Deutsch, English, Français, Español.
 
 ## Funktionen
 - **Konversation:** neueste Nachricht oben fixiert, ältere darunter (wahlweise älteste zuerst); neueste, vorherige und ungelesene aufgeklappt, der Rest als Zeile mit Name, Datum und Vorschau; Zitate hinter „…“; Anhänge als Chips; „Ganz anzeigen“ für lange Nachrichten.
-- **Gruppierung** nach Antwortkette, für Mails ohne Kette wahlweise nach Betreff (aus / üblich / klug mit Zeitfenster und Personen).
+- **Gruppierung** nach Antwortkette; Antworten mit ganz anderem Betreff werden abgetrennt, Mails mit gleichem Betreff kommen dazu, wenn sie im Zeitraum (Standard 180 Tage) liegen und eine Person mit der Konversation teilen (die eigenen Adressen zählen nicht). Alternativ die alte Betreff-Regel oder nur Antwortketten.
+- **Ältere Mail anklicken**: Sie wird oben im Verlauf geöffnet, die neueste klappt auf eine Zeile ein, die übrigen bleiben einzeilig.
 - **Aktionen je Nachricht:** Antworten, Allen antworten, Weiterleiten (auch als Anhang), Als neu bearbeiten, Löschen (in den Papierkorb), Spam / Kein Spam; **Originalansicht** holt Betterbirds eigene Ansicht zurück (bei unlesbaren Einzelmails automatisch).
 - **Aussehen:** drei Stile (*Sanft*, *Klar*, *Faden*), Theme-Farben hell/dunkel, einstellbare Animationen (0 = aus; „Bewegung reduzieren“ wird respektiert).
 - **Datenschutz:** keine Skripte, keine Stile aus Mails (nur Tabellen-Aufbau: Breiten, Ausrichtung, kein Umbruch), externe Bilder erst nach Klick (nur diese Nachricht / ganze Unterhaltung / immer von diesem Absender).

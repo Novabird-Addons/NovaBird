@@ -126,6 +126,18 @@
         ]
       },
       {
+        "name": "getSelectionKind",
+        "type": "function",
+        "async": true,
+        "description": "Was in der Nachrichtenliste des Tabs gewählt ist: \"thread\" (zugeklappter Faden oder mehrere Zeilen), \"message\" (genau eine Nachrichtenzeile) oder null (kein Ordner-Tab).",
+        "parameters": [
+          {
+            "name": "tabId",
+            "type": "integer"
+          }
+        ]
+      },
+      {
         "name": "getInlineAttachments",
         "type": "function",
         "async": true,

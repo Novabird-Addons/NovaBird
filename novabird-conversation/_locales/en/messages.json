@@ -139,25 +139,25 @@
     "message": "Not downloaded yet – loads when opened"
   },
   "optFallback": {
-    "message": "When a message has no reply chain"
+    "message": "Messages with the same subject"
   },
   "optFallbackSubject": {
-    "message": "Group by identical subject (usual)"
+    "message": "Only without a reply chain: all with the same subject (old rule)"
   },
   "optFallbackSmart": {
-    "message": "Group by subject with extra rules"
+    "message": "Add them if they share a person and fall within the period (recommended)"
   },
   "optFallbackOff": {
-    "message": "Do not group (reply chains only)"
+    "message": "Do not add (reply chains only)"
   },
   "optFallbackHint": {
-    "message": "Reply chains (Message-ID, References, In-Reply-To) are always used first. The fallback applies only to messages without a chain."
+    "message": "Reply chains (Message-ID, References, In-Reply-To) connect messages. Recommended: replies with an entirely different subject are split off (\"Invoice server\" does not belong to \"Invoice garden\"), and messages with the same subject are added if they fall within the period and share a person with the conversation – someone who joins later belongs from then on. Your own addresses do not count."
   },
   "optFallbackDays": {
-    "message": "Extra rules: maximum distance in days"
+    "message": "Period: maximum distance in days from the selected message"
   },
   "optFallbackPeople": {
-    "message": "Extra rules: at least one shared sender or recipient"
+    "message": "Only with a shared person (sender or recipient, not your own addresses)"
   },
   "optDebugTiming": {
     "message": "Write timings to the error console"

@@ -177,6 +177,21 @@ function toView(message, folderName, local) {
   };
 }
 
+// Eigene Adressen (alle Identitäten): zählen bei „gemeinsame Person“ nicht, sonst teilte jede Mail eine Person (5 min zwischengespeichert)
+let ownCache = { at: 0, list: [] };
+async function ownAddresses() {
+  if (Date.now() - ownCache.at < 300000) return ownCache.list;
+  let list = [];
+  try {
+    const accounts = await messenger.accounts.list(false);
+    list = [...new Set(accounts.flatMap(a => (a.identities ?? []).map(i => String(i.email ?? "").toLowerCase()).filter(Boolean)))];
+  } catch (e) {
+    // ohne eigene Adressen weiter (die Personenregel ist dann großzügiger)
+  }
+  ownCache = { at: Date.now(), list };
+  return list;
+}
+
 async function findConversation(target, timing = {}) {
   let t = Date.now();
   const lap = name => { const n = Date.now(); timing[name] = n - t; t = n; };
@@ -198,7 +213,7 @@ async function findConversation(target, timing = {}) {
     people: [...addressesOf([m.author, ...(m.recipients ?? []), ...(m.ccList ?? [])])],
     message: m,
   }));
-  const group = groupConversation(target.id, candidates, { fallback: settings.fallback, fallbackDays: settings.fallbackDays, fallbackPeople: settings.fallbackPeople })
+  const group = groupConversation(target.id, candidates, { fallback: settings.fallback, fallbackDays: settings.fallbackDays, fallbackPeople: settings.fallbackPeople, mine: await ownAddresses() })
     .slice(-MAX_MESSAGES);
   lap("group");
   let offline = {};
@@ -236,6 +251,7 @@ async function findViaDb(target, timing) {
       fallback: settings.fallback,
       fallbackDays: settings.fallbackDays,
       fallbackPeople: settings.fallbackPeople,
+      mine: await ownAddresses(),
       limit: settings.limit,
     }), DB_TIMEOUT_MS);
   } catch (e) {
@@ -300,7 +316,10 @@ async function findViaGloda(target, timing) {
   const ids = [...new Set([target.id, ...list.map(x => x.id)])];
   const headers = (await Promise.all(ids.map(id => (id === target.id ? target : messenger.messages.get(id).catch(() => null))))).filter(Boolean);
   const items = headers.map(m => ({ id: m.id, mid: m.headerMessageId || `id-${m.id}`, folderType: m.folder?.type, message: m }));
-  const visible = items.filter(x => x.id === target.id || !SKIP_FOLDER_TYPES.includes(x.folderType)); // Papierkorb/Spam wie bei den anderen Quellen ausblenden
+  // Papierkorb/Spam wie bei den anderen Quellen ausblenden; smart: Antworten mit ganz anderem Betreff abtrennen (Gloda kennt nur die Kette)
+  const key = normalizeSubject(target.subject);
+  const visible = items.filter(x => x.id === target.id || (!SKIP_FOLDER_TYPES.includes(x.folderType) &&
+    (settings.fallback !== "smart" || relatedSubject(normalizeSubject(x.message.subject), key))));
   const unique = dedupeByMid(visible, target.id).sort((a, b) => dateOf(a.message) - dateOf(b.message)).slice(-MAX_MESSAGES);
   let offline = {};
   try {
@@ -470,11 +489,15 @@ async function hello(tabId) {
   } catch (e) {
     // ohne Berechtigungsprüfung weiter (Bilder bleiben dann blockiert)
   }
-  const expanded = [...pickExpanded(messages, settings.expand)];
   // Texte der Nachrichten, die sofort sichtbar sind, schon jetzt laden (die Ansicht fragt danach denselben Zwischenspeicher)
   const sorted = messages.slice().sort((a, b) => a.date - b.date);
+  // Gezielt eine ältere Nachricht gewählt (aufgeklappter Faden, flache Liste, Suchtreffer, eigener Tab): sie bekommt den Platz,
+  // die neueste klappt ein, alle anderen bleiben einzeilig. Ein zugeklappter Faden zählt nicht (Thunderbird zeigt dann dessen erste Mail).
+  const kind = await messenger.conversationView.getSelectionKind(tabId).catch(() => null);
+  const focus = messages.length > 1 && selectedKey !== sorted[sorted.length - 1]?.id && kind !== "thread";
+  const expanded = focus ? [selectedKey] : [...pickExpanded(messages, settings.expand)];
   // erst nach der Antwort starten: die Zuordnung (messages.query) blockiert den Hauptthread und würde sonst die Antwort verzögern
-  const prefetch = [sorted[sorted.length - 1], sorted[sorted.length - 2], messages.find(x => x.id === selectedKey)];
+  const prefetch = [...(focus ? [] : [sorted[sorted.length - 1], sorted[sorted.length - 2]]), messages.find(x => x.id === selectedKey)];
   setTimeout(() => {
     for (const m of prefetch) if (m) loadBody(m.id).catch(() => {});
   }, 0);
@@ -491,6 +514,7 @@ async function hello(tabId) {
     strings,
     lang: messenger.i18n.getUILanguage(),
     selectedId: selectedKey,
+    focus,
     folded: messages.filter(m => pinFolded.has(m.mid || m.id)).map(m => m.id), // gemerkt je Message-ID (die Quelle wechselt)
     subject: shown.subject ?? "",
     messages,

@@ -143,11 +143,34 @@ describe("Konversationsabfrage", () => {
     expect(await ids({ headerMessageId: "s1@x", fallback: "subject" })).toEqual(["s1@x", "s2@x", "s4@x", "s3@x"]);
     expect(await ids({ headerMessageId: "s1@x", fallback: "smart", fallbackDays: 30, fallbackPeople: true })).toEqual(["s1@x", "s2@x"]);
     expect(await ids({ headerMessageId: "s1@x", fallback: "smart", fallbackDays: 30, fallbackPeople: false })).toEqual(["s1@x", "s2@x", "s4@x"]);
-    // mit Kette kein Ersatz
+    // mit Kette kein Ersatz (alte Regel subject)
     await add("c1@x", { day: 0, subject: "Kette" });
     await add("c2@x", { day: 1, subject: "Re: Kette", refs: ["c1@x"] });
     await add("c3@x", { day: 2, subject: "Kette" }); // gleicher Betreff, aber ohne Verbindung
     expect(await ids({ headerMessageId: "c1@x", fallback: "subject" })).toEqual(["c1@x", "c2@x"]);
+  });
+
+  it("smart: anderer Betreff in der Kette abgetrennt, gemeinsame Personen transitiv, eigene Adresse zählt nicht", async () => {
+    const { add, ids } = await setup();
+    const mine = ["ich@x.example"];
+    const smart = (id, more = {}) => ids({ headerMessageId: id, fallback: "smart", fallbackDays: 180, mine, ...more });
+    await add("g1@x", { day: 0, subject: "Rechnung Gartenbau", from: "a@g.example", to: "ich@x.example, b@g.example" });
+    await add("g2@x", { day: 3, subject: "AW: Rechnung Gartenbau", refs: ["g1@x"], from: "b@g.example", to: "a@g.example" });
+    await add("srv@x", { day: 5, subject: "Rechnung Server", refs: ["g1@x", "g2@x"], from: "a@g.example", to: "ich@x.example" }); // Antwort mit neuem Thema
+    await add("g3@x", { day: 9, subject: "Rechnung Gartenbau – Nachtrag", refs: ["g1@x"], from: "a@g.example", to: "ich@x.example" });
+    // ohne Verweis, gleicher Betreff: a@ bringt d@ dazu, danach gehört eine Mail nur mit d@ auch dazu
+    await add("g4@x", { day: 40, subject: "Rechnung Gartenbau", from: "a@g.example", to: "d@g.example" });
+    await add("g5@x", { day: 60, subject: "Re: Rechnung Gartenbau", from: "d@g.example", to: "ich@x.example" });
+    // gleicher Betreff, nur die eigene Adresse gemeinsam
+    await add("f1@x", { day: 20, subject: "Rechnung Gartenbau", from: "fremd@h.example", to: "ich@x.example" });
+    // zu weit weg (über 180 Tage)
+    await add("alt@x", { day: 300, subject: "Rechnung Gartenbau", from: "a@g.example", to: "ich@x.example" });
+    expect(await smart("g1@x")).toEqual(["g1@x", "g2@x", "g3@x", "g4@x", "g5@x"]);
+    expect(await smart("srv@x")).toEqual(["srv@x"]); // die abgetrennte Antwort steht für sich
+    expect(await ids({ headerMessageId: "g1@x", fallback: "off" })).toEqual(["g1@x", "g2@x", "srv@x", "g3@x"]); // nur Kette, unverändert
+    // ohne eigene Adressen wäre die fremde Mail über ich@ dabei
+    expect(await ids({ headerMessageId: "g1@x", fallback: "smart", fallbackDays: 180 })).toContain("f1@x");
+    expect(await smart("g1@x", { fallbackDays: 365 })).toContain("alt@x");
   });
 
   it("Papierkorb/Spam raus, außer die Zielnachricht selbst", async () => {

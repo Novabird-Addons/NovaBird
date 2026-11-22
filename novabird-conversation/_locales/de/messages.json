@@ -139,25 +139,25 @@
     "message": "Noch nicht heruntergeladen – wird beim Aufklappen geladen"
   },
   "optFallback": {
-    "message": "Wenn eine Nachricht keine Antwortkette hat"
+    "message": "Mails mit gleichem Betreff"
   },
   "optFallbackSubject": {
-    "message": "Nach gleichem Betreff gruppieren (üblich)"
+    "message": "Nur ohne Antwortkette: alle mit gleichem Betreff (alte Regel)"
   },
   "optFallbackSmart": {
-    "message": "Nach Betreff mit zusätzlichen Regeln gruppieren"
+    "message": "Dazunehmen, wenn sie eine Person teilen und im Zeitraum liegen (empfohlen)"
   },
   "optFallbackOff": {
-    "message": "Nicht gruppieren (nur Antwortketten)"
+    "message": "Nicht dazunehmen (nur Antwortketten)"
   },
   "optFallbackHint": {
-    "message": "Antwortketten (Message-ID, References, In-Reply-To) gelten immer zuerst. Der Ersatz gilt nur für Nachrichten ohne Kette."
+    "message": "Antwortketten (Message-ID, References, In-Reply-To) verbinden Mails. Empfohlen: Antworten mit ganz anderem Betreff werden abgetrennt („Rechnung Server“ gehört nicht zu „Rechnung Gartenbau“), und Mails mit gleichem Betreff kommen dazu, wenn sie im Zeitraum liegen und eine Person mit der Konversation teilen – wer später dazukommt, gehört ab da dazu. Die eigenen Adressen zählen dabei nicht."
   },
   "optFallbackDays": {
-    "message": "Zusatzregeln: höchstens so viele Tage Abstand"
+    "message": "Zeitraum: höchstens so viele Tage Abstand zur gewählten Mail"
   },
   "optFallbackPeople": {
-    "message": "Zusatzregeln: mindestens ein gemeinsamer Absender oder Empfänger"
+    "message": "Nur mit gemeinsamer Person (Absender oder Empfänger, ohne die eigenen Adressen)"
   },
   "optDebugTiming": {
     "message": "Zeiten in der Fehlerkonsole ausgeben"
