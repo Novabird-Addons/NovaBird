@@ -638,7 +638,7 @@ function freeText(text) {
  * Für die Suchleiste: Mails, die der Bedeutung nach passen. null = nicht verfügbar (aus, kein Modell, noch keine Vektoren).
  * Ergebnis: {rows:[{header_msg_id, folder_id, date, score}], ms}
  */
-async function query(text, { includeTrash = false, folderId = null, limit = QUERY_LIMIT, threshold = null } = {}) {
+async function query(text, { includeTrash = false, folderId = null, limit = QUERY_LIMIT, threshold = null, drop = [] } = {}) {
   if (!cfg.enabled) {
     return null;
   }
@@ -661,7 +661,7 @@ async function query(text, { includeTrash = false, folderId = null, limit = QUER
   const score = new Map(hits.map(([s, id]) => [id, s]));
   let ids = [...score.keys()];
   // Bedingungen der Anfrage (von:, an:, Zeitraum, Anhang, Schlagwort, Ordner …) wie bei der Wortsuche
-  const allowed = await internal().filterIds?.(text, ids, { includeTrash, folderId }).catch(e => {
+  const allowed = await internal().filterIds?.(text, ids, { includeTrash, folderId, drop }).catch(e => { // drop: in der Leiste abgewählte Chips
     console.warn("[semantic] Filter", e);
     return null;
   });

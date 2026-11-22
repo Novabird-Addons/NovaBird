@@ -499,6 +499,12 @@ function extractPersons(rest, q, ctx, entry) {
       if (capsOnly && !/^\p{Lu}/u.test(name) && !name.includes("@")) return m;
       const person = personFromToken(name, ctx);
       if (!person) return m;
+      // Natürlich geschrieben („Protokoll von Sitzung“): nur ein Absender, wenn es ihn gibt. resolvePeople macht das Wort sonst
+      // wieder zum Suchbegriff. „von:X“ (Operator) und Adressen bleiben feste Filter.
+      if (person.name && (key === "from" || key === "involves")) {
+        const clean = sanitizeTerm(person.name).toLowerCase();
+        if (clean && !clean.includes(" ") && clean.length >= 2) person.loose = { word: clean, terms: ctx.stems(clean) };
+      }
       addPerson(list, person);
       return " ";
     });

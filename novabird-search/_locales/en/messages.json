@@ -216,6 +216,18 @@
   "suggest": {
     "message": "Did you mean: {text}?"
   },
+  "chipsLabel": {
+    "message": "Understood:"
+  },
+  "chipOff": {
+    "message": "Click to ignore this part"
+  },
+  "chipOn": {
+    "message": "Ignored – click to use it again"
+  },
+  "chipAmbiguous": {
+    "message": "Several senders match"
+  },
   "resultsTitle": {
     "message": "Search results"
   },

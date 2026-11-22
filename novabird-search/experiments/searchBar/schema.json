@@ -107,6 +107,12 @@
             "type": "string",
             "optional": true,
             "description": "Kennung der Suchleiste, aus der die Eingabe stammt."
+          },
+          "drop": {
+            "type": "array",
+            "items": { "type": "string" },
+            "optional": true,
+            "description": "In der Leiste abgewählte Chips (IDs aus setChips); gilt nur für den aktuellen Suchtext."
           }
         }
       },
@@ -654,6 +660,33 @@
         "returns": {
           "type": "integer"
         }
+      },
+      {
+        "name": "setChips",
+        "type": "function",
+        "async": true,
+        "description": "Zeigt unter den Zeitfenstern, was die Suche aus der Eingabe gemacht hat (Absender, Zeitraum, Anhang, Suchwörter …); ein Klick wählt einen Teil ab bzw. wieder an. Leere Liste: Zeile ausblenden.",
+        "parameters": [
+          {
+            "name": "barId",
+            "type": "string",
+            "description": "Kennung der Suchleiste (aus dem Ereignis)."
+          },
+          {
+            "name": "chips",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "kind": { "type": "string", "optional": true },
+                "label": { "type": "string" },
+                "ambiguous": { "type": "boolean", "optional": true },
+                "dropped": { "type": "boolean", "optional": true }
+              }
+            }
+          }
+        ]
       },
       {
         "name": "setSuggestion",

@@ -7,7 +7,7 @@ const NOW = new Date(2026, 9, 5, 12, 0);
 describe("Chips", () => {
   it("zeigt die Interpretation lesbar an", () => {
     const q = parseQuery("Speisepläne von Jonas aus den letzten 6 Monaten mit PDF", { now: NOW });
-    expect(toChips(q).map((c) => c.label)).toEqual(["Von: Jonas", "Seit 05.04.2026", "📎 PDF", "speiseplän"]);
+    expect(toChips(q).map((c) => c.label)).toEqual(["Von: Jonas", "Seit 05.04.2026", "📎 PDF", "speisepläne"]);
   });
 
   it("Tageszeitraum und Spanne", () => {
@@ -41,8 +41,8 @@ describe("Chips", () => {
 describe("Chips in anderen Sprachen", () => {
   it("englisch, französisch, spanisch", () => {
     const q = parseQuery("invoices from Jonas since March unread", { now: NOW, langs: ["en"] });
-    expect(toChips(q, "en").map((c) => c.label)).toEqual(["From: Jonas", "Since 01.03.2026", "Unread", "invoic"]);
-    expect(toChips(q, "fr").map((c) => c.label)).toEqual(["De: Jonas", "Depuis 01.03.2026", "Non lu", "invoic"]);
+    expect(toChips(q, "en").map((c) => c.label)).toEqual(["From: Jonas", "Since 01.03.2026", "Unread", "invoices"]);
+    expect(toChips(q, "fr").map((c) => c.label)).toEqual(["De: Jonas", "Depuis 01.03.2026", "Non lu", "invoices"]);
     expect(toChips(q, "es")[0].label).toBe("De: Jonas");
     expect(toChips(q)[0].label).toBe("Von: Jonas"); // Standard Deutsch
   });

@@ -260,6 +260,18 @@
   "suggest": {
     "message": "Meinten Sie: {text}?"
   },
+  "chipsLabel": {
+    "message": "Verstanden:"
+  },
+  "chipOff": {
+    "message": "Klicken: diesen Teil nicht beachten"
+  },
+  "chipOn": {
+    "message": "Nicht beachtet – klicken: wieder beachten"
+  },
+  "chipAmbiguous": {
+    "message": "Mehrere passende Absender"
+  },
   "resultsTitle": {
     "message": "Suchergebnisse"
   },

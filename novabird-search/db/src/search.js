@@ -2,7 +2,7 @@
 //   Freitext -> parseQuery -> resolvePeople -> buildSearchSql -> Ergebnis + Chips
 
 import { parseQuery, isEmptyQuery } from "./parser/parseQuery.js";
-import { toChips } from "./parser/chips.js";
+import { toChips, removeChip } from "./parser/chips.js";
 import { resolvePeople } from "./query/resolvePeople.js";
 import { buildSearchSql } from "./query/buildSql.js";
 import { rerank, splitBest, bestThenDate, ageOptions } from "./query/rank.js";
@@ -23,8 +23,11 @@ import { expandCompounds } from "./query/compounds.js";
  */
 export async function search(db, caps, input, options = {}) {
   const parsed = typeof input === "string" ? parseQuery(input, { now: options.now, langs: options.langs, dateOrder: options.dateOrder }) : input;
-  const query = await resolvePeople(db, parsed, { ...options, authorIndex: caps.authorIndex });
-  const chips = toChips(query, options.langs?.[0]);
+  const resolved = await resolvePeople(db, parsed, { ...options, authorIndex: caps.authorIndex });
+  // Chips vor dem Abwählen: ihre IDs bleiben über alle Abwahlen gleich (gleicher Text), abgewählte sind markiert
+  const drop = new Set(Array.isArray(options.drop) ? options.drop.map(String) : []);
+  const chips = toChips(resolved, options.langs?.[0]).map((c) => (drop.has(c.id) ? { ...c, dropped: true } : c));
+  const query = applyDrop(resolved, [...drop]);
   // Relevanz: breiter holen, dann mit Bonus für neuere Mails neu ordnen und kürzen
   const relevance = options.sort === "relevance" && caps.ftsMode !== "fts4";
   const limit = options.limit ?? 200;
@@ -137,7 +140,7 @@ export function withFilters(query, filters) {
 export async function filterIds(db, caps, input, ids, options = {}) {
   const parsed = typeof input === "string" ? parseQuery(input, { now: options.now, langs: options.langs, dateOrder: options.dateOrder }) : input;
   // Wörter (auch „nicht X“ als Ausschluss) bleiben der Bedeutung überlassen: „Server nicht erreichbar“ ist ein Satz, kein Filter
-  const query = { ...(await resolvePeople(db, parsed, { ...options, authorIndex: caps.authorIndex })), terms: [], phrases: [], subjectTerms: [], exclude: [] };
+  const query = { ...applyDrop(await resolvePeople(db, parsed, { ...options, authorIndex: caps.authorIndex }), options.drop), terms: [], phrases: [], subjectTerms: [], exclude: [] };
   if (isEmptyQuery(query)) return null;
   const allowed = new Set();
   for (let i = 0; i < ids.length; i += 500) {
@@ -145,6 +148,35 @@ export async function filterIds(db, caps, input, ids, options = {}) {
     for (const r of await db.select(sql, params, columns)) allowed.add(r.header_msg_id);
   }
   return allowed;
+}
+
+/**
+ * In der Suchleiste abgewählte Chips (IDs aus toChips derselben Anfrage) aus der Anfrage nehmen. Eine natürlich geschriebene
+ * Person („von ABC“) wird dabei wieder Suchbegriff – gemeint war das Wort, nicht der Absender. Unbekannte IDs: ignoriert.
+ */
+export function applyDrop(query, drop) {
+  if (!Array.isArray(drop) || !drop.length) return query;
+  // von hinten nach vorn: sonst verschöben sich die Indizes der Listen
+  const ids = [...new Set(drop.map(String))].sort((a, b) => (Number(b.split(":")[1]) || 0) - (Number(a.split(":")[1]) || 0));
+  let q = query;
+  for (const id of ids) {
+    const [kind, arg] = id.split(":");
+    const person = ["from", "to", "involves"].includes(kind) ? q[kind]?.[Number(arg)] : null;
+    if (["from", "to", "involves", "tag", "subject", "phrase", "term", "exclude"].includes(kind) && !(Number(arg) >= 0)) continue; // splice(NaN) träfe das erste
+    try {
+      q = removeChip(q, id);
+    } catch {
+      continue;
+    }
+    if (person?.loose) {
+      const { word, terms, extra } = person.loose;
+      if (!q.words.includes(word)) q.words.push(word);
+      for (const g of [terms, extra].filter(Boolean)) {
+        if (!q.terms.some((h) => h.length === g.length && g.every((t) => h.includes(t)))) q.terms.push(g);
+      }
+    }
+  }
+  return q;
 }
 
 export { parseQuery } from "./parser/parseQuery.js";

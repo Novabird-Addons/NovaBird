@@ -9,6 +9,9 @@
 // Ist eine Person mehrdeutig, bleibt die LIKE-Suche über den Namen aktiv
 // (findet alle "Jonas"), und die UI kann per Chip nachfragen.
 //
+// Natürlich geschriebene Person ohne jeden Kandidaten (p.loose, „Protokoll von Sitzung“): fällt weg, ihr Wort wird wieder
+// Suchbegriff (sonst 0 Treffer). Operator „von:X“ und Adressen bleiben feste Filter.
+//
 // Zusatz: "von Jonas Müller" wird vom Parser als Person "Jonas" + Begriff
 // "müller" gelesen. Passt genau ein Kandidat auch auf diesen Begriff, wird er
 // übernommen und der Begriff entfernt.
@@ -79,6 +82,7 @@ export async function resolvePeople(db, q, options = {}) {
           const narrowed = candidates.filter((c) => norm(c.name).split(/\s+/).some((w) => w.startsWith(t)));
           if (narrowed.length === 1) {
             candidates = narrowed;
+            if (p.loose) p.loose.extra = group; // abgewählt: Nachname wieder Suchbegriff
             next.terms.splice(i, 1);
             break;
           }
@@ -87,14 +91,29 @@ export async function resolvePeople(db, q, options = {}) {
         // Auch bei eindeutigem Kandidaten den Nachnamen aus dem Text entfernen
         const words = norm(candidates[0].name).split(/\s+/);
         const idx = next.terms.findIndex((g) => g.length === 1 && words.some((w) => w.startsWith(norm(g[0]))) && norm(g[0]) !== norm(p.name));
-        if (idx >= 0) next.terms.splice(idx, 1);
+        if (idx >= 0) {
+          if (p.loose) p.loose.extra = next.terms[idx];
+          next.terms.splice(idx, 1);
+        }
       }
 
       if (candidates.length === 1) {
         const c = candidates[0];
         p.resolved = { name: c.name, email: c.email, emails: [c.email] };
       }
+      // „von Sitzung“ ohne passenden Absender: kein Filter (ergäbe 0 Treffer), sondern wieder Suchbegriff
+      if (p.loose && !candidates.length) p.dropped = true;
     }
+  }
+  for (const [field, list] of lists) {
+    const keep = list.filter((p) => !p.dropped);
+    for (const p of list) {
+      if (!p.dropped) continue;
+      const { word, terms } = p.loose;
+      if (!next.words.includes(word)) next.words.push(word);
+      if (!next.terms.some((g) => g.length === terms.length && terms.every((t) => g.includes(t)))) next.terms.push(terms);
+    }
+    next[field] = keep;
   }
   return next;
 }

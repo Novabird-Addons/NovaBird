@@ -75,7 +75,9 @@ export function toChips(q, lang = "de") {
   }
   q.subjectTerms.forEach((term, i) => chips.push({ id: `subject:${i}`, kind: "text", label: `${t.subject}: ${term}` }));
   q.phrases.forEach((p, i) => chips.push({ id: `phrase:${i}`, kind: "text", label: `„${p}“` }));
-  q.terms.forEach((g, i) => chips.push({ id: `term:${i}`, kind: "text", label: g.join(` ${t.or} `) }));
+  // Suchbegriffe wie getippt zeigen („Speisepläne“), nicht die Wortstämme („speiseplän“); ohne passendes Wort der Stamm
+  const typed = (st) => (q.words ?? []).find((w) => w.startsWith(st)) ?? st;
+  q.terms.forEach((g, i) => chips.push({ id: `term:${i}`, kind: "text", label: [...new Set(g.map(typed))].join(` ${t.or} `) }));
   q.exclude.forEach((term, i) => chips.push({ id: `exclude:${i}`, kind: "exclude", label: `${t.without}: ${term}` }));
   return chips;
 }

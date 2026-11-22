@@ -44,6 +44,34 @@ describe("Suche (FTS5, Standard)", async () => {
     expect(ids(r)).toEqual(["m1", "m2", "m3", "m4"]);
   });
 
+  it("„von X“ ohne passenden Absender wird wieder Suchbegriff; von:X bleibt fester Filter", async () => {
+    const loose = await run(ctx, "Speiseplan von Wochenplan");
+    expect(loose.query.from).toEqual([]);
+    expect(loose.query.terms).toEqual([["speiseplan"], ["wochenplan"]]);
+    expect(loose.chips.some((c) => c.kind === "from")).toBe(false);
+    const strict = await run(ctx, "Speiseplan von:Wochenplan");
+    expect(strict.query.from).toHaveLength(1);
+    expect(ids(strict)).toEqual([]);
+    // Adresse bleibt Filter, auch ohne Treffer
+    expect((await run(ctx, "von niemand@nirgends.example")).query.from).toHaveLength(1);
+    // vorhandener Absender: weiter Filter
+    expect((await run(ctx, "Speiseplan von Jonas")).query.from).toHaveLength(1);
+  });
+
+  it("Chips abwählen: IDs bleiben stabil, Person wird wieder Suchbegriff, Datum fällt weg", async () => {
+    const base = await run(ctx, "Speiseplan von Jonas Müller seit Mai");
+    const from = base.chips.find((c) => c.kind === "from");
+    const date = base.chips.find((c) => c.kind === "date");
+    expect(from && date).toBeTruthy();
+    const r = await run(ctx, "Speiseplan von Jonas Müller seit Mai", { drop: [from.id, date.id, "term:x", "unbekannt:1"] });
+    expect(r.query.from).toEqual([]);
+    expect(r.query.dateFrom).toBe(null);
+    expect(r.query.words).toContain("jonas");
+    expect(r.chips.find((c) => c.id === from.id).dropped).toBe(true);
+    expect(r.chips.map((c) => c.id)).toEqual(base.chips.map((c) => c.id)); // gleiche IDs, nur markiert
+    expect(r.query.terms.length).toBe(base.query.terms.length + 2); // „jonas“ und der vorher zugeordnete „müller“
+  });
+
   it("ODER-Gruppe und Ausschluss", async () => {
     expect(ids(await run(ctx, "Speiseplan oder Stundenplan"))).toEqual(["m1", "m2", "m3", "m4", "m5"]);
     expect(ids(await run(ctx, "speiseplan -juni"))).toEqual(["m1", "m3", "m5"]);

@@ -13,7 +13,7 @@ let settings = { ...SETTINGS_DEFAULTS };
 // Die Kennung kommt mit jedem Ereignis der Leiste; alle Antworten gehen mit derselben Kennung an genau diese Leiste zurück.
 // Dadurch können beliebig viele Hauptfenster unabhängig voneinander suchen und filtern.
 const controllers = new Map();
-const BAR_FUNCS = ["setNote", "setSuggestion", "setBusy", "setGroupMode", "highlight", "clearText", "restoreFolderView", "createSearchFolder", "glodaSearch", "idSearch", "openResultsInNewTab", "openFacetSearch", "askEnter", "refineSnapshot", "openHitsInTab", "openPage"];
+const BAR_FUNCS = ["setNote", "setChips", "setSuggestion", "setBusy", "setGroupMode", "highlight", "clearText", "restoreFolderView", "createSearchFolder", "glodaSearch", "idSearch", "openResultsInNewTab", "openFacetSearch", "askEnter", "refineSnapshot", "openHitsInTab", "openPage"];
 function barApi(barId) {
   const api = {};
   for (const name of BAR_FUNCS) {
@@ -285,6 +285,7 @@ async function novabirdDbSearch(ctl, text, criteria, state, gen, folderId) {
         folderId: folderId || undefined, // „Aktueller Ordner“: nur dieser Ordner
         fields: ["from", "to", "subject", "body"].filter(k => state[k]), // Haken des Optionsmenüs: wo gesucht wird
         filters: dbFilters(state, criteria), // ungelesen, Anhang, Zeitraum: vor der Höchstzahl
+        drop: ctl.drop || [], // in der Leiste abgewählte Chips (gleicher Text)
         sort, // best (Standard): beste oben, danach nach Datum (bestIds) | date | relevance
         ageLevel: settings.ageLevel, // ältere Mails abwerten (off | normal | strong); Zeitangaben in der Suche heben es auf
       }),
@@ -297,6 +298,7 @@ async function novabirdDbSearch(ctl, text, criteria, state, gen, folderId) {
       return -1;
     }
     ctl.sb.setSuggestion(res.rows.length ? "" : res.suggest?.text ?? "").catch(() => {});
+    ctl.sb.setChips(Array.isArray(res.chips) ? res.chips : []).catch(() => {}); // was die Suche aus der Eingabe gemacht hat
     // Aktueller Ordner: auch im Papierkorb/Spam-Ordner selbst anzeigen
     const showState = { ...(folderId ? { ...state, trash: true, spam: true } : state), sort };
     const best = sort === "best";
@@ -339,7 +341,7 @@ async function semanticAugment(ctl, text, criteria, showState, gen, folderId, le
   ctl.semanticGen = gen;
   ctl.sb.setBusy(true, messenger.i18n.getMessage("busySimilar")).catch(() => {});
   try {
-    const res = await sem.query(text, { includeTrash: Boolean(showState.trash || showState.spam || folderId), folderId: folderId || null });
+    const res = await sem.query(text, { includeTrash: Boolean(showState.trash || showState.spam || folderId), folderId: folderId || null, drop: ctl.drop || [] });
     if (!res?.rows?.length || gen !== ctl.generation) {
       return;
     }
@@ -442,6 +444,7 @@ async function runSearch(ctl, query) {
   ctl.sb.setSuggestion("").catch(() => {});
   const text = (query.text || "").trim();
   const state = query.state || {};
+  ctl.drop = Array.isArray(query.drop) ? query.drop : [];
   const tab = await ctlTab(ctl);
   if (!tab) {
     return;
@@ -486,6 +489,7 @@ async function runSearch(ctl, query) {
       showNote(ctl);
     } else {
       showNote(ctl, messenger.i18n.getMessage(key), messenger.i18n.getMessage(tipKey));
+      ctl.sb.setChips([]).catch(() => {}); // ohne Index keine Chips (die Ersatzsuche versteht nur Kurzformen wie von:)
     }
   } else {
     showNote(ctl);
@@ -510,6 +514,7 @@ async function runSearch(ctl, query) {
     }
     // NovaBird-DB hat nicht geantwortet: Rückfall, das zeigen wir an
     showNote(ctl, messenger.i18n.getMessage("noteDbMissing"), messenger.i18n.getMessage("noteDbTip"));
+    ctl.sb.setChips([]).catch(() => {}); // Rückfall versteht die Eingabe nicht so: keine (alten) Chips zeigen
   }
 
   const quickCriteria = { ...criteria };
@@ -864,7 +869,7 @@ async function init() {
   const strings = {};
   for (const key of [
     "placeholder", "scopeAll", "scopeFolder", "options", "optFrom", "optTo", "optSubject",
-    "optBody", "optAttachment", "optUnread", "optTrash", "optSpam", "includeLabel", "sortLabel", "sortBest", "sortDate", "sortRelevance", "busy", "clear", "openSettings", "rangeAll", "rangeToday", "range3", "range7", "range30", "suggest", "resultsTitle", "historyTitle", "historyClear", "historyRemove", "refinePlaceholder", "askTitle", "askFilter", "askAnalyze", "askRemember", "markAllRead",
+    "optBody", "optAttachment", "optUnread", "optTrash", "optSpam", "includeLabel", "sortLabel", "sortBest", "sortDate", "sortRelevance", "busy", "clear", "openSettings", "rangeAll", "rangeToday", "range3", "range7", "range30", "suggest", "chipsLabel", "chipOff", "chipOn", "chipAmbiguous", "resultsTitle", "historyTitle", "historyClear", "historyRemove", "refinePlaceholder", "askTitle", "askFilter", "askAnalyze", "askRemember", "markAllRead",
   ]) {
     strings[key] = messenger.i18n.getMessage(key) || key;
   }

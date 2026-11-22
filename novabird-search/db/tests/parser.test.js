@@ -14,7 +14,8 @@ function compact(q) {
     if (k === "raw" || k === "words") continue;
     if (Array.isArray(v) && !v.length) continue;
     if (v == null) continue;
-    o[k] = k.startsWith("date") ? isoDate(v) : v;
+    // Personen ohne das Merkmal „loose“ (natürlich geschrieben, Rückfall auf Suchbegriff; eigener Test in search.test.js)
+    o[k] = k.startsWith("date") ? isoDate(v) : ["from", "to", "involves"].includes(k) ? v.map(({ loose, ...p }) => p) : v;
   }
   return o;
 }

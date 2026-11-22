@@ -102,6 +102,10 @@ const DEFAULT_STRINGS = {
   range30: "30 days",
   openSettings: "Settings …",
   suggest: "Did you mean: {text}?",
+  chipsLabel: "Understood:",
+  chipOff: "Click to ignore this part",
+  chipOn: "Ignored – click to use it again",
+  chipAmbiguous: "Several senders match",
   resultsTitle: "Search results",
   noteDbOff: "DB Pilot is OFFLINE – Gloda search",
   noteDbMissing: "DB Pilot is OFFLINE – Gloda search",
@@ -255,6 +259,23 @@ tr.card-layout.nbs-best-last td { padding-bottom: 0.35em; }
 #${ROOT_ID} .nbs-suggest:hover { background: color-mix(in srgb, var(--nbs-accent) 14%, var(--nbs-field-bg)); border-color: var(--nbs-accent); }
 #${ROOT_ID} .nbs-suggest .nbs-sug-word { font-weight: 700; color: inherit; text-decoration: underline; text-decoration-color: var(--nbs-accent); text-decoration-thickness: 2px; text-underline-offset: 3px; }
 #${ROOT_ID} .nbs-suggest[hidden] { display: none; }
+/* Was die Suche verstanden hat: eigene Zeile unter den Zeitfenstern, bricht bei vielen Teilen um (die Kopfzeile wächst nach unten) */
+#${ROOT_ID} .nbs-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25em 0.3em; margin-top: 0.35em; }
+#${ROOT_ID} .nbs-chips[hidden] { display: none; }
+#${ROOT_ID} .nbs-chips-label { font-size: 0.85em; color: var(--nbs-menu-muted); margin-inline-end: 0.15em; }
+#${ROOT_ID} .nbs-chips button.nbs-qchip {
+  gap: 0.35em; padding: 0.05em 0.45em 0.05em 0.7em; border-radius: 999px; font-size: 0.85em; max-width: 100%;
+  border: 1px solid color-mix(in srgb, var(--nbs-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--nbs-accent) 12%, transparent); color: var(--nbs-menu-fg);
+}
+#${ROOT_ID} .nbs-chips button.nbs-qchip.nbs-text { border-color: var(--nbs-line); background: transparent; }
+#${ROOT_ID} .nbs-chips button.nbs-qchip.nbs-amb { border-style: dashed; }
+#${ROOT_ID} .nbs-chips button.nbs-qchip.nbs-dropped { opacity: 0.6; background: transparent; border-style: dotted; }
+#${ROOT_ID} .nbs-chips button.nbs-qchip.nbs-dropped .nbs-qchip-text { text-decoration: line-through; }
+#${ROOT_ID} .nbs-chips .nbs-qchip-text { overflow: hidden; text-overflow: ellipsis; }
+#${ROOT_ID} .nbs-chips .nbs-qchip-x { opacity: 0.7; }
+#${ROOT_ID} .nbs-chips button.nbs-qchip:hover .nbs-qchip-x { opacity: 1; }
+#${ROOT_ID}[data-refine] .nbs-chips { display: none !important; }
 #${ROOT_ID} .nbs-note { margin-inline-start: auto; font-size: 1.05em; font-weight: 700; color: #b3261e; padding: 1px 6px; }
 #${ROOT_ID} .nbs-note.nbs-info { font-weight: 400; color: var(--nbs-muted); }
 #${ROOT_ID} .nbs-note[hidden] { display: none; }
@@ -899,7 +920,7 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
     const refreshAll = () => roots().forEach(refresh);
 
     const emitQuery = root =>
-      emitter.emit("query", { barId: root._nbsId, text: root.querySelector("input").value, state: { ...stateOf(root) }, refine: root.hasAttribute("data-refine") });
+      emitter.emit("query", { barId: root._nbsId, text: root.querySelector("input").value, state: { ...stateOf(root) }, refine: root.hasAttribute("data-refine"), drop: [...(root._nbsDrop ?? [])] });
 
     const buildUI = (doc, refine = false) => {
       const el = (tag, cls) => {
@@ -1074,7 +1095,46 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
       note.hidden = true;
       rangeRow.append(note);
 
-      root.append(field, suggestBtn, rangeRow, scopeMenu, optMenu, histMenu);
+      // Was die Suche aus der Eingabe gemacht hat (Chips vom Index); ein Klick wählt einen Teil ab bzw. wieder an
+      const chipRow = el("div", "nbs-chips");
+      chipRow.hidden = true;
+      root._nbsDrop = [];
+      root._setChips = chips => {
+        chipRow.replaceChildren();
+        if (!chips?.length || !input.value.trim()) {
+          chipRow.hidden = true;
+          return;
+        }
+        const label = el("span", "nbs-chips-label");
+        label.textContent = strings.chipsLabel;
+        chipRow.append(label);
+        for (const c of chips) {
+          const b = el("button", "nbs-qchip");
+          b.type = "button";
+          b.dataset.id = c.id;
+          b.classList.toggle("nbs-text", c.kind === "text");
+          b.classList.toggle("nbs-amb", Boolean(c.ambiguous));
+          b.classList.toggle("nbs-dropped", Boolean(c.dropped));
+          const text = el("span", "nbs-qchip-text");
+          text.textContent = c.label;
+          const x = el("span", "nbs-qchip-x");
+          x.textContent = c.dropped ? "↺" : "✕";
+          b.append(text, x);
+          b.title = [c.label, c.ambiguous && !c.dropped ? strings.chipAmbiguous : "", c.dropped ? strings.chipOn : strings.chipOff].filter(Boolean).join(" · ");
+          b.setAttribute("aria-pressed", String(!c.dropped));
+          b.addEventListener("click", () => {
+            const drop = new Set(root._nbsDrop);
+            if (drop.has(c.id)) drop.delete(c.id);
+            else drop.add(c.id);
+            root._nbsDrop = [...drop];
+            emitQuery(root);
+          });
+          chipRow.append(b);
+        }
+        chipRow.hidden = false;
+      };
+
+      root.append(field, suggestBtn, rangeRow, chipRow, scopeMenu, optMenu, histMenu);
 
       const closeMenus = () => {
         scopeMenu.hidden = true;
@@ -1133,6 +1193,8 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
       input.addEventListener("input", () => {
         syncClear();
         histMenu.hidden = true;
+        root._nbsDrop = []; // neuer Text: Abwahlen galten dem alten
+        if (!input.value.trim()) root._setChips([]);
         emitQuery(root);
       });
       input.addEventListener("focus", () => root._showHistory());
@@ -2446,6 +2508,9 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
             }
           }
         },
+        async setChips(barId, chips) {
+          barOf(barId)?.root?._setChips?.(chips ?? []);
+        },
         async setSuggestion(barId, text) {
           for (const root of [barOf(barId)?.root].filter(Boolean)) {
             const b = root.querySelector(".nbs-suggest");
@@ -2476,6 +2541,8 @@ var searchBar = class extends ExtensionCommon.ExtensionAPI {
           root._nbsState = { ...DEFAULT_STATE }; // Ende der Suche: alle Filter/Optionen dieser Leiste zurück auf Standard
           root.querySelector("input").value = "";
           root.removeAttribute("data-has-text");
+          root._nbsDrop = [];
+          root._setChips?.([]);
           refresh(root);
         },
         async createSearchFolder(_barId, criteria, criteriaState, currentFolderId) {

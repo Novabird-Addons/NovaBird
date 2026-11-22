@@ -216,6 +216,18 @@
   "suggest": {
     "message": "¿Quiso decir: {text}?"
   },
+  "chipsLabel": {
+    "message": "Entendido:"
+  },
+  "chipOff": {
+    "message": "Haga clic para ignorar esta parte"
+  },
+  "chipOn": {
+    "message": "Ignorado: haga clic para volver a usarlo"
+  },
+  "chipAmbiguous": {
+    "message": "Coinciden varios remitentes"
+  },
   "resultsTitle": {
     "message": "Resultados de la búsqueda"
   },

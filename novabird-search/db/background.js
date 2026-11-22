@@ -755,8 +755,8 @@ globalThis.novabirdDbInternal = {
   idleSeconds: () => db.idleSeconds(),
   usable: async () => (await externalStatus()).usable,
   // Bedeutungs-Treffer mit denselben Bedingungen wie die Wortsuche filtern (von:, Zeitraum, Anhang …); null = keine
-  filterIds: (text, ids, { includeTrash = false, folderId = null } = {}) =>
-    filterIds(db, caps, String(text ?? ""), ids, { ...searchOptions, includeTrash, folderId }),
+  filterIds: (text, ids, { includeTrash = false, folderId = null, drop = [] } = {}) =>
+    filterIds(db, caps, String(text ?? ""), ids, { ...searchOptions, includeTrash, folderId, drop }),
   // „Beste zuerst“ mit Bedeutungstreffern (Suchleiste, background.js): gleiche Regeln wie im Kern
   fuseBest,
   bestThenDate,
@@ -938,6 +938,7 @@ function handleExternal(msg, senderId) {
           includeTrash: Boolean(msg.includeTrash),
           folderId: msg.folderId ? String(msg.folderId) : null, // optional: nur dieser Ordner („Aktueller Ordner“)
           fields: Array.isArray(msg.fields) ? msg.fields : null, // optional: ["from","to","subject","body"] (Teilmenge)
+          drop: Array.isArray(msg.drop) ? msg.drop.slice(0, 50).map(String) : [], // in der Leiste abgewählte Chips (IDs aus chips)
           // optional: Haken/Zeitfenster der Suchleiste – gefiltert wird in der Abfrage, also vor der Höchstzahl
           filters: msg.filters && typeof msg.filters === "object" ? {
             unread: msg.filters.unread === true,
@@ -969,6 +970,7 @@ function handleExternal(msg, senderId) {
           fallback: msg.fallback ?? msg.subjectFallback,
           fallbackDays: msg.fallbackDays,
           fallbackPeople: msg.fallbackPeople,
+          mine: Array.isArray(msg.mine) ? msg.mine.slice(0, 50) : [],
           limit: msg.limit,
         });
       }
