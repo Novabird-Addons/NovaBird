@@ -2,6 +2,8 @@
 //  - Gespeichert wird nur SHA-256 des Schlüssels (zufällig, 32 Byte); der Schlüssel selbst wird einmal beim Anlegen angezeigt.
 //  - Je Schlüssel optional erlaubte Adressen: einzelne IPs oder Netze (192.168.1.20, 192.168.1.0/24, fd00::/8). Leer = alle.
 //  - Nutzung (Anzahl, zuletzt) wird mitgezählt und höchstens alle 30 s gespeichert.
+//  - Je Schlüssel, was er darf: Sprachmodell (/v1/models, /v1/chat, /v1/completions, /v1/embeddings) und/oder Vorlesen
+//    (/v1/audio). Ältere Einträge ohne Angabe: nur Sprachmodell.
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -18,6 +20,7 @@ static class ApiKeys
         public List<string> Ips = new();
         public string LastUsed, LastIp;
         public long Uses;
+        public bool Llm = true, Tts;
     }
 
     static readonly object Gate = new();
@@ -36,6 +39,7 @@ static class ApiKeys
                 Id = (string)n["id"], Name = (string)n["name"], Hash = (string)n["hash"], Prefix = (string)n["prefix"], Created = (string)n["created"],
                 Ips = n["ips"]?.AsArray().Select(x => (string)x).ToList() ?? new(),
                 LastUsed = (string)n["lastUsed"], LastIp = (string)n["lastIp"], Uses = (long?)n["uses"] ?? 0,
+                Llm = (bool?)n["llm"] ?? true, Tts = (bool?)n["tts"] ?? false,
             }).ToList();
         }
         catch (Exception e)
@@ -59,6 +63,7 @@ static class ApiKeys
         {
             ["id"] = k.Id, ["name"] = k.Name, ["hash"] = k.Hash, ["prefix"] = k.Prefix, ["created"] = k.Created,
             ["ips"] = new JsonArray(k.Ips.Select(i => (JsonNode)i).ToArray()), ["lastUsed"] = k.LastUsed, ["lastIp"] = k.LastIp, ["uses"] = k.Uses,
+            ["llm"] = k.Llm, ["tts"] = k.Tts,
         }).ToArray());
         File.WriteAllText(FilePath + ".tmp", arr.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
         File.Move(FilePath + ".tmp", FilePath, true);
@@ -107,15 +112,16 @@ static class ApiKeys
     }
 
     /// <summary>Neuer Schlüssel; liefert (Eintrag, Schlüssel im Klartext – nur jetzt).</summary>
-    public static (Key, string) Add(string name, List<string> ips)
+    public static (Key, string) Add(string name, List<string> ips, bool llm = true, bool tts = false)
     {
         name = (name ?? "").Trim();
         if (!NameRule.IsMatch(name)) throw new ArgumentException(L.T("Name: 1–40 Zeichen", "Name: 1–40 characters"));
+        if (!llm && !tts) throw new ArgumentException(L.T("Der Schlüssel muss etwas dürfen: Sprachmodell und/oder Vorlesen", "The key must allow something: language model and/or read-aloud"));
         var secret = "nbh-" + Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
         var k = new Key
         {
             Id = Convert.ToHexString(RandomNumberGenerator.GetBytes(4)).ToLowerInvariant(), Name = name, Hash = HashOf(secret),
-            Prefix = secret[..8] + "…", Created = DateTime.Now.ToString("yyyy-MM-dd HH:mm"), Ips = ips,
+            Prefix = secret[..8] + "…", Created = DateTime.Now.ToString("yyyy-MM-dd HH:mm"), Ips = ips, Llm = llm, Tts = tts,
         };
         lock (Gate)
         {

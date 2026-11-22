@@ -627,6 +627,7 @@ sealed partial class WebServer
                 bool on = (bool?)req.Json()["on"] ?? true;
                 Speech.Enabled = on;
                 if (!on) core.Speech.Stop();
+                else core.Speech.Preload();
                 Audit(req, $"Vorlesen {(on ? "an" : "aus")}");
                 return Response.Json(core.Speech.Status());
             }
@@ -635,6 +636,7 @@ sealed partial class WebServer
                 Need(req, admin: true);
                 var keep = (string)req.Json()["keep"];
                 Speech.Keep = keep;
+                core.Speech.Preload();
                 Audit(req, $"Vorlesen: im Speicher halten {keep}");
                 return Response.Json(core.Speech.Status());
             }

@@ -140,6 +140,8 @@
             <p class="muted" data-i18n="optTopPText"></p>
             <label><span data-i18n="optKeep"></span> <select name="keepAlive"></select></label>
             <p class="muted" data-i18n="optKeepText"></p>
+            <label><span data-i18n="optCache"></span> <select name="cacheRam"></select></label>
+            <p class="muted" data-i18n="optCacheText"></p>
             <p class="actions" data-admin><button type="submit" class="primary" data-i18n="save"></button><button type="button" id="optReset" data-i18n="optReset"></button> <span class="saved" id="optSaved" hidden data-i18n="saved"></span></p>
           </form>
         </details>
@@ -278,10 +280,12 @@
         <p class="muted" id="xCert" hidden><span data-i18n="extCert"></span> <a href="/novabird-helper.crt" download data-i18n="extCertLink"></a></p>
         <h2 data-i18n="extKeys"></h2>
         <p class="muted" data-i18n="extKeysText"></p>
-        <table class="grid"><thead><tr><th data-i18n="thName"></th><th data-i18n="thAllowed"></th><th data-i18n="thCreated"></th><th data-i18n="thLastUsed"></th><th class="num" data-i18n="thRequests"></th><th data-admin></th></tr></thead><tbody id="xKeys"></tbody></table>
+        <table class="grid"><thead><tr><th data-i18n="thName"></th><th data-i18n="thMay"></th><th data-i18n="thAllowed"></th><th data-i18n="thCreated"></th><th data-i18n="thLastUsed"></th><th class="num" data-i18n="thRequests"></th><th data-admin></th></tr></thead><tbody id="xKeys"></tbody></table>
         <form id="xAdd" class="inline" data-admin>
           <label><span data-i18n="name"></span> <input name="name" maxlength="40" autocomplete="off" required></label>
           <label><span data-i18n="extOnlyFrom"></span> <input name="ips" class="wide" placeholder="192.168.1.20, 192.168.1.0/24" autocomplete="off"></label>
+          <label class="check"><input type="checkbox" name="llm" checked> <span data-i18n="extMayLlm"></span></label>
+          <label class="check"><input type="checkbox" name="tts"> <span data-i18n="extMayTts"></span></label>
           <button type="submit" data-i18n="extAddKey"></button>
         </form>
         <div id="xNew" hidden>

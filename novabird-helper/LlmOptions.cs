@@ -3,6 +3,8 @@
 //    sie gehen als Umgebung an Ollama, eine Änderung startet Ollama neu.
 //  - Kontextspeicher komprimieren (KV-Cache q8_0, Standard an): gemessen mit Gemma 4 E4B bei 16k Kontext 3,8 statt 4,2 GB
 //    Grafikspeicher (ohne Flash Attention 5,0 GB), gleiche Punkte im LLM-Test. Gilt über die Umgebung (Neustart von Ollama).
+//  - Zwischenspeicher für Anfragen (Prompt-Cache von llama-server, LLAMA_ARG_CACHE_RAM): ohne Vorgabe 8 GB Hauptspeicher, die sich
+//    beim Einsortieren vollständig füllen (gemessen: 196 Anfragen, 8180 MiB). Standard hier 1 GB; 0 = aus. Neustart von Ollama.
 //  - Temperatur und Top-p gelten für die KI-Funktionen von NovaBird (externe Programme schicken eigene Werte).
 // Gespeichert in settings.json unter "llmOptions".
 using System.Globalization;
@@ -17,6 +19,8 @@ static class LlmOptions
     public const int DefaultContext = 16384;
     public const double DefaultTemperature = 0.2, DefaultTopP = 0.9;
     public const string DefaultKeepAlive = "15m";
+    public static readonly int[] CacheRams = { 0, 512, 1024, 2048, 8192 }; // MiB
+    public const int DefaultCacheRam = 1024;
 
     static JsonNode Node => Settings.Load()["llmOptions"];
 
@@ -25,13 +29,15 @@ static class LlmOptions
     public static double TopP => (double?)Node?["topP"] is double p && p is > 0 and <= 1 ? p : DefaultTopP;
     public static string KeepAlive => (string)Node?["keepAlive"] is string k && KeepAlives.Contains(k) ? k : DefaultKeepAlive;
     public static bool KvCompress => (bool?)Node?["kvCompress"] ?? true;
+    public static int CacheRam => (int?)Node?["cacheRam"] is int m && CacheRams.Contains(m) ? m : DefaultCacheRam;
 
     public static JsonObject Info() => new()
     {
         ["context"] = Context, ["temperature"] = Temperature, ["topP"] = TopP, ["keepAlive"] = KeepAlive, ["kvCompress"] = KvCompress,
+        ["cacheRam"] = CacheRam, ["cacheRams"] = new JsonArray(CacheRams.Select(m => (JsonNode)m).ToArray()),
         ["contexts"] = new JsonArray(Contexts.Select(c => (JsonNode)c).ToArray()),
         ["keepAlives"] = new JsonArray(KeepAlives.Select(k => (JsonNode)k).ToArray()),
-        ["defaults"] = new JsonObject { ["context"] = DefaultContext, ["temperature"] = DefaultTemperature, ["topP"] = DefaultTopP, ["keepAlive"] = DefaultKeepAlive, ["kvCompress"] = true },
+        ["defaults"] = new JsonObject { ["context"] = DefaultContext, ["temperature"] = DefaultTemperature, ["topP"] = DefaultTopP, ["keepAlive"] = DefaultKeepAlive, ["kvCompress"] = true, ["cacheRam"] = DefaultCacheRam },
     };
 
     /// <summary>Übernimmt geänderte Werte (fehlende bleiben); liefert true, wenn Ollama neu starten muss.</summary>
@@ -41,22 +47,24 @@ static class LlmOptions
         double temp = (double?)j["temperature"] ?? Temperature, topP = (double?)j["topP"] ?? TopP;
         string keep = (string)j["keepAlive"] ?? KeepAlive;
         bool kv = (bool?)j["kvCompress"] ?? KvCompress;
+        int cache = (int?)j["cacheRam"] ?? CacheRam;
         if (!Contexts.Contains(ctx)) throw new ArgumentException(L.T("Kontextlänge: 8192, 16384 oder 32768", "Context length: 8192, 16384 or 32768"));
         if (temp is < 0 or > 2) throw new ArgumentException(L.T("Temperatur: 0 bis 2", "Temperature: 0 to 2"));
         if (topP is <= 0 or > 1) throw new ArgumentException(L.T("Top-p: über 0 bis 1", "Top-p: above 0 up to 1"));
         if (!KeepAlives.Contains(keep)) throw new ArgumentException(L.T("Im Speicher halten: unbekannter Wert", "Keep loaded: unknown value"));
-        bool restart = ctx != Context || keep != KeepAlive || kv != KvCompress;
+        if (!CacheRams.Contains(cache)) throw new ArgumentException(L.T("Zwischenspeicher: unbekannter Wert", "Request cache: unknown value"));
+        bool restart = ctx != Context || keep != KeepAlive || kv != KvCompress || cache != CacheRam;
         var s = Settings.Load();
-        s["llmOptions"] = new JsonObject { ["context"] = ctx, ["temperature"] = Math.Round(temp, 2), ["topP"] = Math.Round(topP, 2), ["keepAlive"] = keep, ["kvCompress"] = kv };
+        s["llmOptions"] = new JsonObject { ["context"] = ctx, ["temperature"] = Math.Round(temp, 2), ["topP"] = Math.Round(topP, 2), ["keepAlive"] = keep, ["kvCompress"] = kv, ["cacheRam"] = cache };
         Settings.Save(s);
-        summary = string.Create(CultureInfo.InvariantCulture, $"Kontext {ctx}, Temperatur {temp:0.##}, Top-p {topP:0.##}, im Speicher {keep}, Kontextspeicher {(kv ? "q8_0" : "f16")}");
+        summary = string.Create(CultureInfo.InvariantCulture, $"Kontext {ctx}, Temperatur {temp:0.##}, Top-p {topP:0.##}, im Speicher {keep}, Kontextspeicher {(kv ? "q8_0" : "f16")}, Zwischenspeicher {cache} MiB");
         return restart;
     }
 
     /// <summary>Alle Werte auf Standard; true, wenn Ollama neu starten muss.</summary>
     public static bool Reset()
     {
-        bool restart = Context != DefaultContext || KeepAlive != DefaultKeepAlive || !KvCompress;
+        bool restart = Context != DefaultContext || KeepAlive != DefaultKeepAlive || !KvCompress || CacheRam != DefaultCacheRam;
         var s = Settings.Load();
         s.Remove("llmOptions");
         Settings.Save(s);

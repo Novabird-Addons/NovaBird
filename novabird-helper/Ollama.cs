@@ -5,6 +5,7 @@
 //    weiter verschlüsselt mit dem Helper (NetServer op chat), der Helper reicht an Ollama weiter.
 //  - Ein Job-Objekt beendet Ollama zusammen mit dem Helper; stürzt Ollama ab, startet der Helper es neu.
 using System.Diagnostics;
+using System.Globalization;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -174,6 +175,8 @@ sealed class Ollama
         // Flash Attention spart Rechenpuffer (Ollama nutzt es nur, wo die Grafikkarte es kann); Kontextspeicher komprimieren
         psi.Environment["OLLAMA_FLASH_ATTENTION"] = "1";
         psi.Environment["OLLAMA_KV_CACHE_TYPE"] = LlmOptions.KvCompress ? "q8_0" : "f16";
+        // Prompt-Cache von llama-server im Hauptspeicher (ohne Vorgabe 8 GB); Ollama reicht die Umgebung an llama-server weiter
+        psi.Environment["LLAMA_ARG_CACHE_RAM"] = LlmOptions.CacheRam.ToString(CultureInfo.InvariantCulture);
         running = false;
         status = new Txt("startet …", "starting …");
         process = Process.Start(psi);

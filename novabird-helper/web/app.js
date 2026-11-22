@@ -645,8 +645,10 @@ function showOptions(opt) {
   if (f.contains(document.activeElement)) return;
   f.context.replaceChildren(...opt.contexts.map(c => new Option(t("ctx" + c), c)));
   f.keepAlive.replaceChildren(...opt.keepAlives.map(k => new Option(t("keep" + k), k)));
+  f.cacheRam.replaceChildren(...opt.cacheRams.map(m => new Option(t("cache" + m), m)));
   f.context.value = String(opt.context);
   f.keepAlive.value = opt.keepAlive;
+  f.cacheRam.value = String(opt.cacheRam);
   f.temperature.value = opt.temperature;
   f.topP.value = opt.topP;
   f.kvCompress.checked = opt.kvCompress;
@@ -667,7 +669,7 @@ $("optForm").addEventListener("submit", async e => {
   e.preventDefault();
   const f = e.target;
   try {
-    await saveOptions({ context: Number(f.context.value), temperature: Number(f.temperature.value), topP: Number(f.topP.value), keepAlive: f.keepAlive.value, kvCompress: f.kvCompress.checked });
+    await saveOptions({ context: Number(f.context.value), temperature: Number(f.temperature.value), topP: Number(f.topP.value), keepAlive: f.keepAlive.value, kvCompress: f.kvCompress.checked, cacheRam: Number(f.cacheRam.value) });
   } catch (err) {
     banner(err.message);
   }
@@ -816,6 +818,7 @@ function showExtData(x) {
   $("xCert").hidden = !x.fingerprint;
   $("xKeys").replaceChildren(...x.keys.map(k => row([
     k.name + (k.prefix ? ` (${k.prefix})` : ""),
+    [k.llm && t("extMayLlm"), k.tts && t("extMayTts")].filter(Boolean).join(", "),
     k.ips.length ? k.ips.join(", ") : t("allAddresses"),
     k.created,
     k.lastUsed ? `${k.lastUsed} · ${k.lastIp}` : "–",
@@ -831,7 +834,9 @@ function showExtData(x) {
     `curl ${url}/chat/completions -H "Authorization: Bearer <KEY>" -H "Content-Type: application/json" \\\n` +
     `  -d '{"model":"default","messages":[{"role":"user","content":"Hallo"}]}'\n\n` +
     `# Python\nfrom openai import OpenAI\nclient = OpenAI(base_url="${url}", api_key="<KEY>")\n` +
-    `print(client.chat.completions.create(model="default", messages=[{"role": "user", "content": "Hallo"}]).choices[0].message.content)`;
+    `print(client.chat.completions.create(model="default", messages=[{"role": "user", "content": "Hallo"}]).choices[0].message.content)` +
+    (x.ttsAvailable ? `\n\n# ${t("extTtsExample")}\ncurl ${url}/audio/speech -H "Authorization: Bearer <KEY>" -H "Content-Type: application/json" \\\n` +
+      `  -d '{"model":"qwen3-tts","input":"Hallo, hier spricht der Helper.","voice":"ruhig"}' -o hallo.wav` : "");
 }
 
 async function showExt() {
@@ -851,7 +856,7 @@ $("xAdd").addEventListener("submit", async e => {
   e.preventDefault();
   const f = e.target;
   try {
-    const x = await api("ext/keys/add", { name: f.name.value.trim(), ips: f.ips.value });
+    const x = await api("ext/keys/add", { name: f.name.value.trim(), ips: f.ips.value, llm: f.llm.checked, tts: f.tts.checked });
     showExtData(x);
     $("xNewKey").textContent = x.newKey;
     $("xNew").hidden = false;

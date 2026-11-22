@@ -43,6 +43,7 @@ sealed class Core
         Engine.RetryGpu();
         Server.Start();
         Ollama.Start(); // nur, wenn eingerichtet und eingeschaltet
+        Speech.Preload(); // nur bei „Vorlesen: immer geladen“
         try { Web.Start(); }
         catch (Exception e)
         {

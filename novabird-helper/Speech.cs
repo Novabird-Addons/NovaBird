@@ -10,7 +10,9 @@
 //                eigene lassen sich dazulegen. Namen mit „en_“ sind englisch; Standard je Sprache: ttsVoiceGerman / ttsVoiceEnglish.
 //    Tests: ttsPython / ttsEngineDir zeigen auf eine andere Installation.
 //  - Startet beim ersten Satz (etwa 6 s), endet nach 15 Minuten ohne Satz (Grafikspeicher frei, etwa 0,8 GB); einstellbar
-//    (ttsKeep: 5m, 15m, 1h oder -1 = bleibt geladen, bis der Helper endet).
+//    (ttsKeep: 5m, 15m, 1h oder -1 = wird schon beim Start des Helpers geladen und bleibt, bis der Helper endet – so
+//    antwortet auch der erste Satz externer Programme ohne Kaltstart).
+//  - Externe Programme: POST /v1/audio/speech (WebServer.ExtApi.cs) über SayAll: längere Texte Satz für Satz, ein WAV.
 //  - Der Dienst bekommt bei jedem Start einen Zufallsschlüssel: andere Programme auf dem PC können ihn nicht benutzen.
 using System.Diagnostics;
 using System.IO.Compression;
@@ -223,6 +225,7 @@ sealed class Speech
                 Settings.Save(s);
                 Log.Write($"Vorlesen eingerichtet (Stand {Version})");
                 installing = null;
+                Preload();
             }
             catch (Exception e)
             {
@@ -314,15 +317,10 @@ sealed class Speech
         var voiceLang = lang == "german" ? "german" : "english";
         if (!Installed) throw new InvalidOperationException(L.T("Vorlesen ist im Helper nicht eingerichtet", "Read-aloud is not set up in the helper"));
         if (!Enabled) throw new InvalidOperationException(L.T("Vorlesen ist im Helper ausgeschaltet", "Read-aloud is switched off in the helper"));
-        var voices = Voices();
-        var v = voices.FirstOrDefault(x => x.Name == voice);
-        // sonst die eingestellte Stimme der Sprache (ttsVoiceGerman / ttsVoiceEnglish), sonst die erste
-        if (v.Name == null) v = voices.FirstOrDefault(x => x.Name == (string)Settings.Load()[voiceLang == "english" ? "ttsVoiceEnglish" : "ttsVoiceGerman"] && x.Lang == voiceLang);
-        if (v.Name == null) v = voices.FirstOrDefault(x => x.Lang == voiceLang);
-        if (v.Name == null) v = voices.FirstOrDefault();
-        if (v.Name == null) throw new InvalidOperationException(L.T("keine Stimme im Helper", "no voice in the helper"));
-        var wav = Path.Combine(VoiceDir, v.Name + ".wav");
-        var refText = File.ReadAllText(Path.Combine(VoiceDir, v.Name + ".txt")).Trim();
+        var v = Pick(voice, voiceLang);
+        if (v == null) throw new InvalidOperationException(L.T("keine Stimme im Helper", "no voice in the helper"));
+        var wav = Path.Combine(VoiceDir, v + ".wav");
+        var refText = File.ReadAllText(Path.Combine(VoiceDir, v + ".txt")).Trim();
 
         await gate.WaitAsync();
         try
@@ -342,6 +340,136 @@ sealed class Speech
             return (body, sw.Elapsed.TotalMilliseconds);
         }
         finally { gate.Release(); }
+    }
+
+    /// <summary>Stimme nach Name, sonst die eingestellte der Sprache (ttsVoiceGerman / ttsVoiceEnglish), sonst die erste.</summary>
+    public static string Pick(string voice, string voiceLang)
+    {
+        var voices = Voices();
+        var v = voices.FirstOrDefault(x => x.Name == voice);
+        if (v.Name == null) v = voices.FirstOrDefault(x => x.Name == (string)Settings.Load()[voiceLang == "english" ? "ttsVoiceEnglish" : "ttsVoiceGerman"] && x.Lang == voiceLang);
+        if (v.Name == null) v = voices.FirstOrDefault(x => x.Lang == voiceLang);
+        if (v.Name == null) v = voices.FirstOrDefault();
+        return v.Name;
+    }
+
+    /// <summary>„Immer geladen“: Sprachdienst schon jetzt starten (Helper-Start, Einstellung geändert), im Hintergrund.</summary>
+    public void Preload()
+    {
+        if (Keep != "-1" || !Available || Running) return;
+        Task.Run(async () =>
+        {
+            if (!await gate.WaitAsync(0)) return; // spricht oder richtet gerade ein
+            try
+            {
+                if (Running || installing != null) return;
+                var v = Pick(null, "german");
+                if (v == null) return;
+                await EnsureStarted(Path.Combine(VoiceDir, v + ".wav"), File.ReadAllText(Path.Combine(VoiceDir, v + ".txt")).Trim());
+                lastUse = DateTime.UtcNow;
+            }
+            catch (Exception e) { Log.Write("Vorlesen vorladen: " + e.Message); }
+            finally { gate.Release(); }
+        });
+    }
+
+    public const int MaxTotal = 5000, Pack = 300;
+    static readonly Regex SentenceEnd = new(@"(?<=[.!?…])\s+|\s*\n\s*");
+    static readonly Regex Spaces = new(@"\s+");
+
+    /// <summary>Text bis MaxTotal Satz für Satz sprechen und zu einem WAV (24 kHz, mono, 16 bit) zusammensetzen.</summary>
+    public async Task<byte[]> SayAll(string text, string lang, string voice)
+    {
+        var pcm = new MemoryStream();
+        foreach (var part in Split(text))
+        {
+            var (wav, _) = await Say(part, lang, voice);
+            var (data, len) = DataChunk(wav);
+            pcm.Write(wav, data, len);
+        }
+        return Wav(pcm.ToArray());
+    }
+
+    /// <summary>Stücke für den Sprachdienst: bis MaxChars unverändert ein Stück (externe Programme schicken meist schon Sätze;
+    /// „z. B.“, „3. Mai“ oder ein Doppelpunkt trennen nichts). Länger: an Satzenden teilen und wieder bis Pack Zeichen
+    /// zusammenlegen; zu lange Sätze an Kommas, sonst an Leerzeichen.</summary>
+    public static List<string> Split(string text)
+    {
+        var all = Spaces.Replace(text ?? "", " ").Trim();
+        if (all.Length <= MaxChars) return all.Length > 0 ? new() { all } : new();
+        var parts = new List<string>();
+        foreach (var piece in Sentences(text))
+        {
+            if (parts.Count > 0 && parts[^1].Length + 1 + piece.Length <= Pack) parts[^1] += " " + piece;
+            else parts.Add(piece);
+        }
+        return parts;
+    }
+
+    static List<string> Sentences(string text)
+    {
+        var parts = new List<string>();
+        foreach (var raw in SentenceEnd.Split(text ?? ""))
+        {
+            var s = Spaces.Replace(raw, " ").Trim();
+            while (s.Length > MaxChars)
+            {
+                int cut = s.LastIndexOf(", ", MaxChars - 1, StringComparison.Ordinal);
+                if (cut < MaxChars / 3) cut = s.LastIndexOf(' ', MaxChars - 1);
+                if (cut < MaxChars / 3) cut = MaxChars - 1;
+                parts.Add(s[..(cut + 1)].Trim());
+                s = s[(cut + 1)..].Trim();
+            }
+            if (s.Length > 0) parts.Add(s);
+        }
+        return parts;
+    }
+
+    static (int Offset, int Length) DataChunk(byte[] wav)
+    {
+        var (_, data, len) = WavData(wav);
+        return (data, len);
+    }
+
+    /// <summary>Abtastrate und Lage der Daten eines WAV (RIFF-Blöcke durchgehen, nicht 44 Byte annehmen); nur 16 bit mono PCM.</summary>
+    public static (int Rate, int Offset, int Length) WavData(byte[] wav)
+    {
+        if (wav.Length < 12 || Encoding.ASCII.GetString(wav, 0, 4) != "RIFF" || Encoding.ASCII.GetString(wav, 8, 4) != "WAVE")
+            throw new InvalidOperationException(L.T("Vorlesen: kein WAV", "Read-aloud: not a WAV"));
+        int pos = 12, rate = 0;
+        while (pos + 8 <= wav.Length)
+        {
+            var id = Encoding.ASCII.GetString(wav, pos, 4);
+            int size = BitConverter.ToInt32(wav, pos + 4);
+            if (size < 0) break;
+            if (id == "fmt " && size >= 16 && pos + 24 <= wav.Length)
+            {
+                if (BitConverter.ToInt16(wav, pos + 8) != 1 || BitConverter.ToInt16(wav, pos + 10) != 1 || BitConverter.ToInt16(wav, pos + 22) != 16)
+                    throw new InvalidOperationException(L.T("Vorlesen: WAV nicht 16 bit mono", "Read-aloud: WAV is not 16 bit mono"));
+                rate = BitConverter.ToInt32(wav, pos + 12);
+            }
+            if (id == "data")
+            {
+                if (rate <= 0) break;
+                return (rate, pos + 8, Math.Min(size, wav.Length - pos - 8) & ~1);
+            }
+            pos += 8 + size + (size & 1);
+        }
+        throw new InvalidOperationException(L.T("Vorlesen: WAV ohne Daten", "Read-aloud: WAV without data"));
+    }
+
+    static byte[] Wav(byte[] pcm) => WavBytes(pcm, 24000);
+
+    /// <summary>16 bit mono PCM als WAV.</summary>
+    public static byte[] WavBytes(byte[] pcm, int rate)
+    {
+        var o = new MemoryStream(44 + pcm.Length);
+        var w = new BinaryWriter(o);
+        w.Write(Encoding.ASCII.GetBytes("RIFF")); w.Write(36 + pcm.Length); w.Write(Encoding.ASCII.GetBytes("WAVE"));
+        w.Write(Encoding.ASCII.GetBytes("fmt ")); w.Write(16); w.Write((short)1); w.Write((short)1); w.Write(rate); w.Write(rate * 2); w.Write((short)2); w.Write((short)16);
+        w.Write(Encoding.ASCII.GetBytes("data")); w.Write(pcm.Length); w.Write(pcm);
+        w.Flush();
+        return o.ToArray();
     }
 
     async Task EnsureStarted(string wav, string refText)
