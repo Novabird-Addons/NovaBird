@@ -134,7 +134,7 @@ messenger.theme.onUpdated.addListener(() => {
   }
 });
 
-const applyScreen = s => messenger.screenScale.setConfig(s.screenEnabled === true, s.screenFhd, s.screenQhd, s.screenUhd);
+const applyScreen = s => messenger.screenScale.setConfig(s.screenEnabled === true, s.screenFhd, s.screenQhd, s.screenUhd, s.screenFitFolders !== false);
 
 async function applySettings() {
   const s = await messenger.storage.local.get(DEFAULTS);

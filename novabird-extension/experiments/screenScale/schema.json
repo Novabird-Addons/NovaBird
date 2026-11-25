@@ -11,7 +11,8 @@
           {"name": "enabled", "type": "boolean"},
           {"name": "fhd", "type": "number"},
           {"name": "qhd", "type": "number"},
-          {"name": "uhd", "type": "number"}
+          {"name": "uhd", "type": "number"},
+          {"name": "fitFolders", "type": "boolean", "optional": true, "description": "Breite des Ordnerbereichs nach dem längsten Namen (Standard: an)."}
         ]
       },
       {

@@ -5,6 +5,9 @@ Releases are tagged `vX.Y.Z` on `main`; work in progress lives on the branch `te
 ## Unreleased (branch `novabird-2.0`)
 NovaBird 2.0: four add-ons instead of eight, semantic search (beta) and the optional NovaBird Helper. Extension 2.0.0 · Search 2.0.0 (contains the former DB) · Conversation 0.16.0 · Helper 0.5.4 (new) · Send 1.0.5. Plan: [docs/novabird-2.0.md](docs/novabird-2.0.md).
 
+### Screen Scaling: folder pane sized to the longest name
+- With Screen Scaling on, the folder pane width now follows the longest visible account or folder name (at most a third of the window, at least about 12 characters; longer names are cut as before). It is adjusted at startup, when switched on and after every change of scaling (e.g. a new RDP connection); in between a width dragged by hand stays. New option under Settings → Screen Scaling, on by default. Tested on Thunderbird 153 and 160.
+
 ### Search: shows what it understood, "from X" only for real senders
 - Below the time ranges, a new line "Understood:" shows how the search read the input: sender ("From: Anna Beispiel"), period ("Since 01.01.2025"), attachment, unread, folder, tag and the search words as typed. A click on a part ignores it (struck through, ↺) and searches again without it; another click uses it again. Ignoring a sender found from "from X" searches the word X instead. The line wraps when there are many parts, and the header grows downwards (checked in a narrow window); with an empty field it disappears and the header returns to its height. The semantic search follows the same choice.
 - "from X" / "von X" written naturally (without colon) is only a sender filter if a sender with that name or address exists in the index. Otherwise X stays a search word: "minutes from meeting" or "Protokoll von Sitzung" no longer search for the sender "meeting"/"Sitzung" with 0 results. `from:X` / `von:X` and e-mail addresses remain strict filters.

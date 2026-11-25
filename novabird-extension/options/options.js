@@ -71,6 +71,7 @@ const TEXTS = {
     screenFhdLabel: "1080p (bis 2199 Pixel Breite)",
     screenQhdLabel: "QHD/WQHD (2200–3199 Pixel Breite)",
     screenUhdLabel: "4K (ab 3200 Pixel Breite)",
+    screenFitLabel: "Breite des Ordnerbereichs nach dem längsten Konto- oder Ordnernamen richten (höchstens ein Drittel des Fensters; beim Start und nach jedem Wechsel der Skalierung, dazwischen lässt sie sich wie gewohnt ziehen)",
     screenNote: "Setzt die Betterbird-Einstellung layout.css.devPixelsPerPx; sie ersetzt die Skalierung von Windows für Betterbird. Beim Ausschalten wird der frühere Wert wiederhergestellt. Kleinere Auflösungen als 1080p zählen zu 1080p.",
     screenInfoText: "Erkannt: $1 × $2 Pixel → $3, aktuelle Skalierung: $4",
     screenInfoNone: "Auflösung nicht ermittelbar.",
@@ -368,6 +369,7 @@ const TEXTS = {
     screenFhdLabel: "1080p (up to 2199 pixels wide)",
     screenQhdLabel: "QHD/WQHD (2200–3199 pixels wide)",
     screenUhdLabel: "4K (3200 pixels wide and more)",
+    screenFitLabel: "Size the folder pane to the longest account or folder name (at most a third of the window; at startup and after every change of scaling, in between you can drag it as usual)",
     screenNote: "Sets the Betterbird preference layout.css.devPixelsPerPx; for Betterbird it replaces the Windows scaling. Turning it off restores the previous value. Resolutions below 1080p count as 1080p.",
     screenInfoText: "Detected: $1 × $2 pixels → $3, current scaling: $4",
     screenInfoNone: "Resolution could not be determined.",
@@ -665,6 +667,7 @@ const TEXTS = {
     screenFhdLabel: "1080p (jusqu’à 2199 pixels de large)",
     screenQhdLabel: "QHD/WQHD (2200–3199 pixels de large)",
     screenUhdLabel: "4K (à partir de 3200 pixels de large)",
+    screenFitLabel: "Adapter la largeur du volet des dossiers au nom de compte ou de dossier le plus long (au plus un tiers de la fenêtre ; au démarrage et après chaque changement de mise à l’échelle, entre-temps elle se règle comme d’habitude)",
     screenNote: "Définit la préférence layout.css.devPixelsPerPx ; pour Betterbird elle remplace la mise à l’échelle de Windows. En désactivant, l’ancienne valeur est rétablie. Les résolutions inférieures à 1080p comptent comme 1080p.",
     screenInfoText: "Détecté : $1 × $2 pixels → $3, échelle actuelle : $4",
     screenInfoNone: "Résolution indéterminée.",
@@ -962,6 +965,7 @@ const TEXTS = {
     screenFhdLabel: "1080p (hasta 2199 píxeles de ancho)",
     screenQhdLabel: "QHD/WQHD (2200–3199 píxeles de ancho)",
     screenUhdLabel: "4K (desde 3200 píxeles de ancho)",
+    screenFitLabel: "Ajustar el ancho del panel de carpetas al nombre de cuenta o carpeta más largo (como máximo un tercio de la ventana; al iniciar y tras cada cambio de escala, entretanto se puede arrastrar como siempre)",
     screenNote: "Establece la preferencia layout.css.devPixelsPerPx; para Betterbird sustituye la escala de Windows. Al desactivarlo se restaura el valor anterior. Las resoluciones inferiores a 1080p cuentan como 1080p.",
     screenInfoText: "Detectado: $1 × $2 píxeles → $3, escala actual: $4",
     screenInfoNone: "No se pudo determinar la resolución.",
@@ -1549,6 +1553,9 @@ const save = patch => messenger.storage.local.set(patch);
   sc.checked = s.screenEnabled === true;
   scBody.classList.toggle("off", !sc.checked);
   sc.addEventListener("change", () => { scBody.classList.toggle("off", !sc.checked); save({ screenEnabled: sc.checked }); setTimeout(scShow, 1500); });
+  const scFit = document.getElementById("screenFitFolders");
+  scFit.checked = s.screenFitFolders !== false;
+  scFit.addEventListener("change", () => save({ screenFitFolders: scFit.checked }));
   for (const key of Object.keys(scIn)) {
     const el = document.getElementById(key);
     el.value = s[key];

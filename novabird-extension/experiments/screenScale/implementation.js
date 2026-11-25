@@ -6,6 +6,9 @@
  *  Die Aufteilung des Hauptfensters (Breite des Ordnerbereichs, Breite oder Höhe des Lesebereichs) speichert Thunderbird in
  *  CSS-Pixeln; sie würde beim Umskalieren mitwachsen oder schrumpfen. Daher werden ihre Anteile am Fensterinhalt gemerkt und
  *  nach einer Änderung der Skalierung wiederhergestellt (grob, ohne Mindestbreiten zu berücksichtigen).
+ *  Wahlweise richtet sich die Breite des Ordnerbereichs nach dem längsten sichtbaren Konto- oder Ordnernamen (höchstens ein
+ *  Drittel des Fensters, längere Namen werden wie gewohnt gekürzt): beim Start, beim Einschalten und nach jedem Umskalieren.
+ *  Dazwischen bleibt sie, wie der Nutzer sie zieht.
  * In einer IIFE gekapselt, weil alle Experimente dieses Add-ons einen globalen Scope teilen.
  */
 "use strict";
@@ -24,9 +27,12 @@ const RELAYOUT_MS = 300; // Wartezeit nach dem Umskalieren, bis das Fenster neu 
 // Trenner im Mail-Tab und ihr Eintrag im xulStore (wie in Thunderbirds pane-layout.mjs)
 const SPLITTERS = { folderPaneSplitter: "folderPaneBox", messagePaneSplitter: "messagepaneboxwrapper" };
 const STORE_URL = "chrome://messenger/content/messenger.xhtml";
+const FIT_MAX_SHARE = 1 / 3; // Ordnerbereich höchstens ein Drittel des Fensters
+const FIT_MIN_EM = 12; // und mindestens 12rem (Knöpfe oben in der Leiste)
+const FIT_GAP_EM = 0.5; // etwas Luft hinter dem längsten Namen
 
-let cfg = { enabled: false, fhd: 100, qhd: 125, uhd: 150 };
-const windows = new Map(); // Fenster -> { onChange, timer }
+let cfg = { enabled: false, fhd: 100, qhd: 125, uhd: 150, fitFolders: true };
+const windows = new Map(); // Fenster -> { onChange, timer, fit }
 const shares = new WeakMap(); // paneLayout (about:3pane) -> { splitterId: { dim, share } }
 
 // Auflösung in Gerätepixeln: die Bildschirmverwaltung kennt sie unabhängig von devPixelsPerPx (window.screen rechnet in CSS-Pixeln)
@@ -144,10 +150,71 @@ function applyShares(win) {
   }
 }
 
+// Breite, die der Ordnerbereich braucht, damit der längste sichtbare Name ganz dasteht (CSS-Pixel); 0 = nicht messbar
+// (Tab im Hintergrund, Ordnerbereich eingeklappt oder noch leer). Gemessen wird die Textbreite jedes Namens gegen den Platz,
+// den er gerade hat: so zählen Einrückung, Symbole und Zähler (ungelesen, gesamt, Größe) automatisch mit.
+function neededFolderWidth(layout) {
+  const doc = layout.ownerDocument, view = doc.defaultView;
+  const pane = doc.getElementById("folderPane"), tree = doc.getElementById("folderTree");
+  const splitter = layout.querySelector("#folderPaneSplitter");
+  if (!pane || !tree || !splitter || splitter.isCollapsed) return 0;
+  const current = pane.getBoundingClientRect().width;
+  if (!(current > 0)) return 0;
+  const range = doc.createRange();
+  let extra = -Infinity;
+  for (const name of tree.querySelectorAll("li > .container > .name")) {
+    if (!name.getClientRects().length) continue; // in einem zugeklappten Konto oder Ordner
+    range.selectNodeContents(name);
+    const text = range.getBoundingClientRect().width;
+    if (!(text > 0)) continue;
+    const cs = view.getComputedStyle(name);
+    extra = Math.max(extra, text + (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0) - name.clientWidth);
+  }
+  if (extra === -Infinity) return 0;
+  const em = parseFloat(view.getComputedStyle(tree).fontSize) || 16;
+  const rem = parseFloat(view.getComputedStyle(doc.documentElement).fontSize) || 16;
+  return Math.max(Math.round(FIT_MIN_EM * rem), Math.ceil(current + extra + FIT_GAP_EM * em));
+}
+
+// liefert true, wenn gemessen und gesetzt wurde
+function fitFolders(win) {
+  const layouts = paneLayouts(win);
+  const size = layoutSize(layouts);
+  if (!size) return false;
+  let need = 0;
+  for (const layout of layouts) {
+    need = neededFolderWidth(layout);
+    if (need) break;
+  }
+  if (!need) return false;
+  const value = Math.min(need, Math.round(size.width * FIT_MAX_SHARE));
+  for (const layout of layouts) {
+    const splitter = layout.querySelector("#folderPaneSplitter");
+    if (!splitter || splitter.isCollapsed) continue;
+    if (Math.abs(Number(splitter.width) - value) > 1) splitter.width = value;
+  }
+  Services.xulStore.setValue(STORE_URL, SPLITTERS.folderPaneSplitter, "width", String(value));
+  rememberShares(win); // neue Aufteilung ist der ruhige Zustand fürs nächste Umskalieren
+  return true;
+}
+
+function tryFit(win) {
+  const state = windows.get(win);
+  if (!cfg.fitFolders || !state?.fit) return;
+  try {
+    if (fitFolders(win)) state.fit = false;
+  } catch (e) {
+    console.error("Screen Scaling: Breite des Ordnerbereichs", e);
+  }
+}
+
 function followLayout(wins) {
   for (const win of wins) {
+    const state = windows.get(win);
+    if (state) state.fit = true;
     win.setTimeout(() => {
       try { applyShares(win); } catch (e) { console.error("Screen Scaling: Aufteilung", e); }
+      tryFit(win);
     }, RELAYOUT_MS);
   }
 }
@@ -167,16 +234,20 @@ function evaluate(win) {
     console.error("Screen Scaling: Aufteilung", e);
   }
   if (setPct(pct)) followLayout(windows.keys());
+  else tryFit(win); // beim Start, beim Einschalten, oder die letzte Messung ging nicht (Tab im Hintergrund)
 }
 
 function hook(win) {
-  const state = { timer: null };
+  const state = { timer: null, fit: true };
   state.onChange = () => {
     win.clearTimeout(state.timer);
     state.timer = win.setTimeout(() => evaluate(win), DEBOUNCE_MS);
   };
+  // eine ausstehende Anpassung der Ordnerbreite nachholen, sobald wieder ein Mail-Tab vorn ist
+  state.onTab = () => { if (state.fit) state.onChange(); };
   win.addEventListener("resize", state.onChange);
   win.addEventListener("focus", state.onChange);
+  win.document.getElementById("tabmail")?.tabContainer?.addEventListener("TabSelect", state.onTab);
   windows.set(win, state);
   state.onChange();
 }
@@ -187,6 +258,7 @@ function unhook(win) {
   win.clearTimeout(state.timer);
   win.removeEventListener("resize", state.onChange);
   win.removeEventListener("focus", state.onChange);
+  win.document.getElementById("tabmail")?.tabContainer?.removeEventListener("TabSelect", state.onTab);
   windows.delete(win);
 }
 
@@ -216,8 +288,10 @@ const API = class extends ExtensionCommon.ExtensionAPI {
   getAPI() {
     return {
       screenScale: {
-        async setConfig(enabled, fhd, qhd, uhd) {
-          cfg = { enabled: !!enabled, fhd, qhd, uhd };
+        async setConfig(enabled, fhd, qhd, uhd, fitFolders) {
+          const fitOn = fitFolders !== false && !cfg.fitFolders;
+          cfg = { enabled: !!enabled, fhd, qhd, uhd, fitFolders: fitFolders !== false };
+          if (fitOn) for (const state of windows.values()) state.fit = true;
           if (cfg.enabled && !running) {
             running = true;
             start();

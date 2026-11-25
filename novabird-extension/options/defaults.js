@@ -29,5 +29,5 @@ const NBX_DEFAULTS = {
   fontFamily: "", fontRow: 100, fontPad: 100,
   fontCompose: 100, fontSubject: 100, fontLabels: 100, fontSample: 100,
   fontSettings: 100, fontContact: 100,
-  screenEnabled: false, screenFhd: 100, screenQhd: 125, screenUhd: 150,
+  screenEnabled: false, screenFhd: 100, screenQhd: 125, screenUhd: 150, screenFitFolders: true,
 };
