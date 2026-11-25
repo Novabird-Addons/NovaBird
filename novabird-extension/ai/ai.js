@@ -116,6 +116,8 @@ const nbAI = (() => {
 
   /** Reiter „NovaBird Helper“: Verbindung prüfen; liefert Version, Gerät, Gruppe, Sprachmodell und web {port, lan, fingerprint}. */
   const helperHello = (url, code, label) => netCall({ aiUrl: url, aiKey: code }, "hello", label ? { label } : {});
+  /** Beliebiger Befehl an den gekoppelten Helper (geteilte Adressbücher, contacts/abshare.js). */
+  const helperCall = (url, code, op, payload = {}, signal) => netCall({ aiUrl: url, aiKey: code }, op, payload, signal);
 
   // ---- Vorlesen: der Helper spricht einen Satz (Qwen3-TTS auf seiner Grafikkarte) und schickt WAV, abgespielt wird hier ----
   const TTS_LANG = { de: "german", en: "english", fr: "french", es: "spanish", it: "italian", pt: "portuguese", ru: "russian", zh: "chinese", ja: "japanese", ko: "korean" };
@@ -1233,7 +1235,7 @@ const nbAI = (() => {
   }
 
   return {
-    DEFAULTS, FEATURES, SPEECH_RATES, CONFIG_ERRORS, isConfigError, feature, isLocal, needsPermission, origin, listModels, chat, helperHello, speak, sentences, quickStart, guessLang, mailText, threadText, prompt, promptTemplate, suspicious, base, stats: () => lastStats,
+    DEFAULTS, FEATURES, SPEECH_RATES, CONFIG_ERRORS, isConfigError, feature, isLocal, needsPermission, origin, listModels, chat, helperHello, helperCall, speak, sentences, quickStart, guessLang, mailText, threadText, prompt, promptTemplate, suspicious, base, stats: () => lastStats,
     TRANSLATE_LANGS, languageName, translatePrompt, eventsPrompt, parseItems, newMails, stripQuotedText, overview,
     writePrompt, digestPrompt, parseDigest, digestOverviewText, PHISH_VARIANT, phishPrompt, parsePhish, sortPrompt, parseSort, privateHost, phishLocal, textHash, shareId, mailKey, seal, unseal, shareGet, sharePut, shareRelease,
   };

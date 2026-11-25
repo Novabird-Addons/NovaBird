@@ -1,9 +1,9 @@
 // Sicherung des Helpers als eine Datei (Web-Oberfläche → Verbindung → Sicherung): Gruppen mit Kopplungscodes und Salzen,
-// Benutzer, Schlüssel externer Programme, Team-Kalender und auf Wunsch die geteilten Vektoren. So zieht der Helper auf einen
+// Benutzer, Schlüssel externer Programme, Team-Kalender, geteilte Adressbücher und auf Wunsch die geteilten Vektoren. So zieht der Helper auf einen
 // anderen PC um, ohne dass die PCs neu gekoppelt werden oder neu rechnen müssen.
 //  - Format: "NBBK1" + Salz (16) + Nonce (12) + AES-256-GCM(ZIP) + Prüfwert (16); Schlüssel = PBKDF2-SHA256(Passwort, Salz,
 //    600.000 Runden). Ohne das Passwort ist die Datei wertlos; die Vektoren darin sind zusätzlich je Mail verschlüsselt.
-//  - Wiederherstellen ersetzt Gruppen, Benutzer, Schlüssel und Kalender; die Vektoren nur, wenn die Sicherung welche enthält
+//  - Wiederherstellen ersetzt Gruppen, Benutzer, Schlüssel, Kalender und Adressbücher; die Vektoren nur, wenn die Sicherung welche enthält
 //    (sonst werden die vorhandenen gelöscht – sie passen nicht zu den Salzen der Sicherung). Alle Sitzungen enden.
 //  - Erst wird die ganze Datei geprüft (bekannte Einträge, Pfade bleiben im Zielordner, Größe ausgepackt höchstens 4 GB) und in
 //    Nebenordner ausgepackt; erst dann wird getauscht. Eine kaputte Sicherung ändert also nichts.
@@ -33,6 +33,7 @@ static class Backup
             foreach (var f in new[] { "users.json", "apikeys.json" })
                 if (File.Exists(Path.Combine(Settings.Dir, f))) zip.CreateEntryFromFile(Path.Combine(Settings.Dir, f), f);
             Calendars.Locked(() => Tree(zip, Calendars.Root, "calendars"));
+            AddressBooks.Locked(() => Tree(zip, AddressBooks.Root, "addressbooks"));
             if (vectors) Tree(zip, VectorStore.Root, "vectors"); // offene Dateien: nur lesend mitbenutzen
         }
         var plain = ms.ToArray();
@@ -97,16 +98,18 @@ static class Backup
         var known = new HashSet<string> { "manifest.json", "groups.json", "users.json", "apikeys.json" };
         if (zip.Entries.Count > MaxEntries || zip.Entries.Sum(e => e.Length) > MaxUnpacked) throw new ArgumentException(L.T("Sicherung zu groß", "Backup too large"));
         foreach (var e in zip.Entries)
-            if (!known.Contains(e.FullName) && !SafeIn(e.FullName, "calendars/") && !SafeIn(e.FullName, "vectors/"))
+            if (!known.Contains(e.FullName) && !SafeIn(e.FullName, "calendars/") && !SafeIn(e.FullName, "addressbooks/") && !SafeIn(e.FullName, "vectors/"))
                 throw new ArgumentException(L.T("Sicherung enthält unbekannte oder unsichere Einträge", "Backup contains unknown or unsafe entries") + ": " + e.FullName);
         foreach (var f in new[] { "users.json", "apikeys.json" })
             if (Read(f) is string text) JsonNode.Parse(text).AsArray();
         // Auspacken in Nebenordner
         var calNew = Calendars.Root + ".restore";
+        var abNew = AddressBooks.Root + ".restore";
         var vecNew = VectorStore.Root + ".restore";
-        foreach (var d in new[] { calNew, vecNew })
+        foreach (var d in new[] { calNew, abNew, vecNew })
             if (Directory.Exists(d)) Directory.Delete(d, true);
         Extract(zip, "calendars/", calNew);
+        Extract(zip, "addressbooks/", abNew);
         Extract(zip, "vectors/", vecNew);
 
         foreach (var f in new[] { "users.json", "apikeys.json" })
@@ -124,14 +127,21 @@ static class Backup
             if (Directory.Exists(calNew)) Directory.Move(calNew, Calendars.Root);
             calendars = Directory.Exists(Calendars.Root) ? Directory.GetDirectories(Calendars.Root).Length : 0;
         });
+        int addressBooks = 0;
+        AddressBooks.Locked(() =>
+        {
+            if (Directory.Exists(AddressBooks.Root)) Directory.Delete(AddressBooks.Root, true);
+            if (Directory.Exists(abNew)) Directory.Move(abNew, AddressBooks.Root);
+            addressBooks = Directory.Exists(AddressBooks.Root) ? Directory.GetDirectories(AddressBooks.Root).Length : 0;
+        });
         server.WithVectorsClosed(() =>
         {
             if (Directory.Exists(VectorStore.Root)) Directory.Delete(VectorStore.Root, true);
             if (Directory.Exists(vecNew)) Directory.Move(vecNew, VectorStore.Root);
             Groups.ImportPlain(groups);
         });
-        Log.Write($"Sicherung eingespielt (vom {(string)manifest["created"]}, {groups.Count} Gruppen, {calendars} Kalender{(vectors ? ", mit Vektoren" : "")})");
-        return new JsonObject { ["created"] = (string)manifest["created"], ["groups"] = groups.Count, ["calendars"] = calendars, ["vectors"] = vectors };
+        Log.Write($"Sicherung eingespielt (vom {(string)manifest["created"]}, {groups.Count} Gruppen, {calendars} Kalender, {addressBooks} Adressbücher{(vectors ? ", mit Vektoren" : "")})");
+        return new JsonObject { ["created"] = (string)manifest["created"], ["groups"] = groups.Count, ["calendars"] = calendars, ["addressBooks"] = addressBooks, ["vectors"] = vectors };
     }
 
     /// <summary>Eintrag liegt unter prefix, ohne „..“, ohne absolute Pfade, nur übliche Zeichen.</summary>

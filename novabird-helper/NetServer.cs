@@ -20,6 +20,8 @@
 //    (vorbereitete Mails) zwischen PCs derselben Gruppe teilen, verschlüsselt von Thunderbird (AiCache.cs)
 //  - op "tts" {text, lang:"german"|"english"|"french"|…, voice?} -> {wav: Base64, ms}: einen Satz vorlesen (Speech.cs); abgespielt wird
 //    auf dem PC mit Thunderbird
+//  - op "abInfo", "abPublish", "abUnpublish", "abState", "abPut", "abGet": Adressbücher zwischen PCs einer Gruppe teilen, mit
+//    PC-Schlüssel pcKey (AddressBooks.cs)
 //  - Kopplung ohne Code-Abtippen: POST /nbhelper/pair und Suche per Multicast, nur im Kopplungsmodus (Pairing.cs).
 //  - Reihenfolge: Suchanfragen vor Indexieren; beim Indexieren kommen die PCs abwechselnd dran (Scheduler). Auf Wunsch rechnet
 //    die CPU neben der Grafikkarte mit (Einstellung im Menü, Threads einstellbar).
@@ -143,6 +145,7 @@ sealed class NetServer
         Groups.Remove(groupId);
         LoadGroups();
         Forget(groupId);
+        AddressBooks.ForgetGroup(groupId);
         if (aiCaches.TryRemove(groupId, out var ai)) ai.Drop();
         try { if (Directory.Exists(VectorStore.FolderOf(groupId))) Directory.Delete(VectorStore.FolderOf(groupId), true); }
         catch (Exception e) { Log.Write("Vektoren der Gruppe: " + e.Message); }
@@ -454,6 +457,8 @@ sealed class NetServer
                 var (wav, ms) = await Speech.Say((string)msg["text"], (string)msg["lang"], (string)msg["voice"]);
                 return new JsonObject { ["wav"] = Convert.ToBase64String(wav), ["ms"] = Math.Round(ms) };
             }
+            case "abInfo" or "abPublish" or "abUnpublish" or "abState" or "abPut" or "abGet":
+                return AddressBooks.Handle((string)msg["op"], msg, client, group, Scheduler.Clients(), () => Scheduler.Touch(client, (string)msg["label"], null, group));
             default:
                 throw new InvalidOperationException("unbekannter Befehl");
         }
@@ -482,6 +487,7 @@ sealed class NetServer
             ["chatModels"] = new JsonArray(Chat.Available().Select(m => (JsonNode)m.Name).ToArray()),
             ["speech"] = Speech?.Info(),
             ["aiCache"] = true, // Thunderbird teilt vorbereitete KI-Ergebnisse (aiget/aiput)
+            ["addressBooks"] = 1, // Adressbücher teilen (ab*, AddressBooks.cs)
         };
     }
 

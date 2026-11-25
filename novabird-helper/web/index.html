@@ -43,6 +43,7 @@
         <a class="sub" href="#extern" data-page="extern" data-i18n="navExt"></a>
       </div>
       <a href="#kalender" data-page="kalender" data-i18n="navCalendar"></a>
+      <a href="#adressbuecher" data-page="adressbuecher" data-i18n="navAddressBooks"></a>
       <div class="group">
         <button type="button" class="group-title" aria-expanded="true" data-i18n="navSettings"></button>
         <a class="sub" href="#einstellungen" data-page="einstellungen" data-i18n="navGeneral"></a>
@@ -228,6 +229,20 @@
           <p class="muted" data-i18n="certText"></p>
           <code class="code small" id="cFinger"></code>
         </div>
+      </section>
+
+      <section data-section="adressbuecher" hidden>
+        <h1 data-i18n="abTitle"></h1>
+        <p class="muted" data-i18n="abIntro"></p>
+        <table class="grid" id="abTable"><thead><tr><th data-i18n="thAddressBook"></th><th data-i18n="thOwner"></th><th data-i18n="thShared"></th><th class="num" data-i18n="thContacts"></th><th data-i18n="thUpdated"></th><th></th></tr></thead><tbody id="abList"></tbody></table>
+        <p class="muted" id="abEmpty" data-i18n="abNone" hidden></p>
+        <h2 data-i18n="abHowTitle"></h2>
+        <ol class="steps">
+          <li data-i18n="abStep1"></li>
+          <li data-i18n="abStep2"></li>
+          <li data-i18n="abStep3"></li>
+        </ol>
+        <p class="muted" data-i18n="abNote"></p>
       </section>
 
       <section data-section="kalender" hidden>

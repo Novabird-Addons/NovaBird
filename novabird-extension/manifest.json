@@ -28,6 +28,7 @@
       "ai/spoken.js",
       "ai/speech.js",
       "options/defaults.js",
+      "contacts/abshare.js",
       "background.js"
     ]
   },
@@ -58,6 +59,20 @@
           ]
         ],
         "script": "experiments/settingsRedesign/implementation.js"
+      }
+    },
+    "sharedBooks": {
+      "schema": "experiments/sharedBooks/schema.json",
+      "parent": {
+        "scopes": [
+          "addon_parent"
+        ],
+        "paths": [
+          [
+            "sharedBooks"
+          ]
+        ],
+        "script": "experiments/sharedBooks/implementation.js"
       }
     },
     "novaContact": {

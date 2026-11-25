@@ -1,0 +1,77 @@
+[
+  {
+    "namespace": "sharedBooks",
+    "functions": [
+      {
+        "name": "books",
+        "type": "function",
+        "async": true,
+        "description": "Alle Adressbücher: [{uid, name, kind: local|collected|remote|mirror, mirror?, readOnly}]; collected = „Gesammelte Adressen“ oder Sammelziel (wird nie geteilt), mirror = Kopie eines geteilten Adressbuchs eines anderen PCs.",
+        "parameters": []
+      },
+      {
+        "name": "cards",
+        "type": "function",
+        "async": true,
+        "description": "Kontakte eines eigenen lokalen Adressbuchs oder einer Kopie als vCard zum Teilen (ohne Verteiler): {cards: [{uid, vcard}], skipped: [UID zu großer Kontakte]}.",
+        "parameters": [
+          {"name": "uid", "type": "string"},
+          {"name": "maxBytes", "type": "integer"}
+        ]
+      },
+      {
+        "name": "createMirror",
+        "type": "function",
+        "async": true,
+        "description": "Lokales Adressbuch als Kopie eines geteilten Adressbuchs anlegen (schreibgeschützt, wenn writable false); liefert seine UID.",
+        "parameters": [
+          {"name": "bookId", "type": "string"},
+          {"name": "name", "type": "string"},
+          {"name": "writable", "type": "boolean"}
+        ]
+      },
+      {
+        "name": "configureMirror",
+        "type": "function",
+        "async": true,
+        "description": "Name und Schreibschutz einer Kopie nachführen.",
+        "parameters": [
+          {"name": "uid", "type": "string"},
+          {"name": "name", "type": "string"},
+          {"name": "writable", "type": "boolean"}
+        ]
+      },
+      {
+        "name": "applyBook",
+        "type": "function",
+        "async": true,
+        "description": "Abgleich in ein Original oder eine Kopie schreiben: put [{uid, vcard}] anlegen oder an Ort und Stelle ersetzen, del [UID] löschen. Liefert {errors, cards: [{uid, vcard}]} mit den geschriebenen Kontakten, wie Thunderbird sie jetzt hat.",
+        "parameters": [
+          {"name": "uid", "type": "string"},
+          {"name": "put", "type": "array", "items": {"type": "object", "additionalProperties": {"type": "any"}}},
+          {"name": "del", "type": "array", "items": {"type": "string"}},
+          {"name": "maxBytes", "type": "integer"}
+        ]
+      },
+      {
+        "name": "removeMirror",
+        "type": "function",
+        "async": true,
+        "description": "Kopie eines geteilten Adressbuchs löschen (nur Kopien, nie eigene Adressbücher).",
+        "parameters": [
+          {"name": "uid", "type": "string"}
+        ]
+      }
+    ],
+    "events": [
+      {
+        "name": "onChanged",
+        "type": "function",
+        "description": "Ein lokales Adressbuch oder eine Kopie hat sich geändert (Kontakt angelegt, geändert, gelöscht; Adressbuch angelegt, umbenannt, gelöscht): UID des Adressbuchs oder leer.",
+        "parameters": [
+          {"name": "uid", "type": "string"}
+        ]
+      }
+    ]
+  }
+]

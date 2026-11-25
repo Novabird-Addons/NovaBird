@@ -212,6 +212,7 @@ async function refresh(full) {
     else if (page === "vorlesen") await showTts(full);
     else if (full && page === "verbindung") await showConnection();
     else if (full && page === "kalender") await showCalendars();
+    else if (full && page === "adressbuecher") await showAddressBooks();
     else if (full && page === "extern") await showExt();
     else if (full && page === "einstellungen") await showSettings();
     else if (full && page === "benutzer") await showUsers();
@@ -918,6 +919,22 @@ $("gAdd").addEventListener("submit", async e => {
     banner(err.message);
   }
 });
+
+// ---- Geteilte Adressbücher (anbieten und abonnieren geschieht in Thunderbird; hier Übersicht und Löschen) ------------------
+async function showAddressBooks() {
+  const { books } = await api("addressbooks");
+  $("abTable").hidden = books.length === 0;
+  $("abEmpty").hidden = books.length > 0;
+  $("abList").replaceChildren(...books.map(b => {
+    const shared = (b.access === "group" ? t("abAllPcs", b.group) : b.pcs.join(", ") || t("abNobody")) + " · " + t(b.write ? "abWriteAll" : "abWriteOwner");
+    const del = isAdmin() ? button(t("delete"), "link danger", async () => {
+      if (!confirm(t("confirmDeleteAb", b.name, b.owner))) return;
+      await api("addressbooks/remove", { id: b.id });
+      showAddressBooks();
+    }) : null;
+    return row([b.name, b.owner, shared, { text: N(b.count), cls: "num" }, b.updated ? new Date(b.updated).toLocaleString(locale()) : "–", actionsCell(del)]);
+  }));
+}
 
 // ---- Kalender ----------------------------------------------------------------------------------------------------------
 let calData = null;

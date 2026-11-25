@@ -344,6 +344,7 @@ sealed partial class WebServer
         var sch = core.Server.Scheduler;
         if (req.Path.StartsWith("/api/ext") && ExtManage(req) is Response ext) return ext;
         if ((req.Path.StartsWith("/api/calendars") || req.Path.StartsWith("/api/backup")) && await CalendarApi(req) is Response calApi) return calApi;
+        if (req.Path.StartsWith("/api/addressbooks") && AddressBookApi(req) is Response abApi) return abApi;
         switch (req.Method, req.Path)
         {
             // ---- ohne Anmeldung ----
@@ -466,6 +467,7 @@ sealed partial class WebServer
             case ("POST", "/api/pcs/forget"):
                 Need(req, admin: true);
                 sch.Forget((string)req.Json()["id"]);
+                AddressBooks.ForgetPc((string)req.Json()["id"]);
                 Audit(req, "PC aus der Liste entfernt");
                 return Response.Json(Pcs());
             case ("POST", "/api/settings"):

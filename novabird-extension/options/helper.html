@@ -20,7 +20,7 @@
     .state b { display: block; }
     .grid { display: grid; grid-template-columns: max-content minmax(0, 24em); gap: 0.45em 0.9em; align-items: center; margin: 0.4em 0 0.8em; }
     input[type=text], input[type=password], input[type=url] { font: inherit; padding: 0.3em 0.45em; }
-    button { font: inherit; padding: 0.3em 0.9em; }
+    button, select { font: inherit; padding: 0.3em 0.9em; }
     button.primary { background: AccentColor; color: AccentColorText; border: 1px solid AccentColor; border-radius: 0.3em; }
     .use { display: flex; gap: 0.6em; align-items: flex-start; padding: 0.6em 0; border-top: 1px solid var(--line); }
     .use:first-of-type { border-top: 0; }
@@ -43,6 +43,13 @@
     .off { opacity: 0.55; pointer-events: none; }
     details summary { cursor: pointer; color: var(--muted); }
     ul.cals { margin: 0.3em 0; padding-left: 1.2em; }
+    ul.books { list-style: none; margin: 0.3em 0 0.6em; padding: 0; }
+    ul.books li { display: flex; gap: 0.6em; align-items: flex-start; padding: 0.3em 0; }
+    ul.books li .body { flex: 1; }
+    ul.books li .note { margin: 0.1em 0 0; }
+    ul.books .pcs { display: flex; flex-wrap: wrap; gap: 0.2em 1em; }
+    #abBox.busy { opacity: 0.6; pointer-events: none; }
+    .abHead { font-weight: 600; margin: 0.6em 0 0.1em; }
     @media (prefers-color-scheme: dark) {
       .state.ok .dot { background: #4cc38a; }
       .state.bad .dot, .use .note.bad { color: #ef6b5b; background: none; }
@@ -87,6 +94,21 @@
           <input type="password" id="calPassword" autocomplete="current-password">
           <button type="button" id="calAdd"></button>
         </div>
+      </div>
+    </div>
+    <div class="use" id="abBox">
+      <span style="flex: none; width: 1.1em"></span>
+      <div class="body">
+        <span id="abLabel"></span>
+        <p class="note" id="abIntro"></p>
+        <div id="abBody" hidden>
+          <ul class="books" id="abOwn"></ul>
+          <p class="abHead" id="abOfferedLabel"></p>
+          <p class="note" id="abNoOffer" hidden></p>
+          <ul class="books" id="abOffered"></ul>
+          <div class="row"><button type="button" id="abSync"></button></div>
+        </div>
+        <p class="note" id="abNote"></p>
       </div>
     </div>
   </div>
